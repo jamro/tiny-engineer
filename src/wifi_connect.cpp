@@ -104,6 +104,7 @@ void runWifiTest() {
     Serial.println(WiFi.getHostname());
 
     if (MDNS.begin(WIFI_HOSTNAME)) {
+      MDNS.addService("http", "tcp", 80);
       Serial.println("mDNS: tiny-engineer.local");
     } else {
       Serial.println("ERROR: mDNS failed");

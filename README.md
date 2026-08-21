@@ -14,7 +14,7 @@ You keep using the tools you already use. The robot does not write the code. It 
 
 The point is not to fake intelligence. The point is to make the invisible stretch of inference visible, and a little bit funny.
 
-Later firmware will take live status over Wi-Fi (agent running, waiting, done) and map it to those gestures. Right now the repo is the hardware and a bring-up test: ESP32-C3, five servos, OLED, speaker, so the body can move, show a line of text, and make a sound.
+Later firmware will take live status over Wi-Fi (agent running, waiting, done) and map it to those gestures. Right now the repo is the hardware plus a small JSON HTTP server: ESP32-C3, five servos, OLED, speaker, so the body can move, show a line of text, and make a sound.
 
 ## Hardware
 
@@ -22,7 +22,7 @@ Controller is a **Waveshare ESP32-C3-Zero**. Servos, display, and audio wiring l
 
 ## Build and flash
 
-Arduino firmware, built with [PlatformIO](https://platformio.org/). `src/main.cpp` is the hardware bring-up test: onboard RGB, SSD1306 OLED, Wi-Fi, PCA9685 (5 servos), MAX98357A (I2S tone).
+Arduino firmware, built with [PlatformIO](https://platformio.org/). Boot inits onboard RGB, SSD1306 OLED, Wi-Fi, PCA9685 (5 servos), and MAX98357A (I2S), then serves JSON on port 80.
 
 Copy `include/secrets.h.example` to `include/secrets.h` and set `WIFI_SSID` / `WIFI_PASSWORD`. That file is gitignored.
 
@@ -54,6 +54,20 @@ pio device monitor --port /dev/cu.usbserial-XXXX
 ```
 
 Board and baud rate live in `platformio.ini`. The platform package is [pioarduino](https://github.com/pioarduino/platform-espressif32) (Arduino-ESP32 3.x) so `ESP_I2S` and `rgbLedWrite` are available.
+
+## HTTP API
+
+After Wi-Fi connects, the board listens on port 80 (`http://tiny-engineer.local/` or the IP on the OLED).
+
+```bash
+curl http://tiny-engineer.local/
+curl -X POST http://tiny-engineer.local/test/audio
+curl -X POST http://tiny-engineer.local/test/screen
+curl -X POST http://tiny-engineer.local/test/movement
+curl -X POST http://tiny-engineer.local/test/led
+```
+
+`GET /` is health JSON. Test routes are **POST** (they move hardware). Full reference: [`docs/api.md`](docs/api.md).
 
 ## License
 

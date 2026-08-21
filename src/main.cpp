@@ -8,6 +8,7 @@
 #include "audio.h"
 #include "pca9685_servos.h"
 #include "wifi_connect.h"
+#include "http_server.h"
 
 void setup() {
   Serial.begin(115200);
@@ -15,10 +16,10 @@ void setup() {
 
   Serial.println();
   Serial.println("==========================");
-  Serial.println("ROBOT HARDWARE TEST");
+  Serial.println("TINY ENGINEER");
   Serial.println("==========================");
 
-  runRgbTest();
+  setRgb(0, 32, 0);
 
   Serial.println();
   Serial.println("Starting I2C");
@@ -33,7 +34,6 @@ void setup() {
   delay(100);
 
   initOled();
-  runOledTest();
 
   runWifiTest();
 
@@ -98,15 +98,12 @@ void setup() {
 
   delay(500);
 
-  runSoundTest();
-
-  delay(500);
-
-  runServoTest();
+  Serial.println("Centering servos");
+  setAllServoAngles(SERVO_CENTER);
 
   Serial.println();
   Serial.println("==========================");
-  Serial.println("ALL TESTS FINISHED");
+  Serial.println("ROBOT READY");
   Serial.println("==========================");
 
   setRgb(
@@ -119,8 +116,10 @@ void setup() {
     "ROBOT READY",
     wifiConnected() ? wifiIpText() : "WIFI FAIL"
   );
+
+  startHttpServer();
 }
 
 void loop() {
-  delay(1000);
+  pollHttpServer();
 }
