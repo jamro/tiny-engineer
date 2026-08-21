@@ -7,6 +7,7 @@
 #include "oled.h"
 #include "pca9685_servos.h"
 #include "rgb.h"
+#include "servos.h"
 #include "wifi_connect.h"
 
 namespace {
@@ -173,7 +174,7 @@ void handleServoTest() {
   const int index = indexArg.toInt();
   const float angle = angleArg.toFloat();
 
-  if (index < 0 || index > 4) {
+  if (index < 0 || index >= SERVO_COUNT) {
     sendJson(
       400,
       "{\"ok\":false,\"error\":\"index out of range\"}"

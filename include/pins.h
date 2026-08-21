@@ -30,12 +30,6 @@ constexpr int SAMPLE_RATE = 44100;
 
 constexpr uint8_t PCA9685_ADDRESS = 0x40;
 
-constexpr int SERVO_COUNT = 5;
-
-constexpr int SERVO_CHANNELS[SERVO_COUNT] = {
-  0, 1, 2, 3, 4
-};
-
 constexpr int SERVO_STEP_MS = 20;
 
 // Smooth single-servo move rate for /test/servo
@@ -44,11 +38,6 @@ constexpr float SERVO_SPEED_DEG_S = 40.0f;
 // Servo pulse range
 constexpr int SERVO_MIN_US = 800;
 constexpr int SERVO_MAX_US = 2200;
-
-// Safe test range
-constexpr float SERVO_LOW    = 75.0f;
-constexpr float SERVO_CENTER = 90.0f;
-constexpr float SERVO_HIGH   = 105.0f;
 
 // =====================================================
 // OLED

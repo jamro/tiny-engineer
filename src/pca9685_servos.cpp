@@ -2,6 +2,7 @@
 #include <Adafruit_PWMServoDriver.h>
 
 #include "pins.h"
+#include "servos.h"
 #include "oled.h"
 #include "rgb.h"
 #include "pca9685_servos.h"
@@ -9,11 +10,11 @@
 Adafruit_PWMServoDriver pwm(PCA9685_ADDRESS);
 
 float lastServoAngles[SERVO_COUNT] = {
-  SERVO_CENTER,
-  SERVO_CENTER,
-  SERVO_CENTER,
-  SERVO_CENTER,
-  SERVO_CENTER
+  servoMid(SERVO_SPECS[SERVO_HEAD]),
+  servoMid(SERVO_SPECS[SERVO_NECK]),
+  servoMid(SERVO_SPECS[SERVO_HAND_LEFT]),
+  servoMid(SERVO_SPECS[SERVO_HAND_RIGHT]),
+  servoMid(SERVO_SPECS[SERVO_BODY])
 };
 
 bool pca9685Connected() {
@@ -66,23 +67,30 @@ uint16_t angleToPulse(float angle) {
   );
 }
 
+float clampServoAngle(int index, float angle) {
+  const ServoSpec& spec = SERVO_SPECS[index];
+  return constrain(angle, spec.min, spec.max);
+}
+
 bool setServoAngle(int index, float angle) {
   if (index < 0 || index >= SERVO_COUNT) {
     return false;
   }
 
+  angle = clampServoAngle(index, angle);
+
   const uint16_t pulse =
     angleToPulse(angle);
 
   Serial.print("Servo ");
-  Serial.print(index);
+  Serial.print(SERVO_SPECS[index].name);
   Serial.print(" -> ");
   Serial.print(angle);
   Serial.print(" deg, pulse: ");
   Serial.println(pulse);
 
   pwm.setPWM(
-    SERVO_CHANNELS[index],
+    SERVO_SPECS[index].channel,
     0,
     pulse
   );
@@ -95,6 +103,8 @@ bool moveServoSmooth(int index, float toAngle) {
   if (index < 0 || index >= SERVO_COUNT) {
     return false;
   }
+
+  toAngle = clampServoAngle(index, toAngle);
 
   const float fromAngle =
     lastServoAngles[index];
@@ -118,7 +128,7 @@ bool moveServoSmooth(int index, float toAngle) {
     );
 
   Serial.print("Servo ");
-  Serial.print(index);
+  Serial.print(SERVO_SPECS[index].name);
   Serial.print(" smooth ");
   Serial.print(fromAngle);
   Serial.print(" -> ");
@@ -140,7 +150,7 @@ bool moveServoSmooth(int index, float toAngle) {
       angleToPulse(angle);
 
     pwm.setPWM(
-      SERVO_CHANNELS[index],
+      SERVO_SPECS[index].channel,
       0,
       pulse
     );
@@ -152,21 +162,23 @@ bool moveServoSmooth(int index, float toAngle) {
 }
 
 void setAllServoAngles(float angle) {
-  const uint16_t pulse =
-    angleToPulse(angle);
-
   Serial.print("All servos -> ");
   Serial.print(angle);
-  Serial.print(" deg, pulse: ");
-  Serial.println(pulse);
+  Serial.println(" deg");
 
   for (int servo = 0; servo < SERVO_COUNT; servo++) {
-    pwm.setPWM(
-      SERVO_CHANNELS[servo],
-      0,
-      pulse
+    setServoAngle(servo, angle);
+  }
+}
+
+void centerAllServos() {
+  Serial.println("Centering servos to mid (min+max)/2");
+
+  for (int servo = 0; servo < SERVO_COUNT; servo++) {
+    setServoAngle(
+      servo,
+      servoMid(SERVO_SPECS[servo])
     );
-    lastServoAngles[servo] = angle;
   }
 }
 
@@ -195,7 +207,7 @@ void moveAllServosSmooth(
 
     for (int servo = 0; servo < SERVO_COUNT; servo++) {
       pwm.setPWM(
-        SERVO_CHANNELS[servo],
+        SERVO_SPECS[servo].channel,
         0,
         pulse
       );
@@ -212,7 +224,7 @@ void runServoTest() {
 
   Serial.println();
   Serial.println("==========================");
-  Serial.println("SERVO TEST - CHANNELS 0-4");
+  Serial.println("SERVO TEST - HEAD/NECK/HANDS/BODY");
   Serial.println("==========================");
 
   Serial.println(

@@ -99,7 +99,7 @@ void setup() {
   delay(500);
 
   Serial.println("Centering servos");
-  setAllServoAngles(SERVO_CENTER);
+  centerAllServos();
 
   Serial.println();
   Serial.println("==========================");
