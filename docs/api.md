@@ -158,8 +158,8 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 
 | `name` | Behavior |
 | --- | --- |
-| `none` | Hands freeze; no motion |
-| `typing` | Alternating hands (one at a time): right 40°↔50°, left 130°↔140° (inverted scales) |
+| `none` | All servos move to mid of their scales, then hold |
+| `typing` | Alternating hands (one at a time): first 10° of right limits, last 10° of left limits. Head nods on lowest 10° of head limits (`min`…`min+10`): slow down, fast up (follow text). Neck and body move to mid of their scales. |
 
 Wrong params return **400**:
 

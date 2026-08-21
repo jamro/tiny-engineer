@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "servos.h"
+
 class ServoWrapper {
 public:
   explicit ServoWrapper(int index);
@@ -10,7 +12,10 @@ public:
   bool moveTo(float target);
   void snapTo(float angle);
 
-  void setTarget(float target);
+  void setTarget(
+    float target,
+    float speedDegS = SERVO_MAX_SPEED_DEG_S
+  );
   void stop();
   void update();
   bool isMoving() const;
@@ -21,6 +26,7 @@ private:
   int index_;
   float angle_;
   float target_;
+  float speedDegS_;
   uint32_t lastUpdateMs_;
 
   void writeAngle(float angle, bool log);

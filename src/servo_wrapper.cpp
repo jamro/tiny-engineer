@@ -49,14 +49,20 @@ ServoWrapper::ServoWrapper(int index)
   : index_(index),
     angle_(servoMid(SERVO_SPECS[index])),
     target_(angle_),
+    speedDegS_(SERVO_MAX_SPEED_DEG_S),
     lastUpdateMs_(0) {}
 
 float ServoWrapper::angle() const {
   return angle_;
 }
 
-void ServoWrapper::setTarget(float target) {
+void ServoWrapper::setTarget(float target, float speedDegS) {
   target_ = clampServoAngle(index_, target);
+  speedDegS_ = constrain(
+    speedDegS,
+    0.0f,
+    SERVO_MAX_SPEED_DEG_S
+  );
 }
 
 void ServoWrapper::stop() {
@@ -88,7 +94,7 @@ void ServoWrapper::update() {
   lastUpdateMs_ = now;
 
   const float maxStep =
-    SERVO_MAX_SPEED_DEG_S * ((float)elapsed / 1000.0f);
+    speedDegS_ * ((float)elapsed / 1000.0f);
   const float delta = target_ - angle_;
   const float step =
     constrain(delta, -maxStep, maxStep);
