@@ -8,6 +8,14 @@
 
 Adafruit_PWMServoDriver pwm(PCA9685_ADDRESS);
 
+float lastServoAngles[SERVO_COUNT] = {
+  SERVO_CENTER,
+  SERVO_CENTER,
+  SERVO_CENTER,
+  SERVO_CENTER,
+  SERVO_CENTER
+};
+
 bool pca9685Connected() {
   return i2cDeviceConnected(PCA9685_ADDRESS);
 }
@@ -58,6 +66,91 @@ uint16_t angleToPulse(float angle) {
   );
 }
 
+bool setServoAngle(int index, float angle) {
+  if (index < 0 || index >= SERVO_COUNT) {
+    return false;
+  }
+
+  const uint16_t pulse =
+    angleToPulse(angle);
+
+  Serial.print("Servo ");
+  Serial.print(index);
+  Serial.print(" -> ");
+  Serial.print(angle);
+  Serial.print(" deg, pulse: ");
+  Serial.println(pulse);
+
+  pwm.setPWM(
+    SERVO_CHANNELS[index],
+    0,
+    pulse
+  );
+
+  lastServoAngles[index] = angle;
+  return true;
+}
+
+bool moveServoSmooth(int index, float toAngle) {
+  if (index < 0 || index >= SERVO_COUNT) {
+    return false;
+  }
+
+  const float fromAngle =
+    lastServoAngles[index];
+  const float delta =
+    fabsf(toAngle - fromAngle);
+
+  if (delta < 0.01f) {
+    return setServoAngle(index, toAngle);
+  }
+
+  const int durationMs =
+    (int)(
+      (delta / SERVO_SPEED_DEG_S) *
+      1000.0f
+    );
+
+  const int steps =
+    max(
+      1,
+      durationMs / SERVO_STEP_MS
+    );
+
+  Serial.print("Servo ");
+  Serial.print(index);
+  Serial.print(" smooth ");
+  Serial.print(fromAngle);
+  Serial.print(" -> ");
+  Serial.print(toAngle);
+  Serial.print(" deg (");
+  Serial.print(SERVO_SPEED_DEG_S);
+  Serial.println(" deg/s)");
+
+  for (int step = 1; step <= steps; step++) {
+    const float progress =
+      (float)step / (float)steps;
+
+    const float angle =
+      fromAngle +
+      (toAngle - fromAngle) *
+      progress;
+
+    const uint16_t pulse =
+      angleToPulse(angle);
+
+    pwm.setPWM(
+      SERVO_CHANNELS[index],
+      0,
+      pulse
+    );
+
+    delay(SERVO_STEP_MS);
+  }
+
+  return setServoAngle(index, toAngle);
+}
+
 void setAllServoAngles(float angle) {
   const uint16_t pulse =
     angleToPulse(angle);
@@ -73,6 +166,7 @@ void setAllServoAngles(float angle) {
       0,
       pulse
     );
+    lastServoAngles[servo] = angle;
   }
 }
 

@@ -92,11 +92,132 @@ void handleLedTest() {
   sendJson(200, "{\"ok\":true,\"test\":\"led\"}");
 }
 
+bool isDigitsOnly(const String& s) {
+  if (s.length() == 0) {
+    return false;
+  }
+
+  for (unsigned i = 0; i < s.length(); i++) {
+    if (s[i] < '0' || s[i] > '9') {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool isValidFloatArg(const String& s) {
+  if (s.length() == 0) {
+    return false;
+  }
+
+  unsigned i = 0;
+
+  if (s[0] == '+' || s[0] == '-') {
+    i = 1;
+    if (i >= s.length()) {
+      return false;
+    }
+  }
+
+  bool sawDigit = false;
+  bool sawDot = false;
+
+  for (; i < s.length(); i++) {
+    const char c = s[i];
+
+    if (c >= '0' && c <= '9') {
+      sawDigit = true;
+      continue;
+    }
+
+    if (c == '.' && !sawDot) {
+      sawDot = true;
+      continue;
+    }
+
+    return false;
+  }
+
+  return sawDigit;
+}
+
+void handleServoTest() {
+  if (!server.hasArg("index") || !server.hasArg("angle")) {
+    sendJson(
+      400,
+      "{\"ok\":false,\"error\":\"missing index or angle\"}"
+    );
+    return;
+  }
+
+  const String indexArg = server.arg("index");
+  const String angleArg = server.arg("angle");
+
+  if (!isDigitsOnly(indexArg)) {
+    sendJson(
+      400,
+      "{\"ok\":false,\"error\":\"invalid index\"}"
+    );
+    return;
+  }
+
+  if (!isValidFloatArg(angleArg)) {
+    sendJson(
+      400,
+      "{\"ok\":false,\"error\":\"invalid angle\"}"
+    );
+    return;
+  }
+
+  const int index = indexArg.toInt();
+  const float angle = angleArg.toFloat();
+
+  if (index < 0 || index > 4) {
+    sendJson(
+      400,
+      "{\"ok\":false,\"error\":\"index out of range\"}"
+    );
+    return;
+  }
+
+  if (angle < 0.0f || angle > 180.0f) {
+    sendJson(
+      400,
+      "{\"ok\":false,\"error\":\"angle out of range\"}"
+    );
+    return;
+  }
+
+  if (!moveServoSmooth(index, angle)) {
+    sendJson(
+      400,
+      "{\"ok\":false,\"error\":\"index out of range\"}"
+    );
+    return;
+  }
+
+  restoreReadyScreen();
+
+  char body[96];
+
+  snprintf(
+    body,
+    sizeof(body),
+    "{\"ok\":true,\"test\":\"servo\",\"index\":%d,\"angle\":%g}",
+    index,
+    (double)angle
+  );
+
+  sendJson(200, body);
+}
+
 bool isTestPath(const String& uri) {
   return uri == "/test/audio" ||
     uri == "/test/screen" ||
     uri == "/test/movement" ||
-    uri == "/test/led";
+    uri == "/test/led" ||
+    uri == "/test/servo";
 }
 
 void handleNotFound() {
@@ -127,6 +248,7 @@ void startHttpServer() {
   server.on("/test/screen", HTTP_POST, handleScreenTest);
   server.on("/test/movement", HTTP_POST, handleMovementTest);
   server.on("/test/led", HTTP_POST, handleLedTest);
+  server.on("/test/servo", HTTP_POST, handleServoTest);
   server.onNotFound(handleNotFound);
 
   server.begin();

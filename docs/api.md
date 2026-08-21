@@ -94,10 +94,40 @@ curl -X POST http://tiny-engineer.local/test/led
 { "ok": true, "test": "led" }
 ```
 
+### `POST /test/servo`
+
+Smoothly move one servo to an angle at **~40°/s** (`SERVO_SPEED_DEG_S`) from its last commanded position. Query params required. Handler blocks until the move finishes.
+
+| Param | Type | Range |
+| --- | --- | --- |
+| `index` | integer | `0`–`4` |
+| `angle` | number | `0`–`180` |
+
+```bash
+curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
+```
+
+```json
+{ "ok": true, "test": "servo", "index": 0, "angle": 90 }
+```
+
+Wrong params return **400** and do not move any servo:
+
+| `error` | When |
+| --- | --- |
+| `missing index or angle` | Either query param absent |
+| `invalid index` | Non-integer `index` (e.g. `abc`, `1x`) |
+| `index out of range` | `index` outside `0`–`4` |
+| `invalid angle` | Non-numeric `angle` |
+| `angle out of range` | `angle` outside `0`–`180` |
+
+Assembled robot: prefer the safe band in [servos.md](hardware/servos.md); this route allows full electrical travel for bench bring-up.
+
 ## Errors
 
 | Status | Body | When |
 | --- | --- | --- |
+| `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo` params (see table above) |
 | `404` | `{"ok":false,"error":"not found"}` | Unknown path |
 | `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*` path (GET instead of POST) |
 

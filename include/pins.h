@@ -38,6 +38,9 @@ constexpr int SERVO_CHANNELS[SERVO_COUNT] = {
 
 constexpr int SERVO_STEP_MS = 20;
 
+// Smooth single-servo move rate for /test/servo
+constexpr float SERVO_SPEED_DEG_S = 40.0f;
+
 // Servo pulse range
 constexpr int SERVO_MIN_US = 800;
 constexpr int SERVO_MAX_US = 2200;

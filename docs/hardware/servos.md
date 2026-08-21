@@ -40,6 +40,7 @@ Verified in [`include/pins.h`](../../include/pins.h):
 | `SERVO_CENTER` | **90.0** | Neutral / start / end |
 | `SERVO_HIGH` | **105.0** | Test upper angle |
 | `SERVO_STEP_MS` | 20 | Interpolation step |
+| `SERVO_SPEED_DEG_S` | **40.0** | Single-servo smooth rate for `POST /test/servo` |
 
 Bring-up motion (`runServoTest`):
 

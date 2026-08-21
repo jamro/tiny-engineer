@@ -64,6 +64,9 @@ curl -X POST http://tiny-engineer.local/test/movement
 
 # Onboard WS2812 R → G → B → white → off, then back to green
 curl -X POST http://tiny-engineer.local/test/led
+
+# One servo smooth move to angle (~40°/s; index 0–4, angle 0–180)
+curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 ```
 
 | Method | Path | Body |
@@ -73,8 +76,9 @@ curl -X POST http://tiny-engineer.local/test/led
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |
 | `POST` | `/test/led` | `{"ok":true,"test":"led"}` after `runRgbTest()` |
+| `POST` | `/test/servo?index=&angle=` | `{"ok":true,"test":"servo","index":N,"angle":A}` after `moveServoSmooth()` |
 
-GET on a test path returns `405`. Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
+GET on a test path returns `405`. Bad `/test/servo` params return `400`. Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
 
 No HTTP if boot Wi-Fi failed (`HTTP: skipped (no wifi)`).
 
