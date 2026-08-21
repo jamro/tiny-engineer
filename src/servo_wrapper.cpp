@@ -47,10 +47,66 @@ ServoWrapper& servoAt(int index) {
 
 ServoWrapper::ServoWrapper(int index)
   : index_(index),
-    angle_(servoMid(SERVO_SPECS[index])) {}
+    angle_(servoMid(SERVO_SPECS[index])),
+    target_(angle_),
+    lastUpdateMs_(0) {}
 
 float ServoWrapper::angle() const {
   return angle_;
+}
+
+void ServoWrapper::setTarget(float target) {
+  target_ = clampServoAngle(index_, target);
+}
+
+void ServoWrapper::stop() {
+  target_ = angle_;
+}
+
+bool ServoWrapper::isMoving() const {
+  return fabsf(target_ - angle_) >= 0.01f;
+}
+
+void ServoWrapper::update() {
+  if (!isMoving()) {
+    return;
+  }
+
+  const uint32_t now = millis();
+
+  if (lastUpdateMs_ == 0) {
+    lastUpdateMs_ = now;
+    return;
+  }
+
+  const uint32_t elapsed = now - lastUpdateMs_;
+
+  if (elapsed < (uint32_t)SERVO_STEP_MS) {
+    return;
+  }
+
+  lastUpdateMs_ = now;
+
+  const float maxStep =
+    SERVO_MAX_SPEED_DEG_S * ((float)elapsed / 1000.0f);
+  const float delta = target_ - angle_;
+  const float step =
+    constrain(delta, -maxStep, maxStep);
+  const float next = angle_ + step;
+
+  if (fabsf(target_ - next) < 0.01f) {
+    writeAngle(target_, false);
+    lastUpdateMs_ = 0;
+    return;
+  }
+
+  writeAngle(next, false);
+}
+
+void updateAllServos() {
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    g_servos[i].update();
+  }
 }
 
 void ServoWrapper::writeAngle(float angle, bool log) {
@@ -78,16 +134,21 @@ void ServoWrapper::writeAngle(float angle, bool log) {
 
 void ServoWrapper::snapTo(float angle) {
   writeAngle(angle, true);
+  target_ = angle_;
+  lastUpdateMs_ = 0;
 }
 
 bool ServoWrapper::moveTo(float target) {
   target = clampServoAngle(index_, target);
+  stop();
 
   const float fromAngle = angle_;
   const float delta = fabsf(target - fromAngle);
 
   if (delta < 0.01f) {
     writeAngle(target, true);
+    target_ = angle_;
+    lastUpdateMs_ = 0;
     return true;
   }
 
@@ -121,6 +182,8 @@ bool ServoWrapper::moveTo(float target) {
   }
 
   writeAngle(target, true);
+  target_ = angle_;
+  lastUpdateMs_ = 0;
   return true;
 }
 
@@ -141,6 +204,8 @@ void servoMoveAllSmooth(float toAngle) {
   if (maxDelta < 0.01f) {
     for (int i = 0; i < SERVO_COUNT; i++) {
       g_servos[i].writeAngle(targets[i], true);
+      g_servos[i].target_ = g_servos[i].angle_;
+      g_servos[i].lastUpdateMs_ = 0;
     }
     return;
   }
@@ -175,5 +240,7 @@ void servoMoveAllSmooth(float toAngle) {
 
   for (int i = 0; i < SERVO_COUNT; i++) {
     g_servos[i].writeAngle(targets[i], true);
+    g_servos[i].target_ = g_servos[i].angle_;
+    g_servos[i].lastUpdateMs_ = 0;
   }
 }

@@ -123,18 +123,65 @@ Wrong params return **400** and do not move any servo:
 
 Assembled robot: prefer the safe band in [servos.md](hardware/servos.md); this route allows full electrical travel for bench bring-up.
 
+### `GET /anim`
+
+Current animation name. Default at boot: `none`. No hardware side effects.
+
+```bash
+curl http://tiny-engineer.local/anim
+```
+
+```json
+{ "ok": true, "animation": "none" }
+```
+
+| Field | Meaning |
+| --- | --- |
+| `animation` | `none` or `typing` |
+
+### `POST /anim`
+
+Switch animation immediately. Current motion stops; robot transitions to the new animation. Hand moves use speed-limited servo wrappers.
+
+| Param | Type | Values |
+| --- | --- | --- |
+| `name` | string | `none`, `typing` |
+
+```bash
+curl -X POST "http://tiny-engineer.local/anim?name=typing"
+curl -X POST "http://tiny-engineer.local/anim?name=none"
+```
+
+```json
+{ "ok": true, "animation": "typing" }
+```
+
+| `name` | Behavior |
+| --- | --- |
+| `none` | Hands freeze; no motion |
+| `typing` | Alternating hands (one at a time): right 40°↔50°, left 130°↔140° (inverted scales) |
+
+Wrong params return **400**:
+
+| `error` | When |
+| --- | --- |
+| `missing name` | Query param `name` absent |
+| `unknown animation` | `name` not `none` or `typing` |
+
 ## Errors
 
 | Status | Body | When |
 | --- | --- | --- |
-| `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo` params (see table above) |
+| `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo` or `/anim` params (see tables above) |
 | `404` | `{"ok":false,"error":"not found"}` | Unknown path |
-| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*` path (GET instead of POST) |
+| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*` or `/anim` path |
 
-Test routes are **POST**. GET/prefetch would move hardware.
+Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET** (read) and **POST** (set).
 
 ## Behaviour
 
-Handlers **block** until the test finishes. The client waits. After each test, OLED returns to `ROBOT READY` plus IP (or `WIFI FAIL`).
+Test handlers **block** until the test finishes. The client waits. After each test, OLED returns to `ROBOT READY` plus IP (or `WIFI FAIL`).
+
+`/anim` responses return immediately; typing motion runs in the main loop via non-blocking servo updates.
 
 One request at a time — the Arduino `WebServer` is single-threaded.

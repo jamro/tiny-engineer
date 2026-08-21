@@ -6,6 +6,7 @@
 #include "rgb.h"
 #include "oled.h"
 #include "audio.h"
+#include "animation.h"
 #include "pca9685_servos.h"
 #include "wifi_connect.h"
 #include "http_server.h"
@@ -122,4 +123,5 @@ void setup() {
 
 void loop() {
   pollHttpServer();
+  updateAnimation();
 }

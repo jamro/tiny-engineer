@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 
+#include "animation.h"
 #include "audio.h"
 #include "http_server.h"
 #include "oled.h"
@@ -213,6 +214,46 @@ void handleServoTest() {
   sendJson(200, body);
 }
 
+void sendAnimationJson() {
+  char body[64];
+
+  snprintf(
+    body,
+    sizeof(body),
+    "{\"ok\":true,\"animation\":\"%s\"}",
+    animationName(getAnimation())
+  );
+
+  sendJson(200, body);
+}
+
+void handleAnimGet() {
+  sendAnimationJson();
+}
+
+void handleAnimPost() {
+  if (!server.hasArg("name")) {
+    sendJson(
+      400,
+      "{\"ok\":false,\"error\":\"missing name\"}"
+    );
+    return;
+  }
+
+  AnimationId id;
+
+  if (!parseAnimationName(server.arg("name").c_str(), id)) {
+    sendJson(
+      400,
+      "{\"ok\":false,\"error\":\"unknown animation\"}"
+    );
+    return;
+  }
+
+  setAnimation(id);
+  sendAnimationJson();
+}
+
 bool isTestPath(const String& uri) {
   return uri == "/test/audio" ||
     uri == "/test/screen" ||
@@ -221,8 +262,12 @@ bool isTestPath(const String& uri) {
     uri == "/test/servo";
 }
 
+bool isAnimPath(const String& uri) {
+  return uri == "/anim";
+}
+
 void handleNotFound() {
-  if (isTestPath(server.uri())) {
+  if (isTestPath(server.uri()) || isAnimPath(server.uri())) {
     sendJson(
       405,
       "{\"ok\":false,\"error\":\"method not allowed\"}"
@@ -245,6 +290,8 @@ void startHttpServer() {
   }
 
   server.on("/", HTTP_GET, handleHealth);
+  server.on("/anim", HTTP_GET, handleAnimGet);
+  server.on("/anim", HTTP_POST, handleAnimPost);
   server.on("/test/audio", HTTP_POST, handleAudioTest);
   server.on("/test/screen", HTTP_POST, handleScreenTest);
   server.on("/test/movement", HTTP_POST, handleMovementTest);
