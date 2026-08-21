@@ -2,7 +2,7 @@
 
 Arduino firmware for **ESP32-C3 DevKitM-1**, built with [PlatformIO](https://platformio.org/).
 
-`src/main.cpp` blinks the onboard LED.
+`src/main.cpp` runs a hardware bring-up test: onboard RGB, SSD1306 OLED, PCA9685 (5 servos), and MAX98357A (I2S tone).
 
 ## Prerequisites
 
@@ -33,4 +33,4 @@ pio run -t upload --upload-port /dev/cu.usbserial-XXXX
 pio device monitor --port /dev/cu.usbserial-XXXX
 ```
 
-Board and baud rate live in `platformio.ini`.
+Board and baud rate live in `platformio.ini`. The platform package is [pioarduino](https://github.com/pioarduino/platform-espressif32) (Arduino-ESP32 3.x) so `ESP_I2S` and `rgbLedWrite` are available.

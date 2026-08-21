@@ -1,0 +1,14 @@
+---
+description: After significant code changes, build with pio run to confirm the firmware compiles.
+alwaysApply: true
+---
+
+# Compile after significant changes
+
+After any significant code change, run `pio run` from the project root and fix failures before considering the work done.
+
+Significant: logic, types, APIs, headers, firmware source (`src/`, `include/`, `lib/`), or `platformio.ini`.
+
+Skip: comments-only, docs-only, or tiny formatting.
+
+Do not flash (`pio run -t upload`) unless asked.
