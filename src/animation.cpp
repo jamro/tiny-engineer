@@ -8,6 +8,11 @@
 namespace {
 
 AnimationId g_animation = AnimationId::None;
+uint32_t g_animationStartedMs = 0;
+bool g_hasPendingAnimation = false;
+AnimationId g_pendingAnimation = AnimationId::None;
+
+constexpr uint32_t MIN_ANIMATION_HOLD_MS = 1000;
 
 // Right/left scales inverted: same numeric direction = opposite physical.
 // Hands alternate with randomness (pauses, hand choice, speed, stroke depth).
@@ -202,10 +207,10 @@ void beginNextSway() {
   commandBodyNeckSway();
 }
 
-}  // namespace
-
-void setAnimation(AnimationId id) {
+void applyAnimation(AnimationId id) {
   g_animation = id;
+  g_animationStartedMs = millis();
+  g_hasPendingAnimation = false;
 
   switch (id) {
     case AnimationId::Typing:
@@ -216,6 +221,27 @@ void setAnimation(AnimationId id) {
       startNone();
       break;
   }
+}
+
+bool animationHoldElapsed() {
+  return (millis() - g_animationStartedMs) >= MIN_ANIMATION_HOLD_MS;
+}
+
+}  // namespace
+
+void setAnimation(AnimationId id) {
+  if (id == g_animation) {
+    g_hasPendingAnimation = false;
+    return;
+  }
+
+  if (animationHoldElapsed()) {
+    applyAnimation(id);
+    return;
+  }
+
+  g_pendingAnimation = id;
+  g_hasPendingAnimation = true;
 }
 
 AnimationId getAnimation() {
@@ -251,6 +277,10 @@ bool parseAnimationName(const char* name, AnimationId& out) {
 }
 
 void updateAnimation() {
+  if (g_hasPendingAnimation && animationHoldElapsed()) {
+    applyAnimation(g_pendingAnimation);
+  }
+
   if (g_animation == AnimationId::None) {
     updateAllServos();
     return;

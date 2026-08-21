@@ -141,7 +141,7 @@ curl http://tiny-engineer.local/anim
 
 ### `POST /anim`
 
-Switch animation immediately. Current motion stops; robot transitions to the new animation. Hand moves use speed-limited servo wrappers.
+Request an animation switch. Each animation runs at least **1s**; if the current one is shorter than that, the switch waits until the hold ends. Rapid posts during the hold keep only the **latest** request. Response `animation` is the currently playing name (may still be the old one until the hold ends). Hand moves use speed-limited servo wrappers.
 
 | Param | Type | Values |
 | --- | --- | --- |
@@ -182,6 +182,6 @@ Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET
 
 Test handlers **block** until the test finishes. The client waits. After each test, OLED returns to `ROBOT READY` plus IP (or `WIFI FAIL`).
 
-`/anim` responses return immediately; typing motion runs in the main loop via non-blocking servo updates.
+`/anim` responses return immediately; typing motion runs in the main loop via non-blocking servo updates. Animation switches may defer up to 1s so the active animation holds its minimum duration; only the latest pending request is applied.
 
 One request at a time — the Arduino `WebServer` is single-threaded.
