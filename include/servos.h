@@ -37,4 +37,4 @@ constexpr float SERVO_CENTER = 90.0f;
 constexpr float SERVO_HIGH   = 105.0f;
 
 // Max commanded slew rate for all smooth moves
-constexpr float SERVO_MAX_SPEED_DEG_S = 90.0f;
+constexpr float SERVO_MAX_SPEED_DEG_S = 220.0f;

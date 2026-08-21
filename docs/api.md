@@ -158,8 +158,8 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 
 | `name` | Behavior |
 | --- | --- |
-| `none` | All servos move to mid of their scales, then hold |
-| `typing` | Alternating hands (one at a time): first 10° of right limits, last 10° of left limits. Head nods on lowest 10° of head limits (`min`…`min+10`): slow down, fast up (follow text). Neck and body move to mid of their scales. |
+| `none` | Head/neck/body → mid; hands down (right `min`, left `max` — inverted scales), then hold |
+| `typing` | Alternating hands with randomness (15° band from hand limits). Head nods slowly on lowest 10° of head limits. Body sways ±5° around mid; neck counters opposite so head stays put. |
 
 Wrong params return **400**:
 
