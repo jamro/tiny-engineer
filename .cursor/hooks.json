@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": ".cursor/hooks/anim.sh typing",
+        "timeout": 2
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/anim.sh none",
+        "timeout": 2
+      }
+    ]
+  }
+}
