@@ -70,6 +70,10 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 
 `GET /` is health JSON. Test routes are **POST** (they move hardware). Full reference: [`docs/api.md`](docs/api.md).
 
+## Cursor hooks
+
+Open this repo in Cursor with the robot on Wi-Fi. Project hooks under `.cursor/` POST to `/anim` so the desk robot types, reads, thinks, then idles with the agent. Setup and event map: [`docs/hooks.md`](docs/hooks.md).
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

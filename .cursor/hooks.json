@@ -1,7 +1,61 @@
 {
   "version": 1,
   "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/anim.sh reading",
+        "timeout": 2
+      }
+    ],
     "beforeSubmitPrompt": [
+      {
+        "command": ".cursor/hooks/anim.sh reading",
+        "timeout": 2
+      }
+    ],
+    "afterAgentThought": [
+      {
+        "command": ".cursor/hooks/anim.sh thinking",
+        "timeout": 2
+      }
+    ],
+    "preCompact": [
+      {
+        "command": ".cursor/hooks/anim.sh thinking",
+        "timeout": 2
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": ".cursor/hooks/anim.sh reading",
+        "matcher": "Read",
+        "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/anim.sh typing",
+        "matcher": "Write|StrReplace|EditNotebook|Delete|Shell|Task|Grep|Glob|WebSearch|WebFetch|CallMcpTool|TodoWrite|AwaitShell|GenerateImage",
+        "timeout": 2
+      }
+    ],
+    "beforeReadFile": [
+      {
+        "command": ".cursor/hooks/anim.sh reading",
+        "timeout": 2
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/anim.sh typing",
+        "timeout": 2
+      }
+    ],
+    "subagentStart": [
+      {
+        "command": ".cursor/hooks/anim.sh typing",
+        "timeout": 2
+      }
+    ],
+    "afterFileEdit": [
       {
         "command": ".cursor/hooks/anim.sh typing",
         "timeout": 2

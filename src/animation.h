@@ -3,7 +3,8 @@
 enum class AnimationId {
   None,
   Typing,
-  Reading
+  Reading,
+  Thinking
 };
 
 void setAnimation(AnimationId id);

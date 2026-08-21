@@ -35,6 +35,8 @@ constexpr float TYPING_HEAD_BAND_DEG = 10.0f;
 constexpr float TYPING_SWAY_DEG = 5.0f;
 constexpr float READING_HEAD_BAND_DEG = 10.0f;
 constexpr float READING_NECK_SWAY_DEG = 10.0f;
+constexpr float THINKING_NECK_SWAY_DEG = 25.0f;
+constexpr float THINKING_HEAD_DEG = 130.0f;
 
 constexpr float TYPING_RIGHT_LOW =
   SERVO_SPECS[SERVO_HAND_RIGHT].min;
@@ -61,6 +63,13 @@ constexpr float READING_HEAD_HIGH =
   SERVO_SPECS[SERVO_HEAD].min + READING_HEAD_BAND_DEG;
 constexpr float READING_NECK_MID =
   servoMid(SERVO_SPECS[SERVO_NECK]);
+
+constexpr float THINKING_NECK_MID =
+  servoMid(SERVO_SPECS[SERVO_NECK]);
+constexpr float THINKING_NECK_LOW =
+  THINKING_NECK_MID - THINKING_NECK_SWAY_DEG;
+constexpr float THINKING_NECK_HIGH =
+  THINKING_NECK_MID + THINKING_NECK_SWAY_DEG;
 
 float randUnit() {
   return (float)(esp_random() & 0xFFFFu) / 65535.0f;
@@ -282,6 +291,29 @@ void startNone() {
   g_scrollIdleUntilMs = 0;
 }
 
+void commandThinkingNeck() {
+  const float speedDegS = 4.0f + 4.0f * randUnit();
+  const float target = g_neckAngleHigh
+    ? THINKING_NECK_HIGH
+    : THINKING_NECK_LOW;
+  servoAt(SERVO_NECK).setTarget(target, speedDegS);
+}
+
+void startThinking() {
+  stopAnimServos();
+  parkNonePose();
+  g_scrollPressesLeft = 0;
+  g_scrollPressing = false;
+  g_handPauseUntilMs = 0;
+  g_headPauseUntilMs = 0;
+  g_swayPauseUntilMs = 0;
+  g_scrollIdleUntilMs = 0;
+  g_neckAngleHigh = true;
+  g_neckPauseUntilMs = 0;
+  servoAt(SERVO_HEAD).setTarget(THINKING_HEAD_DEG);
+  commandThinkingNeck();
+}
+
 void advanceTypingStep() {
   // Near-zero gaps; rare tiny breath.
   const uint32_t pauseMs = randChance(8)
@@ -349,6 +381,16 @@ void beginNextReadingNeck() {
   commandReadingNeck();
 }
 
+void advanceThinkingNeckStep() {
+  g_neckAngleHigh = !g_neckAngleHigh;
+  g_neckPauseUntilMs = millis() + randRangeMs(200, 600);
+}
+
+void beginNextThinkingNeck() {
+  g_neckPauseUntilMs = 0;
+  commandThinkingNeck();
+}
+
 void applyAnimation(AnimationId id) {
   g_animation = id;
   g_animationStartedMs = millis();
@@ -360,6 +402,9 @@ void applyAnimation(AnimationId id) {
       break;
     case AnimationId::Reading:
       startReading();
+      break;
+    case AnimationId::Thinking:
+      startThinking();
       break;
     case AnimationId::None:
     default:
@@ -399,6 +444,8 @@ const char* animationName(AnimationId id) {
       return "typing";
     case AnimationId::Reading:
       return "reading";
+    case AnimationId::Thinking:
+      return "thinking";
     case AnimationId::None:
     default:
       return "none";
@@ -422,6 +469,11 @@ bool parseAnimationName(const char* name, AnimationId& out) {
 
   if (strcmp(name, "reading") == 0) {
     out = AnimationId::Reading;
+    return true;
+  }
+
+  if (strcmp(name, "thinking") == 0) {
+    out = AnimationId::Thinking;
     return true;
   }
 
@@ -526,6 +578,21 @@ void updateReading(uint32_t now) {
   }
 }
 
+void updateThinking(uint32_t now) {
+  ServoWrapper& neck = servoAt(SERVO_NECK);
+
+  // Hands/body/head stay in thinking park; tick all so moves finish.
+  updateAllServos();
+
+  if (g_neckPauseUntilMs != 0) {
+    if (now >= g_neckPauseUntilMs) {
+      beginNextThinkingNeck();
+    }
+  } else if (!neck.isMoving()) {
+    advanceThinkingNeckStep();
+  }
+}
+
 void updateAnimation() {
   if (g_hasPendingAnimation && animationHoldElapsed()) {
     applyAnimation(g_pendingAnimation);
@@ -545,5 +612,10 @@ void updateAnimation() {
 
   if (g_animation == AnimationId::Reading) {
     updateReading(now);
+    return;
+  }
+
+  if (g_animation == AnimationId::Thinking) {
+    updateThinking(now);
   }
 }
