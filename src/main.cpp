@@ -7,6 +7,7 @@
 #include "oled.h"
 #include "audio.h"
 #include "pca9685_servos.h"
+#include "wifi_connect.h"
 
 void setup() {
   Serial.begin(115200);
@@ -33,6 +34,8 @@ void setup() {
 
   initOled();
   runOledTest();
+
+  runWifiTest();
 
   showOledText(
     "PCA9685",
@@ -114,7 +117,7 @@ void setup() {
 
   showOledText(
     "ROBOT READY",
-    "All tests OK"
+    wifiConnected() ? wifiIpText() : "WIFI FAIL"
   );
 }
 

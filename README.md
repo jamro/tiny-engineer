@@ -22,7 +22,9 @@ Controller is a **Waveshare ESP32-C3-Zero**. Servos, display, and audio wiring l
 
 ## Build and flash
 
-Arduino firmware, built with [PlatformIO](https://platformio.org/). `src/main.cpp` is the hardware bring-up test: onboard RGB, SSD1306 OLED, PCA9685 (5 servos), MAX98357A (I2S tone).
+Arduino firmware, built with [PlatformIO](https://platformio.org/). `src/main.cpp` is the hardware bring-up test: onboard RGB, SSD1306 OLED, Wi-Fi, PCA9685 (5 servos), MAX98357A (I2S tone).
+
+Copy `include/secrets.h.example` to `include/secrets.h` and set `WIFI_SSID` / `WIFI_PASSWORD`. That file is gitignored.
 
 Prerequisites:
 
