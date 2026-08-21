@@ -52,3 +52,7 @@ pio device monitor --port /dev/cu.usbserial-XXXX
 ```
 
 Board and baud rate live in `platformio.ini`. The platform package is [pioarduino](https://github.com/pioarduino/platform-espressif32) (Arduino-ESP32 3.x) so `ESP_I2S` and `rgbLedWrite` are available.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
