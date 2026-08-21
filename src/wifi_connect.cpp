@@ -16,6 +16,25 @@ namespace {
 constexpr const char* WIFI_HOSTNAME = "tiny-engineer";
 constexpr unsigned long WIFI_TIMEOUT_MS = 20000;
 constexpr unsigned long WIFI_POLL_MS = 500;
+constexpr unsigned long IPV6_TIMEOUT_MS = 2000;
+
+void waitForLinkLocalIpv6() {
+  const unsigned long startMs = millis();
+
+  while (
+      !WiFi.STA.hasLinkLocalIPv6() &&
+      millis() - startMs < IPV6_TIMEOUT_MS
+  ) {
+    delay(50);
+  }
+
+  if (WiFi.STA.hasLinkLocalIPv6()) {
+    Serial.print("IPv6 LL: ");
+    Serial.println(WiFi.linkLocalIPv6());
+  } else {
+    Serial.println("IPv6 LL: timeout");
+  }
+}
 
 char ipText[16] = "";
 bool connected = false;
@@ -76,6 +95,9 @@ void runWifiTest() {
   WiFi.disconnect(true);
   WiFi.setHostname(WIFI_HOSTNAME);
   WiFi.mode(WIFI_STA);
+  // macOS getaddrinfo waits 2–3s on unanswered AAAA for *.local.
+  // Publish link-local IPv6 so mDNS answers AAAA immediately.
+  WiFi.enableIPv6(true);
   WiFi.begin(
     WIFI_SSID,
     WIFI_PASSWORD
@@ -98,10 +120,17 @@ void runWifiTest() {
   if (connected) {
     storeIp(WiFi.localIP());
 
+    // Modem sleep drops mDNS multicast. AP buffers unicast (raw IP)
+    // but not mDNS, so .local waits 2–3s for a retry. USB desk robot:
+    // keep the radio awake.
+    WiFi.setSleep(false);
+
     Serial.print("WIFI OK  IP=");
     Serial.println(ipText);
     Serial.print("Hostname: ");
     Serial.println(WiFi.getHostname());
+
+    waitForLinkLocalIpv6();
 
     if (MDNS.begin(WIFI_HOSTNAME)) {
       MDNS.addService("http", "tcp", 80);
