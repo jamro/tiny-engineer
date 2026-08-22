@@ -18,7 +18,7 @@ Later firmware will take live status over Wi-Fi (agent running, waiting, done) a
 
 ## Hardware
 
-Controller is a **Waveshare ESP32-C3-Zero**. Servos, display, and audio wiring live in [`docs/hardware/`](docs/hardware/README.md).
+Controller is a **Waveshare ESP32-C3-Zero**. Servos, display, and audio wiring live in [`docs/hardware/`](docs/hardware/README.md). Robot layout and servo axes: [`docs/robot-movement.md`](docs/robot-movement.md).
 
 ## Build and flash
 

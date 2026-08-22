@@ -65,19 +65,7 @@ Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out
 
 ## Channel-to-mechanism mapping
 
-**TBD** — not in firmware, not on the wiring sketch (sketch shows one generic servo).
-
-Proposed logical names for when mapping is measured:
-
-```text
-SERVO_HEAD_YAW
-SERVO_HEAD_PITCH
-SERVO_ARM_LEFT
-SERVO_ARM_RIGHT
-SERVO_LEG_BELL
-```
-
-Record channel, direction (invert), and safe angles together. Do not invent the table here.
+See [robot-movement.md](../robot-movement.md) for layout, axis directions, and per-servo safe angles (`include/servos.h`).
 
 ## Future per-servo config
 
