@@ -44,7 +44,9 @@ export function animationForEvent(event) {
   }
 
   if (name === "stop") {
-    return event.status === "aborted" ? "abort" : "ring";
+    if (event.status === "aborted") return "abort";
+    if (event.status === "error") return "error";
+    return "ring";
   }
 
   return EVENT_ANIM[name] ?? null;

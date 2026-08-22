@@ -15,7 +15,7 @@ Options:
 Hook mode (no animation args):
   Cursor pipes JSON with hook_event_name (tool_name for preToolUse,
   status for stop). The CLI maps the event to reading / thinking / typing /
-  ring / abort and POSTs \${url}/anim?name=…. Unknown or unmatched events
+  ring / abort / error and POSTs \${url}/anim?name=…. Unknown or unmatched events
   exit 0 with no request.
 
 Event map:
@@ -23,6 +23,7 @@ Event map:
   afterAgentThought, preCompact                     → thinking
   beforeShellExecution, subagentStart, afterFileEdit → typing
   stop + status aborted                             → abort
+  stop + status error                               → error
   stop (completed / missing / other)                → ring
   preToolUse + Read                                 → reading
   preToolUse + edit/search/shell tools              → typing
@@ -31,6 +32,7 @@ Event map:
 Examples:
   echo '{"hook_event_name":"stop","status":"completed"}' | tiny-engineer-cursor
   echo '{"hook_event_name":"stop","status":"aborted"}' | tiny-engineer-cursor
+  echo '{"hook_event_name":"stop","status":"error"}' | tiny-engineer-cursor
   echo '{"hook_event_name":"preToolUse","tool_name":"Read"}' | tiny-engineer-cursor --url http://192.168.1.10
 `);
 }
