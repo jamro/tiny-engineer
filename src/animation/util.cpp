@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "animation/constants.h"
 #include "animation/util.h"
 #include "servo_wrapper.h"
 #include "servos.h"
@@ -35,6 +36,29 @@ float easeInOutCubic(float t) {
   return 1.0f - (f * f * f) / 2.0f;
 }
 
+namespace {
+
+void logServoAxis(const char* name, int index) {
+  const ServoWrapper& servo = servoAt(index);
+  Serial.print("  ");
+  Serial.print(name);
+  Serial.print('=');
+  Serial.print(servo.angle(), 1);
+  Serial.println(servo.isMoving() ? " (moving)" : " (still)");
+}
+
+}  // namespace
+
+void logServoSnapshot(const char* tag) {
+  Serial.print("[anim] ");
+  Serial.println(tag);
+  logServoAxis("head", SERVO_HEAD);
+  logServoAxis("neck", SERVO_NECK);
+  logServoAxis("handL", SERVO_HAND_LEFT);
+  logServoAxis("handR", SERVO_HAND_RIGHT);
+  logServoAxis("body", SERVO_BODY);
+}
+
 void stopAnimServos() {
   servoAt(SERVO_HAND_LEFT).stop();
   servoAt(SERVO_HAND_RIGHT).stop();
@@ -43,25 +67,54 @@ void stopAnimServos() {
   servoAt(SERVO_BODY).stop();
 }
 
+void parkTorso(float speedDegS) {
+  const float bodyMid = servoMid(SERVO_SPECS[SERVO_BODY]);
+  const float neckMid = servoMid(SERVO_SPECS[SERVO_NECK]);
+
+  Serial.print("[anim] parkTorso body ");
+  Serial.print(servoAt(SERVO_BODY).angle(), 1);
+  Serial.print(" -> ");
+  Serial.print(bodyMid, 1);
+  Serial.print(" neck ");
+  Serial.print(servoAt(SERVO_NECK).angle(), 1);
+  Serial.print(" -> ");
+  Serial.print(neckMid, 1);
+  Serial.print(" speed=");
+  Serial.println(speedDegS, 1);
+
+  servoAt(SERVO_BODY).setTarget(bodyMid, speedDegS);
+  servoAt(SERVO_NECK).setTarget(neckMid, speedDegS);
+}
+
+void parkHands(float speedDegS) {
+  const float handRightRest = SERVO_SPECS[SERVO_HAND_RIGHT].min;
+  const float handLeftRest = SERVO_SPECS[SERVO_HAND_LEFT].max;
+
+  servoAt(SERVO_HAND_RIGHT).setTarget(handRightRest, speedDegS);
+  servoAt(SERVO_HAND_LEFT).setTarget(handLeftRest, speedDegS);
+}
+
+void parkForTransition() {
+  parkTorso(TRANSITION_TORSO_SPEED_DEG_S);
+  parkHands(TRANSITION_HAND_SPEED_DEG_S);
+}
+
+bool isTransitionParkComplete() {
+  return !servoAt(SERVO_BODY).isMoving()
+    && !servoAt(SERVO_NECK).isMoving()
+    && !servoAt(SERVO_HAND_LEFT).isMoving()
+    && !servoAt(SERVO_HAND_RIGHT).isMoving();
+}
+
 void parkHandsAndBody() {
-  servoAt(SERVO_BODY).setTarget(
-    servoMid(SERVO_SPECS[SERVO_BODY])
-  );
-  servoAt(SERVO_HAND_RIGHT).setTarget(
-    SERVO_SPECS[SERVO_HAND_RIGHT].min
-  );
-  servoAt(SERVO_HAND_LEFT).setTarget(
-    SERVO_SPECS[SERVO_HAND_LEFT].max
-  );
+  parkForTransition();
 }
 
 void parkNonePose() {
-  parkHandsAndBody();
+  parkForTransition();
   servoAt(SERVO_HEAD).setTarget(
-    servoMid(SERVO_SPECS[SERVO_HEAD])
-  );
-  servoAt(SERVO_NECK).setTarget(
-    servoMid(SERVO_SPECS[SERVO_NECK])
+    servoMid(SERVO_SPECS[SERVO_HEAD]),
+    TRANSITION_TORSO_SPEED_DEG_S
   );
 }
 

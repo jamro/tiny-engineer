@@ -1,11 +1,13 @@
 #include <Arduino.h>
 
+#include "animation.h"
 #include "animation/constants.h"
 #include "animation/typing.h"
 #include "animation/util.h"
 #include "servo_wrapper.h"
 #include "servos.h"
 
+using anim::parkTorso;
 using anim::randChance;
 using anim::randRangeMs;
 using anim::randUnit;
@@ -17,6 +19,7 @@ namespace {
 bool g_typingMoveRight = true;
 bool g_headHigh = true;
 bool g_bodySwayPositive = true;
+bool g_swayFrozen = false;
 uint32_t g_handPauseUntilMs = 0;
 uint32_t g_headPauseUntilMs = 0;
 uint32_t g_swayPauseUntilMs = 0;
@@ -35,6 +38,15 @@ void commandBodyNeckSway() {
     anim::TYPING_NECK_MID - offset,
     speedDegS
   );
+
+  Serial.print("[anim] typing sway body->");
+  Serial.print(anim::TYPING_BODY_MID + offset, 1);
+  Serial.print(" neck->");
+  Serial.print(anim::TYPING_NECK_MID - offset, 1);
+  Serial.print(" speed=");
+  Serial.print(speedDegS, 1);
+  Serial.print(" dir=");
+  Serial.println(g_bodySwayPositive ? "right" : "left");
 }
 
 void commandHandStroke() {
@@ -121,6 +133,7 @@ void startTyping() {
   stopAnimServos();
   g_typingMoveRight = randChance(50);
   g_bodySwayPositive = randChance(50);
+  g_swayFrozen = false;
   g_handPauseUntilMs = 0;
   g_swayPauseUntilMs = 0;
   g_headHigh = true;
@@ -142,6 +155,12 @@ void updateTyping(uint32_t now) {
   head.update();
   neck.update();
   body.update();
+
+  if (hasPendingAnimation() && !g_swayFrozen) {
+    g_swayFrozen = true;
+    g_swayPauseUntilMs = 0;
+    parkTorso(anim::TRANSITION_TORSO_SPEED_DEG_S);
+  }
 
   if (g_handPauseUntilMs != 0) {
     if (now >= g_handPauseUntilMs) {
@@ -165,11 +184,13 @@ void updateTyping(uint32_t now) {
     advanceHeadStep();
   }
 
-  if (g_swayPauseUntilMs != 0) {
-    if (now >= g_swayPauseUntilMs) {
-      beginNextSway();
+  if (!g_swayFrozen) {
+    if (g_swayPauseUntilMs != 0) {
+      if (now >= g_swayPauseUntilMs) {
+        beginNextSway();
+      }
+    } else if (!body.isMoving() && !neck.isMoving()) {
+      advanceSwayStep();
     }
-  } else if (!body.isMoving() && !neck.isMoving()) {
-    advanceSwayStep();
   }
 }

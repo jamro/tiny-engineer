@@ -31,14 +31,10 @@ bool handRaiseComplete() {
 }
 
 void parkWelcomeIdlePose() {
-  anim::parkHandsAndBody();
+  anim::parkForTransition();
   servoAt(SERVO_HEAD).setTarget(
     anim::WELCOME_HEAD_MID,
-    WELCOME_MOVE_SPEED_DEG_S
-  );
-  servoAt(SERVO_NECK).setTarget(
-    servoMid(SERVO_SPECS[SERVO_NECK]),
-    WELCOME_MOVE_SPEED_DEG_S
+    anim::TRANSITION_TORSO_SPEED_DEG_S
   );
 }
 
@@ -153,8 +149,7 @@ uint32_t welcomeAudioElapsed(uint32_t now) {
 }
 
 void startWelcome() {
-  stopBellPlayback();
-  stopWelcomePlayback();
+  stopAllWavPlayback();
   stopAnimServos();
   parkWelcomeIdlePose();
 

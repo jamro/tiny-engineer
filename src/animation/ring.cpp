@@ -117,8 +117,7 @@ bool allServosStopped() {
 }  // namespace
 
 void startRing() {
-  stopBellPlayback();
-  stopWelcomePlayback();
+  stopAllWavPlayback();
   stopAnimServos();
   g_ringPhase = RingPhase::ReachStart;
   commandStartPose();

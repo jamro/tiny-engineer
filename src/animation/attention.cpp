@@ -102,9 +102,7 @@ void enterAwaitInput(uint32_t now) {
 }  // namespace
 
 void startAttention() {
-  stopBellPlayback();
-  stopWelcomePlayback();
-  stopAttentionPlayback();
+  stopAllWavPlayback();
   stopAnimServos();
 
   g_attentionPhase = AttentionPhase::PrepPose;

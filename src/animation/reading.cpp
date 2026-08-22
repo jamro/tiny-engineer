@@ -1,11 +1,13 @@
 #include <Arduino.h>
 
+#include "animation.h"
 #include "animation/constants.h"
 #include "animation/reading.h"
 #include "animation/util.h"
 #include "servo_wrapper.h"
 #include "servos.h"
 
+using anim::parkTorso;
 using anim::randRangeMs;
 using anim::randUnit;
 using anim::snapHeadToRangeHigh;
@@ -15,6 +17,7 @@ namespace {
 
 bool g_headHigh = true;
 bool g_neckAngleHigh = true;
+bool g_poseFrozen = false;
 bool g_scrollPressing = false;
 uint8_t g_scrollPressesLeft = 0;
 uint32_t g_handPauseUntilMs = 0;
@@ -122,6 +125,7 @@ void beginNextReadingNeck() {
 void startReading() {
   stopAnimServos();
   anim::parkNonePose();
+  g_poseFrozen = false;
   g_neckAngleHigh = anim::randChance(50);
   g_headHigh = true;
   g_headPauseUntilMs = 0;
@@ -138,9 +142,16 @@ void updateReading(uint32_t now) {
 
   updateAllServos();
 
+  if (hasPendingAnimation() && !g_poseFrozen) {
+    g_poseFrozen = true;
+    g_headPauseUntilMs = 0;
+    g_neckPauseUntilMs = 0;
+    parkTorso(anim::TRANSITION_TORSO_SPEED_DEG_S);
+  }
+
   const bool scrolling = g_scrollPressesLeft > 0;
 
-  if (!scrolling) {
+  if (!scrolling && !g_poseFrozen) {
     if (g_headPauseUntilMs != 0) {
       if (now >= g_headPauseUntilMs) {
         beginNextReadingHead();

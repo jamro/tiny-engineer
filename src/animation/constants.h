@@ -11,6 +11,9 @@ constexpr float TYPING_SWAY_DEG = 5.0f;
 constexpr float READING_HEAD_BAND_DEG = 10.0f;
 constexpr float READING_NECK_SWAY_DEG = 10.0f;
 
+constexpr float TRANSITION_TORSO_SPEED_DEG_S = 25.0f;
+constexpr float TRANSITION_HAND_SPEED_DEG_S = 90.0f;
+
 constexpr float TYPING_RIGHT_LOW =
   SERVO_SPECS[SERVO_HAND_RIGHT].min;
 constexpr float TYPING_RIGHT_HIGH =

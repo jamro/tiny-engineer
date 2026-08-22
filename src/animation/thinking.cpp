@@ -8,6 +8,8 @@
 #include "servos.h"
 
 using anim::easeInOutCubic;
+using anim::isTransitionParkComplete;
+using anim::parkForTransition;
 using anim::randChance;
 using anim::randRangeMs;
 using anim::randUnit;
@@ -21,6 +23,7 @@ constexpr float THINK_JITTER_DEG = 3.5f;
 constexpr uint32_t THINK_MIN_POSE_CHANGE_MS = 2200;
 
 enum class ThinkPhase {
+  TransitionPark,
   PrimaryMove,
   Pause,
   MicroMove,
@@ -39,7 +42,7 @@ struct ThinkAxisMove {
   bool active;
 };
 
-ThinkPhase g_thinkPhase = ThinkPhase::PrimaryMove;
+ThinkPhase g_thinkPhase = ThinkPhase::TransitionPark;
 ThinkAxisMove g_thinkHeadMove = {};
 ThinkAxisMove g_thinkNeckMove = {};
 uint32_t g_thinkPauseUntilMs = 0;
@@ -201,6 +204,23 @@ void startThinkPrimaryMove(uint32_t now, const ThinkPose& pose) {
   );
   g_thinkPhase = ThinkPhase::PrimaryMove;
   g_thinkDidMicro = false;
+
+  Serial.print("[anim] think primary head ");
+  Serial.print(headFrom, 1);
+  Serial.print("->");
+  Serial.print(headTo, 1);
+  Serial.print(" (");
+  Serial.print(headDur);
+  Serial.print("ms) neck ");
+  Serial.print(neckFrom, 1);
+  Serial.print("->");
+  Serial.print(neckTo, 1);
+  Serial.print(" (");
+  Serial.print(neckDur);
+  Serial.print("ms) headFirst=");
+  Serial.print(headFirst ? "yes" : "no");
+  Serial.print(" stagger=");
+  Serial.println(stagger);
 }
 
 float easedAxisValue(const ThinkAxisMove& move, uint32_t now) {
@@ -317,24 +337,40 @@ void beginNextThinkPose(uint32_t now) {
 }  // namespace
 
 void startThinking(uint32_t animationStartedMs) {
+  Serial.println("[anim] startThinking");
+  anim::logServoSnapshot("think-enter");
   stopAnimServos();
-  anim::parkHandsAndBody();
+  anim::logServoSnapshot("think-post-stop");
+  parkForTransition();
   g_animationStartedMs = animationStartedMs;
 
+  g_thinkPhase = ThinkPhase::TransitionPark;
+  g_thinkHeadMove.active = false;
+  g_thinkNeckMove.active = false;
   g_thinkPoseIndex = pickNextThinkPoseIndex();
   g_thinkPoseChanges = 0;
   g_thinkDidMicro = false;
   g_thinkMicroChain = 0;
-  startThinkPrimaryMove(
-    g_animationStartedMs,
-    perturbedPose(g_thinkPoseIndex)
-  );
 }
 
 void updateThinking(uint32_t now) {
   servoAt(SERVO_HAND_LEFT).update();
   servoAt(SERVO_HAND_RIGHT).update();
   servoAt(SERVO_BODY).update();
+  servoAt(SERVO_NECK).update();
+
+  if (g_thinkPhase == ThinkPhase::TransitionPark) {
+    if (isTransitionParkComplete()) {
+      Serial.print("[anim] think transition park complete body=");
+      Serial.print(servoAt(SERVO_BODY).angle(), 1);
+      Serial.print(" head=");
+      Serial.print(servoAt(SERVO_HEAD).angle(), 1);
+      Serial.print(" neck=");
+      Serial.println(servoAt(SERVO_NECK).angle(), 1);
+      startThinkPrimaryMove(now, perturbedPose(g_thinkPoseIndex));
+    }
+    return;
+  }
 
   tickThinkAxisMoves(now);
 

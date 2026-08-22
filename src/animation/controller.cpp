@@ -29,6 +29,28 @@ void startNone() {
   anim::parkNonePose();
 }
 
+const char* animNameLocal(AnimationId id) {
+  switch (id) {
+    case AnimationId::Typing:
+      return "typing";
+    case AnimationId::Reading:
+      return "reading";
+    case AnimationId::Thinking:
+      return "thinking";
+    case AnimationId::Ring:
+      return "ring";
+    case AnimationId::Welcome:
+      return "welcome";
+    case AnimationId::Attention:
+      return "attention";
+    case AnimationId::Error:
+      return "error";
+    case AnimationId::None:
+    default:
+      return "none";
+  }
+}
+
 void applyAnimation(AnimationId id, uint32_t nowMs) {
   if (id != AnimationId::Attention) {
     stopAttentionPlayback();
@@ -36,6 +58,13 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
   if (id != AnimationId::Error) {
     stopErrorPlayback();
   }
+
+  const AnimationId from = g_animation;
+  Serial.print("[anim] transition ");
+  Serial.print(animNameLocal(from));
+  Serial.print(" -> ");
+  Serial.println(animNameLocal(id));
+  anim::logServoSnapshot("pre-transition");
 
   g_animation = id;
   g_animationStartedMs = millis();
@@ -99,6 +128,13 @@ void setAnimation(AnimationId id) {
 
   g_pendingAnimation = id;
   g_hasPendingAnimation = true;
+
+  const uint32_t holdLeftMs =
+    MIN_ANIMATION_HOLD_MS - (millis() - g_animationStartedMs);
+  Serial.print("[anim] pending ");
+  Serial.print(animNameLocal(id));
+  Serial.print(" holdLeftMs=");
+  Serial.println(holdLeftMs);
 }
 
 void finishAnimation(uint32_t nowMs) {
@@ -107,6 +143,14 @@ void finishAnimation(uint32_t nowMs) {
 
 AnimationId getAnimation() {
   return g_animation;
+}
+
+bool hasPendingAnimation() {
+  return g_hasPendingAnimation;
+}
+
+AnimationId pendingAnimation() {
+  return g_pendingAnimation;
 }
 
 const char* animationName(AnimationId id) {

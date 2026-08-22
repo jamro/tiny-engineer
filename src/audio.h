@@ -12,6 +12,7 @@ void playTone(
 );
 
 void playSilence(int durationMs);
+void stopAllWavPlayback();
 bool startBellPlayback();
 bool updateBellPlayback();
 void stopBellPlayback();

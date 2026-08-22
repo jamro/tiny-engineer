@@ -91,10 +91,7 @@ void enterBlockedHold(uint32_t now) {
 }  // namespace
 
 void startError() {
-  stopBellPlayback();
-  stopWelcomePlayback();
-  stopAttentionPlayback();
-  stopErrorPlayback();
+  stopAllWavPlayback();
   stopAnimServos();
 
   g_errorPhase = ErrorPhase::ObstaclePose;

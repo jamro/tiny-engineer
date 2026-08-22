@@ -4,6 +4,7 @@
 #include <LittleFS.h>
 #include <math.h>
 
+#include "audio/wav_stream.h"
 #include "pins.h"
 #include "display/oled.h"
 #include "audio.h"
@@ -13,22 +14,8 @@ I2SClass I2S;
 namespace {
 
 bool audioStorageReady = false;
-File bellFile;
-File welcomeFile;
-File attentionFile;
-File errorFile;
-bool bellPlaying = false;
-bool welcomePlaying = false;
-bool attentionPlaying = false;
-bool errorPlaying = false;
-
-constexpr int kAudioFrames = 512;
 
 constexpr const char* kAudioPartition = "spiffs";
-constexpr const char* kBellPath = "/bell.wav";
-constexpr const char* kWelcomePath = "/welcome.wav";
-constexpr const char* kAttentionPath = "/attention.wav";
-constexpr const char* kErrorPath = "/error.wav";
 
 void logAudioStorageContents() {
   File root = LittleFS.open("/");
@@ -52,171 +39,20 @@ void logAudioStorageContents() {
   root.close();
 }
 
-bool skipWavPcmData(File& file) {
-  char tag[4];
-
-  if (file.readBytes(tag, 4) != 4 ||
-      memcmp(tag, "RIFF", 4) != 0) {
-    return false;
-  }
-
-  file.seek(8);
-
-  if (file.readBytes(tag, 4) != 4 ||
-      memcmp(tag, "WAVE", 4) != 0) {
-    return false;
-  }
-
-  while (file.available()) {
-    if (file.readBytes(tag, 4) != 4) {
-      return false;
-    }
-
-    uint32_t chunkSize = 0;
-
-    if (file.read(
-          reinterpret_cast<uint8_t*>(&chunkSize),
-          sizeof(chunkSize)
-        ) != sizeof(chunkSize)) {
-      return false;
-    }
-
-    if (memcmp(tag, "data", 4) == 0) {
-      return true;
-    }
-
-    if (!file.seek(file.position() + chunkSize)) {
-      return false;
-    }
-  }
-
-  return false;
-}
-
-bool pumpWavChunk(File& file) {
-  int16_t buffer[kAudioFrames * 2];
-  uint8_t pcmBytes[kAudioFrames * 2];
-
-  const size_t bytesRead =
-    file.read(
-      pcmBytes,
-      sizeof(pcmBytes)
-    );
-
-  if (bytesRead < 2) {
-    return false;
-  }
-
-  const int framesThisTime =
-    (int)(bytesRead / 2);
-
-  for (int i = 0; i < framesThisTime; i++) {
-    const int16_t sample =
-      (int16_t)(
-        pcmBytes[i * 2] |
-        (pcmBytes[i * 2 + 1] << 8)
-      );
-
-    buffer[i * 2] = sample;
-    buffer[i * 2 + 1] = sample;
-  }
-
-  I2S.write(
-    (uint8_t*)buffer,
-    framesThisTime *
-    2 *
-    sizeof(int16_t)
-  );
-
-  return file.available() > 0;
-}
-
-bool startWavPlayback(
-  File& file,
-  bool& playingFlag,
-  const char* path,
-  const char* label
-) {
-  if (file) {
-    file.close();
-  }
-
-  playingFlag = false;
-
-  if (!initAudioStorage()) {
-    Serial.print(label);
-    Serial.println(" failed: filesystem");
-    return false;
-  }
-
-  file = LittleFS.open(path, "r");
-
-  if (!file) {
-    logAudioStorageContents();
-    Serial.print(label);
-    Serial.print(" failed: ");
-    Serial.print(path);
-    Serial.println(" missing");
-    return false;
-  }
-
-  if (!skipWavPcmData(file)) {
-    file.close();
-    Serial.print(label);
-    Serial.println(" failed: invalid WAV");
-    return false;
-  }
-
-  playingFlag = true;
-  Serial.print("Playing ");
-  Serial.println(path);
-  return true;
-}
-
-bool updateWavPlayback(
-  File& file,
-  bool& playingFlag,
-  const char* label
-) {
-  if (!playingFlag) {
-    return false;
-  }
-
-  if (!pumpWavChunk(file)) {
-    if (file) {
-      file.close();
-    }
-    playingFlag = false;
-    Serial.print(label);
-    Serial.println(" OK");
-    return false;
-  }
-
-  return true;
-}
-
-void stopWavPlayback(File& file, bool& playingFlag) {
-  if (file) {
-    file.close();
-  }
-
-  playingFlag = false;
-}
-
 bool playWavBlocking(
-  const char* line1,
-  const char* line2,
-  bool (*startFn)(),
-  bool (*updateFn)()
+  WavClip clip,
+  const char* line2
 ) {
+  const char* line1 = wavClipOledTitle(clip);
+
   showOledText(line1, line2);
 
-  if (!startFn()) {
+  if (!wavStreamStart(clip)) {
     showOledText(line1, "Failed");
     return false;
   }
 
-  while (updateFn()) {
+  while (wavStreamUpdate()) {
   }
 
   showOledText(line1, "OK");
@@ -242,24 +78,15 @@ bool initAudioStorage() {
     return false;
   }
 
-  if (!LittleFS.exists(kBellPath)) {
-    Serial.println("bell.wav not on LittleFS");
-    logAudioStorageContents();
-  }
+  for (uint8_t i = 0; i < kWavClipCount; i++) {
+    const WavClip clip = static_cast<WavClip>(i);
+    const char* path = wavClipPath(clip);
 
-  if (!LittleFS.exists(kWelcomePath)) {
-    Serial.println("welcome.wav not on LittleFS");
-    logAudioStorageContents();
-  }
-
-  if (!LittleFS.exists(kAttentionPath)) {
-    Serial.println("attention.wav not on LittleFS");
-    logAudioStorageContents();
-  }
-
-  if (!LittleFS.exists(kErrorPath)) {
-    Serial.println("error.wav not on LittleFS");
-    logAudioStorageContents();
+    if (!LittleFS.exists(path)) {
+      Serial.print(path);
+      Serial.println(" not on LittleFS");
+      logAudioStorageContents();
+    }
   }
 
   return true;
@@ -346,124 +173,72 @@ void playSilence(int durationMs) {
   }
 }
 
+void stopAllWavPlayback() {
+  wavStreamStop();
+}
+
 void stopBellPlayback() {
-  stopWavPlayback(bellFile, bellPlaying);
+  wavStreamStop();
 }
 
 void stopWelcomePlayback() {
-  stopWavPlayback(welcomeFile, welcomePlaying);
+  wavStreamStop();
 }
 
 void stopAttentionPlayback() {
-  stopWavPlayback(attentionFile, attentionPlaying);
+  wavStreamStop();
 }
 
 void stopErrorPlayback() {
-  stopWavPlayback(errorFile, errorPlaying);
+  wavStreamStop();
 }
 
 bool startBellPlayback() {
-  stopWelcomePlayback();
-  stopAttentionPlayback();
-  stopErrorPlayback();
-  return startWavPlayback(
-    bellFile,
-    bellPlaying,
-    kBellPath,
-    "Bell"
-  );
+  return wavStreamStart(WavClip::Bell);
 }
 
 bool startWelcomePlayback() {
-  stopBellPlayback();
-  stopAttentionPlayback();
-  stopErrorPlayback();
-  return startWavPlayback(
-    welcomeFile,
-    welcomePlaying,
-    kWelcomePath,
-    "Welcome"
-  );
+  return wavStreamStart(WavClip::Welcome);
 }
 
 bool startAttentionPlayback() {
-  stopBellPlayback();
-  stopWelcomePlayback();
-  stopErrorPlayback();
-  return startWavPlayback(
-    attentionFile,
-    attentionPlaying,
-    kAttentionPath,
-    "Attention"
-  );
+  return wavStreamStart(WavClip::Attention);
 }
 
 bool startErrorPlayback() {
-  stopBellPlayback();
-  stopWelcomePlayback();
-  stopAttentionPlayback();
-  return startWavPlayback(
-    errorFile,
-    errorPlaying,
-    kErrorPath,
-    "Error"
-  );
+  return wavStreamStart(WavClip::Error);
 }
 
 bool updateBellPlayback() {
-  return updateWavPlayback(bellFile, bellPlaying, "Bell");
+  return wavStreamUpdate();
 }
 
 bool updateWelcomePlayback() {
-  return updateWavPlayback(welcomeFile, welcomePlaying, "Welcome");
+  return wavStreamUpdate();
 }
 
 bool updateAttentionPlayback() {
-  return updateWavPlayback(
-    attentionFile,
-    attentionPlaying,
-    "Attention"
-  );
+  return wavStreamUpdate();
 }
 
 bool updateErrorPlayback() {
-  return updateWavPlayback(errorFile, errorPlaying, "Error");
+  return wavStreamUpdate();
 }
 
 bool playBell() {
-  return playWavBlocking(
-    "BELL",
-    "Playing...",
-    startBellPlayback,
-    updateBellPlayback
-  );
+  return playWavBlocking(WavClip::Bell, "Playing...");
 }
 
 bool playWelcome() {
-  return playWavBlocking(
-    "WELCOME",
-    "Playing...",
-    startWelcomePlayback,
-    updateWelcomePlayback
-  );
+  return playWavBlocking(WavClip::Welcome, "Playing...");
 }
 
 bool playAttention() {
-  return playWavBlocking(
-    "ATTENTION",
-    "Playing...",
-    startAttentionPlayback,
-    updateAttentionPlayback
-  );
+  return playWavBlocking(WavClip::Attention, "Playing...");
 }
 
 bool playError() {
-  return playWavBlocking(
-    "ERROR",
-    "Playing...",
-    startErrorPlayback,
-    updateErrorPlayback
-  );
+  return playWavBlocking(WavClip::Error, "Playing...");
 }
 
 void runSoundTest() {
