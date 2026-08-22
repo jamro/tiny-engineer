@@ -9,6 +9,7 @@
 #include "pca9685_servos.h"
 #include "rgb.h"
 #include "servos.h"
+#include "sleep.h"
 #include "wifi_connect.h"
 
 namespace {
@@ -34,6 +35,7 @@ void sendJson(int code, const char* body) {
 }
 
 void handleHealth() {
+  touchApiActivity();
   const bool wifiOk =
     WiFi.status() == WL_CONNECTED;
 
@@ -67,24 +69,28 @@ void handleHealth() {
 }
 
 void handleAudioTest() {
+  touchApiActivity();
   runSoundTest();
   restoreReadyScreen();
   sendJson(200, "{\"ok\":true,\"test\":\"audio\"}");
 }
 
 void handleScreenTest() {
+  touchApiActivity();
   runOledTest();
   restoreReadyScreen();
   sendJson(200, "{\"ok\":true,\"test\":\"screen\"}");
 }
 
 void handleMovementTest() {
+  touchApiActivity();
   runServoTest();
   restoreReadyScreen();
   sendJson(200, "{\"ok\":true,\"test\":\"movement\"}");
 }
 
 void handleLedTest() {
+  touchApiActivity();
   runRgbTest();
   setRgb(0, 32, 0);
   restoreReadyScreen();
@@ -142,6 +148,8 @@ bool isValidFloatArg(const String& s) {
 }
 
 void handleServoTest() {
+  touchApiActivity();
+
   if (!server.hasArg("index") || !server.hasArg("angle")) {
     sendJson(
       400,
@@ -225,10 +233,13 @@ void sendAnimationJson() {
 }
 
 void handleAnimGet() {
+  touchApiActivity();
   sendAnimationJson();
 }
 
 void handleAnimPost() {
+  touchApiActivity();
+
   if (!server.hasArg("name")) {
     sendJson(
       400,
@@ -264,6 +275,8 @@ bool isAnimPath(const String& uri) {
 }
 
 void handleNotFound() {
+  touchApiActivity();
+
   if (isTestPath(server.uri()) || isAnimPath(server.uri())) {
     sendJson(
       405,

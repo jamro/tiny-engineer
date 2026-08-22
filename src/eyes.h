@@ -17,10 +17,21 @@ enum class EyeMode {
   Ring
 };
 
+enum class SleepEyeResult {
+  Running,
+  CloseComplete,
+  OpenComplete
+};
+
 void startEyes();
+void startEyesForWake(uint32_t now);
 void stopEyes();
 void updateEyes(uint32_t now);
 bool eyesActive();
+
+void requestSleepEyeClose(uint32_t now);
+void requestSleepEyeOpen(uint32_t now);
+SleepEyeResult updateSleepEyes(uint32_t now);
 
 void setEyeMode(EyeMode mode, uint32_t now);
 void triggerEyeImpact(uint32_t now);

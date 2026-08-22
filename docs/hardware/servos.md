@@ -24,9 +24,11 @@ Manufacturer pulse window used in firmware:
 | `SERVO_MAX_US` | **2200** µs |
 | Neutral (typical) | ~1500 µs (90° in the firmware 0–180 map) |
 
-`angleToPulse()` in [`src/pca9685_servos.cpp`](../../src/pca9685_servos.cpp) maps firmware angle **0–180°** linearly onto 800–2200 µs, then onto PCA9685 12-bit counts assuming a **20 000 µs** period:
+`angleToPulse()` in [`src/servo_wrapper.cpp`](../../src/servo_wrapper.cpp) maps firmware angle **0–180°** linearly onto 800–2200 µs, then onto PCA9685 12-bit counts assuming a **20 000 µs** period (rounded to nearest count):
 
-`counts = pulse_us * 4096 / 20000`
+`counts = round(pulse_us * 4096 / 20000)`
+
+Effective angular spacing is **~0.63° per count** (~288 distinct positions over 180°). `writeAngle()` skips redundant I2C writes when the rounded count is unchanged.
 
 Datasheet travel over 800–2200 µs is **approximately 130°**, while many sellers list 0–180°. Firmware still uses a 0–180 mathematical scale. That scale is **not** a promise of mechanical 180° in the robot.
 
@@ -39,8 +41,9 @@ Verified in [`include/pins.h`](../../include/pins.h):
 | `SERVO_LOW` | **75.0** | Test lower angle |
 | `SERVO_CENTER` | **90.0** | Neutral / start / end |
 | `SERVO_HIGH` | **105.0** | Test upper angle |
-| `SERVO_STEP_MS` | 20 | Interpolation step |
-| `SERVO_SPEED_DEG_S` | **40.0** | Single-servo smooth rate for `POST /test/servo` |
+| `SERVO_STEP_MS` | 10 | Live update / interpolation step (ms) |
+| `SERVO_ANGLE_DEADBAND_DEG` | **0.32** | Stop threshold (~half PWM count) |
+| `SERVO_SPEED_DEG_S` | **220.0** | Smooth rate for `POST /test/servo` (`SERVO_MAX_SPEED_DEG_S`) |
 
 Bring-up motion (`runServoTest`):
 

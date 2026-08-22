@@ -23,6 +23,12 @@ enum class BlinkPhase {
   Opening
 };
 
+enum class SleepEyeAnim {
+  None,
+  Closing,
+  Opening
+};
+
 enum class ReadingScanPhase {
   Forward,
   Return
@@ -44,6 +50,11 @@ uint32_t g_lastDrawMs = 0;
 bool g_forceRedraw = false;
 uint8_t g_blinksInSequence = 1;
 uint8_t g_blinksDone = 0;
+
+SleepEyeAnim g_sleepEyeAnim = SleepEyeAnim::None;
+uint32_t g_sleepAnimStartedMs = 0;
+uint32_t g_sleepAnimDurationMs = 0;
+float g_sleepAnimFromAmount = 1.0f;
 
 // Idle gaze
 int16_t g_gazeFromX = 0;
@@ -478,6 +489,38 @@ void drawCurrentEyes() {
   drawEyes(left, right, EYE_CORNER_RADIUS);
 }
 
+bool advanceSleepEyeAnim(uint32_t now) {
+  if (g_sleepEyeAnim == SleepEyeAnim::None) {
+    return false;
+  }
+
+  const float t = anim::easeInOutCubic(
+    moveProgress(now, g_sleepAnimStartedMs, g_sleepAnimDurationMs)
+  );
+
+  if (g_sleepEyeAnim == SleepEyeAnim::Closing) {
+    g_openAmount = g_sleepAnimFromAmount * (1.0f - t);
+
+    if (t >= 1.0f) {
+      g_openAmount = 0.0f;
+      g_sleepEyeAnim = SleepEyeAnim::None;
+      return true;
+    }
+  } else {
+    g_openAmount = g_sleepAnimFromAmount + t * (1.0f - g_sleepAnimFromAmount);
+
+    if (t >= 1.0f) {
+      g_openAmount = 1.0f;
+      g_sleepEyeAnim = SleepEyeAnim::None;
+      beginBlinkIdle(now);
+      scheduleNextBlink(now);
+      return true;
+    }
+  }
+
+  return false;
+}
+
 }  // namespace
 
 void setEyeMode(EyeMode mode, uint32_t now) {
@@ -532,10 +575,78 @@ void startEyes() {
 
 void stopEyes() {
   g_eyesActive = false;
+  g_sleepEyeAnim = SleepEyeAnim::None;
+}
+
+void requestSleepEyeClose(uint32_t now) {
+  if (!g_eyesActive) {
+    startEyes();
+  }
+
+  g_sleepEyeAnim = SleepEyeAnim::Closing;
+  g_sleepAnimFromAmount = g_openAmount;
+  g_sleepAnimStartedMs = now;
+  g_sleepAnimDurationMs = 280;
+  g_forceRedraw = true;
+}
+
+void requestSleepEyeOpen(uint32_t now) {
+  g_sleepEyeAnim = SleepEyeAnim::Opening;
+  g_sleepAnimFromAmount = g_openAmount;
+  g_sleepAnimStartedMs = now;
+  g_sleepAnimDurationMs = 280;
+  g_forceRedraw = true;
+}
+
+void startEyesForWake(uint32_t now) {
+  g_eyesActive = true;
+  g_blinksInSequence = 1;
+  g_blinksDone = 0;
+  g_openAmount = 0.0f;
+  g_lastDrawMs = 0;
+  g_forceRedraw = true;
+  g_sleepEyeAnim = SleepEyeAnim::None;
+  setEyeMode(EyeMode::Idle, now);
+  requestSleepEyeOpen(now);
+}
+
+SleepEyeResult updateSleepEyes(uint32_t now) {
+  if (g_sleepEyeAnim == SleepEyeAnim::None) {
+    return SleepEyeResult::Running;
+  }
+
+  updateModePose(now);
+
+  const SleepEyeAnim phase = g_sleepEyeAnim;
+  const bool finished = advanceSleepEyeAnim(now);
+
+  const bool shouldDraw = g_forceRedraw ||
+    finished ||
+    (now - g_lastDrawMs) >= REDRAW_INTERVAL_MS;
+
+  if (shouldDraw) {
+    drawCurrentEyes();
+    g_lastDrawMs = now;
+    g_forceRedraw = false;
+  }
+
+  if (!finished) {
+    return SleepEyeResult::Running;
+  }
+
+  if (phase == SleepEyeAnim::Closing) {
+    return SleepEyeResult::CloseComplete;
+  }
+
+  return SleepEyeResult::OpenComplete;
 }
 
 void updateEyes(uint32_t now) {
   if (!g_eyesActive) {
+    return;
+  }
+
+  if (g_sleepEyeAnim != SleepEyeAnim::None) {
     return;
   }
 

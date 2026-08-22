@@ -30,7 +30,7 @@ constexpr int SAMPLE_RATE = 44100;
 
 constexpr uint8_t PCA9685_ADDRESS = 0x40;
 
-constexpr int SERVO_STEP_MS = 20;
+constexpr int SERVO_STEP_MS = 10;
 
 // Servo pulse range
 constexpr int SERVO_MIN_US = 800;

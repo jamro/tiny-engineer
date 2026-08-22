@@ -10,6 +10,7 @@
 #include "pca9685_servos.h"
 #include "wifi_connect.h"
 #include "http_server.h"
+#include "sleep.h"
 
 void setup() {
   Serial.begin(115200);
@@ -116,9 +117,11 @@ void setup() {
   showIdleScreen();
 
   startHttpServer();
+  initSleep();
 }
 
 void loop() {
   pollHttpServer();
+  updateSleep(millis());
   updateAnimation();
 }

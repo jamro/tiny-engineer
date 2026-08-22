@@ -23,11 +23,10 @@ uint16_t angleToPulse(float angle) {
     (angle / 180.0f) *
     (SERVO_MAX_US - SERVO_MIN_US);
 
-  return (uint16_t)(
-    pulseUs *
-    4096.0f /
-    20000.0f
-  );
+  const float counts =
+    pulseUs * 4096.0f / 20000.0f + 0.5f;
+
+  return (uint16_t)constrain(counts, 0.0f, 4095.0f);
 }
 
 float clampServoAngle(int index, float angle) {
@@ -50,7 +49,8 @@ ServoWrapper::ServoWrapper(int index)
     angle_(servoMid(SERVO_SPECS[index])),
     target_(angle_),
     speedDegS_(SERVO_MAX_SPEED_DEG_S),
-    lastUpdateMs_(0) {}
+    lastUpdateMs_(0),
+    lastPulse_(UINT16_MAX) {}
 
 float ServoWrapper::angle() const {
   return angle_;
@@ -77,7 +77,7 @@ void ServoWrapper::stop() {
 }
 
 bool ServoWrapper::isMoving() const {
-  return fabsf(target_ - angle_) >= 0.01f;
+  return fabsf(target_ - angle_) >= SERVO_ANGLE_DEADBAND_DEG;
 }
 
 void ServoWrapper::update() {
@@ -107,7 +107,7 @@ void ServoWrapper::update() {
     constrain(delta, -maxStep, maxStep);
   const float next = angle_ + step;
 
-  if (fabsf(target_ - next) < 0.01f) {
+  if (fabsf(target_ - next) < SERVO_ANGLE_DEADBAND_DEG) {
     writeAngle(target_, false);
     lastUpdateMs_ = 0;
     return;
@@ -136,11 +136,14 @@ void ServoWrapper::writeAngle(float angle, bool log) {
     Serial.println(pulse);
   }
 
-  pwm.setPWM(
-    SERVO_SPECS[index_].channel,
-    0,
-    pulse
-  );
+  if (pulse != lastPulse_) {
+    pwm.setPWM(
+      SERVO_SPECS[index_].channel,
+      0,
+      pulse
+    );
+    lastPulse_ = pulse;
+  }
 
   angle_ = angle;
 }
@@ -158,7 +161,7 @@ bool ServoWrapper::moveTo(float target) {
   const float fromAngle = angle_;
   const float delta = fabsf(target - fromAngle);
 
-  if (delta < 0.01f) {
+  if (delta < SERVO_ANGLE_DEADBAND_DEG) {
     writeAngle(target, true);
     target_ = angle_;
     lastUpdateMs_ = 0;
@@ -168,8 +171,13 @@ bool ServoWrapper::moveTo(float target) {
   const int durationMs =
     (int)((delta / SERVO_MAX_SPEED_DEG_S) * 1000.0f);
 
-  const int steps =
-    max(1, durationMs / SERVO_STEP_MS);
+  const int minSteps =
+    (int)(delta / SERVO_PWM_STEP_DEG) + 1;
+  const int steps = max(
+    max(1, durationMs / SERVO_STEP_MS),
+    minSteps
+  );
+  const int stepDelayMs = max(1, durationMs / steps);
 
   Serial.print("Servo ");
   Serial.print(SERVO_SPECS[index_].name);
@@ -191,7 +199,7 @@ bool ServoWrapper::moveTo(float target) {
       progress;
 
     writeAngle(angle, false);
-    delay(SERVO_STEP_MS);
+    delay(stepDelayMs);
   }
 
   writeAngle(target, true);
@@ -214,7 +222,7 @@ void servoMoveAllSmooth(float toAngle) {
     );
   }
 
-  if (maxDelta < 0.01f) {
+  if (maxDelta < SERVO_ANGLE_DEADBAND_DEG) {
     for (int i = 0; i < SERVO_COUNT; i++) {
       g_servos[i].writeAngle(targets[i], true);
       g_servos[i].target_ = g_servos[i].angle_;
@@ -226,8 +234,13 @@ void servoMoveAllSmooth(float toAngle) {
   const int durationMs =
     (int)((maxDelta / SERVO_MAX_SPEED_DEG_S) * 1000.0f);
 
-  const int steps =
-    max(1, durationMs / SERVO_STEP_MS);
+  const int minSteps =
+    (int)(maxDelta / SERVO_PWM_STEP_DEG) + 1;
+  const int steps = max(
+    max(1, durationMs / SERVO_STEP_MS),
+    minSteps
+  );
+  const int stepDelayMs = max(1, durationMs / steps);
 
   Serial.print("All servos smooth -> ");
   Serial.print(toAngle);
@@ -248,7 +261,7 @@ void servoMoveAllSmooth(float toAngle) {
       g_servos[i].writeAngle(angle, false);
     }
 
-    delay(SERVO_STEP_MS);
+    delay(stepDelayMs);
   }
 
   for (int i = 0; i < SERVO_COUNT; i++) {

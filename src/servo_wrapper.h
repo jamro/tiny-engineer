@@ -29,6 +29,7 @@ private:
   float target_;
   float speedDegS_;
   uint32_t lastUpdateMs_;
+  uint16_t lastPulse_;
 
   void writeAngle(float angle, bool log);
 };

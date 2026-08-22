@@ -137,6 +137,31 @@ void drawEyes(
   display.display();
 }
 
+void blankOled() {
+  if (!oledAvailable) {
+    return;
+  }
+
+  display.clearDisplay();
+  display.display();
+}
+
+void sleepOled() {
+  if (!oledAvailable) {
+    return;
+  }
+
+  display.ssd1306_command(SSD1306_DISPLAYOFF);
+}
+
+void wakeOled() {
+  if (!oledAvailable) {
+    return;
+  }
+
+  display.ssd1306_command(SSD1306_DISPLAYON);
+}
+
 void initOled() {
   Serial.println();
   Serial.println("Checking OLED at 0x3C...");
