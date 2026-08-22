@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "animation.h"
+#include "animation/abort.h"
 #include "animation/attention.h"
 #include "animation/error.h"
 #include "animation/reading.h"
@@ -45,6 +46,8 @@ const char* animNameLocal(AnimationId id) {
       return "attention";
     case AnimationId::Error:
       return "error";
+    case AnimationId::Abort:
+      return "abort";
     case AnimationId::None:
     default:
       return "none";
@@ -57,6 +60,9 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
   }
   if (id != AnimationId::Error) {
     stopErrorPlayback();
+  }
+  if (id != AnimationId::Abort) {
+    stopAbortPlayback();
   }
 
   const AnimationId from = g_animation;
@@ -98,6 +104,10 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
     case AnimationId::Error:
       setEyeMode(EyeMode::Error, g_animationStartedMs);
       startError();
+      break;
+    case AnimationId::Abort:
+      setEyeMode(EyeMode::Abort, g_animationStartedMs);
+      startAbort();
       break;
     case AnimationId::None:
     default:
@@ -169,6 +179,8 @@ const char* animationName(AnimationId id) {
       return "attention";
     case AnimationId::Error:
       return "error";
+    case AnimationId::Abort:
+      return "abort";
     case AnimationId::None:
     default:
       return "none";
@@ -220,6 +232,11 @@ bool parseAnimationName(const char* name, AnimationId& out) {
     return true;
   }
 
+  if (strcmp(name, "abort") == 0) {
+    out = AnimationId::Abort;
+    return true;
+  }
+
   return false;
 }
 
@@ -254,6 +271,9 @@ void updateAnimation() {
         break;
       case AnimationId::Error:
         updateError(now);
+        break;
+      case AnimationId::Abort:
+        updateAbort(now);
         break;
       default:
         break;

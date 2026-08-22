@@ -49,7 +49,7 @@ During normal operation the onboard WS2812 tracks the active animation (not boot
 | Animation | LED |
 | --- | --- |
 | `typing`, `reading`, `thinking`, `welcome`, `ring` | White |
-| `attention`, `error` | Red |
+| `attention`, `error`, `abort` | Red |
 | `none` | Off |
 
 State changes fade over **1 s** (see [`docs/api.md`](../api.md#rgb-led)). Trigger via `POST /anim?name=…` or Cursor hooks.

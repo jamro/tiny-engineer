@@ -94,4 +94,23 @@ constexpr float ERROR_AWAY_NECK_GLANCE_DEG = 4.0f;
 constexpr float ERROR_HELP_HEAD_GLANCE_DEG = 3.0f;
 constexpr float ERROR_WORRY_HEAD_NOD_DEG = 2.0f;
 
+constexpr float ABORT_BODY_DISMISSIVE =
+  servoMid(SERVO_SPECS[SERVO_BODY]) - 5.0f;
+constexpr float ABORT_NECK_SIDE =
+  servoMid(SERVO_SPECS[SERVO_NECK]) + 14.0f;
+constexpr float ABORT_NECK_OTHER_SIDE =
+  servoMid(SERVO_SPECS[SERVO_NECK]) - 6.0f;
+constexpr float ABORT_HEAD_UP =
+  servoMid(SERVO_SPECS[SERVO_HEAD]) + 16.0f;
+constexpr float ABORT_HEAD_DIP =
+  servoMid(SERVO_SPECS[SERVO_HEAD]) + 5.0f;
+constexpr float ABORT_HAND_RIGHT_UP =
+  SERVO_SPECS[SERVO_HAND_RIGHT].max;
+constexpr float ABORT_HAND_RIGHT_SHRUG =
+  SERVO_SPECS[SERVO_HAND_RIGHT].max - 10.0f;
+constexpr float ABORT_HAND_LEFT_UP =
+  SERVO_SPECS[SERVO_HAND_LEFT].max - 55.0f;
+constexpr float ABORT_HAND_LEFT_SHRUG =
+  SERVO_SPECS[SERVO_HAND_LEFT].max - 43.0f;
+
 }  // namespace anim

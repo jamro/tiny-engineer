@@ -193,6 +193,10 @@ void stopErrorPlayback() {
   wavStreamStop();
 }
 
+void stopAbortPlayback() {
+  wavStreamStop();
+}
+
 bool startBellPlayback() {
   return wavStreamStart(WavClip::Bell);
 }
@@ -207,6 +211,10 @@ bool startAttentionPlayback() {
 
 bool startErrorPlayback() {
   return wavStreamStart(WavClip::Error);
+}
+
+bool startAbortPlayback() {
+  return wavStreamStart(WavClip::Abort);
 }
 
 bool updateBellPlayback() {
@@ -225,6 +233,10 @@ bool updateErrorPlayback() {
   return wavStreamUpdate();
 }
 
+bool updateAbortPlayback() {
+  return wavStreamUpdate();
+}
+
 bool playBell() {
   return playWavBlocking(WavClip::Bell, "Playing...");
 }
@@ -239,6 +251,10 @@ bool playAttention() {
 
 bool playError() {
   return playWavBlocking(WavClip::Error, "Playing...");
+}
+
+bool playAbort() {
+  return playWavBlocking(WavClip::Abort, "Playing...");
 }
 
 void runSoundTest() {

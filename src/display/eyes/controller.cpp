@@ -8,6 +8,7 @@
 #include "display/eyes/core/impact.h"
 #include "display/eyes/core/internal.h"
 #include "display/eyes/core/util.h"
+#include "display/eyes/modes/abort.h"
 #include "display/eyes/modes/attention.h"
 #include "display/eyes/modes/error.h"
 #include "display/eyes/modes/idle.h"
@@ -65,6 +66,9 @@ void updateModePose(uint32_t now) {
       break;
     case EyeMode::Error:
       updateErrorEyes(now);
+      break;
+    case EyeMode::Abort:
+      updateAbortEyes(now);
       break;
   }
 
@@ -197,6 +201,12 @@ void setEyeMode(EyeMode mode, uint32_t now) {
       blinkSetOpenAmount(1.0f);
       blinkSetNextBlinkMs(now + 2300);
       startErrorEyes(now);
+      break;
+    case EyeMode::Abort:
+      blinkBeginIdle(now);
+      blinkSetOpenAmount(1.0f);
+      blinkSetNextBlinkMs(now + 1500);
+      startAbortEyes(now);
       break;
   }
 

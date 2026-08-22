@@ -29,4 +29,8 @@ bool startErrorPlayback();
 bool updateErrorPlayback();
 void stopErrorPlayback();
 bool playError();
+bool startAbortPlayback();
+bool updateAbortPlayback();
+void stopAbortPlayback();
+bool playAbort();
 void runSoundTest();

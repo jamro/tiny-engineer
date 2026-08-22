@@ -127,6 +127,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <tr><td><code>welcome</code></td><td>One-shot hello gesture</td></tr>
 <tr><td><code>attention</code></td><td>Input-request gesture + audio</td></tr>
 <tr><td><code>error</code></td><td>Obstacle gesture + audio</td></tr>
+<tr><td><code>abort</code></td><td>Abort gesture + audio</td></tr>
 </table>
 <p>POST <code>/test/servo</code> &mdash; query params:</p>
 <table>
@@ -149,6 +150,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <button class="btn" data-anim="welcome"><span class="btn-title">Welcome</span><span class="btn-hint">One-shot</span></button>
 <button class="btn" data-anim="attention"><span class="btn-title">Attention</span><span class="btn-hint">+ audio</span></button>
 <button class="btn" data-anim="error"><span class="btn-title">Error</span><span class="btn-hint">+ audio</span></button>
+<button class="btn" data-anim="abort"><span class="btn-title">Abort</span><span class="btn-hint">One-shot + audio</span></button>
 </div>
 </section>
 

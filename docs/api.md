@@ -169,7 +169,7 @@ curl http://tiny-engineer.local/anim
 
 | Field | Meaning |
 | --- | --- |
-| `animation` | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, or `error` |
+| `animation` | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, or `abort` |
 
 ### `POST /anim`
 
@@ -177,7 +177,7 @@ Request an animation switch. Each animation runs at least **1s**; if the current
 
 | Param | Type | Values |
 | --- | --- | --- |
-| `name` | string | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error` |
+| `name` | string | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, `abort` |
 
 ```bash
 curl -X POST "http://tiny-engineer.local/anim?name=typing"
@@ -187,6 +187,7 @@ curl -X POST "http://tiny-engineer.local/anim?name=ring"
 curl -X POST "http://tiny-engineer.local/anim?name=welcome"
 curl -X POST "http://tiny-engineer.local/anim?name=attention"
 curl -X POST "http://tiny-engineer.local/anim?name=error"
+curl -X POST "http://tiny-engineer.local/anim?name=abort"
 curl -X POST "http://tiny-engineer.local/anim?name=none"
 ```
 
@@ -204,13 +205,14 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 | `welcome` | **One-shot** hello gesture synced to `welcome.wav` (~2.7 s). Right hand raises during "Hello, human.", holds through the pause, wiggles during "What are we building today?", then lowers. Head nods to mid+10° and returns. Plays automatically after successful Wi-Fi connect at boot; also via API. Requires `welcome.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, `GET /anim` reports `none`. |
 | `attention` | Friendly input-request gesture synced to `attention.wav` (~1.1 s, "Your turn, human."). Moves into a calm prompt pose first (centered body/neck, head slightly up, right hand raised partway), waits until all servos stop, then plays audio with no servo updates during playback. After audio ends, holds a gentle waiting loop until another animation is selected. Requires `attention.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
 | `error` | Critical task-obstacle gesture synced to `error.wav` (~2.2 s, "Uh-oh. Human, we have a problem."). Moves into an obstacle-presenting pose first (body/neck angled toward the task, head concerned/down, right hand presenting the blocker, left hand indicating task area), waits until the pose settles, then plays audio. After audio ends, holds a subtle blocked loop with small head/neck shake until another animation is selected. Requires `error.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
+| `abort` | **One-shot** resigned abort gesture synced to `abort.wav` (~2.5 s, "Fine. I didn't want to finish it anyway."). Raises both hands, lifts the head, and twists the neck sideways before audio starts. During playback it shrugs, dips the head, and adds a dismissive side twist with matching eye glances/squints. Requires `abort.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, returns to `none` pose and `GET /anim` reports `none`. |
 
 Wrong params return **400**:
 
 | `error` | When |
 | --- | --- |
 | `missing name` | Query param `name` absent |
-| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, or `error` |
+| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, or `abort` |
 
 ## Errors
 
@@ -239,7 +241,7 @@ Onboard WS2812 on **GPIO10** (`RGB_LED_PIN`). Animation-driven colors are handle
 | Animation | LED color |
 | --- | --- |
 | `typing`, `reading`, `thinking`, `welcome`, `ring` | White (full intensity) |
-| `attention`, `error` | Red (full intensity) |
+| `attention`, `error`, `abort` | Red (full intensity) |
 | `none` | Off |
 
 Transitions take **1 s** with smooth fade in/out:

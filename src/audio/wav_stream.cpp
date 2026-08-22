@@ -22,6 +22,7 @@ constexpr WavClipDef kClips[kWavClipCount] = {
   {"/welcome.wav", "Welcome", "WELCOME"},
   {"/attention.wav", "Attention", "ATTENTION"},
   {"/error.wav", "Error", "ERROR"},
+  {"/abort.wav", "Abort", "ABORT"},
 };
 
 File g_file;

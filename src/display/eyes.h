@@ -17,7 +17,8 @@ enum class EyeMode {
   Ring,
   Welcome,
   Attention,
-  Error
+  Error,
+  Abort
 };
 
 enum class SleepEyeResult {
