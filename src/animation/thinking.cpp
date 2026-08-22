@@ -7,7 +7,10 @@
 #include "servo_wrapper.h"
 #include "servos.h"
 
-using anim::easeInOutCubic;
+using anim::beginEasedMove;
+using anim::easedMoveDone;
+using anim::easedMoveValue;
+using anim::EasedMove;
 using anim::isTransitionParkComplete;
 using anim::parkForTransition;
 using anim::randChance;
@@ -34,17 +37,9 @@ struct ThinkPose {
   float neckDeg;
 };
 
-struct ThinkAxisMove {
-  float from;
-  float to;
-  uint32_t startMs;
-  uint32_t durationMs;
-  bool active;
-};
-
 ThinkPhase g_thinkPhase = ThinkPhase::TransitionPark;
-ThinkAxisMove g_thinkHeadMove = {};
-ThinkAxisMove g_thinkNeckMove = {};
+EasedMove g_thinkHeadMove = {};
+EasedMove g_thinkNeckMove = {};
 uint32_t g_thinkPauseUntilMs = 0;
 uint32_t g_animationStartedMs = 0;
 uint8_t g_thinkPoseIndex = 0;
@@ -144,17 +139,32 @@ uint8_t pickNextThinkPoseIndex() {
 }
 
 void beginThinkAxisMove(
-  ThinkAxisMove& move,
+  EasedMove& move,
   float from,
   float to,
   uint32_t startMs,
   uint32_t durationMs
 ) {
-  move.from = from;
-  move.to = to;
-  move.startMs = startMs;
-  move.durationMs = durationMs > 0 ? durationMs : 1;
-  move.active = true;
+  beginEasedMove(move, from, to, startMs, durationMs);
+}
+
+void tickThinkAxisMoves(uint32_t now) {
+  if (g_thinkHeadMove.active) {
+    servoAt(SERVO_HEAD).setPosition(
+      easedMoveValue(g_thinkHeadMove, now)
+    );
+    if (easedMoveDone(g_thinkHeadMove, now)) {
+      g_thinkHeadMove.active = false;
+    }
+  }
+  if (g_thinkNeckMove.active) {
+    servoAt(SERVO_NECK).setPosition(
+      easedMoveValue(g_thinkNeckMove, now)
+    );
+    if (easedMoveDone(g_thinkNeckMove, now)) {
+      g_thinkNeckMove.active = false;
+    }
+  }
 }
 
 uint32_t primaryDurationMs(float deltaDeg) {
@@ -221,47 +231,6 @@ void startThinkPrimaryMove(uint32_t now, const ThinkPose& pose) {
   Serial.print(headFirst ? "yes" : "no");
   Serial.print(" stagger=");
   Serial.println(stagger);
-}
-
-float easedAxisValue(const ThinkAxisMove& move, uint32_t now) {
-  if (!move.active) {
-    return move.to;
-  }
-  if (now < move.startMs) {
-    return move.from;
-  }
-  const uint32_t elapsed = now - move.startMs;
-  if (elapsed >= move.durationMs) {
-    return move.to;
-  }
-  const float t = (float)elapsed / (float)move.durationMs;
-  return move.from + (move.to - move.from) * easeInOutCubic(t);
-}
-
-bool thinkAxisMoveDone(const ThinkAxisMove& move, uint32_t now) {
-  if (!move.active) {
-    return true;
-  }
-  return now >= move.startMs + move.durationMs;
-}
-
-void tickThinkAxisMoves(uint32_t now) {
-  if (g_thinkHeadMove.active) {
-    servoAt(SERVO_HEAD).setPosition(
-      easedAxisValue(g_thinkHeadMove, now)
-    );
-    if (thinkAxisMoveDone(g_thinkHeadMove, now)) {
-      g_thinkHeadMove.active = false;
-    }
-  }
-  if (g_thinkNeckMove.active) {
-    servoAt(SERVO_NECK).setPosition(
-      easedAxisValue(g_thinkNeckMove, now)
-    );
-    if (thinkAxisMoveDone(g_thinkNeckMove, now)) {
-      g_thinkNeckMove.active = false;
-    }
-  }
 }
 
 bool thinkMovesActive() {

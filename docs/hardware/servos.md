@@ -34,7 +34,7 @@ Datasheet travel over 800–2200 µs is **approximately 130°**, while many sell
 
 ## Current firmware test limits
 
-Verified in [`include/pins.h`](../../include/pins.h):
+Verified in [`include/pins.h`](../../include/pins.h) and [`include/servos.h`](../../include/servos.h):
 
 | Constant | Value | Role |
 | --- | --- | --- |
@@ -43,7 +43,20 @@ Verified in [`include/pins.h`](../../include/pins.h):
 | `SERVO_HIGH` | **105.0** | Test upper angle |
 | `SERVO_STEP_MS` | 10 | Live update / interpolation step (ms) |
 | `SERVO_ANGLE_DEADBAND_DEG` | **0.32** | Stop threshold (~half PWM count) |
-| `SERVO_SPEED_DEG_S` | **220.0** | Smooth rate for `POST /test/servo` (`SERVO_MAX_SPEED_DEG_S`) |
+| `SERVO_SPEED_DEG_S` | **140.0** | Smooth rate for `POST /test/servo` (`SERVO_MAX_SPEED_DEG_S`) |
+
+## Motion modes
+
+Firmware uses two complementary control paths:
+
+| Mode | API | Use |
+| --- | --- | --- |
+| **Choreographed** | `setPosition()` + time easing (`anim::easedLerp`, `anim::EasedMove`) | Welcome raise/wiggle, thinking head/neck — direct PWM each frame, cubic ease-in-out |
+| **Discrete** | `setTarget()` + `update()` slew | Typing, reading, ring, transitions — rate-limited chase to a fixed angle |
+
+Helpers live in [`src/animation/util.cpp`](../../src/animation/util.cpp). Blocking test moves (`moveTo`, `servoMoveAllSmooth`) also use cubic easing.
+
+`SERVO_MAX_SPEED_DEG_S` (140°/s) is ~28% of HD-1370A unloaded max (~500°/s @ 4.8 V) — smoother under load while staying responsive for hand taps.
 
 Bring-up motion (`runServoTest`):
 

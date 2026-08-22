@@ -9,25 +9,19 @@
 #include "servo_wrapper.h"
 #include "servos.h"
 
+using anim::easedLerp;
 using anim::stopAnimServos;
 
 namespace {
 
-constexpr float WELCOME_MOVE_SPEED_DEG_S = SERVO_MAX_SPEED_DEG_S;
 constexpr uint32_t RAISE_MS = 430;
 
 uint32_t g_welcomeStartMs = 0;
 uint32_t g_welcomeAudioStartMs = 0;
 bool g_welcomeAudioStarted = false;
 
-float lerp(float a, float b, float t) {
-  return a + (b - a) * t;
-}
-
-bool handRaiseComplete() {
-  return !servoAt(SERVO_HAND_RIGHT).isMoving()
-    && servoAt(SERVO_HAND_RIGHT).angle() >=
-      anim::WELCOME_HAND_RAISED - 2.0f;
+bool handRaiseComplete(uint32_t elapsed) {
+  return elapsed >= RAISE_MS;
 }
 
 void parkWelcomeIdlePose() {
@@ -38,34 +32,27 @@ void parkWelcomeIdlePose() {
   );
 }
 
-void applyRaisePose(uint32_t elapsed) {
-  const float t = anim::easeInOutCubic(
-    constrain(
-      (float)elapsed / (float)RAISE_MS,
-      0.0f,
-      1.0f
-    )
+void applyRaisePose(uint32_t now) {
+  const float handAngle = easedLerp(
+    anim::WELCOME_HAND_REST,
+    anim::WELCOME_HAND_RAISED,
+    g_welcomeStartMs,
+    RAISE_MS,
+    now
+  );
+  const float headAngle = easedLerp(
+    anim::WELCOME_HEAD_MID,
+    anim::WELCOME_HEAD_UP,
+    g_welcomeStartMs,
+    RAISE_MS,
+    now
   );
 
-  servoAt(SERVO_HAND_RIGHT).setTarget(
-    lerp(
-      anim::WELCOME_HAND_REST,
-      anim::WELCOME_HAND_RAISED,
-      t
-    ),
-    WELCOME_MOVE_SPEED_DEG_S
-  );
-  servoAt(SERVO_HEAD).setTarget(
-    lerp(
-      anim::WELCOME_HEAD_MID,
-      anim::WELCOME_HEAD_UP,
-      t
-    ),
-    WELCOME_MOVE_SPEED_DEG_S
-  );
+  servoAt(SERVO_HAND_RIGHT).setPosition(handAngle);
+  servoAt(SERVO_HEAD).setPosition(headAngle);
 }
 
-void applyAudioPose(uint32_t audioElapsed) {
+void applyAudioPose(uint32_t audioElapsed, uint32_t now) {
   float handAngle = anim::WELCOME_HAND_RAISED;
   float headAngle = anim::WELCOME_HEAD_UP;
 
@@ -73,19 +60,19 @@ void applyAudioPose(uint32_t audioElapsed) {
     handAngle = anim::WELCOME_HAND_RAISED;
     headAngle = anim::WELCOME_HEAD_UP;
   } else if (audioElapsed < WELCOME_AUDIO_ACCEPTED_END_MS) {
-    const float t = anim::easeInOutCubic(
-      (float)(audioElapsed - WELCOME_AUDIO_LOGIN_END_MS) /
-      (float)(WELCOME_AUDIO_ACCEPTED_END_MS - WELCOME_AUDIO_LOGIN_END_MS)
-    );
-    handAngle = lerp(
+    handAngle = easedLerp(
       anim::WELCOME_HAND_RAISED,
       anim::WELCOME_HAND_REST,
-      t
+      g_welcomeAudioStartMs + WELCOME_AUDIO_LOGIN_END_MS,
+      WELCOME_AUDIO_ACCEPTED_END_MS - WELCOME_AUDIO_LOGIN_END_MS,
+      now
     );
-    headAngle = lerp(
+    headAngle = easedLerp(
       anim::WELCOME_HEAD_UP,
       anim::WELCOME_HEAD_MID,
-      t
+      g_welcomeAudioStartMs + WELCOME_AUDIO_LOGIN_END_MS,
+      WELCOME_AUDIO_ACCEPTED_END_MS - WELCOME_AUDIO_LOGIN_END_MS,
+      now
     );
   } else {
     handAngle = anim::WELCOME_HAND_REST;
@@ -111,14 +98,15 @@ void applyAudioPose(uint32_t audioElapsed) {
     headAngle = anim::WELCOME_HEAD_UP + nod;
   }
 
-  servoAt(SERVO_HAND_RIGHT).setTarget(
-    handAngle,
-    WELCOME_MOVE_SPEED_DEG_S
-  );
-  servoAt(SERVO_HEAD).setTarget(
-    headAngle,
-    WELCOME_MOVE_SPEED_DEG_S
-  );
+  servoAt(SERVO_HAND_RIGHT).setPosition(handAngle);
+  servoAt(SERVO_HEAD).setPosition(headAngle);
+}
+
+void updateWelcomeParkServos() {
+  servoAt(SERVO_BODY).update();
+  servoAt(SERVO_NECK).update();
+  servoAt(SERVO_HAND_LEFT).update();
+  servoAt(SERVO_HEAD).update();
 }
 
 void tryStartWelcomeAudio(uint32_t now, uint32_t elapsed) {
@@ -126,7 +114,7 @@ void tryStartWelcomeAudio(uint32_t now, uint32_t elapsed) {
     return;
   }
 
-  if (handRaiseComplete() || elapsed >= RAISE_MS) {
+  if (handRaiseComplete(elapsed)) {
     if (startWelcomePlayback()) {
       g_welcomeAudioStarted = true;
       g_welcomeAudioStartMs = now;
@@ -159,16 +147,15 @@ void startWelcome() {
 }
 
 void updateWelcome(uint32_t now) {
-  updateAllServos();
-
   const uint32_t elapsed = now - g_welcomeStartMs;
 
   if (!g_welcomeAudioStarted) {
-    applyRaisePose(elapsed);
+    applyRaisePose(now);
+    updateWelcomeParkServos();
     tryStartWelcomeAudio(now, elapsed);
   } else {
     updateWelcomePlayback();
-    applyAudioPose(welcomeAudioElapsed(now));
+    applyAudioPose(welcomeAudioElapsed(now), now);
   }
 
   if (g_welcomeAudioStarted &&

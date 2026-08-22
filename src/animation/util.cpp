@@ -36,6 +36,67 @@ float easeInOutCubic(float t) {
   return 1.0f - (f * f * f) / 2.0f;
 }
 
+float lerp(float a, float b, float t) {
+  return a + (b - a) * t;
+}
+
+void beginEasedMove(
+  EasedMove& move,
+  float from,
+  float to,
+  uint32_t startMs,
+  uint32_t durationMs
+) {
+  move.from = from;
+  move.to = to;
+  move.startMs = startMs;
+  move.durationMs = durationMs > 0 ? durationMs : 1;
+  move.active = true;
+}
+
+float easedMoveValue(const EasedMove& move, uint32_t now) {
+  if (!move.active) {
+    return move.to;
+  }
+  if (now < move.startMs) {
+    return move.from;
+  }
+  const uint32_t elapsed = now - move.startMs;
+  if (elapsed >= move.durationMs) {
+    return move.to;
+  }
+  const float t = (float)elapsed / (float)move.durationMs;
+  return lerp(move.from, move.to, easeInOutCubic(t));
+}
+
+bool easedMoveDone(const EasedMove& move, uint32_t now) {
+  if (!move.active) {
+    return true;
+  }
+  return now >= move.startMs + move.durationMs;
+}
+
+float easedLerp(
+  float from,
+  float to,
+  uint32_t startMs,
+  uint32_t durationMs,
+  uint32_t now
+) {
+  if (durationMs == 0) {
+    return to;
+  }
+  if (now <= startMs) {
+    return from;
+  }
+  const uint32_t elapsed = now - startMs;
+  if (elapsed >= durationMs) {
+    return to;
+  }
+  const float t = (float)elapsed / (float)durationMs;
+  return lerp(from, to, easeInOutCubic(t));
+}
+
 namespace {
 
 void logServoAxis(const char* name, int index) {

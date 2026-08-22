@@ -37,7 +37,7 @@ constexpr float SERVO_CENTER = 90.0f;
 constexpr float SERVO_HIGH   = 105.0f;
 
 // Max commanded slew rate for all smooth moves
-constexpr float SERVO_MAX_SPEED_DEG_S = 220.0f;
+constexpr float SERVO_MAX_SPEED_DEG_S = 140.0f;
 
 // ~half a PCA9685 count at 800-2200 us over 0-180 deg
 constexpr float SERVO_ANGLE_DEADBAND_DEG = 0.32f;

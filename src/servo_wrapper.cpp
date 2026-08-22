@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Adafruit_PWMServoDriver.h>
 
+#include "animation/util.h"
 #include "pins.h"
 #include "servos.h"
 #include "servo_wrapper.h"
@@ -191,7 +192,7 @@ bool ServoWrapper::moveTo(float target) {
 
   for (int step = 1; step <= steps; step++) {
     const float progress =
-      (float)step / (float)steps;
+      anim::easeInOutCubic((float)step / (float)steps);
 
     const float angle =
       fromAngle +
@@ -250,7 +251,7 @@ void servoMoveAllSmooth(float toAngle) {
 
   for (int step = 1; step <= steps; step++) {
     const float progress =
-      (float)step / (float)steps;
+      anim::easeInOutCubic((float)step / (float)steps);
 
     for (int i = 0; i < SERVO_COUNT; i++) {
       const float angle =
