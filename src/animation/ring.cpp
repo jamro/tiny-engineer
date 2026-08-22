@@ -5,7 +5,7 @@
 #include "animation/ring.h"
 #include "animation/util.h"
 #include "audio.h"
-#include "eyes.h"
+#include "display/eyes.h"
 #include "servo_wrapper.h"
 #include "servos.h"
 

@@ -11,7 +11,7 @@
 #include "animation/util.h"
 #include "animation/welcome.h"
 #include "audio.h"
-#include "eyes.h"
+#include "display/eyes.h"
 #include "rgb.h"
 #include "servo_wrapper.h"
 

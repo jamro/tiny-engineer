@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
 #include "animation.h"
-#include "eyes.h"
-#include "oled.h"
+#include "display/eyes.h"
+#include "display/oled.h"
 #include "sleep.h"
 
 namespace {

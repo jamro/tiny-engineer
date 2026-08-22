@@ -3,7 +3,7 @@
 Firmware is [`src/main.cpp`](../../src/main.cpp). Boot **inits** hardware and starts HTTP. Demos (OLED, tones, servo sweep) run on demand via REST. Helpers:
 
 - [`src/rgb.cpp`](../../src/rgb.cpp)
-- [`src/oled.cpp`](../../src/oled.cpp)
+- [`src/display/oled.cpp`](../../src/display/oled.cpp)
 - [`src/wifi_connect.cpp`](../../src/wifi_connect.cpp)
 - [`src/audio.cpp`](../../src/audio.cpp)
 - [`src/pca9685_servos.cpp`](../../src/pca9685_servos.cpp)

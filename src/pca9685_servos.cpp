@@ -2,7 +2,7 @@
 
 #include "pins.h"
 #include "servos.h"
-#include "oled.h"
+#include "display/oled.h"
 #include "rgb.h"
 #include "servo_wrapper.h"
 #include "pca9685_servos.h"

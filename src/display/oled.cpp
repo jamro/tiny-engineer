@@ -4,8 +4,8 @@
 #include <Adafruit_SSD1306.h>
 
 #include "pins.h"
-#include "eyes.h"
-#include "oled.h"
+#include "display/eyes.h"
+#include "display/oled.h"
 
 Adafruit_SSD1306 display(
   OLED_WIDTH,

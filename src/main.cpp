@@ -4,7 +4,7 @@
 
 #include "pins.h"
 #include "rgb.h"
-#include "oled.h"
+#include "display/oled.h"
 #include "audio.h"
 #include "animation.h"
 #include "pca9685_servos.h"

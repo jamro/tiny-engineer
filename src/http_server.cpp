@@ -5,7 +5,7 @@
 #include "animation.h"
 #include "audio.h"
 #include "http_server.h"
-#include "oled.h"
+#include "display/oled.h"
 #include "pca9685_servos.h"
 #include "rgb.h"
 #include "servos.h"

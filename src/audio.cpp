@@ -5,7 +5,7 @@
 #include <math.h>
 
 #include "pins.h"
-#include "oled.h"
+#include "display/oled.h"
 #include "audio.h"
 
 I2SClass I2S;
