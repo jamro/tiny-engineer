@@ -25,7 +25,7 @@ Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200)
 | MAX98357A / I2S | `I2S.begin` 44.1 kHz 16-bit stereo |
 | Servos | Park all channels at 90° |
 | HTTP | Port 80 if Wi-Fi connected |
-| Success | Green RGB, OLED `ROBOT READY` / IP (or `WIFI FAIL`) |
+| Success | Dim green RGB during init; then animation LED (see below) |
 
 ## Expected boot sequence
 
@@ -36,10 +36,23 @@ Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200)
 5. `Checking PCA9685 at 0x40...` → **must** succeed
 6. `Starting MAX98357A` → `I2S OK`
 7. `Centering servos` — all channels → 90°
-8. `ROBOT READY` — RGB green, OLED `ROBOT READY` + IP (or `WIFI FAIL`)
-9. If Wi-Fi OK: `HTTP: http://<ip>/` and `HTTP: http://tiny-engineer.local/`
+8. `ROBOT READY` — dim green RGB, OLED `ROBOT READY` + IP (or `WIFI FAIL`)
+9. RGB fades to white over 1 s if `welcome` runs (Wi-Fi OK), or fades off if idle
+10. If Wi-Fi OK: `HTTP: http://<ip>/` and `HTTP: http://tiny-engineer.local/`
 
-`loop()` pumps the HTTP server. No audio/OLED/servo/LED demos until a POST.
+`loop()` pumps the HTTP server and updates animation RGB fades. No audio/OLED/servo/LED demos until a POST.
+
+## Animation RGB
+
+During normal operation the onboard WS2812 tracks the active animation (not boot green):
+
+| Animation | LED |
+| --- | --- |
+| `typing`, `reading`, `thinking`, `welcome`, `ring` | White |
+| `attention`, `error` | Red |
+| `none` | Off |
+
+State changes fade over **1 s** (see [`docs/api.md`](../api.md#rgb-led)). Trigger via `POST /anim?name=…` or Cursor hooks.
 
 OLED shows matching status strings when the panel is present (`WIFI Connecting...` then IP, `PCA9685 Checking...`, `MAX98357A`).
 
@@ -62,7 +75,7 @@ curl -X POST http://tiny-engineer.local/test/screen
 # Servos 90 → 105 → 75 → 90 (channels 0–4)
 curl -X POST http://tiny-engineer.local/test/movement
 
-# Onboard WS2812 R → G → B → white → off, then back to green
+# Onboard WS2812 R → G → B → white → off, then back to current animation LED
 curl -X POST http://tiny-engineer.local/test/led
 
 # One servo smooth move to angle (~40°/s; index 0–4, angle 0–180)

@@ -12,7 +12,7 @@ enum class AnimationId {
 };
 
 void setAnimation(AnimationId id);
-void finishAnimation();
+void finishAnimation(uint32_t nowMs);
 AnimationId getAnimation();
 const char* animationName(AnimationId id);
 bool parseAnimationName(const char* name, AnimationId& out);

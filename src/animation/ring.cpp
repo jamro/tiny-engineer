@@ -162,7 +162,7 @@ void updateRing(uint32_t now) {
     case RingPhase::ReturnLeftHand:
       if (allServosStopped()) {
         g_ringPhase = RingPhase::Done;
-        finishAnimation();
+        finishAnimation(now);
       }
       break;
 

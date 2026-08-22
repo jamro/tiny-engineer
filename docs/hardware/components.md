@@ -17,6 +17,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h) unless mark
 | USB | Onboard USB-C, **native USB** (no USB–UART bridge chip) |
 | Flash | 4 MB stacked flash on GPIO12–GPIO17 (those GPIOs are **not exposed**) |
 | Onboard RGB | WS2812 on **GPIO10** |
+| Firmware notes | Boot: dim green status. Animations: white (typing/reading/thinking/welcome/ring), red (attention/error), off (idle). 1 s fade between states. Fatal init errors: solid dim red + hang. See [`docs/api.md`](../../api.md#rgb-led) |
 | BOOT | Button / strapping on **GPIO9** |
 | RESET | Separate RESET button (CHIP_EN), not a GPIO |
 | UART0 silkscreen | TX = GPIO21, RX = GPIO20 |

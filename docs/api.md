@@ -102,7 +102,7 @@ curl -X POST http://tiny-engineer.local/test/movement
 
 ### `POST /test/led`
 
-Onboard WS2812 on GPIO10: R → G → B → white → off (`runRgbTest()`), then back to green ready.
+Onboard WS2812 on GPIO10: R → G → B → white → off (`runRgbTest()`), then fades back to the current animation color (see [RGB LED](#rgb-led)).
 
 ```bash
 curl -X POST http://tiny-engineer.local/test/led
@@ -214,4 +214,27 @@ Test handlers **block** until the test finishes. The client waits. After each te
 
 `/anim` responses return immediately; typing motion runs in the main loop via non-blocking servo updates. Animation switches may defer up to 1s so the active animation holds its minimum duration; only the latest pending request is applied.
 
+The onboard RGB LED follows the active animation (see [RGB LED](#rgb-led)).
+
 One request at a time — the Arduino `WebServer` is single-threaded.
+
+## RGB LED
+
+Onboard WS2812 on **GPIO10** (`RGB_LED_PIN`). Animation-driven colors are handled in [`src/rgb.cpp`](../src/rgb.cpp) and switch when `POST /anim` applies a new state (same 1s minimum hold as servos/eyes).
+
+| Animation | LED color |
+| --- | --- |
+| `typing`, `reading`, `thinking`, `welcome`, `ring` | White (full intensity) |
+| `attention`, `error` | Red (full intensity) |
+| `none` | Off |
+
+Transitions take **1 s** with smooth fade in/out:
+
+- **Off ↔ color** — single 1 s fade (e.g. idle → typing fades in white; ring → `none` fades out).
+- **White ↔ red** — fade out to black (500 ms), then fade in to the new color (500 ms).
+
+Switching between animations that share the same color (e.g. `typing` → `reading`) does not restart a fade.
+
+Boot uses dim green `(0, 32, 0)` as a status indicator during init. After `ROBOT READY`, the LED fades to white if `welcome` runs (Wi-Fi OK) or off if idle. Fatal PCA9685 / I2S errors set solid dim red and hang — not animation-driven.
+
+`POST /test/led` runs a hardware colour cycle and then restores the current animation LED state.

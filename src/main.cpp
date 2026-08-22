@@ -103,13 +103,12 @@ void setup() {
   Serial.println("ROBOT READY");
   Serial.println("==========================");
 
-  setRgb(0, 0, 0);
-  delay(400);
-
   showIdleScreen();
 
   if (wifiConnected()) {
     setAnimation(AnimationId::Welcome);
+  } else {
+    setRgbForAnimation(AnimationId::None, millis());
   }
 
   startHttpServer();
@@ -117,7 +116,9 @@ void setup() {
 }
 
 void loop() {
+  const uint32_t now = millis();
   pollHttpServer();
-  updateSleep(millis());
+  updateSleep(now);
   updateAnimation();
+  updateRgb(now);
 }

@@ -43,4 +43,5 @@ Script: [`.cursor/hooks/anim.sh`](../.cursor/hooks/anim.sh) — fire-and-forget 
 
 - Robot offline → hook still exits 0; no agent stall.
 - Animation API holds each pose ≥1s and keeps only the latest pending switch — see [`api.md`](api.md).
+- The onboard RGB LED follows the active animation (white for typing/reading/thinking/welcome/ring, red for attention/error, off for `none`) with 1 s fades — see [RGB LED](api.md#rgb-led).
 - To change the map, edit `.cursor/hooks.json` (or pass another name to `anim.sh`).

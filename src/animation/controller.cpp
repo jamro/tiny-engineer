@@ -12,6 +12,7 @@
 #include "animation/welcome.h"
 #include "audio.h"
 #include "eyes.h"
+#include "rgb.h"
 #include "servo_wrapper.h"
 
 namespace {
@@ -28,7 +29,7 @@ void startNone() {
   anim::parkNonePose();
 }
 
-void applyAnimation(AnimationId id) {
+void applyAnimation(AnimationId id, uint32_t nowMs) {
   if (id != AnimationId::Attention) {
     stopAttentionPlayback();
   }
@@ -75,6 +76,8 @@ void applyAnimation(AnimationId id) {
       startNone();
       break;
   }
+
+  setRgbForAnimation(id, nowMs);
 }
 
 bool animationHoldElapsed() {
@@ -90,7 +93,7 @@ void setAnimation(AnimationId id) {
   }
 
   if (animationHoldElapsed()) {
-    applyAnimation(id);
+    applyAnimation(id, millis());
     return;
   }
 
@@ -98,8 +101,8 @@ void setAnimation(AnimationId id) {
   g_hasPendingAnimation = true;
 }
 
-void finishAnimation() {
-  applyAnimation(AnimationId::None);
+void finishAnimation(uint32_t nowMs) {
+  applyAnimation(AnimationId::None, nowMs);
 }
 
 AnimationId getAnimation() {
@@ -177,11 +180,11 @@ bool parseAnimationName(const char* name, AnimationId& out) {
 }
 
 void updateAnimation() {
-  if (g_hasPendingAnimation && animationHoldElapsed()) {
-    applyAnimation(g_pendingAnimation);
-  }
-
   const uint32_t now = millis();
+
+  if (g_hasPendingAnimation && animationHoldElapsed()) {
+    applyAnimation(g_pendingAnimation, now);
+  }
 
   if (g_animation == AnimationId::None) {
     updateAllServos();

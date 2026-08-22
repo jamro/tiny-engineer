@@ -178,9 +178,9 @@ void updateWelcome(uint32_t now) {
 
   if (g_welcomeAudioStarted &&
       welcomeAudioElapsed(now) >= WELCOME_AUDIO_ACCEPTED_END_MS) {
-    finishAnimation();
+    finishAnimation(now);
   } else if (!g_welcomeAudioStarted &&
       elapsed >= RAISE_MS + WELCOME_AUDIO_ACCEPTED_END_MS) {
-    finishAnimation();
+    finishAnimation(now);
   }
 }

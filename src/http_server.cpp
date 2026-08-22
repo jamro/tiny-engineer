@@ -108,7 +108,7 @@ void handleMovementTest() {
 void handleLedTest() {
   touchApiActivity();
   runRgbTest();
-  setRgb(0, 32, 0);
+  setRgbForAnimation(getAnimation(), millis());
   restoreReadyScreen();
   sendJson(200, "{\"ok\":true,\"test\":\"led\"}");
 }
