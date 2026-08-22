@@ -4,6 +4,7 @@
 #include "animation/constants.h"
 #include "animation/ring.h"
 #include "animation/util.h"
+#include "eyes.h"
 #include "servo_wrapper.h"
 #include "servos.h"
 
@@ -120,13 +121,14 @@ void startRing() {
   commandStartPose();
 }
 
-void updateRing(uint32_t /*now*/) {
+void updateRing(uint32_t now) {
   updateAllServos();
 
   switch (g_ringPhase) {
     case RingPhase::ReachStart:
       if (allStartServosStopped()) {
         g_ringPhase = RingPhase::Strike;
+        triggerEyeImpact(now);
         commandStrike();
       }
       break;

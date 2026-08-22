@@ -31,19 +31,24 @@ void applyAnimation(AnimationId id) {
 
   switch (id) {
     case AnimationId::Typing:
+      setEyeMode(EyeMode::Typing, g_animationStartedMs);
       startTyping();
       break;
     case AnimationId::Reading:
+      setEyeMode(EyeMode::Reading, g_animationStartedMs);
       startReading();
       break;
     case AnimationId::Thinking:
+      setEyeMode(EyeMode::Thinking, g_animationStartedMs);
       startThinking(g_animationStartedMs);
       break;
     case AnimationId::Ring:
+      setEyeMode(EyeMode::Ring, g_animationStartedMs);
       startRing();
       break;
     case AnimationId::None:
     default:
+      setEyeMode(EyeMode::Idle, g_animationStartedMs);
       startNone();
       break;
   }
