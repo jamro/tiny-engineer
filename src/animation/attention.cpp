@@ -23,6 +23,8 @@ enum class AttentionPhase {
 };
 
 AttentionPhase g_attentionPhase = AttentionPhase::PrepPose;
+uint32_t g_attentionAudioStartMs = 0;
+bool g_attentionAudioStarted = false;
 uint32_t g_nextWaitMoveMs = 0;
 bool g_waitNodHigh = false;
 bool g_waitNeckRight = false;
@@ -106,11 +108,25 @@ void startAttention() {
   stopAnimServos();
 
   g_attentionPhase = AttentionPhase::PrepPose;
+  g_attentionAudioStartMs = 0;
+  g_attentionAudioStarted = false;
   g_nextWaitMoveMs = 0;
   g_waitNodHigh = false;
   g_waitNeckRight = false;
 
   commandPrepPose();
+}
+
+bool attentionAudioStarted() {
+  return g_attentionAudioStarted;
+}
+
+uint32_t attentionAudioElapsed(uint32_t now) {
+  if (!g_attentionAudioStarted) {
+    return 0;
+  }
+
+  return now - g_attentionAudioStartMs;
 }
 
 void updateAttention(uint32_t now) {
@@ -119,6 +135,8 @@ void updateAttention(uint32_t now) {
       updateAllServos();
       if (allAttentionServosStopped()) {
         if (startAttentionPlayback()) {
+          g_attentionAudioStarted = true;
+          g_attentionAudioStartMs = now;
           g_attentionPhase = AttentionPhase::PlayAudio;
         } else {
           enterAwaitInput(now);

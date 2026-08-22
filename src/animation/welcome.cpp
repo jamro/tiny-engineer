@@ -56,22 +56,22 @@ void applyAudioPose(uint32_t audioElapsed, uint32_t now) {
   float handAngle = anim::WELCOME_HAND_RAISED;
   float headAngle = anim::WELCOME_HEAD_UP;
 
-  if (audioElapsed < WELCOME_AUDIO_LOGIN_END_MS) {
+  if (audioElapsed < WELCOME_AUDIO_QUESTION_END_MS) {
     handAngle = anim::WELCOME_HAND_RAISED;
     headAngle = anim::WELCOME_HEAD_UP;
-  } else if (audioElapsed < WELCOME_AUDIO_ACCEPTED_END_MS) {
+  } else if (audioElapsed < WELCOME_AUDIO_END_MS) {
     handAngle = easedLerp(
       anim::WELCOME_HAND_RAISED,
       anim::WELCOME_HAND_REST,
-      g_welcomeAudioStartMs + WELCOME_AUDIO_LOGIN_END_MS,
-      WELCOME_AUDIO_ACCEPTED_END_MS - WELCOME_AUDIO_LOGIN_END_MS,
+      g_welcomeAudioStartMs + WELCOME_AUDIO_QUESTION_END_MS,
+      WELCOME_AUDIO_END_MS - WELCOME_AUDIO_QUESTION_END_MS,
       now
     );
     headAngle = easedLerp(
       anim::WELCOME_HEAD_UP,
       anim::WELCOME_HEAD_MID,
-      g_welcomeAudioStartMs + WELCOME_AUDIO_LOGIN_END_MS,
-      WELCOME_AUDIO_ACCEPTED_END_MS - WELCOME_AUDIO_LOGIN_END_MS,
+      g_welcomeAudioStartMs + WELCOME_AUDIO_QUESTION_END_MS,
+      WELCOME_AUDIO_END_MS - WELCOME_AUDIO_QUESTION_END_MS,
       now
     );
   } else {
@@ -80,20 +80,20 @@ void applyAudioPose(uint32_t audioElapsed, uint32_t now) {
   }
 
   if (audioElapsed >= WELCOME_AUDIO_PAUSE_END_MS &&
-      audioElapsed < WELCOME_AUDIO_LOGIN_END_MS) {
-    const float loginElapsed =
+      audioElapsed < WELCOME_AUDIO_QUESTION_END_MS) {
+    const float questionElapsed =
       (float)(audioElapsed - WELCOME_AUDIO_PAUSE_END_MS);
-    const float loginDuration =
-      (float)(WELCOME_AUDIO_LOGIN_END_MS - WELCOME_AUDIO_PAUSE_END_MS);
+    const float questionDuration =
+      (float)(WELCOME_AUDIO_QUESTION_END_MS - WELCOME_AUDIO_PAUSE_END_MS);
     const float wiggle =
       sinf(
-        loginElapsed / loginDuration * 2.0f * PI * 2.0f
+        questionElapsed / questionDuration * 2.0f * PI * 2.0f
       ) * anim::WELCOME_HAND_WIGGLE_DEG;
     handAngle = anim::WELCOME_HAND_RAISED + wiggle;
 
     const float nod =
       sinf(
-        loginElapsed / loginDuration * 2.0f * PI
+        questionElapsed / questionDuration * 2.0f * PI
       ) * 3.0f;
     headAngle = anim::WELCOME_HEAD_UP + nod;
   }
@@ -159,10 +159,10 @@ void updateWelcome(uint32_t now) {
   }
 
   if (g_welcomeAudioStarted &&
-      welcomeAudioElapsed(now) >= WELCOME_AUDIO_ACCEPTED_END_MS) {
+      welcomeAudioElapsed(now) >= WELCOME_AUDIO_END_MS) {
     finishAnimation(now);
   } else if (!g_welcomeAudioStarted &&
-      elapsed >= RAISE_MS + WELCOME_AUDIO_ACCEPTED_END_MS) {
+      elapsed >= RAISE_MS + WELCOME_AUDIO_END_MS) {
     finishAnimation(now);
   }
 }

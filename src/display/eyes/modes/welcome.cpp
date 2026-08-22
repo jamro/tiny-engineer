@@ -24,7 +24,7 @@ void updateWelcomeEyes(uint32_t now) {
   } else {
     const uint32_t audioElapsed = welcomeAudioElapsed(now);
 
-    if (audioElapsed < WELCOME_AUDIO_WELCOME_END_MS) {
+    if (audioElapsed < WELCOME_AUDIO_GREETING_END_MS) {
       leftHeight = 16;
       rightHeight = 16;
       yOffset = -2;
@@ -33,20 +33,27 @@ void updateWelcomeEyes(uint32_t now) {
       rightHeight = 16;
       yOffset = -2;
 
-      if (audioElapsed >= 870 && audioElapsed < 970) {
-        const float blinkT = audioElapsed < 920
-          ? (float)(audioElapsed - 870) / 50.0f
-          : (float)(970 - audioElapsed) / 50.0f;
+      if (audioElapsed >= WELCOME_AUDIO_BLINK_START_MS &&
+          audioElapsed < WELCOME_AUDIO_BLINK_END_MS) {
+        const uint32_t blinkMid =
+          (WELCOME_AUDIO_BLINK_START_MS + WELCOME_AUDIO_BLINK_END_MS) / 2;
+        const uint32_t halfBlink =
+          (WELCOME_AUDIO_BLINK_END_MS - WELCOME_AUDIO_BLINK_START_MS) / 2;
+        const float blinkT = audioElapsed < blinkMid
+          ? (float)(audioElapsed - WELCOME_AUDIO_BLINK_START_MS) /
+            (float)halfBlink
+          : (float)(WELCOME_AUDIO_BLINK_END_MS - audioElapsed) /
+            (float)halfBlink;
         const float open = anim::easeInOutCubic(
           constrain(blinkT, 0.0f, 1.0f)
         );
         leftHeight = (int16_t)(2.0f + 14.0f * open);
         rightHeight = leftHeight;
       }
-    } else if (audioElapsed < WELCOME_AUDIO_LOGIN_END_MS) {
+    } else if (audioElapsed < WELCOME_AUDIO_QUESTION_END_MS) {
       leftHeight = 12;
       rightHeight = 12;
-    } else if (audioElapsed < WELCOME_AUDIO_ACCEPTED_END_MS) {
+    } else if (audioElapsed < WELCOME_AUDIO_END_MS) {
       leftHeight = 17;
       rightHeight = 15;
     }

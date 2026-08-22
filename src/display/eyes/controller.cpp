@@ -189,13 +189,13 @@ void setEyeMode(EyeMode mode, uint32_t now) {
     case EyeMode::Attention:
       blinkBeginIdle(now);
       blinkSetOpenAmount(1.0f);
-      blinkSetNextBlinkMs(now + 2500);
+      blinkSetNextBlinkMs(now + 1200);
       startAttentionEyes(now);
       break;
     case EyeMode::Error:
       blinkBeginIdle(now);
       blinkSetOpenAmount(1.0f);
-      blinkSetNextBlinkMs(now + 3000);
+      blinkSetNextBlinkMs(now + 2300);
       startErrorEyes(now);
       break;
   }

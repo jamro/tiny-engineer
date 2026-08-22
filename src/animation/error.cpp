@@ -22,6 +22,8 @@ enum class ErrorPhase {
 };
 
 ErrorPhase g_errorPhase = ErrorPhase::ObstaclePose;
+uint32_t g_errorAudioStartMs = 0;
+bool g_errorAudioStarted = false;
 uint32_t g_nextHoldMoveMs = 0;
 bool g_holdShakeRight = false;
 
@@ -95,10 +97,24 @@ void startError() {
   stopAnimServos();
 
   g_errorPhase = ErrorPhase::ObstaclePose;
+  g_errorAudioStartMs = 0;
+  g_errorAudioStarted = false;
   g_nextHoldMoveMs = 0;
   g_holdShakeRight = false;
 
   commandObstaclePose();
+}
+
+bool errorAudioStarted() {
+  return g_errorAudioStarted;
+}
+
+uint32_t errorAudioElapsed(uint32_t now) {
+  if (!g_errorAudioStarted) {
+    return 0;
+  }
+
+  return now - g_errorAudioStartMs;
 }
 
 void updateError(uint32_t now) {
@@ -107,6 +123,8 @@ void updateError(uint32_t now) {
       updateAllServos();
       if (allErrorServosStopped()) {
         if (startErrorPlayback()) {
+          g_errorAudioStarted = true;
+          g_errorAudioStartMs = now;
           g_errorPhase = ErrorPhase::PlayAudio;
         } else {
           enterBlockedHold(now);
