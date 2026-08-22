@@ -1,0 +1,22 @@
+{
+  "name": "tiny-engineer-cursor",
+  "version": "0.1.0",
+  "description": "Cursor hooks CLI that drives Tiny Engineer robot animations over HTTP. Root package wraps packages/tiny-engineer-cursor for npx github:jamro/tiny-engineer.",
+  "type": "module",
+  "bin": {
+    "tiny-engineer-cursor": "./packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js"
+  },
+  "files": [
+    "packages/tiny-engineer-cursor/bin",
+    "packages/tiny-engineer-cursor/src",
+    "packages/tiny-engineer-cursor/package.json"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jamro/tiny-engineer.git"
+  },
+  "license": "MIT"
+}

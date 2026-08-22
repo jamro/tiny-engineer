@@ -72,7 +72,7 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 
 ## Cursor hooks
 
-Open this repo in Cursor with the robot on Wi-Fi. Project hooks under `.cursor/` run the Node CLI in [`packages/tiny-engineer-cursor/`](packages/tiny-engineer-cursor/), which maps agent events to poses and POSTs `/anim`. The onboard RGB LED mirrors the animation (white while working, red for attention/error/abort, off when idle). Setup and event map: [`docs/hooks.md`](docs/hooks.md).
+Open this repo in Cursor with the robot on Wi-Fi. Project hooks under `.cursor/` run the Node CLI in [`packages/tiny-engineer-cursor/`](packages/tiny-engineer-cursor/), which maps agent events to poses and POSTs `/anim`. In any other project, use `npx -y github:jamro/tiny-engineer` (root `package.json` wraps that CLI). The onboard RGB LED mirrors the animation (white while working, red for attention/error/abort, off when idle). Setup and event map: [`docs/hooks.md`](docs/hooks.md).
 
 ## License
 
