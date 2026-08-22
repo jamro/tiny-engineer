@@ -1,10 +1,10 @@
 {
-  "name": "tiny-engineer",
+  "name": "tiny-engineer-cursor",
   "version": "0.1.0",
   "description": "Cursor hooks CLI that drives Tiny Engineer robot animations over HTTP",
   "type": "module",
   "bin": {
-    "tiny-engineer": "./bin/tiny-engineer.js"
+    "tiny-engineer-cursor": "./bin/tiny-engineer-cursor.js"
   },
   "files": [
     "bin",

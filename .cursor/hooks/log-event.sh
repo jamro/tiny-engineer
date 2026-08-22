@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Append Cursor hook events to project-root cursor_events.log.
-# Separate from the tiny-engineer anim CLI — logging only.
+# Separate from the tiny-engineer-cursor CLI — logging only.
 # Line format: <ISO datetime> <event_name> <event_data_json>
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"

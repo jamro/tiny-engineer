@@ -3,7 +3,7 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {
@@ -13,7 +13,7 @@
     ],
     "beforeSubmitPrompt": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {
@@ -23,7 +23,7 @@
     ],
     "afterAgentThought": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {
@@ -33,7 +33,7 @@
     ],
     "preCompact": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {
@@ -43,7 +43,7 @@
     ],
     "preToolUse": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {
@@ -53,7 +53,7 @@
     ],
     "beforeReadFile": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {
@@ -63,7 +63,7 @@
     ],
     "beforeShellExecution": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {
@@ -73,7 +73,7 @@
     ],
     "subagentStart": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {
@@ -83,7 +83,7 @@
     ],
     "afterFileEdit": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {
@@ -93,7 +93,7 @@
     ],
     "stop": [
       {
-        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
+        "command": "node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js",
         "timeout": 2
       },
       {

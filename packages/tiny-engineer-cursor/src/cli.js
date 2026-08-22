@@ -4,7 +4,7 @@ import { postAnim } from "./post.js";
 const DEFAULT_URL = "http://tiny-engineer.local";
 
 function printHelp() {
-  console.log(`Usage: tiny-engineer [options]
+  console.log(`Usage: tiny-engineer-cursor [options]
 
 Cursor hook helper: read event JSON from stdin, pick an animation, POST to the robot.
 
@@ -27,8 +27,8 @@ Event map:
   other preToolUse tools                            → (skip)
 
 Examples:
-  echo '{"hook_event_name":"stop"}' | tiny-engineer
-  echo '{"hook_event_name":"preToolUse","tool_name":"Read"}' | tiny-engineer --url http://192.168.1.10
+  echo '{"hook_event_name":"stop"}' | tiny-engineer-cursor
+  echo '{"hook_event_name":"preToolUse","tool_name":"Read"}' | tiny-engineer-cursor --url http://192.168.1.10
 `);
 }
 
