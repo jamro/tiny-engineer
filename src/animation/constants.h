@@ -37,4 +37,18 @@ constexpr float READING_HEAD_HIGH =
 constexpr float READING_NECK_MID =
   servoMid(SERVO_SPECS[SERVO_NECK]);
 
+constexpr float RING_HEAD_START =
+  servoMid(SERVO_SPECS[SERVO_HEAD]) + 10.0f;
+constexpr float RING_BODY_START = SERVO_SPECS[SERVO_BODY].min;
+constexpr float RING_RIGHT_START = SERVO_SPECS[SERVO_HAND_RIGHT].max;
+constexpr float RING_LEFT_START =
+  SERVO_SPECS[SERVO_HAND_LEFT].max - 10.0f;
+constexpr float RING_NECK_START =
+  servoMid(SERVO_SPECS[SERVO_NECK]);
+constexpr float RING_RIGHT_STRIKE =
+  SERVO_SPECS[SERVO_HAND_RIGHT].min + 5.0f;
+constexpr float RING_RIGHT_BOUNCE =
+  SERVO_SPECS[SERVO_HAND_RIGHT].min + 20.0f;
+constexpr float RING_HEAD_STRIKE = SERVO_SPECS[SERVO_HEAD].min;
+
 }  // namespace anim

@@ -137,7 +137,7 @@ curl http://tiny-engineer.local/anim
 
 | Field | Meaning |
 | --- | --- |
-| `animation` | `none`, `typing`, `reading`, or `thinking` |
+| `animation` | `none`, `typing`, `reading`, `thinking`, or `ring` |
 
 ### `POST /anim`
 
@@ -145,12 +145,13 @@ Request an animation switch. Each animation runs at least **1s**; if the current
 
 | Param | Type | Values |
 | --- | --- | --- |
-| `name` | string | `none`, `typing`, `reading`, `thinking` |
+| `name` | string | `none`, `typing`, `reading`, `thinking`, `ring` |
 
 ```bash
 curl -X POST "http://tiny-engineer.local/anim?name=typing"
 curl -X POST "http://tiny-engineer.local/anim?name=reading"
 curl -X POST "http://tiny-engineer.local/anim?name=thinking"
+curl -X POST "http://tiny-engineer.local/anim?name=ring"
 curl -X POST "http://tiny-engineer.local/anim?name=none"
 ```
 
@@ -164,13 +165,14 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 | `typing` | Alternating hands with randomness (15° band from hand limits). Head nods slowly on lowest 10° of head limits. Body sways ±5° around mid; neck counters opposite so head stays put. |
 | `reading` | Hands/body park as in `none`. Head nods on same lowest 10° band as typing, but slower. Neck sweeps ±10° around mid; right (angle down) slower than left (angle up). Occasional right-hand down-arrow bursts (1–3 presses, same 15° band as typing). |
 | `thinking` | Hands/body park as in `none`. Head (pitch) and neck (yaw) ease from the current pose into thinking poses (up + slight left/right). Move → pause → optional micro-adjust (sometimes chained) → pause; nearby pose drift with occasional larger shifts after ~2.2 s, more often over time. Axes stagger start/duration; no periodic sway. |
+| `ring` | **One-shot** service-bell gesture; does not loop. Wind-up (body `min`, neck mid, head mid+10°, both hands `max`) → fast right-hand strike to `min+5°` with head to `min` → slower bounce to `min+20°` → return to `none` pose and stop. After completion, `GET /anim` reports `none`. |
 
 Wrong params return **400**:
 
 | `error` | When |
 | --- | --- |
 | `missing name` | Query param `name` absent |
-| `unknown animation` | `name` not `none`, `typing`, `reading`, or `thinking` |
+| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, or `ring` |
 
 ## Errors
 

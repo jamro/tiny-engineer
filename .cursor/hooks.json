@@ -63,7 +63,7 @@
     ],
     "stop": [
       {
-        "command": ".cursor/hooks/anim.sh none",
+        "command": ".cursor/hooks/anim.sh ring",
         "timeout": 2
       }
     ]

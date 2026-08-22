@@ -3,6 +3,7 @@
 
 #include "animation.h"
 #include "animation/reading.h"
+#include "animation/ring.h"
 #include "animation/thinking.h"
 #include "animation/typing.h"
 #include "animation/util.h"
@@ -37,6 +38,9 @@ void applyAnimation(AnimationId id) {
     case AnimationId::Thinking:
       startThinking(g_animationStartedMs);
       break;
+    case AnimationId::Ring:
+      startRing();
+      break;
     case AnimationId::None:
     default:
       startNone();
@@ -65,6 +69,10 @@ void setAnimation(AnimationId id) {
   g_hasPendingAnimation = true;
 }
 
+void finishAnimation() {
+  applyAnimation(AnimationId::None);
+}
+
 AnimationId getAnimation() {
   return g_animation;
 }
@@ -77,6 +85,8 @@ const char* animationName(AnimationId id) {
       return "reading";
     case AnimationId::Thinking:
       return "thinking";
+    case AnimationId::Ring:
+      return "ring";
     case AnimationId::None:
     default:
       return "none";
@@ -108,6 +118,11 @@ bool parseAnimationName(const char* name, AnimationId& out) {
     return true;
   }
 
+  if (strcmp(name, "ring") == 0) {
+    out = AnimationId::Ring;
+    return true;
+  }
+
   return false;
 }
 
@@ -135,5 +150,10 @@ void updateAnimation() {
 
   if (g_animation == AnimationId::Thinking) {
     updateThinking(now);
+    return;
+  }
+
+  if (g_animation == AnimationId::Ring) {
+    updateRing(now);
   }
 }

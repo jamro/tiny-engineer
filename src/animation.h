@@ -4,10 +4,12 @@ enum class AnimationId {
   None,
   Typing,
   Reading,
-  Thinking
+  Thinking,
+  Ring
 };
 
 void setAnimation(AnimationId id);
+void finishAnimation();
 AnimationId getAnimation();
 const char* animationName(AnimationId id);
 bool parseAnimationName(const char* name, AnimationId& out);
