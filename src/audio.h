@@ -20,4 +20,8 @@ bool startWelcomePlayback();
 bool updateWelcomePlayback();
 void stopWelcomePlayback();
 bool playWelcome();
+bool startAttentionPlayback();
+bool updateAttentionPlayback();
+void stopAttentionPlayback();
+bool playAttention();
 void runSoundTest();

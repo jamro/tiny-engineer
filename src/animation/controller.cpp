@@ -2,12 +2,14 @@
 #include <string.h>
 
 #include "animation.h"
+#include "animation/attention.h"
 #include "animation/reading.h"
 #include "animation/ring.h"
 #include "animation/thinking.h"
 #include "animation/typing.h"
 #include "animation/util.h"
 #include "animation/welcome.h"
+#include "audio.h"
 #include "eyes.h"
 #include "servo_wrapper.h"
 
@@ -26,6 +28,10 @@ void startNone() {
 }
 
 void applyAnimation(AnimationId id) {
+  if (id != AnimationId::Attention) {
+    stopAttentionPlayback();
+  }
+
   g_animation = id;
   g_animationStartedMs = millis();
   g_hasPendingAnimation = false;
@@ -50,6 +56,10 @@ void applyAnimation(AnimationId id) {
     case AnimationId::Welcome:
       setEyeMode(EyeMode::Welcome, g_animationStartedMs);
       startWelcome();
+      break;
+    case AnimationId::Attention:
+      setEyeMode(EyeMode::Attention, g_animationStartedMs);
+      startAttention();
       break;
     case AnimationId::None:
     default:
@@ -100,6 +110,8 @@ const char* animationName(AnimationId id) {
       return "ring";
     case AnimationId::Welcome:
       return "welcome";
+    case AnimationId::Attention:
+      return "attention";
     case AnimationId::None:
     default:
       return "none";
@@ -141,6 +153,11 @@ bool parseAnimationName(const char* name, AnimationId& out) {
     return true;
   }
 
+  if (strcmp(name, "attention") == 0) {
+    out = AnimationId::Attention;
+    return true;
+  }
+
   return false;
 }
 
@@ -169,6 +186,9 @@ void updateAnimation() {
         break;
       case AnimationId::Welcome:
         updateWelcome(now);
+        break;
+      case AnimationId::Attention:
+        updateAttention(now);
         break;
       default:
         break;

@@ -6,7 +6,8 @@ enum class AnimationId {
   Reading,
   Thinking,
   Ring,
-  Welcome
+  Welcome,
+  Attention
 };
 
 void setAnimation(AnimationId id);

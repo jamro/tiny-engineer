@@ -61,4 +61,19 @@ constexpr float WELCOME_HAND_RAISED =
   SERVO_SPECS[SERVO_HAND_RIGHT].max;
 constexpr float WELCOME_HAND_WIGGLE_DEG = 8.0f;
 
+constexpr float ATTENTION_BODY_MID =
+  servoMid(SERVO_SPECS[SERVO_BODY]);
+constexpr float ATTENTION_NECK_MID =
+  servoMid(SERVO_SPECS[SERVO_NECK]);
+constexpr float ATTENTION_HEAD_READY =
+  servoMid(SERVO_SPECS[SERVO_HEAD]) + 6.0f;
+constexpr float ATTENTION_HAND_LEFT_PARKED =
+  SERVO_SPECS[SERVO_HAND_LEFT].max;
+constexpr float ATTENTION_HAND_RIGHT_REST =
+  SERVO_SPECS[SERVO_HAND_RIGHT].min;
+constexpr float ATTENTION_HAND_RIGHT_RAISED =
+  SERVO_SPECS[SERVO_HAND_RIGHT].min + 48.0f;
+constexpr float ATTENTION_WAIT_HEAD_NOD_DEG = 3.0f;
+constexpr float ATTENTION_WAIT_NECK_TILT_DEG = 4.0f;
+
 }  // namespace anim

@@ -15,14 +15,17 @@ namespace {
 bool audioStorageReady = false;
 File bellFile;
 File welcomeFile;
+File attentionFile;
 bool bellPlaying = false;
 bool welcomePlaying = false;
+bool attentionPlaying = false;
 
 constexpr int kAudioFrames = 512;
 
 constexpr const char* kAudioPartition = "spiffs";
 constexpr const char* kBellPath = "/bell.wav";
 constexpr const char* kWelcomePath = "/welcome.wav";
+constexpr const char* kAttentionPath = "/attention.wav";
 
 void logAudioStorageContents() {
   File root = LittleFS.open("/");
@@ -246,6 +249,11 @@ bool initAudioStorage() {
     logAudioStorageContents();
   }
 
+  if (!LittleFS.exists(kAttentionPath)) {
+    Serial.println("attention.wav not on LittleFS");
+    logAudioStorageContents();
+  }
+
   return true;
 }
 
@@ -338,8 +346,13 @@ void stopWelcomePlayback() {
   stopWavPlayback(welcomeFile, welcomePlaying);
 }
 
+void stopAttentionPlayback() {
+  stopWavPlayback(attentionFile, attentionPlaying);
+}
+
 bool startBellPlayback() {
   stopWelcomePlayback();
+  stopAttentionPlayback();
   return startWavPlayback(
     bellFile,
     bellPlaying,
@@ -350,11 +363,23 @@ bool startBellPlayback() {
 
 bool startWelcomePlayback() {
   stopBellPlayback();
+  stopAttentionPlayback();
   return startWavPlayback(
     welcomeFile,
     welcomePlaying,
     kWelcomePath,
     "Welcome"
+  );
+}
+
+bool startAttentionPlayback() {
+  stopBellPlayback();
+  stopWelcomePlayback();
+  return startWavPlayback(
+    attentionFile,
+    attentionPlaying,
+    kAttentionPath,
+    "Attention"
   );
 }
 
@@ -364,6 +389,14 @@ bool updateBellPlayback() {
 
 bool updateWelcomePlayback() {
   return updateWavPlayback(welcomeFile, welcomePlaying, "Welcome");
+}
+
+bool updateAttentionPlayback() {
+  return updateWavPlayback(
+    attentionFile,
+    attentionPlaying,
+    "Attention"
+  );
 }
 
 bool playBell() {
@@ -381,6 +414,15 @@ bool playWelcome() {
     "Playing...",
     startWelcomePlayback,
     updateWelcomePlayback
+  );
+}
+
+bool playAttention() {
+  return playWavBlocking(
+    "ATTENTION",
+    "Playing...",
+    startAttentionPlayback,
+    updateAttentionPlayback
   );
 }
 
