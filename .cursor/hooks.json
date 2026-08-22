@@ -5,11 +5,19 @@
       {
         "command": ".cursor/hooks/anim.sh reading",
         "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh sessionStart",
+        "timeout": 2
       }
     ],
     "beforeSubmitPrompt": [
       {
         "command": ".cursor/hooks/anim.sh reading",
+        "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh beforeSubmitPrompt",
         "timeout": 2
       }
     ],
@@ -17,11 +25,19 @@
       {
         "command": ".cursor/hooks/anim.sh thinking",
         "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh afterAgentThought",
+        "timeout": 2
       }
     ],
     "preCompact": [
       {
         "command": ".cursor/hooks/anim.sh thinking",
+        "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh preCompact",
         "timeout": 2
       }
     ],
@@ -35,11 +51,19 @@
         "command": ".cursor/hooks/anim.sh typing",
         "matcher": "Write|StrReplace|EditNotebook|Delete|Shell|Task|Grep|Glob|WebSearch|WebFetch|CallMcpTool|TodoWrite|AwaitShell|GenerateImage",
         "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh preToolUse",
+        "timeout": 2
       }
     ],
     "beforeReadFile": [
       {
         "command": ".cursor/hooks/anim.sh reading",
+        "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh beforeReadFile",
         "timeout": 2
       }
     ],
@@ -47,11 +71,19 @@
       {
         "command": ".cursor/hooks/anim.sh typing",
         "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh beforeShellExecution",
+        "timeout": 2
       }
     ],
     "subagentStart": [
       {
         "command": ".cursor/hooks/anim.sh typing",
+        "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh subagentStart",
         "timeout": 2
       }
     ],
@@ -59,11 +91,19 @@
       {
         "command": ".cursor/hooks/anim.sh typing",
         "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh afterFileEdit",
+        "timeout": 2
       }
     ],
     "stop": [
       {
         "command": ".cursor/hooks/anim.sh ring",
+        "timeout": 2
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh stop",
         "timeout": 2
       }
     ]
