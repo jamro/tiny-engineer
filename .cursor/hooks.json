@@ -3,7 +3,7 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": ".cursor/hooks/anim.sh reading",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {
@@ -13,7 +13,7 @@
     ],
     "beforeSubmitPrompt": [
       {
-        "command": ".cursor/hooks/anim.sh reading",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {
@@ -23,7 +23,7 @@
     ],
     "afterAgentThought": [
       {
-        "command": ".cursor/hooks/anim.sh thinking",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {
@@ -33,7 +33,7 @@
     ],
     "preCompact": [
       {
-        "command": ".cursor/hooks/anim.sh thinking",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {
@@ -43,13 +43,7 @@
     ],
     "preToolUse": [
       {
-        "command": ".cursor/hooks/anim.sh reading",
-        "matcher": "Read",
-        "timeout": 2
-      },
-      {
-        "command": ".cursor/hooks/anim.sh typing",
-        "matcher": "Write|StrReplace|EditNotebook|Delete|Shell|Task|Grep|Glob|WebSearch|WebFetch|CallMcpTool|TodoWrite|AwaitShell|GenerateImage",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {
@@ -59,7 +53,7 @@
     ],
     "beforeReadFile": [
       {
-        "command": ".cursor/hooks/anim.sh reading",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {
@@ -69,7 +63,7 @@
     ],
     "beforeShellExecution": [
       {
-        "command": ".cursor/hooks/anim.sh typing",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {
@@ -79,7 +73,7 @@
     ],
     "subagentStart": [
       {
-        "command": ".cursor/hooks/anim.sh typing",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {
@@ -89,7 +83,7 @@
     ],
     "afterFileEdit": [
       {
-        "command": ".cursor/hooks/anim.sh typing",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {
@@ -99,7 +93,7 @@
     ],
     "stop": [
       {
-        "command": ".cursor/hooks/anim.sh ring",
+        "command": "node packages/tiny-engineer/bin/tiny-engineer.js",
         "timeout": 2
       },
       {

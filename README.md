@@ -72,7 +72,7 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 
 ## Cursor hooks
 
-Open this repo in Cursor with the robot on Wi-Fi. Project hooks under `.cursor/` POST to `/anim` so the desk robot types, reads, thinks, then idles with the agent. The onboard RGB LED mirrors the animation (white while working, red for attention/error/abort, off when idle). Setup and event map: [`docs/hooks.md`](docs/hooks.md).
+Open this repo in Cursor with the robot on Wi-Fi. Project hooks under `.cursor/` run the Node CLI in [`packages/tiny-engineer/`](packages/tiny-engineer/), which maps agent events to poses and POSTs `/anim`. The onboard RGB LED mirrors the animation (white while working, red for attention/error/abort, off when idle). Setup and event map: [`docs/hooks.md`](docs/hooks.md).
 
 ## License
 
