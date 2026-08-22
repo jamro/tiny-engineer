@@ -36,17 +36,16 @@ void commandReadingHead() {
 }
 
 void commandReadingNeck() {
+  const float speed = 8.0f + 8.0f * randUnit();
   if (g_neckAngleHigh) {
-    const float leftSpeed = 14.0f + 12.0f * randUnit();
     servoAt(SERVO_NECK).setTarget(
       anim::READING_NECK_MID + anim::READING_NECK_SWAY_DEG,
-      leftSpeed
+      speed
     );
   } else {
-    const float rightSpeed = 5.0f + 5.0f * randUnit();
     servoAt(SERVO_NECK).setTarget(
       anim::READING_NECK_MID - anim::READING_NECK_SWAY_DEG,
-      rightSpeed
+      speed
     );
   }
 }
@@ -95,9 +94,9 @@ void endScrollBurst(uint32_t now) {
 void advanceReadingHeadStep() {
   g_headHigh = !g_headHigh;
   if (g_headHigh) {
-    g_headPauseUntilMs = millis() + randRangeMs(200, 500);
+    g_headPauseUntilMs = millis() + randRangeMs(400, 800);
   } else {
-    g_headPauseUntilMs = millis() + randRangeMs(300, 700);
+    g_headPauseUntilMs = millis() + randRangeMs(500, 1000);
   }
 }
 
@@ -109,9 +108,9 @@ void beginNextReadingHead() {
 void advanceReadingNeckStep() {
   g_neckAngleHigh = !g_neckAngleHigh;
   if (g_neckAngleHigh) {
-    g_neckPauseUntilMs = millis() + randRangeMs(150, 400);
+    g_neckPauseUntilMs = millis() + randRangeMs(350, 700);
   } else {
-    g_neckPauseUntilMs = millis() + randRangeMs(250, 600);
+    g_neckPauseUntilMs = millis() + randRangeMs(450, 900);
   }
 }
 
