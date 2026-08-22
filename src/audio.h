@@ -24,4 +24,8 @@ bool startAttentionPlayback();
 bool updateAttentionPlayback();
 void stopAttentionPlayback();
 bool playAttention();
+bool startErrorPlayback();
+bool updateErrorPlayback();
+void stopErrorPlayback();
+bool playError();
 void runSoundTest();

@@ -155,7 +155,7 @@ curl http://tiny-engineer.local/anim
 
 | Field | Meaning |
 | --- | --- |
-| `animation` | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, or `attention` |
+| `animation` | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, or `error` |
 
 ### `POST /anim`
 
@@ -163,7 +163,7 @@ Request an animation switch. Each animation runs at least **1s**; if the current
 
 | Param | Type | Values |
 | --- | --- | --- |
-| `name` | string | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention` |
+| `name` | string | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error` |
 
 ```bash
 curl -X POST "http://tiny-engineer.local/anim?name=typing"
@@ -172,6 +172,7 @@ curl -X POST "http://tiny-engineer.local/anim?name=thinking"
 curl -X POST "http://tiny-engineer.local/anim?name=ring"
 curl -X POST "http://tiny-engineer.local/anim?name=welcome"
 curl -X POST "http://tiny-engineer.local/anim?name=attention"
+curl -X POST "http://tiny-engineer.local/anim?name=error"
 curl -X POST "http://tiny-engineer.local/anim?name=none"
 ```
 
@@ -188,13 +189,14 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 | `ring` | **One-shot** service-bell gesture; does not loop. Wind-up (body `min`, neck mid, head mid+10°, both hands `max`) → fast right-hand strike to `min+5°` with head to `min` → plays `bell.wav` once on strike (LittleFS; same `uploadfs` requirement as `/test/audio/bell`) → slower bounce to `min+20°` → return to `none` pose and stop. After completion, `GET /anim` reports `none`. |
 | `welcome` | **One-shot** hello gesture synced to `welcome.wav` (~2.03 s). Right hand raises during "Welcome", holds through pause, wiggles during "Login...", lowers during "...accepted". Head nods to mid+10° and returns. Plays automatically after successful Wi-Fi connect at boot; also via API. Requires `welcome.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, `GET /anim` reports `none`. |
 | `attention` | Friendly input-request gesture. Moves into a calm prompt pose first (centered body/neck, head slightly up, right hand raised partway), waits until all servos stop, then plays `attention.wav` with no servo updates or target changes during playback. After audio ends, holds a gentle waiting loop until another animation is selected. Requires `attention.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
+| `error` | Critical task-obstacle gesture, not a robot hardware fault. Moves into an obstacle-presenting pose first (body/neck angled toward the task, head concerned/down, right hand presenting the blocker, left hand indicating task area), waits until the pose settles, then plays `error.wav`. After audio ends, holds a subtle blocked loop with small head/neck shake until another animation is selected. Requires `error.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
 
 Wrong params return **400**:
 
 | `error` | When |
 | --- | --- |
 | `missing name` | Query param `name` absent |
-| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, or `attention` |
+| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, or `error` |
 
 ## Errors
 

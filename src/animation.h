@@ -7,7 +7,8 @@ enum class AnimationId {
   Thinking,
   Ring,
   Welcome,
-  Attention
+  Attention,
+  Error
 };
 
 void setAnimation(AnimationId id);

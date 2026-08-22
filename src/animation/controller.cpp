@@ -3,6 +3,7 @@
 
 #include "animation.h"
 #include "animation/attention.h"
+#include "animation/error.h"
 #include "animation/reading.h"
 #include "animation/ring.h"
 #include "animation/thinking.h"
@@ -30,6 +31,9 @@ void startNone() {
 void applyAnimation(AnimationId id) {
   if (id != AnimationId::Attention) {
     stopAttentionPlayback();
+  }
+  if (id != AnimationId::Error) {
+    stopErrorPlayback();
   }
 
   g_animation = id;
@@ -60,6 +64,10 @@ void applyAnimation(AnimationId id) {
     case AnimationId::Attention:
       setEyeMode(EyeMode::Attention, g_animationStartedMs);
       startAttention();
+      break;
+    case AnimationId::Error:
+      setEyeMode(EyeMode::Error, g_animationStartedMs);
+      startError();
       break;
     case AnimationId::None:
     default:
@@ -112,6 +120,8 @@ const char* animationName(AnimationId id) {
       return "welcome";
     case AnimationId::Attention:
       return "attention";
+    case AnimationId::Error:
+      return "error";
     case AnimationId::None:
     default:
       return "none";
@@ -158,6 +168,11 @@ bool parseAnimationName(const char* name, AnimationId& out) {
     return true;
   }
 
+  if (strcmp(name, "error") == 0) {
+    out = AnimationId::Error;
+    return true;
+  }
+
   return false;
 }
 
@@ -189,6 +204,9 @@ void updateAnimation() {
         break;
       case AnimationId::Attention:
         updateAttention(now);
+        break;
+      case AnimationId::Error:
+        updateError(now);
         break;
       default:
         break;

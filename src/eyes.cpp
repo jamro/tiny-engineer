@@ -490,6 +490,29 @@ void updateAttentionEyes(uint32_t now) {
   g_rightEye.y += yOffset;
 }
 
+void updateErrorEyes(uint32_t now) {
+  const uint32_t elapsed = now - g_modeStartedMs;
+  const bool opening = elapsed < 2400;
+  const bool glanceUser =
+    !opening && ((elapsed - 2400) / 1800) % 2u == 1u;
+  const int16_t xOffset = glanceUser ? 0 : -4;
+  const int16_t leftHeight = opening ? 11 : (glanceUser ? 13 : 11);
+  const int16_t rightHeight = opening ? 15 : (glanceUser ? 14 : 15);
+
+  g_leftEye = eyeWithHeight(
+    (int16_t)(DEFAULT_LEFT.x + xOffset),
+    DEFAULT_LEFT.width,
+    leftHeight
+  );
+  g_rightEye = eyeWithHeight(
+    (int16_t)(DEFAULT_RIGHT.x + xOffset),
+    DEFAULT_RIGHT.width,
+    rightHeight
+  );
+  g_leftEye.y += 1;
+  g_rightEye.y -= 1;
+}
+
 void updateModePose(uint32_t now) {
   switch (g_eyeMode) {
     case EyeMode::Idle:
@@ -512,6 +535,9 @@ void updateModePose(uint32_t now) {
       break;
     case EyeMode::Attention:
       updateAttentionEyes(now);
+      break;
+    case EyeMode::Error:
+      updateErrorEyes(now);
       break;
   }
 
@@ -637,6 +663,11 @@ void setEyeMode(EyeMode mode, uint32_t now) {
       g_blinkPhase = BlinkPhase::Idle;
       g_openAmount = 1.0f;
       g_nextBlinkMs = now + 2500;
+      break;
+    case EyeMode::Error:
+      g_blinkPhase = BlinkPhase::Idle;
+      g_openAmount = 1.0f;
+      g_nextBlinkMs = now + 3000;
       break;
   }
 

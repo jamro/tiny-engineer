@@ -76,4 +76,17 @@ constexpr float ATTENTION_HAND_RIGHT_RAISED =
 constexpr float ATTENTION_WAIT_HEAD_NOD_DEG = 3.0f;
 constexpr float ATTENTION_WAIT_NECK_TILT_DEG = 4.0f;
 
+constexpr float ERROR_BODY_TASK_SIDE =
+  servoMid(SERVO_SPECS[SERVO_BODY]) - 8.0f;
+constexpr float ERROR_NECK_TASK_SIDE =
+  servoMid(SERVO_SPECS[SERVO_NECK]) - 10.0f;
+constexpr float ERROR_HEAD_CONCERNED =
+  servoMid(SERVO_SPECS[SERVO_HEAD]) - 12.0f;
+constexpr float ERROR_HAND_RIGHT_PRESENT =
+  SERVO_SPECS[SERVO_HAND_RIGHT].min + 58.0f;
+constexpr float ERROR_HAND_LEFT_TASK_POINT =
+  SERVO_SPECS[SERVO_HAND_LEFT].max - 22.0f;
+constexpr float ERROR_HOLD_HEAD_SHAKE_DEG = 2.0f;
+constexpr float ERROR_HOLD_NECK_SHAKE_DEG = 4.0f;
+
 }  // namespace anim

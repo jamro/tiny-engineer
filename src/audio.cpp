@@ -16,9 +16,11 @@ bool audioStorageReady = false;
 File bellFile;
 File welcomeFile;
 File attentionFile;
+File errorFile;
 bool bellPlaying = false;
 bool welcomePlaying = false;
 bool attentionPlaying = false;
+bool errorPlaying = false;
 
 constexpr int kAudioFrames = 512;
 
@@ -26,6 +28,7 @@ constexpr const char* kAudioPartition = "spiffs";
 constexpr const char* kBellPath = "/bell.wav";
 constexpr const char* kWelcomePath = "/welcome.wav";
 constexpr const char* kAttentionPath = "/attention.wav";
+constexpr const char* kErrorPath = "/error.wav";
 
 void logAudioStorageContents() {
   File root = LittleFS.open("/");
@@ -254,6 +257,11 @@ bool initAudioStorage() {
     logAudioStorageContents();
   }
 
+  if (!LittleFS.exists(kErrorPath)) {
+    Serial.println("error.wav not on LittleFS");
+    logAudioStorageContents();
+  }
+
   return true;
 }
 
@@ -350,9 +358,14 @@ void stopAttentionPlayback() {
   stopWavPlayback(attentionFile, attentionPlaying);
 }
 
+void stopErrorPlayback() {
+  stopWavPlayback(errorFile, errorPlaying);
+}
+
 bool startBellPlayback() {
   stopWelcomePlayback();
   stopAttentionPlayback();
+  stopErrorPlayback();
   return startWavPlayback(
     bellFile,
     bellPlaying,
@@ -364,6 +377,7 @@ bool startBellPlayback() {
 bool startWelcomePlayback() {
   stopBellPlayback();
   stopAttentionPlayback();
+  stopErrorPlayback();
   return startWavPlayback(
     welcomeFile,
     welcomePlaying,
@@ -375,11 +389,24 @@ bool startWelcomePlayback() {
 bool startAttentionPlayback() {
   stopBellPlayback();
   stopWelcomePlayback();
+  stopErrorPlayback();
   return startWavPlayback(
     attentionFile,
     attentionPlaying,
     kAttentionPath,
     "Attention"
+  );
+}
+
+bool startErrorPlayback() {
+  stopBellPlayback();
+  stopWelcomePlayback();
+  stopAttentionPlayback();
+  return startWavPlayback(
+    errorFile,
+    errorPlaying,
+    kErrorPath,
+    "Error"
   );
 }
 
@@ -397,6 +424,10 @@ bool updateAttentionPlayback() {
     attentionPlaying,
     "Attention"
   );
+}
+
+bool updateErrorPlayback() {
+  return updateWavPlayback(errorFile, errorPlaying, "Error");
 }
 
 bool playBell() {
@@ -423,6 +454,15 @@ bool playAttention() {
     "Playing...",
     startAttentionPlayback,
     updateAttentionPlayback
+  );
+}
+
+bool playError() {
+  return playWavBlocking(
+    "ERROR",
+    "Playing...",
+    startErrorPlayback,
+    updateErrorPlayback
   );
 }
 
