@@ -12,6 +12,12 @@
 #include "http_server.h"
 #include "sleep.h"
 
+namespace {
+
+constexpr int kBootSteps = 6;
+
+}  // namespace
+
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -36,31 +42,22 @@ void setup() {
   delay(100);
 
   initOled();
+  showBootProgress(1, kBootSteps, "Display");
 
+  showBootProgress(2, kBootSteps, "WiFi...");
   runWifiTest();
-
-  showOledText(
-    "PCA9685",
-    "Checking..."
+  showBootProgress(
+    2,
+    kBootSteps,
+    wifiConnected() ? "WiFi OK" : "WiFi failed"
   );
 
   initPca9685();
-
-  showOledText(
-    "PCA9685",
-    "OK"
-  );
-
-  delay(500);
+  showBootProgress(3, kBootSteps, "Servos");
 
   Serial.println();
   Serial.println(
     "Starting MAX98357A"
-  );
-
-  showOledText(
-    "MAX98357A",
-    "Starting..."
   );
 
   I2S.setPins(
@@ -92,29 +89,22 @@ void setup() {
   }
 
   Serial.println("I2S OK");
-
-  showOledText(
-    "MAX98357A",
-    "I2S OK"
-  );
+  showBootProgress(4, kBootSteps, "Audio");
 
   initAudioStorage();
-
-  delay(500);
+  showBootProgress(5, kBootSteps, "Storage");
 
   Serial.println("Centering servos");
   centerAllServos();
+  showBootProgress(kBootSteps, kBootSteps, "Ready");
 
   Serial.println();
   Serial.println("==========================");
   Serial.println("ROBOT READY");
   Serial.println("==========================");
 
-  setRgb(
-    0,
-    32,
-    0
-  );
+  setRgb(0, 0, 0);
+  delay(400);
 
   showIdleScreen();
 

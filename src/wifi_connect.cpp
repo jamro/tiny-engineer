@@ -8,7 +8,6 @@
 #error "Copy include/secrets.h.example to include/secrets.h and set WIFI_SSID / WIFI_PASSWORD"
 #endif
 
-#include "oled.h"
 #include "wifi_connect.h"
 
 namespace {
@@ -84,11 +83,6 @@ void runWifiTest() {
   Serial.print("Hostname: ");
   Serial.println(WIFI_HOSTNAME);
 
-  showOledText(
-    "WIFI",
-    "Connecting..."
-  );
-
   // Hostname must be set before WiFi.mode() / WiFi.begin()
   // or the DHCP client keeps the default esp32c3-XXXX name.
   WiFi.persistent(false);
@@ -138,21 +132,11 @@ void runWifiTest() {
     } else {
       Serial.println("ERROR: mDNS failed");
     }
-
-    showOledText(
-      "WIFI OK",
-      ipText
-    );
   } else {
     const char* reason = failReason(WiFi.status());
 
     Serial.print("ERROR: WIFI failed: ");
     Serial.println(reason);
-
-    showOledText(
-      "WIFI FAIL",
-      reason
-    );
   }
 
   delay(1500);

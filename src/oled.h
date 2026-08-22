@@ -13,6 +13,12 @@ void showOledText(
   const char* line2 = nullptr
 );
 
+void showBootProgress(
+  int step,
+  int totalSteps,
+  const char* label
+);
+
 void showIdleScreen();
 
 void drawEyes(

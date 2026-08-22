@@ -263,6 +263,79 @@ void runOledTest() {
   delay(800);
 }
 
+namespace {
+
+void drawProgressBar(
+  int x,
+  int y,
+  int width,
+  int height,
+  int step,
+  int totalSteps
+) {
+  display.drawRect(
+    x,
+    y,
+    width,
+    height,
+    SSD1306_WHITE
+  );
+
+  if (totalSteps <= 0 || step <= 0) {
+    return;
+  }
+
+  const int progressWidth =
+    (width - 2) * step / totalSteps;
+
+  display.fillRect(
+    x + 1,
+    y + 1,
+    progressWidth,
+    height - 2,
+    SSD1306_WHITE
+  );
+}
+
+}  // namespace
+
+void showBootProgress(
+  int step,
+  int totalSteps,
+  const char* label
+) {
+  if (!oledAvailable) {
+    return;
+  }
+
+  display.clearDisplay();
+
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+
+  display.setCursor(0, 0);
+  display.println("TINY ENGINEER");
+
+  display.setCursor(0, 11);
+  display.print(label);
+
+  display.setCursor(96, 11);
+  display.print(step);
+  display.print("/");
+  display.print(totalSteps);
+
+  drawProgressBar(
+    0,
+    22,
+    OLED_WIDTH,
+    9,
+    step,
+    totalSteps
+  );
+
+  display.display();
+}
+
 void showServoProgress(
   int step,
   int totalSteps,
@@ -289,28 +362,13 @@ void showServoProgress(
 
   display.println(action);
 
-  constexpr int barX = 0;
-  constexpr int barY = 23;
-  constexpr int barWidth = 128;
-  constexpr int barHeight = 9;
-
-  display.drawRect(
-    barX,
-    barY,
-    barWidth,
-    barHeight,
-    SSD1306_WHITE
-  );
-
-  const int progressWidth =
-    (barWidth - 2) * step / totalSteps;
-
-  display.fillRect(
-    barX + 1,
-    barY + 1,
-    progressWidth,
-    barHeight - 2,
-    SSD1306_WHITE
+  drawProgressBar(
+    0,
+    23,
+    OLED_WIDTH,
+    9,
+    step,
+    totalSteps
   );
 
   display.display();
