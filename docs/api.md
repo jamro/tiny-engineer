@@ -37,6 +37,7 @@ curl http://tiny-engineer.local/health
   "ok": true,
   "uptime_ms": 12345,
   "free_heap": 120000,
+  "heap_size": 320000,
   "wifi": {
     "connected": true,
     "ip": "192.168.1.10",
@@ -51,7 +52,8 @@ curl http://tiny-engineer.local/health
 | --- | --- |
 | `ok` | Always `true` on this route |
 | `uptime_ms` | `millis()` since boot |
-| `free_heap` | `ESP.getFreeHeap()` |
+| `free_heap` | `ESP.getFreeHeap()` — bytes available for allocation |
+| `heap_size` | `ESP.getHeapSize()` — total heap bytes; usage % = `(1 - free_heap / heap_size) × 100` |
 | `wifi.connected` | `WiFi.status() == WL_CONNECTED` |
 | `wifi.ip` | STA IPv4, or `""` if down |
 | `wifi.rssi` | dBm, or `0` if down |

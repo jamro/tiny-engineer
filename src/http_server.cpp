@@ -26,7 +26,7 @@ void handleHealth() {
   const bool wifiOk =
     WiFi.status() == WL_CONNECTED;
 
-  char body[320];
+  char body[360];
 
   snprintf(
     body,
@@ -35,6 +35,7 @@ void handleHealth() {
     "\"ok\":true,"
     "\"uptime_ms\":%lu,"
     "\"free_heap\":%u,"
+    "\"heap_size\":%u,"
     "\"wifi\":{"
     "\"connected\":%s,"
     "\"ip\":\"%s\","
@@ -45,6 +46,7 @@ void handleHealth() {
     "}",
     (unsigned long)millis(),
     (unsigned)ESP.getFreeHeap(),
+    (unsigned)ESP.getHeapSize(),
     wifiOk ? "true" : "false",
     wifiOk ? wifiIpText() : "",
     wifiOk ? (int)WiFi.RSSI() : 0,
@@ -132,6 +134,10 @@ void startHttpServer() {
   }
 
   server.on("/", HTTP_GET, handleIndex);
+  server.on("/animations", HTTP_GET, handleIndex);
+  server.on("/servo", HTTP_GET, handleIndex);
+  server.on("/tests", HTTP_GET, handleIndex);
+  server.on("/api", HTTP_GET, handleIndex);
   server.on("/health", HTTP_GET, handleHealth);
   server.on("/anim", HTTP_GET, handleAnimGet);
   server.on("/anim", HTTP_POST, handleAnimPost);

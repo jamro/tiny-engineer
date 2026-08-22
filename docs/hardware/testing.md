@@ -85,7 +85,7 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | Method | Path | Body |
 | --- | --- | --- |
 | `GET` | `/` | HTML endpoint index |
-| `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `wifi`, `oled`) |
+| `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `wifi`, `oled`) |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |
