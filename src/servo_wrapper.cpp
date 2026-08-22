@@ -65,6 +65,13 @@ void ServoWrapper::setTarget(float target, float speedDegS) {
   );
 }
 
+void ServoWrapper::setPosition(float angle) {
+  angle = clampServoAngle(index_, angle);
+  writeAngle(angle, false);
+  target_ = angle_;
+  lastUpdateMs_ = 0;
+}
+
 void ServoWrapper::stop() {
   target_ = angle_;
 }

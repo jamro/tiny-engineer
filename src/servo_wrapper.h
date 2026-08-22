@@ -16,6 +16,7 @@ public:
     float target,
     float speedDegS = SERVO_MAX_SPEED_DEG_S
   );
+  void setPosition(float angle);
   void stop();
   void update();
   bool isMoving() const;

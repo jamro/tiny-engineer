@@ -35,8 +35,52 @@ constexpr float TYPING_HEAD_BAND_DEG = 10.0f;
 constexpr float TYPING_SWAY_DEG = 5.0f;
 constexpr float READING_HEAD_BAND_DEG = 10.0f;
 constexpr float READING_NECK_SWAY_DEG = 10.0f;
-constexpr float THINKING_NECK_SWAY_DEG = 25.0f;
-constexpr float THINKING_HEAD_DEG = 130.0f;
+
+// Thinking: pose-based head pitch + neck yaw (see startThinking / updateThinking).
+constexpr float THINK_NECK_MID =
+  servoMid(SERVO_SPECS[SERVO_NECK]);
+constexpr float THINK_JITTER_DEG = 3.5f;
+constexpr uint32_t THINK_MIN_POSE_CHANGE_MS = 2200;
+
+enum class ThinkPhase {
+  PrimaryMove,
+  Pause,
+  MicroMove,
+};
+
+struct ThinkPose {
+  float headDeg;
+  float neckDeg;
+};
+
+struct ThinkAxisMove {
+  float from;
+  float to;
+  uint32_t startMs;
+  uint32_t durationMs;
+  bool active;
+};
+
+ThinkPhase g_thinkPhase = ThinkPhase::PrimaryMove;
+ThinkAxisMove g_thinkHeadMove = {};
+ThinkAxisMove g_thinkNeckMove = {};
+uint32_t g_thinkPauseUntilMs = 0;
+uint8_t g_thinkPoseIndex = 0;
+uint8_t g_thinkPoseChanges = 0;
+bool g_thinkDidMicro = false;
+uint8_t g_thinkMicroChain = 0;
+
+constexpr ThinkPose THINK_POSES[] = {
+  {125.0f, THINK_NECK_MID},
+  {122.0f, THINK_NECK_MID - 8.0f},
+  {120.0f, THINK_NECK_MID + 8.0f},
+  {128.0f, THINK_NECK_MID - 5.0f},
+  {127.0f, THINK_NECK_MID + 6.0f},
+  {123.0f, THINK_NECK_MID - 10.0f},
+  {121.0f, THINK_NECK_MID + 10.0f},
+};
+constexpr uint8_t THINK_POSE_COUNT =
+  sizeof(THINK_POSES) / sizeof(THINK_POSES[0]);
 
 constexpr float TYPING_RIGHT_LOW =
   SERVO_SPECS[SERVO_HAND_RIGHT].min;
@@ -64,13 +108,6 @@ constexpr float READING_HEAD_HIGH =
 constexpr float READING_NECK_MID =
   servoMid(SERVO_SPECS[SERVO_NECK]);
 
-constexpr float THINKING_NECK_MID =
-  servoMid(SERVO_SPECS[SERVO_NECK]);
-constexpr float THINKING_NECK_LOW =
-  THINKING_NECK_MID - THINKING_NECK_SWAY_DEG;
-constexpr float THINKING_NECK_HIGH =
-  THINKING_NECK_MID + THINKING_NECK_SWAY_DEG;
-
 float randUnit() {
   return (float)(esp_random() & 0xFFFFu) / 65535.0f;
 }
@@ -94,20 +131,25 @@ void stopAnimServos() {
   servoAt(SERVO_BODY).stop();
 }
 
-void parkNonePose() {
-  for (int i = 0; i < SERVO_COUNT; i++) {
-    if (i == SERVO_HAND_LEFT || i == SERVO_HAND_RIGHT) {
-      continue;
-    }
-    servoAt(i).setTarget(servoMid(SERVO_SPECS[i]));
-  }
-
-  // Inverted hand scales: down = right min, left max.
+void parkHandsAndBody() {
+  servoAt(SERVO_BODY).setTarget(
+    servoMid(SERVO_SPECS[SERVO_BODY])
+  );
   servoAt(SERVO_HAND_RIGHT).setTarget(
     SERVO_SPECS[SERVO_HAND_RIGHT].min
   );
   servoAt(SERVO_HAND_LEFT).setTarget(
     SERVO_SPECS[SERVO_HAND_LEFT].max
+  );
+}
+
+void parkNonePose() {
+  parkHandsAndBody();
+  servoAt(SERVO_HEAD).setTarget(
+    servoMid(SERVO_SPECS[SERVO_HEAD])
+  );
+  servoAt(SERVO_NECK).setTarget(
+    servoMid(SERVO_SPECS[SERVO_NECK])
   );
 }
 
@@ -291,27 +333,293 @@ void startNone() {
   g_scrollIdleUntilMs = 0;
 }
 
-void commandThinkingNeck() {
-  const float speedDegS = 4.0f + 4.0f * randUnit();
-  const float target = g_neckAngleHigh
-    ? THINKING_NECK_HIGH
-    : THINKING_NECK_LOW;
-  servoAt(SERVO_NECK).setTarget(target, speedDegS);
+float easeInOutCubic(float t) {
+  if (t <= 0.0f) {
+    return 0.0f;
+  }
+  if (t >= 1.0f) {
+    return 1.0f;
+  }
+  if (t < 0.5f) {
+    return 4.0f * t * t * t;
+  }
+  const float f = -2.0f * t + 2.0f;
+  return 1.0f - (f * f * f) / 2.0f;
+}
+
+float clampThinkHead(float deg) {
+  return constrain(
+    deg,
+    SERVO_SPECS[SERVO_HEAD].min,
+    SERVO_SPECS[SERVO_HEAD].max
+  );
+}
+
+float clampThinkNeck(float deg) {
+  return constrain(
+    deg,
+    SERVO_SPECS[SERVO_NECK].min,
+    SERVO_SPECS[SERVO_NECK].max
+  );
+}
+
+float jitterDeg() {
+  return (randUnit() * 2.0f - 1.0f) * THINK_JITTER_DEG;
+}
+
+uint32_t jitterPauseMs(uint32_t baseMs) {
+  const float factor = 0.75f + 0.5f * randUnit();
+  return (uint32_t)(baseMs * factor);
+}
+
+ThinkPose perturbedPose(uint8_t index) {
+  const ThinkPose& base = THINK_POSES[index % THINK_POSE_COUNT];
+  ThinkPose pose;
+  pose.headDeg = clampThinkHead(base.headDeg + jitterDeg());
+  pose.neckDeg = clampThinkNeck(base.neckDeg + jitterDeg());
+  return pose;
+}
+
+uint8_t pickNextThinkPoseIndex() {
+  if (THINK_POSE_COUNT <= 1) {
+    return g_thinkPoseIndex;
+  }
+
+  // Often drift to a nearby pose; sometimes jump farther for variety.
+  if (randChance(58)) {
+    const float curHead = servoAt(SERVO_HEAD).angle();
+    const float curNeck = servoAt(SERVO_NECK).angle();
+    uint8_t bestIdx = g_thinkPoseIndex;
+    float bestDist = 999.0f;
+    uint8_t secondIdx = g_thinkPoseIndex;
+    float secondDist = 999.0f;
+
+    for (uint8_t i = 0; i < THINK_POSE_COUNT; i++) {
+      if (i == g_thinkPoseIndex) {
+        continue;
+      }
+      const ThinkPose& pose = THINK_POSES[i];
+      const float dist = hypotf(
+        pose.headDeg - curHead,
+        pose.neckDeg - curNeck
+      );
+      if (dist < bestDist) {
+        secondDist = bestDist;
+        secondIdx = bestIdx;
+        bestDist = dist;
+        bestIdx = i;
+      } else if (dist < secondDist) {
+        secondDist = dist;
+        secondIdx = i;
+      }
+    }
+
+    if (secondIdx != g_thinkPoseIndex && randChance(35)) {
+      return secondIdx;
+    }
+    return bestIdx;
+  }
+
+  uint8_t candidate = g_thinkPoseIndex;
+  while (candidate == g_thinkPoseIndex) {
+    candidate = (uint8_t)(esp_random() % THINK_POSE_COUNT);
+  }
+  return candidate;
+}
+
+void beginThinkAxisMove(
+  ThinkAxisMove& move,
+  float from,
+  float to,
+  uint32_t startMs,
+  uint32_t durationMs
+) {
+  move.from = from;
+  move.to = to;
+  move.startMs = startMs;
+  move.durationMs = durationMs > 0 ? durationMs : 1;
+  move.active = true;
+}
+
+uint32_t primaryDurationMs(float deltaDeg) {
+  const uint32_t base = randRangeMs(480, 950);
+  const float scale = 0.65f + 0.55f * (deltaDeg / 20.0f);
+  return (uint32_t)(base * constrain(scale, 0.65f, 1.2f));
+}
+
+uint32_t microDurationMs() {
+  return randRangeMs(300, 700);
+}
+
+void startThinkPrimaryMove(uint32_t now, const ThinkPose& pose) {
+  const float headFrom = servoAt(SERVO_HEAD).angle();
+  const float neckFrom = servoAt(SERVO_NECK).angle();
+  const float headTo = pose.headDeg;
+  const float neckTo = pose.neckDeg;
+
+  const uint32_t headDur =
+    primaryDurationMs(fabsf(headTo - headFrom));
+  const uint32_t neckDur =
+    primaryDurationMs(fabsf(neckTo - neckFrom));
+  const uint32_t stagger = randRangeMs(100, 320);
+  const bool headFirst = randChance(50);
+
+  uint32_t headStart = now;
+  uint32_t neckStart = now;
+  if (headFirst) {
+    neckStart += stagger;
+  } else {
+    headStart += stagger;
+  }
+
+  beginThinkAxisMove(
+    g_thinkHeadMove,
+    headFrom,
+    headTo,
+    headStart,
+    headDur
+  );
+  beginThinkAxisMove(
+    g_thinkNeckMove,
+    neckFrom,
+    neckTo,
+    neckStart,
+    neckDur
+  );
+  g_thinkPhase = ThinkPhase::PrimaryMove;
+  g_thinkDidMicro = false;
+}
+
+float easedAxisValue(const ThinkAxisMove& move, uint32_t now) {
+  if (!move.active) {
+    return move.to;
+  }
+  if (now < move.startMs) {
+    return move.from;
+  }
+  const uint32_t elapsed = now - move.startMs;
+  if (elapsed >= move.durationMs) {
+    return move.to;
+  }
+  const float t = (float)elapsed / (float)move.durationMs;
+  return move.from + (move.to - move.from) * easeInOutCubic(t);
+}
+
+bool thinkAxisMoveDone(const ThinkAxisMove& move, uint32_t now) {
+  if (!move.active) {
+    return true;
+  }
+  return now >= move.startMs + move.durationMs;
+}
+
+void tickThinkAxisMoves(uint32_t now) {
+  if (g_thinkHeadMove.active) {
+    servoAt(SERVO_HEAD).setPosition(
+      easedAxisValue(g_thinkHeadMove, now)
+    );
+    if (thinkAxisMoveDone(g_thinkHeadMove, now)) {
+      g_thinkHeadMove.active = false;
+    }
+  }
+  if (g_thinkNeckMove.active) {
+    servoAt(SERVO_NECK).setPosition(
+      easedAxisValue(g_thinkNeckMove, now)
+    );
+    if (thinkAxisMoveDone(g_thinkNeckMove, now)) {
+      g_thinkNeckMove.active = false;
+    }
+  }
+}
+
+bool thinkMovesActive() {
+  return g_thinkHeadMove.active || g_thinkNeckMove.active;
+}
+
+void enterThinkPause(uint32_t now, bool afterMicro) {
+  g_thinkPhase = ThinkPhase::Pause;
+  if (afterMicro) {
+    g_thinkPauseUntilMs =
+      now + jitterPauseMs(randRangeMs(280, 850));
+  } else {
+    g_thinkPauseUntilMs =
+      now + jitterPauseMs(randRangeMs(380, 1300));
+  }
+}
+
+void beginThinkMicroMove(uint32_t now) {
+  const float headFrom = servoAt(SERVO_HEAD).angle();
+  const float neckFrom = servoAt(SERVO_NECK).angle();
+  const float microDeg = 1.5f + 3.5f * randUnit();
+  const uint32_t dur = microDurationMs();
+
+  g_thinkHeadMove.active = false;
+  g_thinkNeckMove.active = false;
+
+  const uint8_t mode = (uint8_t)(esp_random() % 3u);
+  if (mode == 0 || mode == 2) {
+    const float sign = randChance(50) ? 1.0f : -1.0f;
+    beginThinkAxisMove(
+      g_thinkHeadMove,
+      headFrom,
+      clampThinkHead(headFrom + sign * microDeg),
+      now,
+      dur
+    );
+  }
+  if (mode == 1 || mode == 2) {
+    const float sign = randChance(50) ? 1.0f : -1.0f;
+    beginThinkAxisMove(
+      g_thinkNeckMove,
+      neckFrom,
+      clampThinkNeck(neckFrom + sign * microDeg),
+      now + (mode == 2 ? randRangeMs(50, 150) : 0),
+      dur
+    );
+  }
+  g_thinkPhase = ThinkPhase::MicroMove;
+  g_thinkDidMicro = true;
+}
+
+bool shouldChangeThinkPose(uint32_t now) {
+  const uint32_t elapsed = now - g_animationStartedMs;
+  if (elapsed < THINK_MIN_POSE_CHANGE_MS) {
+    return false;
+  }
+
+  uint32_t chance = 44;
+  if (elapsed >= 10000) {
+    chance = 70;
+  } else if (elapsed >= 5000) {
+    chance = 58;
+  }
+  return randChance(chance);
+}
+
+void beginNextThinkPose(uint32_t now) {
+  g_thinkPoseIndex = pickNextThinkPoseIndex();
+  g_thinkPoseChanges++;
+  startThinkPrimaryMove(now, perturbedPose(g_thinkPoseIndex));
 }
 
 void startThinking() {
   stopAnimServos();
-  parkNonePose();
+  parkHandsAndBody();
   g_scrollPressesLeft = 0;
   g_scrollPressing = false;
   g_handPauseUntilMs = 0;
   g_headPauseUntilMs = 0;
   g_swayPauseUntilMs = 0;
-  g_scrollIdleUntilMs = 0;
-  g_neckAngleHigh = true;
   g_neckPauseUntilMs = 0;
-  servoAt(SERVO_HEAD).setTarget(THINKING_HEAD_DEG);
-  commandThinkingNeck();
+  g_scrollIdleUntilMs = 0;
+
+  g_thinkPoseIndex = pickNextThinkPoseIndex();
+  g_thinkPoseChanges = 0;
+  g_thinkDidMicro = false;
+  g_thinkMicroChain = 0;
+  startThinkPrimaryMove(
+    millis(),
+    perturbedPose(g_thinkPoseIndex)
+  );
 }
 
 void advanceTypingStep() {
@@ -379,16 +687,6 @@ void advanceReadingNeckStep() {
 void beginNextReadingNeck() {
   g_neckPauseUntilMs = 0;
   commandReadingNeck();
-}
-
-void advanceThinkingNeckStep() {
-  g_neckAngleHigh = !g_neckAngleHigh;
-  g_neckPauseUntilMs = millis() + randRangeMs(200, 600);
-}
-
-void beginNextThinkingNeck() {
-  g_neckPauseUntilMs = 0;
-  commandThinkingNeck();
 }
 
 void applyAnimation(AnimationId id) {
@@ -579,17 +877,49 @@ void updateReading(uint32_t now) {
 }
 
 void updateThinking(uint32_t now) {
-  ServoWrapper& neck = servoAt(SERVO_NECK);
+  servoAt(SERVO_HAND_LEFT).update();
+  servoAt(SERVO_HAND_RIGHT).update();
+  servoAt(SERVO_BODY).update();
 
-  // Hands/body/head stay in thinking park; tick all so moves finish.
-  updateAllServos();
+  tickThinkAxisMoves(now);
 
-  if (g_neckPauseUntilMs != 0) {
-    if (now >= g_neckPauseUntilMs) {
-      beginNextThinkingNeck();
-    }
-  } else if (!neck.isMoving()) {
-    advanceThinkingNeckStep();
+  switch (g_thinkPhase) {
+    case ThinkPhase::PrimaryMove:
+      if (!thinkMovesActive()) {
+        enterThinkPause(now, false);
+      }
+      break;
+
+    case ThinkPhase::Pause:
+      if (now < g_thinkPauseUntilMs) {
+        break;
+      }
+      if (!g_thinkDidMicro && randChance(48)) {
+        beginThinkMicroMove(now);
+        break;
+      }
+      if (g_thinkDidMicro &&
+          g_thinkMicroChain < 2 &&
+          randChance(30)) {
+        beginThinkMicroMove(now);
+        g_thinkMicroChain++;
+        break;
+      }
+      if (shouldChangeThinkPose(now)) {
+        g_thinkMicroChain = 0;
+        beginNextThinkPose(now);
+      } else {
+        g_thinkDidMicro = false;
+        g_thinkMicroChain = 0;
+        enterThinkPause(now, false);
+      }
+      break;
+
+    case ThinkPhase::MicroMove:
+      if (!thinkMovesActive()) {
+        enterThinkPause(now, true);
+      }
+      break;
   }
 }
 
