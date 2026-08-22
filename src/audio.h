@@ -4,6 +4,7 @@
 
 extern I2SClass I2S;
 
+bool initAudioStorage();
 void playTone(
   float frequency,
   int durationMs,
@@ -11,4 +12,5 @@ void playTone(
 );
 
 void playSilence(int durationMs);
+bool playBell();
 void runSoundTest();

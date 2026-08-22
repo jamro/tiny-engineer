@@ -98,6 +98,8 @@ void setup() {
     "I2S OK"
   );
 
+  initAudioStorage();
+
   delay(500);
 
   Serial.println("Centering servos");

@@ -75,6 +75,22 @@ void handleAudioTest() {
   sendJson(200, "{\"ok\":true,\"test\":\"audio\"}");
 }
 
+void handleBellTest() {
+  touchApiActivity();
+
+  if (!playBell()) {
+    restoreReadyScreen();
+    sendJson(
+      500,
+      "{\"ok\":false,\"error\":\"bell playback failed\"}"
+    );
+    return;
+  }
+
+  restoreReadyScreen();
+  sendJson(200, "{\"ok\":true,\"test\":\"bell\"}");
+}
+
 void handleScreenTest() {
   touchApiActivity();
   runOledTest();
@@ -264,6 +280,7 @@ void handleAnimPost() {
 
 bool isTestPath(const String& uri) {
   return uri == "/test/audio" ||
+    uri == "/test/audio/bell" ||
     uri == "/test/screen" ||
     uri == "/test/movement" ||
     uri == "/test/led" ||
@@ -303,6 +320,7 @@ void startHttpServer() {
   server.on("/anim", HTTP_GET, handleAnimGet);
   server.on("/anim", HTTP_POST, handleAnimPost);
   server.on("/test/audio", HTTP_POST, handleAudioTest);
+  server.on("/test/audio/bell", HTTP_POST, handleBellTest);
   server.on("/test/screen", HTTP_POST, handleScreenTest);
   server.on("/test/movement", HTTP_POST, handleMovementTest);
   server.on("/test/led", HTTP_POST, handleLedTest);

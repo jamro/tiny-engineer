@@ -58,6 +58,24 @@ curl -X POST http://tiny-engineer.local/test/audio
 { "ok": true, "test": "audio" }
 ```
 
+### `POST /test/audio/bell`
+
+Plays `assets/bell.wav` (44100 Hz mono PCM) from LittleFS (`playBell()`). First flash or after changing `data/bell.wav`, upload the filesystem:
+
+```bash
+pio run -t uploadfs
+```
+
+```bash
+curl -X POST http://tiny-engineer.local/test/audio/bell
+```
+
+```json
+{ "ok": true, "test": "bell" }
+```
+
+If the WAV is missing or unreadable, returns **500** with `{"ok":false,"error":"bell playback failed"}`.
+
 ### `POST /test/screen`
 
 OLED demo: title, `HELLO`, X in a box (`runOledTest()`). No-op if the panel is missing.
