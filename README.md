@@ -70,9 +70,13 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 
 `GET /` is the web control panel. `GET /health` is health JSON. Test routes are **POST** (they move hardware). Full reference: [`docs/api.md`](docs/api.md).
 
+## Integrating with AI tools
+
+Two paths: raw **REST** (`POST /anim`) for any IDE/script, or the **Cursor** CLI via `npx`. Overview: [`docs/integration.md`](docs/integration.md). Cursor hooks detail: [`docs/hooks.md`](docs/hooks.md). Full HTTP reference: [`docs/api.md`](docs/api.md).
+
 ## Cursor hooks
 
-Open this repo in Cursor with the robot on Wi-Fi. Project hooks under `.cursor/` run the Node CLI in [`packages/tiny-engineer-cursor/`](packages/tiny-engineer-cursor/), which maps agent events to poses and POSTs `/anim`. In any other project, use `npx -y github:jamro/tiny-engineer` (root `package.json` wraps that CLI). The onboard RGB LED mirrors the animation (white while working, red for attention/error/abort, off when idle). Setup and event map: [`docs/hooks.md`](docs/hooks.md).
+Open this repo in Cursor with the robot on Wi-Fi. Project hooks under `.cursor/` run [`tiny-engineer-cursor`](packages/tiny-engineer-cursor/) (via HTTPS GitHub tarball `npx`, or local `node` while developing). Setup and event map: [`docs/hooks.md`](docs/hooks.md).
 
 ## License
 
