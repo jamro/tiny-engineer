@@ -16,4 +16,8 @@ bool startBellPlayback();
 bool updateBellPlayback();
 void stopBellPlayback();
 bool playBell();
+bool startWelcomePlayback();
+bool updateWelcomePlayback();
+void stopWelcomePlayback();
+bool playWelcome();
 void runSoundTest();

@@ -51,4 +51,14 @@ constexpr float RING_RIGHT_BOUNCE =
   SERVO_SPECS[SERVO_HAND_RIGHT].min + 20.0f;
 constexpr float RING_HEAD_STRIKE = SERVO_SPECS[SERVO_HEAD].min;
 
+constexpr float WELCOME_HEAD_UP =
+  servoMid(SERVO_SPECS[SERVO_HEAD]) + 10.0f;
+constexpr float WELCOME_HEAD_MID =
+  servoMid(SERVO_SPECS[SERVO_HEAD]);
+constexpr float WELCOME_HAND_REST =
+  SERVO_SPECS[SERVO_HAND_RIGHT].min;
+constexpr float WELCOME_HAND_RAISED =
+  SERVO_SPECS[SERVO_HAND_RIGHT].max;
+constexpr float WELCOME_HAND_WIGGLE_DEG = 8.0f;
+
 }  // namespace anim

@@ -118,6 +118,10 @@ void setup() {
 
   showIdleScreen();
 
+  if (wifiConnected()) {
+    setAnimation(AnimationId::Welcome);
+  }
+
   startHttpServer();
   initSleep();
 }

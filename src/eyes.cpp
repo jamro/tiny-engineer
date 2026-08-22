@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "animation/util.h"
+#include "animation/welcome.h"
 #include "eyes.h"
 #include "oled.h"
 
@@ -411,6 +412,60 @@ void updateRingEyes(uint32_t now) {
   g_rightEye = eyeWithHeight(DEFAULT_RIGHT.x, DEFAULT_RIGHT.width, 9);
 }
 
+void updateWelcomeEyes(uint32_t now) {
+  int16_t leftHeight = 14;
+  int16_t rightHeight = 14;
+  int16_t yOffset = 0;
+
+  if (!welcomeAudioStarted()) {
+    leftHeight = 16;
+    rightHeight = 16;
+    yOffset = -2;
+  } else {
+    const uint32_t audioElapsed = welcomeAudioElapsed(now);
+
+    if (audioElapsed < WELCOME_AUDIO_WELCOME_END_MS) {
+      leftHeight = 16;
+      rightHeight = 16;
+      yOffset = -2;
+    } else if (audioElapsed < WELCOME_AUDIO_PAUSE_END_MS) {
+      leftHeight = 16;
+      rightHeight = 16;
+      yOffset = -2;
+
+      if (audioElapsed >= 870 && audioElapsed < 970) {
+        const float blinkT = audioElapsed < 920
+          ? (float)(audioElapsed - 870) / 50.0f
+          : (float)(970 - audioElapsed) / 50.0f;
+        const float open = anim::easeInOutCubic(
+          constrain(blinkT, 0.0f, 1.0f)
+        );
+        leftHeight = (int16_t)(2.0f + 14.0f * open);
+        rightHeight = leftHeight;
+      }
+    } else if (audioElapsed < WELCOME_AUDIO_LOGIN_END_MS) {
+      leftHeight = 12;
+      rightHeight = 12;
+    } else if (audioElapsed < WELCOME_AUDIO_ACCEPTED_END_MS) {
+      leftHeight = 17;
+      rightHeight = 15;
+    }
+  }
+
+  g_leftEye = eyeWithHeight(
+    DEFAULT_LEFT.x,
+    DEFAULT_LEFT.width,
+    leftHeight
+  );
+  g_rightEye = eyeWithHeight(
+    DEFAULT_RIGHT.x,
+    DEFAULT_RIGHT.width,
+    rightHeight
+  );
+  g_leftEye.y += yOffset;
+  g_rightEye.y += yOffset;
+}
+
 void updateModePose(uint32_t now) {
   switch (g_eyeMode) {
     case EyeMode::Idle:
@@ -427,6 +482,9 @@ void updateModePose(uint32_t now) {
       break;
     case EyeMode::Ring:
       updateRingEyes(now);
+      break;
+    case EyeMode::Welcome:
+      updateWelcomeEyes(now);
       break;
   }
 
@@ -543,6 +601,11 @@ void setEyeMode(EyeMode mode, uint32_t now) {
       break;
     case EyeMode::Ring:
       break;
+    case EyeMode::Welcome:
+      g_blinkPhase = BlinkPhase::Idle;
+      g_openAmount = 1.0f;
+      g_nextBlinkMs = now + 10000;
+      break;
   }
 
   updateModePose(now);
@@ -651,7 +714,10 @@ void updateEyes(uint32_t now) {
   }
 
   updateModePose(now);
-  advanceBlinkPhase(now);
+
+  if (g_eyeMode != EyeMode::Welcome) {
+    advanceBlinkPhase(now);
+  }
 
   if (!g_forceRedraw &&
       (now - g_lastDrawMs) < REDRAW_INTERVAL_MS) {

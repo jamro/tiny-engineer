@@ -118,6 +118,7 @@ bool allServosStopped() {
 
 void startRing() {
   stopBellPlayback();
+  stopWelcomePlayback();
   stopAnimServos();
   g_ringPhase = RingPhase::ReachStart;
   commandStartPose();

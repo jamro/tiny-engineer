@@ -14,12 +14,15 @@ namespace {
 
 bool audioStorageReady = false;
 File bellFile;
+File welcomeFile;
 bool bellPlaying = false;
+bool welcomePlaying = false;
 
-constexpr int kBellFrames = 512;
+constexpr int kAudioFrames = 512;
 
 constexpr const char* kAudioPartition = "spiffs";
 constexpr const char* kBellPath = "/bell.wav";
+constexpr const char* kWelcomePath = "/welcome.wav";
 
 void logAudioStorageContents() {
   File root = LittleFS.open("/");
@@ -84,12 +87,12 @@ bool skipWavPcmData(File& file) {
   return false;
 }
 
-bool pumpBellChunk() {
-  int16_t buffer[kBellFrames * 2];
-  uint8_t pcmBytes[kBellFrames * 2];
+bool pumpWavChunk(File& file) {
+  int16_t buffer[kAudioFrames * 2];
+  uint8_t pcmBytes[kAudioFrames * 2];
 
   const size_t bytesRead =
-    bellFile.read(
+    file.read(
       pcmBytes,
       sizeof(pcmBytes)
     );
@@ -119,7 +122,99 @@ bool pumpBellChunk() {
     sizeof(int16_t)
   );
 
-  return bellFile.available() > 0;
+  return file.available() > 0;
+}
+
+bool startWavPlayback(
+  File& file,
+  bool& playingFlag,
+  const char* path,
+  const char* label
+) {
+  if (file) {
+    file.close();
+  }
+
+  playingFlag = false;
+
+  if (!initAudioStorage()) {
+    Serial.print(label);
+    Serial.println(" failed: filesystem");
+    return false;
+  }
+
+  file = LittleFS.open(path, "r");
+
+  if (!file) {
+    logAudioStorageContents();
+    Serial.print(label);
+    Serial.print(" failed: ");
+    Serial.print(path);
+    Serial.println(" missing");
+    return false;
+  }
+
+  if (!skipWavPcmData(file)) {
+    file.close();
+    Serial.print(label);
+    Serial.println(" failed: invalid WAV");
+    return false;
+  }
+
+  playingFlag = true;
+  Serial.print("Playing ");
+  Serial.println(path);
+  return true;
+}
+
+bool updateWavPlayback(
+  File& file,
+  bool& playingFlag,
+  const char* label
+) {
+  if (!playingFlag) {
+    return false;
+  }
+
+  if (!pumpWavChunk(file)) {
+    if (file) {
+      file.close();
+    }
+    playingFlag = false;
+    Serial.print(label);
+    Serial.println(" OK");
+    return false;
+  }
+
+  return true;
+}
+
+void stopWavPlayback(File& file, bool& playingFlag) {
+  if (file) {
+    file.close();
+  }
+
+  playingFlag = false;
+}
+
+bool playWavBlocking(
+  const char* line1,
+  const char* line2,
+  bool (*startFn)(),
+  bool (*updateFn)()
+) {
+  showOledText(line1, line2);
+
+  if (!startFn()) {
+    showOledText(line1, "Failed");
+    return false;
+  }
+
+  while (updateFn()) {
+  }
+
+  showOledText(line1, "OK");
+  return true;
 }
 
 }  // namespace
@@ -143,6 +238,11 @@ bool initAudioStorage() {
 
   if (!LittleFS.exists(kBellPath)) {
     Serial.println("bell.wav not on LittleFS");
+    logAudioStorageContents();
+  }
+
+  if (!LittleFS.exists(kWelcomePath)) {
+    Serial.println("welcome.wav not on LittleFS");
     logAudioStorageContents();
   }
 
@@ -231,77 +331,57 @@ void playSilence(int durationMs) {
 }
 
 void stopBellPlayback() {
-  if (bellFile) {
-    bellFile.close();
-  }
+  stopWavPlayback(bellFile, bellPlaying);
+}
 
-  bellPlaying = false;
+void stopWelcomePlayback() {
+  stopWavPlayback(welcomeFile, welcomePlaying);
 }
 
 bool startBellPlayback() {
+  stopWelcomePlayback();
+  return startWavPlayback(
+    bellFile,
+    bellPlaying,
+    kBellPath,
+    "Bell"
+  );
+}
+
+bool startWelcomePlayback() {
   stopBellPlayback();
-
-  if (!initAudioStorage()) {
-    Serial.println("Bell failed: filesystem");
-    return false;
-  }
-
-  bellFile = LittleFS.open(kBellPath, "r");
-
-  if (!bellFile) {
-    logAudioStorageContents();
-    Serial.println("Bell failed: bell.wav missing");
-    return false;
-  }
-
-  if (!skipWavPcmData(bellFile)) {
-    bellFile.close();
-    Serial.println("Bell failed: invalid WAV");
-    return false;
-  }
-
-  bellPlaying = true;
-  Serial.println("Playing bell.wav");
-  return true;
+  return startWavPlayback(
+    welcomeFile,
+    welcomePlaying,
+    kWelcomePath,
+    "Welcome"
+  );
 }
 
 bool updateBellPlayback() {
-  if (!bellPlaying) {
-    return false;
-  }
+  return updateWavPlayback(bellFile, bellPlaying, "Bell");
+}
 
-  if (!pumpBellChunk()) {
-    stopBellPlayback();
-    Serial.println("Bell OK");
-    return false;
-  }
-
-  return true;
+bool updateWelcomePlayback() {
+  return updateWavPlayback(welcomeFile, welcomePlaying, "Welcome");
 }
 
 bool playBell() {
-  showOledText(
+  return playWavBlocking(
     "BELL",
-    "Playing..."
+    "Playing...",
+    startBellPlayback,
+    updateBellPlayback
   );
+}
 
-  if (!startBellPlayback()) {
-    showOledText(
-      "BELL",
-      "Failed"
-    );
-    return false;
-  }
-
-  while (updateBellPlayback()) {
-  }
-
-  showOledText(
-    "BELL",
-    "OK"
+bool playWelcome() {
+  return playWavBlocking(
+    "WELCOME",
+    "Playing...",
+    startWelcomePlayback,
+    updateWelcomePlayback
   );
-
-  return true;
 }
 
 void runSoundTest() {

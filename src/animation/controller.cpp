@@ -7,6 +7,7 @@
 #include "animation/thinking.h"
 #include "animation/typing.h"
 #include "animation/util.h"
+#include "animation/welcome.h"
 #include "eyes.h"
 #include "servo_wrapper.h"
 
@@ -45,6 +46,10 @@ void applyAnimation(AnimationId id) {
     case AnimationId::Ring:
       setEyeMode(EyeMode::Ring, g_animationStartedMs);
       startRing();
+      break;
+    case AnimationId::Welcome:
+      setEyeMode(EyeMode::Welcome, g_animationStartedMs);
+      startWelcome();
       break;
     case AnimationId::None:
     default:
@@ -93,6 +98,8 @@ const char* animationName(AnimationId id) {
       return "thinking";
     case AnimationId::Ring:
       return "ring";
+    case AnimationId::Welcome:
+      return "welcome";
     case AnimationId::None:
     default:
       return "none";
@@ -129,6 +136,11 @@ bool parseAnimationName(const char* name, AnimationId& out) {
     return true;
   }
 
+  if (strcmp(name, "welcome") == 0) {
+    out = AnimationId::Welcome;
+    return true;
+  }
+
   return false;
 }
 
@@ -154,6 +166,9 @@ void updateAnimation() {
         break;
       case AnimationId::Ring:
         updateRing(now);
+        break;
+      case AnimationId::Welcome:
+        updateWelcome(now);
         break;
       default:
         break;

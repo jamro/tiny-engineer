@@ -155,7 +155,7 @@ curl http://tiny-engineer.local/anim
 
 | Field | Meaning |
 | --- | --- |
-| `animation` | `none`, `typing`, `reading`, `thinking`, or `ring` |
+| `animation` | `none`, `typing`, `reading`, `thinking`, `ring`, or `welcome` |
 
 ### `POST /anim`
 
@@ -163,13 +163,14 @@ Request an animation switch. Each animation runs at least **1s**; if the current
 
 | Param | Type | Values |
 | --- | --- | --- |
-| `name` | string | `none`, `typing`, `reading`, `thinking`, `ring` |
+| `name` | string | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome` |
 
 ```bash
 curl -X POST "http://tiny-engineer.local/anim?name=typing"
 curl -X POST "http://tiny-engineer.local/anim?name=reading"
 curl -X POST "http://tiny-engineer.local/anim?name=thinking"
 curl -X POST "http://tiny-engineer.local/anim?name=ring"
+curl -X POST "http://tiny-engineer.local/anim?name=welcome"
 curl -X POST "http://tiny-engineer.local/anim?name=none"
 ```
 
@@ -184,13 +185,14 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 | `reading` | Hands/body park as in `none`. Head nods on same lowest 10° band as typing, but slower. Neck sweeps ±10° around mid; right (angle down) slower than left (angle up). Occasional right-hand down-arrow bursts (1–3 presses, same 15° band as typing). |
 | `thinking` | Hands/body park as in `none`. Head (pitch) and neck (yaw) ease from the current pose into thinking poses (up + slight left/right). Move → pause → optional micro-adjust (sometimes chained) → pause; nearby pose drift with occasional larger shifts after ~2.2 s, more often over time. Axes stagger start/duration; no periodic sway. |
 | `ring` | **One-shot** service-bell gesture; does not loop. Wind-up (body `min`, neck mid, head mid+10°, both hands `max`) → fast right-hand strike to `min+5°` with head to `min` → plays `bell.wav` once on strike (LittleFS; same `uploadfs` requirement as `/test/audio/bell`) → slower bounce to `min+20°` → return to `none` pose and stop. After completion, `GET /anim` reports `none`. |
+| `welcome` | **One-shot** hello gesture synced to `welcome.wav` (~2.03 s). Right hand raises during "Welcome", holds through pause, wiggles during "Login...", lowers during "...accepted". Head nods to mid+10° and returns. Plays automatically after successful Wi-Fi connect at boot; also via API. Requires `welcome.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, `GET /anim` reports `none`. |
 
 Wrong params return **400**:
 
 | `error` | When |
 | --- | --- |
 | `missing name` | Query param `name` absent |
-| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, or `ring` |
+| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, `ring`, or `welcome` |
 
 ## Errors
 
