@@ -4,6 +4,7 @@
 #include "animation/constants.h"
 #include "animation/ring.h"
 #include "animation/util.h"
+#include "audio.h"
 #include "eyes.h"
 #include "servo_wrapper.h"
 #include "servos.h"
@@ -116,12 +117,14 @@ bool allServosStopped() {
 }  // namespace
 
 void startRing() {
+  stopBellPlayback();
   stopAnimServos();
   g_ringPhase = RingPhase::ReachStart;
   commandStartPose();
 }
 
 void updateRing(uint32_t now) {
+  updateBellPlayback();
   updateAllServos();
 
   switch (g_ringPhase) {
@@ -135,6 +138,7 @@ void updateRing(uint32_t now) {
 
     case RingPhase::Strike:
       if (strikeServosStopped()) {
+        startBellPlayback();
         g_ringPhase = RingPhase::Bounce;
         commandBounce();
       }

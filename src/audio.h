@@ -12,5 +12,8 @@ void playTone(
 );
 
 void playSilence(int durationMs);
+bool startBellPlayback();
+bool updateBellPlayback();
+void stopBellPlayback();
 bool playBell();
 void runSoundTest();

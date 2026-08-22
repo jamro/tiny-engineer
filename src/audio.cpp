@@ -13,6 +13,10 @@ I2SClass I2S;
 namespace {
 
 bool audioStorageReady = false;
+File bellFile;
+bool bellPlaying = false;
+
+constexpr int kBellFrames = 512;
 
 constexpr const char* kAudioPartition = "spiffs";
 constexpr const char* kBellPath = "/bell.wav";
@@ -78,6 +82,44 @@ bool skipWavPcmData(File& file) {
   }
 
   return false;
+}
+
+bool pumpBellChunk() {
+  int16_t buffer[kBellFrames * 2];
+  uint8_t pcmBytes[kBellFrames * 2];
+
+  const size_t bytesRead =
+    bellFile.read(
+      pcmBytes,
+      sizeof(pcmBytes)
+    );
+
+  if (bytesRead < 2) {
+    return false;
+  }
+
+  const int framesThisTime =
+    (int)(bytesRead / 2);
+
+  for (int i = 0; i < framesThisTime; i++) {
+    const int16_t sample =
+      (int16_t)(
+        pcmBytes[i * 2] |
+        (pcmBytes[i * 2 + 1] << 8)
+      );
+
+    buffer[i * 2] = sample;
+    buffer[i * 2 + 1] = sample;
+  }
+
+  I2S.write(
+    (uint8_t*)buffer,
+    framesThisTime *
+    2 *
+    sizeof(int16_t)
+  );
+
+  return bellFile.available() > 0;
 }
 
 }  // namespace
@@ -188,91 +230,77 @@ void playSilence(int durationMs) {
   }
 }
 
+void stopBellPlayback() {
+  if (bellFile) {
+    bellFile.close();
+  }
+
+  bellPlaying = false;
+}
+
+bool startBellPlayback() {
+  stopBellPlayback();
+
+  if (!initAudioStorage()) {
+    Serial.println("Bell failed: filesystem");
+    return false;
+  }
+
+  bellFile = LittleFS.open(kBellPath, "r");
+
+  if (!bellFile) {
+    logAudioStorageContents();
+    Serial.println("Bell failed: bell.wav missing");
+    return false;
+  }
+
+  if (!skipWavPcmData(bellFile)) {
+    bellFile.close();
+    Serial.println("Bell failed: invalid WAV");
+    return false;
+  }
+
+  bellPlaying = true;
+  Serial.println("Playing bell.wav");
+  return true;
+}
+
+bool updateBellPlayback() {
+  if (!bellPlaying) {
+    return false;
+  }
+
+  if (!pumpBellChunk()) {
+    stopBellPlayback();
+    Serial.println("Bell OK");
+    return false;
+  }
+
+  return true;
+}
+
 bool playBell() {
-  constexpr int FRAMES = 512;
-
-  int16_t buffer[FRAMES * 2];
-  uint8_t pcmBytes[FRAMES * 2];
-
   showOledText(
     "BELL",
     "Playing..."
   );
 
-  Serial.println("Playing bell.wav");
-
-  if (!initAudioStorage()) {
+  if (!startBellPlayback()) {
     showOledText(
       "BELL",
-      "FS error"
+      "Failed"
     );
-    Serial.println("Bell failed: filesystem");
     return false;
   }
 
-  File file = LittleFS.open(kBellPath, "r");
-
-  if (!file) {
-    logAudioStorageContents();
-    showOledText(
-      "BELL",
-      "Missing file"
-    );
-    Serial.println("Bell failed: bell.wav missing");
-    return false;
+  while (updateBellPlayback()) {
   }
-
-  if (!skipWavPcmData(file)) {
-    file.close();
-    showOledText(
-      "BELL",
-      "Bad WAV"
-    );
-    Serial.println("Bell failed: invalid WAV");
-    return false;
-  }
-
-  while (file.available()) {
-    const size_t bytesRead =
-      file.read(
-        pcmBytes,
-        sizeof(pcmBytes)
-      );
-
-    if (bytesRead < 2) {
-      break;
-    }
-
-    const int framesThisTime =
-      (int)(bytesRead / 2);
-
-    for (int i = 0; i < framesThisTime; i++) {
-      const int16_t sample =
-        (int16_t)(
-          pcmBytes[i * 2] |
-          (pcmBytes[i * 2 + 1] << 8)
-        );
-
-      buffer[i * 2] = sample;
-      buffer[i * 2 + 1] = sample;
-    }
-
-    I2S.write(
-      (uint8_t*)buffer,
-      framesThisTime *
-      2 *
-      sizeof(int16_t)
-    );
-  }
-
-  file.close();
 
   showOledText(
     "BELL",
     "OK"
   );
 
-  Serial.println("Bell OK");
   return true;
 }
 
