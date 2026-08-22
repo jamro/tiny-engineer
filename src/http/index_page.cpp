@@ -58,7 +58,7 @@ nav a.active{background:var(--accent);color:#fff}
 .test-card .btn{width:auto;min-width:7rem;text-align:center;padding:.55rem 1rem}
 .form-group{margin-bottom:1rem}
 .form-group label{display:block;font-weight:600;margin-bottom:.35rem;font-size:.9rem}
-.form-group select,.form-group input[type=number]{width:100%;padding:.5rem .65rem;border:1px solid var(--border);border-radius:.35rem;font:inherit;background:var(--card)}
+.form-group select,.form-group input[type=number],.form-group input[type=text]{width:100%;padding:.5rem .65rem;border:1px solid var(--border);border-radius:.35rem;font:inherit;background:var(--card)}
 .form-group input[type=range]{width:100%;margin:.5rem 0}
 .range-row{display:flex;align-items:center;gap:1rem}
 .range-row input[type=number]{width:5rem}
@@ -76,6 +76,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <a href="/animations" data-nav="/animations">Animations</a>
 <a href="/tests" data-nav="/tests">Tests</a>
 <a href="/servo" data-nav="/servo">Servo</a>
+<a href="/config" data-nav="/config">Config</a>
 <a href="/api" data-nav="/api">API</a>
 </nav>
 
@@ -92,6 +93,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Hostname and screen sleep timeout (saved in flash).</p></a>
 </div>
 <a class="github-link" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener">Full docs &amp; build guide on GitHub &rarr;</a>
 </section>
@@ -105,8 +107,11 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <tr><td>GET</td><td><code>/animations</code></td><td>Animations page</td></tr>
 <tr><td>GET</td><td><code>/tests</code></td><td>Hardware tests page</td></tr>
 <tr><td>GET</td><td><code>/servo</code></td><td>Servo control page</td></tr>
+<tr><td>GET</td><td><code>/config</code></td><td>Config page</td></tr>
 <tr><td>GET</td><td><code>/api</code></td><td>This API reference</td></tr>
 <tr><td>GET</td><td><code>/health</code></td><td>Health JSON, no side effects</td></tr>
+<tr><td>GET</td><td><code>/settings</code></td><td>Persistent settings</td></tr>
+<tr><td>POST</td><td><code>/settings</code></td><td>Update settings (see parameters below)</td></tr>
 <tr><td>GET</td><td><code>/anim</code></td><td>Current animation name</td></tr>
 <tr><td>POST</td><td><code>/anim</code></td><td>Set animation (see parameters below)</td></tr>
 <tr><td>POST</td><td><code>/test/audio</code></td><td>Play tone test</td></tr>
@@ -115,6 +120,12 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <tr><td>POST</td><td><code>/test/movement</code></td><td>All servos exercise</td></tr>
 <tr><td>POST</td><td><code>/test/led</code></td><td>RGB LED cycle</td></tr>
 <tr><td>POST</td><td><code>/test/servo</code></td><td>Move one servo (see parameters below)</td></tr>
+</table>
+<p>POST <code>/settings</code> &mdash; query params (at least one required):</p>
+<table>
+<tr><th>Param</th><th>Type</th><th>Range</th></tr>
+<tr><td><code>sleep_timeout</code></td><td>integer</td><td>5&ndash;3600 seconds</td></tr>
+<tr><td><code>hostname</code></td><td>string</td><td>1&ndash;31 chars, letters/digits/hyphen</td></tr>
 </table>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
@@ -190,6 +201,24 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <div class="test-card"><p>Cycle the onboard RGB LED through colors.</p><button class="btn" data-test="/test/led">RGB LED</button></div>
 </section>
 
+<section id="view-config" class="view">
+<h2 class="page-title">Config</h2>
+<p class="page-desc">Settings are stored in flash and survive reboot. Sleep timeout applies immediately; hostname needs a reboot.</p>
+<form id="config-form">
+<div class="form-group">
+<label for="config-hostname">Hostname</label>
+<input type="text" id="config-hostname" maxlength="31" pattern="[A-Za-z0-9]([A-Za-z0-9-]{0,29}[A-Za-z0-9])?" required>
+<p class="hint">mDNS name without .local (letters, digits, hyphen). Default: tiny-engineer</p>
+</div>
+<div class="form-group">
+<label for="config-sleep">Sleep timeout (seconds)</label>
+<input type="number" id="config-sleep" min="5" max="3600" step="1" required>
+<p class="hint">Idle time before OLED blanks when animation is none. Default: 60</p>
+</div>
+<button type="submit" class="btn btn-primary">Save settings</button>
+</form>
+</section>
+
 <footer>
 <a href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener">github.com/jamro/tiny-engineer</a>
 </footer>
@@ -212,7 +241,7 @@ function setBusy(on){
   document.querySelectorAll(".btn,[type=submit]").forEach(function(b){b.disabled=on;});
 }
 function showPage(path){
-  var map={"/":"view-home","/animations":"view-animations","/servo":"view-servo","/tests":"view-tests","/api":"view-api"};
+  var map={"/":"view-home","/animations":"view-animations","/servo":"view-servo","/tests":"view-tests","/config":"view-config","/api":"view-api"};
   var id=map[path]||"view-home";
   document.querySelectorAll(".view").forEach(function(v){v.classList.remove("active");});
   document.getElementById(id).classList.add("active");
@@ -220,6 +249,7 @@ function showPage(path){
     a.classList.toggle("active",a.getAttribute("data-nav")===path||(path==="/"&&a.getAttribute("data-nav")==="/"));
   });
   if(id==="view-animations") refreshAnim();
+  if(id==="view-config") loadSettings();
   if(id==="view-home") startHealthPolling();
   else stopHealthPolling();
 }
@@ -304,6 +334,37 @@ document.getElementById("servo-form").addEventListener("submit",function(e){
       setStatus("Servo "+idx+" moved to "+angle+"\u00b0.","ok");
     }else{
       setStatus(res.data.error||"Move failed","err");
+    }
+  }).catch(function(){setStatus("Network error","err");})
+  .finally(function(){setBusy(false);});
+});
+function loadSettings(){
+  fetch("/settings").then(function(r){return r.json();}).then(function(j){
+    if(!j.ok)return;
+    document.getElementById("config-hostname").value=j.hostname||"";
+    document.getElementById("config-sleep").value=j.sleep_timeout;
+  }).catch(function(){});
+}
+document.getElementById("config-form").addEventListener("submit",function(e){
+  e.preventDefault();
+  if(busy)return;
+  var host=document.getElementById("config-hostname").value.trim();
+  var sleep=document.getElementById("config-sleep").value;
+  setBusy(true);
+  setStatus("Saving\u2026","loading");
+  fetch("/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host),{method:"POST"})
+  .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
+  .then(function(res){
+    if(res.ok&&res.data.ok!==false){
+      document.getElementById("config-hostname").value=res.data.hostname||host;
+      document.getElementById("config-sleep").value=res.data.sleep_timeout;
+      if(res.data.reboot_required){
+        setStatus("Saved. Hostname applies after reboot (RESET or power cycle).","ok");
+      }else{
+        setStatus("Settings saved.","ok");
+      }
+    }else{
+      setStatus(res.data.error||"Save failed","err");
     }
   }).catch(function(){setStatus("Network error","err");})
   .finally(function(){setBusy(false);});

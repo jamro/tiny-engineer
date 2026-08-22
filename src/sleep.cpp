@@ -3,11 +3,10 @@
 #include "animation.h"
 #include "display/eyes.h"
 #include "display/oled.h"
+#include "settings.h"
 #include "sleep.h"
 
 namespace {
-
-constexpr uint32_t SLEEP_IDLE_MS = 60'000;
 
 enum class SleepState {
   Awake,
@@ -57,7 +56,7 @@ void updateSleep(uint32_t now) {
   switch (g_state) {
     case SleepState::Awake:
       if (getAnimation() == AnimationId::None &&
-          now - g_lastApiActivityMs >= SLEEP_IDLE_MS) {
+          now - g_lastApiActivityMs >= settingsSleepTimeoutMs()) {
         beginSleepClosing(now);
       }
       break;

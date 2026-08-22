@@ -8,11 +8,11 @@ alwaysApply: false
 
 When adding, removing, or changing the method, path, or query parameters of any HTTP route, update all of the following in the same change:
 
-1. **HTML index** — [`src/http/index_page.cpp`](src/http/index_page.cpp): main endpoint table matches all routes; parameter sections for `/anim` and `/test/servo` list every supported value and range
+1. **HTML index** — [`src/http/index_page.cpp`](src/http/index_page.cpp): main endpoint table matches all routes; parameter sections for `/anim`, `/settings`, and `/test/servo` list every supported value and range
 2. **API reference** — [`docs/api.md`](docs/api.md): full section per endpoint (curl, JSON, params, errors)
 3. **Summaries** — if the endpoint list, params, or boot URLs changed, also update [`README.md`](README.md) and [`docs/hardware/testing.md`](docs/hardware/testing.md)
 4. **405 paths** — if new `/test/*` or similar paths get wrong-method handling, update `isHttpTestPath()` in [`src/http/test_handlers.cpp`](src/http/test_handlers.cpp) and [`handleNotFound`](src/http_server.cpp) as needed
 
-Do not duplicate long behavioral docs (animation behavior tables, RGB LED) in the HTML index — one-line route descriptions only, except the supported-parameter lists for `/anim` and `/test/servo`.
+Do not duplicate long behavioral docs (animation behavior tables, RGB LED) in the HTML index — one-line route descriptions only, except the supported-parameter lists for `/anim`, `/settings`, and `/test/servo`.
 
 Parameter values in the HTML index must match [`docs/api.md`](docs/api.md) exactly.

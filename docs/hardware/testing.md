@@ -86,13 +86,15 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | --- | --- | --- |
 | `GET` | `/` | HTML endpoint index |
 | `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `wifi`, `oled`) |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`) |
+| `POST` | `/settings?sleep_timeout=&hostname=` | Update NVS settings; `reboot_required` if hostname changed |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |
 | `POST` | `/test/led` | `{"ok":true,"test":"led"}` after `runRgbTest()` |
 | `POST` | `/test/servo?index=&angle=` | `{"ok":true,"test":"servo","index":N,"angle":A}` after `moveServoSmooth()` |
 
-GET on a test path returns `405`. Bad `/test/servo` params return `400`. Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
+GET on a test path returns `405`. Bad `/test/servo` or `/settings` params return `400`. Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
 
 No HTTP if boot Wi-Fi failed (`HTTP: skipped (no wifi)`).
 

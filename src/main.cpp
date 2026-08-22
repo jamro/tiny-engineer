@@ -10,6 +10,7 @@
 #include "pca9685_servos.h"
 #include "wifi_connect.h"
 #include "http_server.h"
+#include "settings.h"
 #include "sleep.h"
 
 namespace {
@@ -43,6 +44,8 @@ void setup() {
 
   initOled();
   showBootProgress(1, kBootSteps, "Display");
+
+  initSettings();
 
   showBootProgress(2, kBootSteps, "WiFi...");
   runWifiTest();

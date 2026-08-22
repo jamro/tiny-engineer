@@ -8,11 +8,11 @@
 #error "Copy include/secrets.h.example to include/secrets.h and set WIFI_SSID / WIFI_PASSWORD"
 #endif
 
+#include "settings.h"
 #include "wifi_connect.h"
 
 namespace {
 
-constexpr const char* WIFI_HOSTNAME = "tiny-engineer";
 constexpr unsigned long WIFI_TIMEOUT_MS = 20000;
 constexpr unsigned long WIFI_POLL_MS = 500;
 constexpr unsigned long IPV6_TIMEOUT_MS = 2000;
@@ -78,16 +78,18 @@ void runWifiTest() {
   Serial.println("==========================");
   Serial.println("WIFI TEST");
   Serial.println("==========================");
+  const char* hostname = settingsHostname();
+
   Serial.print("SSID: ");
   Serial.println(WIFI_SSID);
   Serial.print("Hostname: ");
-  Serial.println(WIFI_HOSTNAME);
+  Serial.println(hostname);
 
   // Hostname must be set before WiFi.mode() / WiFi.begin()
   // or the DHCP client keeps the default esp32c3-XXXX name.
   WiFi.persistent(false);
   WiFi.disconnect(true);
-  WiFi.setHostname(WIFI_HOSTNAME);
+  WiFi.setHostname(hostname);
   WiFi.mode(WIFI_STA);
   // macOS getaddrinfo waits 2–3s on unanswered AAAA for *.local.
   // Publish link-local IPv6 so mDNS answers AAAA immediately.
@@ -126,9 +128,11 @@ void runWifiTest() {
 
     waitForLinkLocalIpv6();
 
-    if (MDNS.begin(WIFI_HOSTNAME)) {
+    if (MDNS.begin(hostname)) {
       MDNS.addService("http", "tcp", 80);
-      Serial.println("mDNS: tiny-engineer.local");
+      Serial.print("mDNS: ");
+      Serial.print(hostname);
+      Serial.println(".local");
     } else {
       Serial.println("ERROR: mDNS failed");
     }

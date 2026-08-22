@@ -14,7 +14,7 @@ Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s
 
 ### `GET /`
 
-HTML endpoint index. Lists all routes plus supported parameters for `/anim` and `/test/servo`. Safe, no hardware side effects.
+HTML endpoint index. Lists all routes plus supported parameters for `/anim`, `/settings`, and `/test/servo`. Safe, no hardware side effects.
 
 Open in a browser:
 
@@ -57,8 +57,55 @@ curl http://tiny-engineer.local/health
 | `wifi.connected` | `WiFi.status() == WL_CONNECTED` |
 | `wifi.ip` | STA IPv4, or `""` if down |
 | `wifi.rssi` | dBm, or `0` if down |
-| `wifi.hostname` | Always `tiny-engineer.local` |
+| `wifi.hostname` | mDNS name from settings (`{hostname}.local`, default `tiny-engineer.local`) |
 | `oled` | SSD1306 probed and initialized |
+
+### `GET /settings`
+
+Persistent settings from NVS. Safe, no hardware side effects.
+
+```bash
+curl http://tiny-engineer.local/settings
+```
+
+```json
+{
+  "ok": true,
+  "sleep_timeout": 60,
+  "hostname": "tiny-engineer"
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `sleep_timeout` | Idle seconds before OLED blanks when animation is `none` (default **60**) |
+| `hostname` | DHCP/mDNS label without `.local` (default **`tiny-engineer`**) |
+
+### `POST /settings`
+
+Update one or both settings. Query params. Values are written to NVS. `sleep_timeout` applies immediately; a changed `hostname` takes effect on the **next reboot**.
+
+```bash
+curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=120"
+curl -X POST "http://tiny-engineer.local/settings?hostname=desk-bot"
+curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny-engineer"
+```
+
+```json
+{
+  "ok": true,
+  "sleep_timeout": 90,
+  "hostname": "desk-bot",
+  "reboot_required": true
+}
+```
+
+| Param | Type | Range |
+| --- | --- | --- |
+| `sleep_timeout` | integer | 5–3600 seconds |
+| `hostname` | string | 1–31 chars, `[A-Za-z0-9-]`, not starting/ending with `-` |
+
+At least one param required. Invalid or missing-all → **400**. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot.
 
 ### `POST /test/audio`
 
