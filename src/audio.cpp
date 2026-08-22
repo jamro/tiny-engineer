@@ -7,6 +7,7 @@
 #include "audio/wav_stream.h"
 #include "pins.h"
 #include "display/oled.h"
+#include "settings.h"
 #include "audio.h"
 
 I2SClass I2S;
@@ -94,8 +95,7 @@ bool initAudioStorage() {
 
 void playTone(
   float frequency,
-  int durationMs,
-  int volume
+  int durationMs
 ) {
   constexpr int FRAMES = 512;
 
@@ -105,6 +105,9 @@ void playTone(
 
   const float phaseStep =
     2.0f * PI * frequency / SAMPLE_RATE;
+
+  const float amplitude =
+    32767.0f * settingsVolume() / 100.0f;
 
   const int totalFrames =
     SAMPLE_RATE * durationMs / 1000;
@@ -121,7 +124,7 @@ void playTone(
     for (int i = 0; i < framesThisTime; i++) {
       const int16_t sample =
         (int16_t)(
-          sin(phase) * volume
+          sin(phase) * amplitude
         );
 
       phase += phaseStep;

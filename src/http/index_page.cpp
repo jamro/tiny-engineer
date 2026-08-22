@@ -93,7 +93,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Hostname and screen sleep timeout (saved in flash).</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Hostname, sleep timeout, and speaker volume (saved in flash).</p></a>
 </div>
 <a class="github-link" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener">Full docs &amp; build guide on GitHub &rarr;</a>
 </section>
@@ -126,6 +126,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <tr><th>Param</th><th>Type</th><th>Range</th></tr>
 <tr><td><code>sleep_timeout</code></td><td>integer</td><td>5&ndash;3600 seconds</td></tr>
 <tr><td><code>hostname</code></td><td>string</td><td>1&ndash;31 chars, letters/digits/hyphen</td></tr>
+<tr><td><code>volume</code></td><td>integer</td><td>0&ndash;100 percent (speaker gain)</td></tr>
 </table>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
@@ -203,7 +204,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 
 <section id="view-config" class="view">
 <h2 class="page-title">Config</h2>
-<p class="page-desc">Settings are stored in flash and survive reboot. Sleep timeout applies immediately; hostname needs a reboot.</p>
+<p class="page-desc">Settings are stored in flash and survive reboot. Sleep timeout and volume apply immediately; hostname needs a reboot.</p>
 <form id="config-form">
 <div class="form-group">
 <label for="config-hostname">Hostname</label>
@@ -214,6 +215,14 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <label for="config-sleep">Sleep timeout (seconds)</label>
 <input type="number" id="config-sleep" min="5" max="3600" step="1" required>
 <p class="hint">Idle time before OLED blanks when animation is none. Default: 60</p>
+</div>
+<div class="form-group">
+<label for="config-volume">Volume <span id="config-volume-label">70%</span></label>
+<div class="range-row">
+<input type="range" id="config-volume-slider" min="0" max="100" value="70">
+<input type="number" id="config-volume" min="0" max="100" step="1" value="70" required>
+</div>
+<p class="hint">Speaker gain for tones and WAV playback. Default: 70</p>
 </div>
 <button type="submit" class="btn btn-primary">Save settings</button>
 </form>
@@ -338,11 +347,27 @@ document.getElementById("servo-form").addEventListener("submit",function(e){
   }).catch(function(){setStatus("Network error","err");})
   .finally(function(){setBusy(false);});
 });
+function setConfigVolume(v){
+  var n=parseInt(v,10);
+  if(isNaN(n))n=70;
+  if(n<0)n=0;
+  if(n>100)n=100;
+  document.getElementById("config-volume").value=n;
+  document.getElementById("config-volume-slider").value=n;
+  document.getElementById("config-volume-label").textContent=n+"%";
+}
+document.getElementById("config-volume-slider").addEventListener("input",function(){
+  setConfigVolume(this.value);
+});
+document.getElementById("config-volume").addEventListener("input",function(){
+  setConfigVolume(this.value);
+});
 function loadSettings(){
   fetch("/settings").then(function(r){return r.json();}).then(function(j){
     if(!j.ok)return;
     document.getElementById("config-hostname").value=j.hostname||"";
     document.getElementById("config-sleep").value=j.sleep_timeout;
+    setConfigVolume(j.volume!=null?j.volume:70);
   }).catch(function(){});
 }
 document.getElementById("config-form").addEventListener("submit",function(e){
@@ -350,14 +375,16 @@ document.getElementById("config-form").addEventListener("submit",function(e){
   if(busy)return;
   var host=document.getElementById("config-hostname").value.trim();
   var sleep=document.getElementById("config-sleep").value;
+  var volume=document.getElementById("config-volume").value;
   setBusy(true);
   setStatus("Saving\u2026","loading");
-  fetch("/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host),{method:"POST"})
+  fetch("/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume),{method:"POST"})
   .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
   .then(function(res){
     if(res.ok&&res.data.ok!==false){
       document.getElementById("config-hostname").value=res.data.hostname||host;
       document.getElementById("config-sleep").value=res.data.sleep_timeout;
+      setConfigVolume(res.data.volume!=null?res.data.volume:volume);
       if(res.data.reboot_required){
         setStatus("Saved. Hostname applies after reboot (RESET or power cycle).","ok");
       }else{

@@ -85,7 +85,7 @@ void sendAnimationJson() {
 }
 
 void sendSettingsJson(bool rebootRequired) {
-  char body[160];
+  char body[200];
 
   if (rebootRequired) {
     snprintf(
@@ -95,10 +95,12 @@ void sendSettingsJson(bool rebootRequired) {
       "\"ok\":true,"
       "\"sleep_timeout\":%lu,"
       "\"hostname\":\"%s\","
+      "\"volume\":%u,"
       "\"reboot_required\":true"
       "}",
       (unsigned long)settingsSleepTimeoutS(),
-      settingsHostname()
+      settingsHostname(),
+      static_cast<unsigned>(settingsVolume())
     );
   } else {
     snprintf(
@@ -107,10 +109,12 @@ void sendSettingsJson(bool rebootRequired) {
       "{"
       "\"ok\":true,"
       "\"sleep_timeout\":%lu,"
-      "\"hostname\":\"%s\""
+      "\"hostname\":\"%s\","
+      "\"volume\":%u"
       "}",
       (unsigned long)settingsSleepTimeoutS(),
-      settingsHostname()
+      settingsHostname(),
+      static_cast<unsigned>(settingsVolume())
     );
   }
 
@@ -127,12 +131,13 @@ void handleSettingsPost() {
 
   const bool hasSleep = server.hasArg("sleep_timeout");
   const bool hasHost = server.hasArg("hostname");
+  const bool hasVolume = server.hasArg("volume");
 
-  if (!hasSleep && !hasHost) {
+  if (!hasSleep && !hasHost && !hasVolume) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout or hostname\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, or volume\"}"
     );
     return;
   }
@@ -141,6 +146,8 @@ void handleSettingsPost() {
   const uint32_t* sleepPtr = nullptr;
   String hostnameArg;
   const char* hostPtr = nullptr;
+  uint8_t volume = 0;
+  const uint8_t* volumePtr = nullptr;
 
   if (hasSleep) {
     const String sleepArg = server.arg("sleep_timeout");
@@ -185,9 +192,38 @@ void handleSettingsPost() {
     }
   }
 
+  if (hasVolume) {
+    const String volumeArg = server.arg("volume");
+    char* end = nullptr;
+    const unsigned long parsed =
+      strtoul(volumeArg.c_str(), &end, 10);
+
+    if (end == volumeArg.c_str() || *end != '\0' || parsed > 255) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid volume\"}"
+      );
+      return;
+    }
+
+    volume = static_cast<uint8_t>(parsed);
+
+    if (!settingsValidateVolume(volume)) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"volume out of range\"}"
+      );
+      return;
+    }
+
+    volumePtr = &volume;
+  }
+
   bool rebootRequired = false;
 
-  if (!saveSettings(sleepPtr, hostPtr, &rebootRequired)) {
+  if (!saveSettings(sleepPtr, hostPtr, volumePtr, &rebootRequired)) {
     httpSendJson(
       server,
       400,

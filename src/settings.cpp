@@ -9,12 +9,14 @@ namespace {
 constexpr const char* kNs = "te";
 constexpr const char* kKeySleep = "sleep_s";
 constexpr const char* kKeyHost = "host";
+constexpr const char* kKeyVolume = "vol";
 
 Preferences prefs;
 
 uint32_t g_sleepTimeoutS = SETTINGS_DEFAULT_SLEEP_TIMEOUT_S;
 char g_hostname[SETTINGS_HOSTNAME_MAX_LEN + 1] = {};
 char g_bootHostname[SETTINGS_HOSTNAME_MAX_LEN + 1] = {};
+uint8_t g_volume = SETTINGS_DEFAULT_VOLUME;
 
 void setHostnameCache(char* dest, const char* src) {
   strncpy(dest, src, SETTINGS_HOSTNAME_MAX_LEN);
@@ -25,6 +27,7 @@ void setHostnameCache(char* dest, const char* src) {
 
 void initSettings() {
   setHostnameCache(g_hostname, SETTINGS_DEFAULT_HOSTNAME);
+  g_volume = SETTINGS_DEFAULT_VOLUME;
 
   if (!prefs.begin(kNs, true)) {
     Serial.println("Settings: NVS open failed; using defaults");
@@ -49,6 +52,15 @@ void initSettings() {
     setHostnameCache(g_hostname, SETTINGS_DEFAULT_HOSTNAME);
   }
 
+  const uint32_t vol = prefs.getUInt(kKeyVolume, SETTINGS_DEFAULT_VOLUME);
+
+  if (vol <= SETTINGS_VOLUME_MAX &&
+      settingsValidateVolume(static_cast<uint8_t>(vol))) {
+    g_volume = static_cast<uint8_t>(vol);
+  } else {
+    g_volume = SETTINGS_DEFAULT_VOLUME;
+  }
+
   prefs.end();
 
   setHostnameCache(g_bootHostname, g_hostname);
@@ -56,7 +68,9 @@ void initSettings() {
   Serial.print("Settings: sleep_timeout=");
   Serial.print(g_sleepTimeoutS);
   Serial.print("s hostname=");
-  Serial.println(g_hostname);
+  Serial.print(g_hostname);
+  Serial.print(" volume=");
+  Serial.println(g_volume);
 }
 
 uint32_t settingsSleepTimeoutS() {
@@ -73,6 +87,10 @@ const char* settingsHostname() {
 
 const char* settingsBootHostname() {
   return g_bootHostname;
+}
+
+uint8_t settingsVolume() {
+  return g_volume;
 }
 
 bool settingsValidateSleepTimeout(uint32_t sleepTimeoutS) {
@@ -111,22 +129,30 @@ bool settingsValidateHostname(const char* hostname) {
   return true;
 }
 
+bool settingsValidateVolume(uint8_t volume) {
+  return volume <= SETTINGS_VOLUME_MAX;
+}
+
 bool saveSettings(
   const uint32_t* sleepTimeoutS,
   const char* hostname,
+  const uint8_t* volume,
   bool* rebootRequired
 ) {
   if (rebootRequired != nullptr) {
     *rebootRequired = false;
   }
 
-  if (sleepTimeoutS == nullptr && hostname == nullptr) {
+  if (sleepTimeoutS == nullptr &&
+      hostname == nullptr &&
+      volume == nullptr) {
     return false;
   }
 
   uint32_t nextSleep = g_sleepTimeoutS;
   char nextHost[SETTINGS_HOSTNAME_MAX_LEN + 1];
   setHostnameCache(nextHost, g_hostname);
+  uint8_t nextVolume = g_volume;
 
   if (sleepTimeoutS != nullptr) {
     if (!settingsValidateSleepTimeout(*sleepTimeoutS)) {
@@ -144,6 +170,14 @@ bool saveSettings(
     setHostnameCache(nextHost, hostname);
   }
 
+  if (volume != nullptr) {
+    if (!settingsValidateVolume(*volume)) {
+      return false;
+    }
+
+    nextVolume = *volume;
+  }
+
   if (!prefs.begin(kNs, false)) {
     Serial.println("Settings: NVS write open failed");
     return false;
@@ -151,10 +185,12 @@ bool saveSettings(
 
   prefs.putUInt(kKeySleep, nextSleep);
   prefs.putString(kKeyHost, nextHost);
+  prefs.putUInt(kKeyVolume, nextVolume);
   prefs.end();
 
   g_sleepTimeoutS = nextSleep;
   setHostnameCache(g_hostname, nextHost);
+  g_volume = nextVolume;
 
   if (rebootRequired != nullptr &&
       strcmp(g_hostname, g_bootHostname) != 0) {
@@ -164,7 +200,9 @@ bool saveSettings(
   Serial.print("Settings saved: sleep_timeout=");
   Serial.print(g_sleepTimeoutS);
   Serial.print("s hostname=");
-  Serial.println(g_hostname);
+  Serial.print(g_hostname);
+  Serial.print(" volume=");
+  Serial.println(g_volume);
 
   return true;
 }
