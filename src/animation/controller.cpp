@@ -7,6 +7,7 @@
 #include "animation/thinking.h"
 #include "animation/typing.h"
 #include "animation/util.h"
+#include "eyes.h"
 #include "servo_wrapper.h"
 
 namespace {
@@ -131,29 +132,28 @@ void updateAnimation() {
     applyAnimation(g_pendingAnimation);
   }
 
-  if (g_animation == AnimationId::None) {
-    updateAllServos();
-    return;
-  }
-
   const uint32_t now = millis();
 
-  if (g_animation == AnimationId::Typing) {
-    updateTyping(now);
-    return;
+  if (g_animation == AnimationId::None) {
+    updateAllServos();
+  } else {
+    switch (g_animation) {
+      case AnimationId::Typing:
+        updateTyping(now);
+        break;
+      case AnimationId::Reading:
+        updateReading(now);
+        break;
+      case AnimationId::Thinking:
+        updateThinking(now);
+        break;
+      case AnimationId::Ring:
+        updateRing(now);
+        break;
+      default:
+        break;
+    }
   }
 
-  if (g_animation == AnimationId::Reading) {
-    updateReading(now);
-    return;
-  }
-
-  if (g_animation == AnimationId::Thinking) {
-    updateThinking(now);
-    return;
-  }
-
-  if (g_animation == AnimationId::Ring) {
-    updateRing(now);
-  }
+  updateEyes(now);
 }

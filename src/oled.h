@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+struct Eye;
+
 extern bool oledAvailable;
 
 bool i2cDeviceConnected(uint8_t address);
@@ -9,6 +11,14 @@ bool i2cDeviceConnected(uint8_t address);
 void showOledText(
   const char* line1,
   const char* line2 = nullptr
+);
+
+void showIdleScreen();
+
+void drawEyes(
+  const Eye& left,
+  const Eye& right,
+  int cornerRadius
 );
 
 void initOled();

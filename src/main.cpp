@@ -113,10 +113,7 @@ void setup() {
     0
   );
 
-  showOledText(
-    "ROBOT READY",
-    wifiConnected() ? wifiIpText() : "WIFI FAIL"
-  );
+  showIdleScreen();
 
   startHttpServer();
 }

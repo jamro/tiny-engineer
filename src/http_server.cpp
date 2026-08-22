@@ -18,10 +18,7 @@ WebServer server(80);
 constexpr const char* HOSTNAME = "tiny-engineer.local";
 
 void restoreReadyScreen() {
-  showOledText(
-    "ROBOT READY",
-    wifiConnected() ? wifiIpText() : "WIFI FAIL"
-  );
+  showIdleScreen();
 }
 
 void sendJson(int code, const char* body) {
