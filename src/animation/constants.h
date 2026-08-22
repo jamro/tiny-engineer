@@ -89,7 +89,9 @@ constexpr float ERROR_HAND_RIGHT_PRESENT =
   SERVO_SPECS[SERVO_HAND_RIGHT].min + 58.0f;
 constexpr float ERROR_HAND_LEFT_TASK_POINT =
   SERVO_SPECS[SERVO_HAND_LEFT].max - 22.0f;
-constexpr float ERROR_HOLD_HEAD_SHAKE_DEG = 2.0f;
-constexpr float ERROR_HOLD_NECK_SHAKE_DEG = 4.0f;
+constexpr float ERROR_HELP_NECK_GLANCE_DEG = 10.0f;
+constexpr float ERROR_AWAY_NECK_GLANCE_DEG = 4.0f;
+constexpr float ERROR_HELP_HEAD_GLANCE_DEG = 3.0f;
+constexpr float ERROR_WORRY_HEAD_NOD_DEG = 2.0f;
 
 }  // namespace anim

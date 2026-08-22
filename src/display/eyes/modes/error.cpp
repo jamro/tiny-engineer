@@ -1,12 +1,82 @@
 #include "display/eyes/modes/error.h"
 
 #include "animation/error.h"
+#include "animation/util.h"
 #include "display/eyes.h"
 #include "display/eyes/core/constants.h"
 #include "display/eyes/core/util.h"
 
+namespace {
+
+enum class ErrorEyeLook {
+  Task,
+  Human,
+  Away,
+};
+
+uint32_t g_nextErrorEyeScanMs = 0;
+ErrorEyeLook g_errorEyeLook = ErrorEyeLook::Task;
+bool g_errorEyeTense = true;
+
+void scheduleNextErrorEyeScan(uint32_t now) {
+  g_nextErrorEyeScanMs = now + anim::randRangeMs(360, 820);
+}
+
+void advanceErrorEyeScan(uint32_t now) {
+  if (now < g_nextErrorEyeScanMs) {
+    return;
+  }
+
+  switch (g_errorEyeLook) {
+    case ErrorEyeLook::Task:
+      g_errorEyeLook = ErrorEyeLook::Human;
+      break;
+    case ErrorEyeLook::Human:
+      g_errorEyeLook = ErrorEyeLook::Away;
+      break;
+    case ErrorEyeLook::Away:
+    default:
+      g_errorEyeLook = ErrorEyeLook::Task;
+      break;
+  }
+
+  g_errorEyeTense = !g_errorEyeTense;
+  scheduleNextErrorEyeScan(now);
+}
+
+void applyErrorEyeLook(
+  ErrorEyeLook look,
+  bool tense,
+  int16_t& xOffset,
+  int16_t& leftHeight,
+  int16_t& rightHeight
+) {
+  switch (look) {
+    case ErrorEyeLook::Task:
+      xOffset = -5;
+      leftHeight = tense ? 10 : 11;
+      rightHeight = 15;
+      break;
+    case ErrorEyeLook::Human:
+      xOffset = 5;
+      leftHeight = tense ? 12 : 13;
+      rightHeight = tense ? 13 : 14;
+      break;
+    case ErrorEyeLook::Away:
+    default:
+      xOffset = -1;
+      leftHeight = tense ? 11 : 12;
+      rightHeight = tense ? 14 : 15;
+      break;
+  }
+}
+
+}  // namespace
+
 void startErrorEyes(uint32_t now) {
-  (void)now;
+  g_nextErrorEyeScanMs = now + ERROR_AUDIO_UHOH_END_MS;
+  g_errorEyeLook = ErrorEyeLook::Task;
+  g_errorEyeTense = true;
 }
 
 void updateErrorEyes(uint32_t now) {
@@ -19,28 +89,53 @@ void updateErrorEyes(uint32_t now) {
 
     if (audioElapsed < ERROR_AUDIO_END_MS) {
       if (audioElapsed < ERROR_AUDIO_UHOH_END_MS) {
-        xOffset = -4;
-        leftHeight = 11;
-        rightHeight = 15;
+        applyErrorEyeLook(
+          ErrorEyeLook::Task,
+          true,
+          xOffset,
+          leftHeight,
+          rightHeight
+        );
       } else if (audioElapsed < ERROR_AUDIO_HUMAN_END_MS) {
-        xOffset = 0;
-        leftHeight = 13;
-        rightHeight = 14;
+        applyErrorEyeLook(
+          ErrorEyeLook::Human,
+          false,
+          xOffset,
+          leftHeight,
+          rightHeight
+        );
       } else if (audioElapsed < ERROR_AUDIO_PROBLEM_END_MS) {
-        xOffset = -4;
-        leftHeight = 11;
-        rightHeight = 15;
+        const uint32_t scanElapsed =
+          audioElapsed - ERROR_AUDIO_HUMAN_END_MS;
+        const uint32_t scanStep = (scanElapsed / 360) % 3u;
+        const ErrorEyeLook scanLook = scanStep == 0u
+          ? ErrorEyeLook::Task
+          : (scanStep == 1u ? ErrorEyeLook::Human : ErrorEyeLook::Away);
+        applyErrorEyeLook(
+          scanLook,
+          scanStep != 1u,
+          xOffset,
+          leftHeight,
+          rightHeight
+        );
       } else {
-        xOffset = -2;
-        leftHeight = 12;
-        rightHeight = 14;
+        applyErrorEyeLook(
+          ErrorEyeLook::Away,
+          true,
+          xOffset,
+          leftHeight,
+          rightHeight
+        );
       }
     } else {
-      const uint32_t holdElapsed = audioElapsed - ERROR_AUDIO_END_MS;
-      const bool glanceUser = (holdElapsed / 1800) % 2u == 1u;
-      xOffset = glanceUser ? 0 : -4;
-      leftHeight = glanceUser ? 13 : 11;
-      rightHeight = glanceUser ? 14 : 15;
+      advanceErrorEyeScan(now);
+      applyErrorEyeLook(
+        g_errorEyeLook,
+        g_errorEyeTense,
+        xOffset,
+        leftHeight,
+        rightHeight
+      );
     }
   }
 
