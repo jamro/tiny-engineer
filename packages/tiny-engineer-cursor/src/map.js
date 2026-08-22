@@ -25,12 +25,11 @@ const EVENT_ANIM = {
   beforeShellExecution: "typing",
   subagentStart: "typing",
   afterFileEdit: "typing",
-  stop: "ring",
 };
 
 /**
  * Map a Cursor hook payload to an animation name, or null to skip.
- * @param {{ hook_event_name?: string, tool_name?: string }} event
+ * @param {{ hook_event_name?: string, tool_name?: string, status?: string }} event
  * @returns {string | null}
  */
 export function animationForEvent(event) {
@@ -42,6 +41,10 @@ export function animationForEvent(event) {
     if (tool === "Read") return "reading";
     if (TYPING_TOOLS.has(tool)) return "typing";
     return null;
+  }
+
+  if (name === "stop") {
+    return event.status === "aborted" ? "abort" : "ring";
   }
 
   return EVENT_ANIM[name] ?? null;

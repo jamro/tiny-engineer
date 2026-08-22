@@ -141,9 +141,10 @@ HTTPS **tarball** URL avoids SSH and works in hooks.
 | `beforeShellExecution` | `typing` | Shell command is about to run |
 | `subagentStart` | `typing` | Subagent starts |
 | `afterFileEdit` | `typing` | Agent finished an edit |
-| `stop` | `ring` | Agent turn ends |
+| `stop` (`status: completed` or missing) | `ring` | Agent turn completes |
+| `stop` (`status: aborted`) | `abort` | Agent turn cancelled |
 
-Each anim hook runs the same command with **no animation args**. Cursor pipes event JSON on stdin; the CLI reads `hook_event_name` (and `tool_name` for `preToolUse`), maps to a pose in [`packages/tiny-engineer-cursor/src/map.js`](../packages/tiny-engineer-cursor/src/map.js), and `POST`s `/anim?name=…` (2s HTTP timeout, exit 0). Optional `--url` overrides the default `http://tiny-engineer.local`.
+Each anim hook runs the same command with **no animation args**. Cursor pipes event JSON on stdin; the CLI reads `hook_event_name` (plus `tool_name` for `preToolUse`, `status` for `stop`), maps to a pose in [`packages/tiny-engineer-cursor/src/map.js`](../packages/tiny-engineer-cursor/src/map.js), and `POST`s `/anim?name=…` (2s HTTP timeout, exit 0). Optional `--url` overrides the default `http://tiny-engineer.local`.
 
 Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Event logging (separate): [`.cursor/hooks/log-event.sh`](../.cursor/hooks/log-event.sh).
 

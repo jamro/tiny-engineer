@@ -13,21 +13,24 @@ Options:
   -h, --help     Show this help
 
 Hook mode (no animation args):
-  Cursor pipes JSON with hook_event_name (and tool_name for preToolUse).
-  The CLI maps the event to reading / thinking / typing / ring and POSTs
-  \${url}/anim?name=…. Unknown or unmatched events exit 0 with no request.
+  Cursor pipes JSON with hook_event_name (tool_name for preToolUse,
+  status for stop). The CLI maps the event to reading / thinking / typing /
+  ring / abort and POSTs \${url}/anim?name=…. Unknown or unmatched events
+  exit 0 with no request.
 
 Event map:
   sessionStart, beforeSubmitPrompt, beforeReadFile  → reading
   afterAgentThought, preCompact                     → thinking
   beforeShellExecution, subagentStart, afterFileEdit → typing
-  stop                                              → ring
+  stop + status aborted                             → abort
+  stop (completed / missing / other)                → ring
   preToolUse + Read                                 → reading
   preToolUse + edit/search/shell tools              → typing
   other preToolUse tools                            → (skip)
 
 Examples:
-  echo '{"hook_event_name":"stop"}' | tiny-engineer-cursor
+  echo '{"hook_event_name":"stop","status":"completed"}' | tiny-engineer-cursor
+  echo '{"hook_event_name":"stop","status":"aborted"}' | tiny-engineer-cursor
   echo '{"hook_event_name":"preToolUse","tool_name":"Read"}' | tiny-engineer-cursor --url http://192.168.1.10
 `);
 }
