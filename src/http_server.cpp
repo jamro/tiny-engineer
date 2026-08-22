@@ -3,12 +3,10 @@
 #include <WebServer.h>
 
 #include "animation.h"
-#include "audio.h"
+#include "http/json.h"
+#include "http/test_handlers.h"
 #include "http_server.h"
 #include "display/oled.h"
-#include "pca9685_servos.h"
-#include "rgb.h"
-#include "servos.h"
 #include "sleep.h"
 #include "wifi_connect.h"
 
@@ -17,22 +15,6 @@ namespace {
 WebServer server(80);
 
 constexpr const char* HOSTNAME = "tiny-engineer.local";
-
-void restoreReadyScreen() {
-  showIdleScreen();
-}
-
-void sendJson(int code, const char* body) {
-  server.sendHeader(
-    "Access-Control-Allow-Origin",
-    "*"
-  );
-  server.send(
-    code,
-    "application/json",
-    body
-  );
-}
 
 void handleHealth() {
   touchApiActivity();
@@ -65,174 +47,7 @@ void handleHealth() {
     oledAvailable ? "true" : "false"
   );
 
-  sendJson(200, body);
-}
-
-void handleAudioTest() {
-  touchApiActivity();
-  runSoundTest();
-  restoreReadyScreen();
-  sendJson(200, "{\"ok\":true,\"test\":\"audio\"}");
-}
-
-void handleBellTest() {
-  touchApiActivity();
-
-  if (!playBell()) {
-    restoreReadyScreen();
-    sendJson(
-      500,
-      "{\"ok\":false,\"error\":\"bell playback failed\"}"
-    );
-    return;
-  }
-
-  restoreReadyScreen();
-  sendJson(200, "{\"ok\":true,\"test\":\"bell\"}");
-}
-
-void handleScreenTest() {
-  touchApiActivity();
-  runOledTest();
-  restoreReadyScreen();
-  sendJson(200, "{\"ok\":true,\"test\":\"screen\"}");
-}
-
-void handleMovementTest() {
-  touchApiActivity();
-  runServoTest();
-  restoreReadyScreen();
-  sendJson(200, "{\"ok\":true,\"test\":\"movement\"}");
-}
-
-void handleLedTest() {
-  touchApiActivity();
-  runRgbTest();
-  setRgbForAnimation(getAnimation(), millis());
-  restoreReadyScreen();
-  sendJson(200, "{\"ok\":true,\"test\":\"led\"}");
-}
-
-bool isDigitsOnly(const String& s) {
-  if (s.length() == 0) {
-    return false;
-  }
-
-  for (unsigned i = 0; i < s.length(); i++) {
-    if (s[i] < '0' || s[i] > '9') {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-bool isValidFloatArg(const String& s) {
-  if (s.length() == 0) {
-    return false;
-  }
-
-  unsigned i = 0;
-
-  if (s[0] == '+' || s[0] == '-') {
-    i = 1;
-    if (i >= s.length()) {
-      return false;
-    }
-  }
-
-  bool sawDigit = false;
-  bool sawDot = false;
-
-  for (; i < s.length(); i++) {
-    const char c = s[i];
-
-    if (c >= '0' && c <= '9') {
-      sawDigit = true;
-      continue;
-    }
-
-    if (c == '.' && !sawDot) {
-      sawDot = true;
-      continue;
-    }
-
-    return false;
-  }
-
-  return sawDigit;
-}
-
-void handleServoTest() {
-  touchApiActivity();
-
-  if (!server.hasArg("index") || !server.hasArg("angle")) {
-    sendJson(
-      400,
-      "{\"ok\":false,\"error\":\"missing index or angle\"}"
-    );
-    return;
-  }
-
-  const String indexArg = server.arg("index");
-  const String angleArg = server.arg("angle");
-
-  if (!isDigitsOnly(indexArg)) {
-    sendJson(
-      400,
-      "{\"ok\":false,\"error\":\"invalid index\"}"
-    );
-    return;
-  }
-
-  if (!isValidFloatArg(angleArg)) {
-    sendJson(
-      400,
-      "{\"ok\":false,\"error\":\"invalid angle\"}"
-    );
-    return;
-  }
-
-  const int index = indexArg.toInt();
-  const float angle = angleArg.toFloat();
-
-  if (index < 0 || index >= SERVO_COUNT) {
-    sendJson(
-      400,
-      "{\"ok\":false,\"error\":\"index out of range\"}"
-    );
-    return;
-  }
-
-  if (angle < 0.0f || angle > 180.0f) {
-    sendJson(
-      400,
-      "{\"ok\":false,\"error\":\"angle out of range\"}"
-    );
-    return;
-  }
-
-  if (!moveServoSmooth(index, angle)) {
-    sendJson(
-      400,
-      "{\"ok\":false,\"error\":\"index out of range\"}"
-    );
-    return;
-  }
-
-  restoreReadyScreen();
-
-  char body[96];
-
-  snprintf(
-    body,
-    sizeof(body),
-    "{\"ok\":true,\"test\":\"servo\",\"index\":%d,\"angle\":%g}",
-    index,
-    (double)angle
-  );
-
-  sendJson(200, body);
+  httpSendJson(server, 200, body);
 }
 
 void sendAnimationJson() {
@@ -245,7 +60,7 @@ void sendAnimationJson() {
     animationName(getAnimation())
   );
 
-  sendJson(200, body);
+  httpSendJson(server, 200, body);
 }
 
 void handleAnimGet() {
@@ -257,7 +72,8 @@ void handleAnimPost() {
   touchApiActivity();
 
   if (!server.hasArg("name")) {
-    sendJson(
+    httpSendJson(
+      server,
       400,
       "{\"ok\":false,\"error\":\"missing name\"}"
     );
@@ -267,7 +83,8 @@ void handleAnimPost() {
   AnimationId id;
 
   if (!parseAnimationName(server.arg("name").c_str(), id)) {
-    sendJson(
+    httpSendJson(
+      server,
       400,
       "{\"ok\":false,\"error\":\"unknown animation\"}"
     );
@@ -278,15 +95,6 @@ void handleAnimPost() {
   sendAnimationJson();
 }
 
-bool isTestPath(const String& uri) {
-  return uri == "/test/audio" ||
-    uri == "/test/audio/bell" ||
-    uri == "/test/screen" ||
-    uri == "/test/movement" ||
-    uri == "/test/led" ||
-    uri == "/test/servo";
-}
-
 bool isAnimPath(const String& uri) {
   return uri == "/anim";
 }
@@ -294,15 +102,17 @@ bool isAnimPath(const String& uri) {
 void handleNotFound() {
   touchApiActivity();
 
-  if (isTestPath(server.uri()) || isAnimPath(server.uri())) {
-    sendJson(
+  if (isHttpTestPath(server.uri()) || isAnimPath(server.uri())) {
+    httpSendJson(
+      server,
       405,
       "{\"ok\":false,\"error\":\"method not allowed\"}"
     );
     return;
   }
 
-  sendJson(
+  httpSendJson(
+    server,
     404,
     "{\"ok\":false,\"error\":\"not found\"}"
   );
@@ -319,12 +129,7 @@ void startHttpServer() {
   server.on("/", HTTP_GET, handleHealth);
   server.on("/anim", HTTP_GET, handleAnimGet);
   server.on("/anim", HTTP_POST, handleAnimPost);
-  server.on("/test/audio", HTTP_POST, handleAudioTest);
-  server.on("/test/audio/bell", HTTP_POST, handleBellTest);
-  server.on("/test/screen", HTTP_POST, handleScreenTest);
-  server.on("/test/movement", HTTP_POST, handleMovementTest);
-  server.on("/test/led", HTTP_POST, handleLedTest);
-  server.on("/test/servo", HTTP_POST, handleServoTest);
+  registerHttpTestRoutes(server);
   server.onNotFound(handleNotFound);
 
   server.begin();

@@ -7,7 +7,7 @@ Firmware is [`src/main.cpp`](../../src/main.cpp). Boot **inits** hardware and st
 - [`src/wifi_connect.cpp`](../../src/wifi_connect.cpp)
 - [`src/audio.cpp`](../../src/audio.cpp)
 - [`src/pca9685_servos.cpp`](../../src/pca9685_servos.cpp)
-- [`src/http_server.cpp`](../../src/http_server.cpp)
+- [`src/http_server.cpp`](../../src/http_server.cpp), [`src/http/test_handlers.cpp`](../../src/http/test_handlers.cpp)
 
 Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi SSID/password: copy [`include/secrets.h.example`](../../include/secrets.h.example) to `include/secrets.h` (gitignored).
 
