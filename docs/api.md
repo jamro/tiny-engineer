@@ -14,10 +14,22 @@ Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s
 
 ### `GET /`
 
-Health. Safe, no hardware side effects. Uses live `WiFi.status()`, not the boot-time flag.
+HTML endpoint index. Lists all routes plus supported parameters for `/anim` and `/test/servo`. Safe, no hardware side effects.
+
+Open in a browser:
 
 ```bash
 curl http://tiny-engineer.local/
+```
+
+Returns `Content-Type: text/html; charset=utf-8`.
+
+### `GET /health`
+
+Health. Safe, no hardware side effects. Uses live `WiFi.status()`, not the boot-time flag.
+
+```bash
+curl http://tiny-engineer.local/health
 ```
 
 ```json

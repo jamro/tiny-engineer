@@ -57,10 +57,10 @@ Board and baud rate live in `platformio.ini`. The platform package is [pioarduin
 
 ## HTTP API
 
-After Wi-Fi connects, the board listens on port 80 (`http://tiny-engineer.local/` or the IP on the OLED).
+After Wi-Fi connects, the board listens on port 80 (`http://tiny-engineer.local/` or the IP on the OLED). Open `/` in a browser for the endpoint index.
 
 ```bash
-curl http://tiny-engineer.local/
+curl http://tiny-engineer.local/health
 curl -X POST http://tiny-engineer.local/test/audio
 curl -X POST http://tiny-engineer.local/test/screen
 curl -X POST http://tiny-engineer.local/test/movement
@@ -68,7 +68,7 @@ curl -X POST http://tiny-engineer.local/test/led
 curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 ```
 
-`GET /` is health JSON. Test routes are **POST** (they move hardware). Full reference: [`docs/api.md`](docs/api.md).
+`GET /` is an HTML endpoint index. `GET /health` is health JSON. Test routes are **POST** (they move hardware). Full reference: [`docs/api.md`](docs/api.md).
 
 ## Cursor hooks
 

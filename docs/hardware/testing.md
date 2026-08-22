@@ -38,7 +38,7 @@ Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200)
 7. `Centering servos` — all channels → 90°
 8. `ROBOT READY` — dim green RGB, OLED `ROBOT READY` + IP (or `WIFI FAIL`)
 9. RGB fades to white over 1 s if `welcome` runs (Wi-Fi OK), or fades off if idle
-10. If Wi-Fi OK: `HTTP: http://<ip>/` and `HTTP: http://tiny-engineer.local/`
+10. If Wi-Fi OK: `HTTP: http://<ip>/`, `HTTP: http://tiny-engineer.local/`, and `/health` URLs on serial
 
 `loop()` pumps the HTTP server and updates animation RGB fades. No audio/OLED/servo/LED demos until a POST.
 
@@ -64,7 +64,7 @@ Base URL is the board IP or `http://tiny-engineer.local` (2.4 GHz STA). Tests ha
 
 ```bash
 # Health
-curl http://tiny-engineer.local/
+curl http://tiny-engineer.local/health
 
 # Tones 500 / 700 / 1000 Hz
 curl -X POST http://tiny-engineer.local/test/audio
@@ -84,7 +84,8 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 
 | Method | Path | Body |
 | --- | --- | --- |
-| `GET` | `/` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `wifi`, `oled`) |
+| `GET` | `/` | HTML endpoint index |
+| `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `wifi`, `oled`) |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |

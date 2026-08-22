@@ -3,6 +3,7 @@
 #include <WebServer.h>
 
 #include "animation.h"
+#include "http/index_page.h"
 #include "http/json.h"
 #include "http/test_handlers.h"
 #include "http_server.h"
@@ -15,6 +16,10 @@ namespace {
 WebServer server(80);
 
 constexpr const char* HOSTNAME = "tiny-engineer.local";
+
+void handleIndex() {
+  sendIndexPage(server);
+}
 
 void handleHealth() {
   touchApiActivity();
@@ -126,7 +131,8 @@ void startHttpServer() {
     return;
   }
 
-  server.on("/", HTTP_GET, handleHealth);
+  server.on("/", HTTP_GET, handleIndex);
+  server.on("/health", HTTP_GET, handleHealth);
   server.on("/anim", HTTP_GET, handleAnimGet);
   server.on("/anim", HTTP_POST, handleAnimPost);
   registerHttpTestRoutes(server);
@@ -140,6 +146,12 @@ void startHttpServer() {
   Serial.print("HTTP: http://");
   Serial.print(HOSTNAME);
   Serial.println("/");
+  Serial.print("HTTP: http://");
+  Serial.print(wifiIpText());
+  Serial.println("/health");
+  Serial.print("HTTP: http://");
+  Serial.print(HOSTNAME);
+  Serial.println("/health");
 }
 
 void pollHttpServer() {
