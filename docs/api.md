@@ -74,7 +74,9 @@ curl http://tiny-engineer.local/settings
   "sleep_timeout": 60,
   "hostname": "tiny-engineer",
   "volume": 70,
-  "welcome": true
+  "welcome": true,
+  "continuous_timeout": 5,
+  "loading": "progress"
 }
 ```
 
@@ -83,18 +85,22 @@ curl http://tiny-engineer.local/settings
 | `sleep_timeout` | Idle seconds before OLED blanks when animation is `none` (default **60**) |
 | `hostname` | DHCP/mDNS label without `.local` (default **`tiny-engineer`**) |
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
-| `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**) |
+| `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
+| `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking`) may run before the firmware switches to `attention` then idle (default **5**) |
+| `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, and `welcome` apply immediately; a changed `hostname` takes effect on the **next reboot**.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, and `continuous_timeout` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=120"
 curl -X POST "http://tiny-engineer.local/settings?hostname=desk-bot"
 curl -X POST "http://tiny-engineer.local/settings?volume=40"
 curl -X POST "http://tiny-engineer.local/settings?welcome=0"
-curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny-engineer&volume=70&welcome=1"
+curl -X POST "http://tiny-engineer.local/settings?continuous_timeout=10"
+curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
+curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny-engineer&volume=70&welcome=1&continuous_timeout=5&loading=progress"
 ```
 
 ```json
@@ -104,6 +110,8 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny
   "hostname": "desk-bot",
   "volume": 70,
   "welcome": true,
+  "continuous_timeout": 5,
+  "loading": "progress",
   "reboot_required": true
 }
 ```
@@ -114,6 +122,8 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny
 | `hostname` | string | 1–31 chars, `[A-Za-z0-9-]`, not starting/ending with `-` |
 | `volume` | integer | 0–100 percent |
 | `welcome` | integer | `0` or `1` (boot welcome animation) |
+| `continuous_timeout` | integer | 1–1440 minutes (positive) |
+| `loading` | string | `progress` or `sleep_inertia` |
 
 At least one param required. Invalid or missing-all → **400**. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot.
 
@@ -255,13 +265,13 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 | `name` | Behavior |
 | --- | --- |
 | `none` | Head/neck/body → mid; hands down (right `min`, left `max` — inverted scales), then hold |
-| `typing` | Alternating hands with randomness (15° band from hand limits). Head nods slowly on lowest 10° of head limits. Body sways ±5° around mid; neck counters opposite so head stays put. |
-| `reading` | Hands/body park as in `none`. Head nods on same lowest 10° band as typing, but slower. Neck sweeps ±10° around mid; right (angle down) slower than left (angle up). Occasional right-hand down-arrow bursts (1–3 presses, same 15° band as typing). |
-| `thinking` | Hands/body park as in `none`. Head (pitch) and neck (yaw) ease from the current pose into thinking poses (up + slight left/right). Move → pause → optional micro-adjust (sometimes chained) → pause; nearby pose drift with occasional larger shifts after ~2.2 s, more often over time. Axes stagger start/duration; no periodic sway. |
+| `typing` | **Continuous.** Alternating hands with randomness (15° band from hand limits). Head nods slowly on lowest 10° of head limits. Body sways ±5° around mid; neck counters opposite so head stays put. Runs until replaced, or until `continuous_timeout` triggers `attention`. |
+| `reading` | **Continuous.** Hands/body park as in `none`. Head nods on same lowest 10° band as typing, but slower. Neck sweeps ±10° around mid; right (angle down) slower than left (angle up). Occasional right-hand down-arrow bursts (1–3 presses, same 15° band as typing). Runs until replaced, or until `continuous_timeout` triggers `attention`. |
+| `thinking` | **Continuous.** Hands/body park as in `none`. Head (pitch) and neck (yaw) ease from the current pose into thinking poses (up + slight left/right). Move → pause → optional micro-adjust (sometimes chained) → pause; nearby pose drift with occasional larger shifts after ~2.2 s, more often over time. Axes stagger start/duration; no periodic sway. Runs until replaced, or until `continuous_timeout` triggers `attention`. |
 | `ring` | **One-shot** service-bell gesture; does not loop. Wind-up (body `min`, neck mid, head mid+10°, both hands `max`) → fast right-hand strike to `min+5°` with head to `min` → plays `bell.wav` once on strike (LittleFS; same `uploadfs` requirement as `/test/audio/bell`) → slower bounce to `min+20°` → return to `none` pose and stop. After completion, `GET /anim` reports `none`. |
 | `welcome` | **One-shot** hello gesture synced to `welcome.wav` (~2.7 s). Right hand raises during "Hello, human.", holds through the pause, wiggles during "What are we building today?", then lowers. Head nods to mid+10° and returns. Plays automatically after successful Wi-Fi connect at boot; also via API. Requires `welcome.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, `GET /anim` reports `none`. |
-| `attention` | Friendly input-request gesture synced to `attention.wav` (~1.1 s, "Your turn, human."). Moves into a calm prompt pose first (centered body/neck, head slightly up, right hand raised partway), waits until all servos stop, then plays audio with no servo updates during playback. After audio ends, holds a gentle waiting loop until another animation is selected. Requires `attention.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
-| `error` | Critical task-obstacle gesture synced to `error.wav` (~2.2 s, "Uh-oh. Human, we have a problem."). Moves into an obstacle-presenting pose first (body/neck angled toward the task, head concerned/down, right hand presenting the blocker, left hand indicating task area), waits until the pose settles, then plays audio. After audio ends, holds a subtle blocked loop with small head/neck shake until another animation is selected. Requires `error.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
+| `attention` | Friendly input-request gesture synced to `attention.wav` (~1.1 s, "Your turn, human."). Moves into a calm prompt pose first (centered body/neck, head slightly up, right hand raised partway), waits until all servos stop, then plays audio with no servo updates during playback. After audio ends (or if audio fails to start), holds a gentle waiting loop for **1 minute**, then returns to `none`. Requires `attention.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
+| `error` | Critical task-obstacle gesture synced to `error.wav` (~2.2 s, "Uh-oh. Human, we have a problem."). Moves into an obstacle-presenting pose first (body/neck angled toward the task, head concerned/down, right hand presenting the blocker, left hand indicating task area), waits until the pose settles, then plays audio with small nervous head/neck glances during playback. After audio ends (or if audio fails to start), holds a subtle blocked loop for **1 minute**, then returns to `none`. Requires `error.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
 | `abort` | **One-shot** resigned abort gesture synced to `abort.wav` (~2.5 s, "Fine. I didn't want to finish it anyway."). Raises both hands, lifts the head, and twists the neck sideways before audio starts. During playback it shrugs, dips the head, and adds a dismissive side twist with matching eye glances/squints. Requires `abort.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, returns to `none` pose and `GET /anim` reports `none`. |
 
 Wrong params return **400**:
@@ -285,7 +295,7 @@ Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET
 
 Test handlers **block** until the test finishes. The client waits. After each test, OLED returns to `ROBOT READY` plus IP (or `WIFI FAIL`).
 
-`/anim` responses return immediately; typing motion runs in the main loop via non-blocking servo updates. Animation switches may defer up to 1s so the active animation holds its minimum duration; only the latest pending request is applied.
+`/anim` responses return immediately; typing motion runs in the main loop via non-blocking servo updates. Animation switches may defer up to 1s so the active animation holds its minimum duration; only the latest pending request is applied. Continuous animations (`typing`, `reading`, `thinking`) that stay active longer than `continuous_timeout` minutes switch to `attention`, which holds ~1 minute then finishes to `none`.
 
 The onboard RGB LED follows the active animation (see [RGB LED](#rgb-led)).
 

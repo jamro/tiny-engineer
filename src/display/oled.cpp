@@ -336,6 +336,49 @@ void showBootProgress(
   display.display();
 }
 
+void showBootIp(const char* ip) {
+  if (!oledAvailable) {
+    return;
+  }
+
+  const char* text =
+    (ip != nullptr && ip[0] != '\0') ? ip : "No IP";
+  const size_t len = strlen(text);
+
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(2);
+
+  // Size-2 glyph is 12×16 px; 128/12 = 10 chars per line, two lines fill height.
+  constexpr int kCharW = 12;
+  constexpr int kMaxChars = OLED_WIDTH / kCharW;
+
+  if (static_cast<int>(len) <= kMaxChars) {
+    const int x = (OLED_WIDTH - static_cast<int>(len) * kCharW) / 2;
+    display.setCursor(x < 0 ? 0 : x, 8);
+    display.print(text);
+  } else {
+    int breakAt = kMaxChars;
+
+    for (int i = kMaxChars; i > 0; i--) {
+      if (text[i - 1] == '.') {
+        breakAt = i;
+        break;
+      }
+    }
+
+    display.setCursor(0, 0);
+    for (int i = 0; i < breakAt; i++) {
+      display.print(text[i]);
+    }
+
+    display.setCursor(0, 16);
+    display.print(text + breakAt);
+  }
+
+  display.display();
+}
+
 void showServoProgress(
   int step,
   int totalSteps,

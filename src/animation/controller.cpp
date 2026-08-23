@@ -15,6 +15,7 @@
 #include "display/eyes.h"
 #include "rgb.h"
 #include "servo_wrapper.h"
+#include "settings.h"
 
 namespace {
 
@@ -163,6 +164,17 @@ AnimationId pendingAnimation() {
   return g_pendingAnimation;
 }
 
+bool animationIsContinuous(AnimationId id) {
+  switch (id) {
+    case AnimationId::Typing:
+    case AnimationId::Reading:
+    case AnimationId::Thinking:
+      return true;
+    default:
+      return false;
+  }
+}
+
 const char* animationName(AnimationId id) {
   switch (id) {
     case AnimationId::Typing:
@@ -245,6 +257,14 @@ void updateAnimation() {
 
   if (g_hasPendingAnimation && animationHoldElapsed()) {
     applyAnimation(g_pendingAnimation, now);
+  }
+
+  if (animationIsContinuous(g_animation)) {
+    const uint32_t timeoutMs =
+      settingsContinuousTimeoutMin() * 60UL * 1000UL;
+    if ((now - g_animationStartedMs) >= timeoutMs) {
+      setAnimation(AnimationId::Attention);
+    }
   }
 
   if (g_animation == AnimationId::None) {

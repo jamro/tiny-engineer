@@ -20,10 +20,10 @@ Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200)
 | Built-in WS2812 | Green ready (GPIO10) |
 | I2C init | `Wire.begin` on GPIO0/GPIO1 |
 | OLED | Probe `0x3C`, init (optional) |
-| Wi-Fi | STA connect, mDNS `tiny-engineer.local`, OLED shows status + IP |
+| Wi-Fi | STA connect, mDNS `tiny-engineer.local`; progress loading shows status on OLED |
 | PCA9685 | Probe `0x40`, `begin`, 50 Hz |
 | MAX98357A / I2S | `I2S.begin` 44.1 kHz 16-bit stereo |
-| Servos | Park all channels at 90° |
+| Servos | Park all channels at mid |
 | HTTP | Port 80 if Wi-Fi connected |
 | Success | Dim green RGB during init; then animation LED (see below) |
 
@@ -32,13 +32,16 @@ Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200)
 1. Serial banner `TINY ENGINEER`
 2. `Starting I2C` / `SDA = GP0` / `SCL = GP1`
 3. `Checking OLED at 0x3C...` → found or `ERROR: OLED not found` (continues)
-4. `WIFI TEST` — OLED `WIFI` / `Connecting...` → `WIFI OK` + IP, or `WIFI FAIL` (continues)
-5. `Checking PCA9685 at 0x40...` → **must** succeed
-6. `Starting MAX98357A` → `I2S OK`
-7. `Centering servos` — all channels → 90°
-8. `ROBOT READY` — dim green RGB, OLED `ROBOT READY` + IP (or `WIFI FAIL`)
-9. RGB fades to white over 1 s if `welcome` runs (Wi-Fi OK and setting enabled), or fades off if idle
-10. If Wi-Fi OK: `HTTP: http://<ip>/`, `HTTP: http://tiny-engineer.local/`, and `/health` URLs on serial
+4. Settings load from NVS (`loading` = `progress` or `sleep_inertia`)
+5. **Progress loading (default):** OLED progress steps (Display → WiFi → Servos → Audio → Storage → Ready), then large full-width IP (or `No IP`) for 3 s, then idle eyes
+6. **Sleep inertia loading:** closed eyes during init; after servos center, slow eye open + blinks (~5.5 s). Head/neck wave only if `welcome` is on; otherwise eyes only
+7. `WIFI TEST` on serial — connect OK + IP, or fail (continues)
+8. `Checking PCA9685 at 0x40...` → **must** succeed
+9. `Starting MAX98357A` → `I2S OK`
+10. `Centering servos` — all channels → mid
+11. `ROBOT READY`
+12. RGB fades to white over 1 s if `welcome` runs (Wi-Fi OK and setting enabled), or fades off if idle
+13. If Wi-Fi OK: `HTTP: http://<ip>/`, `HTTP: http://tiny-engineer.local/`, and `/health` URLs on serial
 
 `loop()` pumps the HTTP server and updates animation RGB fades. No audio/OLED/servo/LED demos until a POST.
 
@@ -54,7 +57,7 @@ During normal operation the onboard WS2812 tracks the active animation (not boot
 
 State changes fade over **1 s** (see [`docs/api.md`](../api.md#rgb-led)). Trigger via `POST /anim?name=…` or Cursor hooks.
 
-OLED shows matching status strings when the panel is present (`WIFI Connecting...` then IP, `PCA9685 Checking...`, `MAX98357A`).
+OLED shows matching status strings when the panel is present (progress loading: WiFi step labels; sleep inertia: eyes only).
 
 ## HTTP tests
 
@@ -86,8 +89,8 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | --- | --- | --- |
 | `GET` | `/` | HTML endpoint index |
 | `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `wifi`, `oled`) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`) |
-| `POST` | `/settings?sleep_timeout=&hostname=&volume=&welcome=` | Update NVS settings; `reboot_required` if hostname changed |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_timeout`, `loading`) |
+| `POST` | `/settings?sleep_timeout=&hostname=&volume=&welcome=&continuous_timeout=&loading=` | Update NVS settings; `reboot_required` if hostname changed |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |

@@ -12,6 +12,7 @@
 #include "http_server.h"
 #include "settings.h"
 #include "sleep.h"
+#include "boot_loading.h"
 
 namespace {
 
@@ -43,20 +44,24 @@ void setup() {
   delay(100);
 
   initOled();
-  showBootProgress(1, kBootSteps, "Display");
-
   initSettings();
 
-  showBootProgress(2, kBootSteps, "WiFi...");
+  if (bootLoadingIsProgress()) {
+    bootShowProgress(1, kBootSteps, "Display");
+  } else {
+    bootBeginSleepingFace();
+  }
+
+  bootShowProgress(2, kBootSteps, "WiFi...");
   runWifiTest();
-  showBootProgress(
+  bootShowProgress(
     2,
     kBootSteps,
     wifiConnected() ? "WiFi OK" : "WiFi failed"
   );
 
   initPca9685();
-  showBootProgress(3, kBootSteps, "Servos");
+  bootShowProgress(3, kBootSteps, "Servos");
 
   Serial.println();
   Serial.println(
@@ -92,21 +97,27 @@ void setup() {
   }
 
   Serial.println("I2S OK");
-  showBootProgress(4, kBootSteps, "Audio");
+  bootShowProgress(4, kBootSteps, "Audio");
 
   initAudioStorage();
-  showBootProgress(5, kBootSteps, "Storage");
+  bootShowProgress(5, kBootSteps, "Storage");
 
   Serial.println("Centering servos");
   centerAllServos();
-  showBootProgress(kBootSteps, kBootSteps, "Ready");
+
+  if (bootLoadingIsProgress()) {
+    bootShowProgress(kBootSteps, kBootSteps, "Ready");
+    showBootIp(wifiConnected() ? wifiIpText() : "");
+    delay(3000);
+    showIdleScreen();
+  } else {
+    bootRunSleepInertia();
+  }
 
   Serial.println();
   Serial.println("==========================");
   Serial.println("ROBOT READY");
   Serial.println("==========================");
-
-  showIdleScreen();
 
   if (wifiConnected() && settingsWelcomeEnabled()) {
     setAnimation(AnimationId::Welcome);

@@ -85,7 +85,7 @@ void sendAnimationJson() {
 }
 
 void sendSettingsJson(bool rebootRequired) {
-  char body[256];
+  char body[384];
 
   if (rebootRequired) {
     snprintf(
@@ -97,12 +97,16 @@ void sendSettingsJson(bool rebootRequired) {
       "\"hostname\":\"%s\","
       "\"volume\":%u,"
       "\"welcome\":%s,"
+      "\"continuous_timeout\":%lu,"
+      "\"loading\":\"%s\","
       "\"reboot_required\":true"
       "}",
       (unsigned long)settingsSleepTimeoutS(),
       settingsHostname(),
       static_cast<unsigned>(settingsVolume()),
-      settingsWelcomeEnabled() ? "true" : "false"
+      settingsWelcomeEnabled() ? "true" : "false",
+      (unsigned long)settingsContinuousTimeoutMin(),
+      settingsLoading()
     );
   } else {
     snprintf(
@@ -113,12 +117,16 @@ void sendSettingsJson(bool rebootRequired) {
       "\"sleep_timeout\":%lu,"
       "\"hostname\":\"%s\","
       "\"volume\":%u,"
-      "\"welcome\":%s"
+      "\"welcome\":%s,"
+      "\"continuous_timeout\":%lu,"
+      "\"loading\":\"%s\""
       "}",
       (unsigned long)settingsSleepTimeoutS(),
       settingsHostname(),
       static_cast<unsigned>(settingsVolume()),
-      settingsWelcomeEnabled() ? "true" : "false"
+      settingsWelcomeEnabled() ? "true" : "false",
+      (unsigned long)settingsContinuousTimeoutMin(),
+      settingsLoading()
     );
   }
 
@@ -137,12 +145,15 @@ void handleSettingsPost() {
   const bool hasHost = server.hasArg("hostname");
   const bool hasVolume = server.hasArg("volume");
   const bool hasWelcome = server.hasArg("welcome");
+  const bool hasContTo = server.hasArg("continuous_timeout");
+  const bool hasLoading = server.hasArg("loading");
 
-  if (!hasSleep && !hasHost && !hasVolume && !hasWelcome) {
+  if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasContTo &&
+      !hasLoading) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, or welcome\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, continuous_timeout, or loading\"}"
     );
     return;
   }
@@ -155,6 +166,10 @@ void handleSettingsPost() {
   const uint8_t* volumePtr = nullptr;
   bool welcome = false;
   const bool* welcomePtr = nullptr;
+  uint32_t continuousTimeoutMin = 0;
+  const uint32_t* contToPtr = nullptr;
+  String loadingArg;
+  const char* loadingPtr = nullptr;
 
   if (hasSleep) {
     const String sleepArg = server.arg("sleep_timeout");
@@ -247,9 +262,60 @@ void handleSettingsPost() {
     welcomePtr = &welcome;
   }
 
+  if (hasContTo) {
+    const String contArg = server.arg("continuous_timeout");
+    char* end = nullptr;
+    const unsigned long parsed =
+      strtoul(contArg.c_str(), &end, 10);
+
+    if (end == contArg.c_str() || *end != '\0') {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid continuous_timeout\"}"
+      );
+      return;
+    }
+
+    continuousTimeoutMin = static_cast<uint32_t>(parsed);
+
+    if (!settingsValidateContinuousTimeout(continuousTimeoutMin)) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"continuous_timeout out of range\"}"
+      );
+      return;
+    }
+
+    contToPtr = &continuousTimeoutMin;
+  }
+
+  if (hasLoading) {
+    loadingArg = server.arg("loading");
+    loadingPtr = loadingArg.c_str();
+
+    if (!settingsValidateLoading(loadingPtr)) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid loading\"}"
+      );
+      return;
+    }
+  }
+
   bool rebootRequired = false;
 
-  if (!saveSettings(sleepPtr, hostPtr, volumePtr, welcomePtr, &rebootRequired)) {
+  if (!saveSettings(
+        sleepPtr,
+        hostPtr,
+        volumePtr,
+        welcomePtr,
+        contToPtr,
+        loadingPtr,
+        &rebootRequired
+      )) {
     httpSendJson(
       server,
       400,

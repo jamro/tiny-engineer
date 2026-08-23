@@ -97,7 +97,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Hostname, sleep timeout, volume, and welcome animation (saved in flash).</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Hostname, sleep timeout, continuous anim timeout, volume, welcome, and loading screen (saved in flash).</p></a>
 <a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
 <a class="card card-github" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener"><h3>GitHub docs &rarr;</h3><p>Build guide, wiring, and full project docs.</p></a>
 </div>
@@ -133,6 +133,8 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <tr><td><code>hostname</code></td><td>string</td><td>1&ndash;31 chars, letters/digits/hyphen</td></tr>
 <tr><td><code>volume</code></td><td>integer</td><td>0&ndash;100 percent (speaker gain)</td></tr>
 <tr><td><code>welcome</code></td><td>integer</td><td>0 or 1 (boot welcome animation)</td></tr>
+<tr><td><code>continuous_timeout</code></td><td>integer</td><td>1&ndash;1440 minutes</td></tr>
+<tr><td><code>loading</code></td><td>string</td><td><code>progress</code> or <code>sleep_inertia</code> (boot screen; next reboot)</td></tr>
 </table>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
@@ -157,17 +159,17 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 
 <section id="view-animations" class="view">
 <h2 class="page-title">Animations</h2>
-<p class="page-desc">Set the robot&rsquo;s current gesture. Looping animations repeat until changed.</p>
+<p class="page-desc">Set the robot&rsquo;s current gesture. Continuous animations keep going until changed or timed out.</p>
 <div id="anim-current" class="badge">Current: <strong>&hellip;</strong></div>
 <div class="btn-grid" id="anim-buttons">
 <button class="btn" data-anim="none"><span class="btn-title">Idle</span><span class="btn-hint">Rest pose</span></button>
-<button class="btn" data-anim="typing"><span class="btn-title">Typing</span><span class="btn-hint">Loop</span></button>
-<button class="btn" data-anim="reading"><span class="btn-title">Reading</span><span class="btn-hint">Loop</span></button>
-<button class="btn" data-anim="thinking"><span class="btn-title">Thinking</span><span class="btn-hint">Loop</span></button>
+<button class="btn" data-anim="typing"><span class="btn-title">Typing</span><span class="btn-hint">Continuous</span></button>
+<button class="btn" data-anim="reading"><span class="btn-title">Reading</span><span class="btn-hint">Continuous</span></button>
+<button class="btn" data-anim="thinking"><span class="btn-title">Thinking</span><span class="btn-hint">Continuous</span></button>
 <button class="btn" data-anim="ring"><span class="btn-title">Bell</span><span class="btn-hint">One-shot</span></button>
 <button class="btn" data-anim="welcome"><span class="btn-title">Welcome</span><span class="btn-hint">One-shot</span></button>
-<button class="btn" data-anim="attention"><span class="btn-title">Attention</span><span class="btn-hint">+ audio</span></button>
-<button class="btn" data-anim="error"><span class="btn-title">Error</span><span class="btn-hint">+ audio</span></button>
+<button class="btn" data-anim="attention"><span class="btn-title">Attention</span><span class="btn-hint">+ audio, 1 min hold</span></button>
+<button class="btn" data-anim="error"><span class="btn-title">Error</span><span class="btn-hint">+ audio, 1 min hold</span></button>
 <button class="btn" data-anim="abort"><span class="btn-title">Abort</span><span class="btn-hint">One-shot + audio</span></button>
 </div>
 </section>
@@ -210,7 +212,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 
 <section id="view-config" class="view">
 <h2 class="page-title">Config</h2>
-<p class="page-desc">Settings are stored in flash and survive reboot. Sleep timeout, volume, and welcome apply immediately; hostname needs a reboot.</p>
+<p class="page-desc">Settings are stored in flash and survive reboot. Sleep timeout, continuous timeout, volume, and welcome apply immediately; hostname and loading screen need a reboot.</p>
 <form id="config-form">
 <div class="form-group">
 <label for="config-hostname">Hostname</label>
@@ -223,6 +225,11 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <p class="hint">Idle time before OLED blanks when animation is none. Default: 60</p>
 </div>
 <div class="form-group">
+<label for="config-continuous">Continuous anim timeout (minutes)</label>
+<input type="number" id="config-continuous" min="1" max="1440" step="1" required>
+<p class="hint">Max time for typing/reading/thinking before attention then idle. Default: 5</p>
+</div>
+<div class="form-group">
 <label for="config-volume">Volume <span id="config-volume-label">70%</span></label>
 <div class="range-row">
 <input type="range" id="config-volume-slider" min="0" max="100" value="70">
@@ -231,11 +238,19 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <p class="hint">Speaker gain for tones and WAV playback. Default: 70</p>
 </div>
 <div class="form-group">
+<label for="config-loading">Boot loading screen</label>
+<select id="config-loading">
+<option value="progress">Progress bar</option>
+<option value="sleep_inertia">Sleep inertia</option>
+</select>
+<p class="hint">Progress bar (default) shows steps then large IP for 3 s. Sleep inertia shows closed eyes waking up &mdash; no bar or IP. Head/neck move only when Welcome is on. Applies on next reboot.</p>
+</div>
+<div class="form-group">
 <div class="toggle-row">
 <input type="checkbox" id="config-welcome" checked>
 <label for="config-welcome">Welcome animation on boot</label>
 </div>
-<p class="hint">Play welcome when Wi-Fi connects at boot. Default: on. Manual trigger via Animations still works.</p>
+<p class="hint">Play welcome when Wi-Fi connects at boot. Default: on. Also enables head/neck motion during sleep-inertia loading. Manual trigger via Animations still works.</p>
 </div>
 <button type="submit" class="btn btn-primary">Save settings</button>
 </form>
@@ -380,8 +395,10 @@ function loadSettings(){
     if(!j.ok)return;
     document.getElementById("config-hostname").value=j.hostname||"";
     document.getElementById("config-sleep").value=j.sleep_timeout;
+    document.getElementById("config-continuous").value=j.continuous_timeout!=null?j.continuous_timeout:5;
     setConfigVolume(j.volume!=null?j.volume:70);
     document.getElementById("config-welcome").checked=j.welcome!==false;
+    document.getElementById("config-loading").value=j.loading==="sleep_inertia"?"sleep_inertia":"progress";
   }).catch(function(){});
 }
 document.getElementById("config-form").addEventListener("submit",function(e){
@@ -389,22 +406,26 @@ document.getElementById("config-form").addEventListener("submit",function(e){
   if(busy)return;
   var host=document.getElementById("config-hostname").value.trim();
   var sleep=document.getElementById("config-sleep").value;
+  var continuous=document.getElementById("config-continuous").value;
   var volume=document.getElementById("config-volume").value;
   var welcome=document.getElementById("config-welcome").checked?1:0;
+  var loading=document.getElementById("config-loading").value;
   setBusy(true);
   setStatus("Saving\u2026","loading");
-  fetch("/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume)+"&welcome="+welcome,{method:"POST"})
+  fetch("/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume)+"&welcome="+welcome+"&continuous_timeout="+encodeURIComponent(continuous)+"&loading="+encodeURIComponent(loading),{method:"POST"})
   .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
   .then(function(res){
     if(res.ok&&res.data.ok!==false){
       document.getElementById("config-hostname").value=res.data.hostname||host;
       document.getElementById("config-sleep").value=res.data.sleep_timeout;
+      document.getElementById("config-continuous").value=res.data.continuous_timeout!=null?res.data.continuous_timeout:continuous;
       setConfigVolume(res.data.volume!=null?res.data.volume:volume);
       document.getElementById("config-welcome").checked=res.data.welcome!==false;
+      document.getElementById("config-loading").value=res.data.loading==="sleep_inertia"?"sleep_inertia":"progress";
       if(res.data.reboot_required){
         setStatus("Saved. Hostname applies after reboot (RESET or power cycle).","ok");
       }else{
-        setStatus("Settings saved.","ok");
+        setStatus("Settings saved. Loading screen applies after reboot.","ok");
       }
     }else{
       setStatus(res.data.error||"Save failed","err");

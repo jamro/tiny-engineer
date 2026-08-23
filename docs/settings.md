@@ -2,7 +2,7 @@
 
 Persistent settings live in NVS (namespace `te`) via [`src/settings.cpp`](../src/settings.cpp). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
-Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`. Follow the same pattern for a new one.
+Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_timeout`, `loading`. Follow the same pattern for a new one.
 
 ## Design choices
 
@@ -28,7 +28,7 @@ Work through these layers in order. Mirror an existing setting (`volume` is the 
 5. Extend `saveSettings(...)` with a nullable `const T* foo`:
    - Reject the whole save if validation fails.
    - Require at least one non-null arg among all settings.
-   - Write all persisted fields together (current pattern rewrites sleep/host/volume/welcome each save).
+   - Write all persisted fields together (current pattern rewrites sleep/host/volume/welcome/continuous_timeout/loading each save).
 6. Log the new value on load and save.
 
 ### 2. Consumers

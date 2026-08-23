@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "animation.h"
 #include "animation/constants.h"
 #include "animation/error.h"
 #include "animation/util.h"
@@ -30,6 +31,7 @@ enum class ErrorPhase {
 ErrorPhase g_errorPhase = ErrorPhase::ObstaclePose;
 uint32_t g_errorAudioStartMs = 0;
 bool g_errorAudioStarted = false;
+uint32_t g_blockedHoldStartedMs = 0;
 uint32_t g_nextHoldMoveMs = 0;
 bool g_holdNodLow = false;
 ErrorLook g_currentLook = ErrorLook::Task;
@@ -122,6 +124,7 @@ void commandNervousLook(uint32_t now) {
 
 void enterBlockedHold(uint32_t now) {
   g_errorPhase = ErrorPhase::BlockedHold;
+  g_blockedHoldStartedMs = now;
   g_holdNodLow = false;
   g_currentLook = ErrorLook::Task;
   scheduleNextHoldMove(now);
@@ -136,6 +139,7 @@ void startError() {
   g_errorPhase = ErrorPhase::ObstaclePose;
   g_errorAudioStartMs = 0;
   g_errorAudioStarted = false;
+  g_blockedHoldStartedMs = 0;
   g_nextHoldMoveMs = 0;
   g_holdNodLow = false;
   g_currentLook = ErrorLook::Task;
@@ -182,6 +186,10 @@ void updateError(uint32_t now) {
       break;
 
     case ErrorPhase::BlockedHold:
+      if ((now - g_blockedHoldStartedMs) >= anim::NON_CONTINUOUS_HOLD_MS) {
+        finishAnimation(now);
+        break;
+      }
       updateAllServos();
       if (allErrorServosStopped()) {
         commandNervousLook(now);

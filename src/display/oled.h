@@ -19,6 +19,8 @@ void showBootProgress(
   const char* label
 );
 
+void showBootIp(const char* ip);
+
 void showIdleScreen();
 
 void drawEyes(

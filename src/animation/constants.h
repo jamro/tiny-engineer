@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "servo_wrapper.h"
 #include "servos.h"
 
@@ -78,6 +80,9 @@ constexpr float ATTENTION_HAND_RIGHT_RAISED =
   SERVO_SPECS[SERVO_HAND_RIGHT].min + 48.0f;
 constexpr float ATTENTION_WAIT_HEAD_NOD_DEG = 3.0f;
 constexpr float ATTENTION_WAIT_NECK_TILT_DEG = 4.0f;
+
+// Attention/error wait after audio before auto-finish to none.
+constexpr uint32_t NON_CONTINUOUS_HOLD_MS = 60UL * 1000UL;
 
 constexpr float ERROR_BODY_TASK_SIDE =
   servoMid(SERVO_SPECS[SERVO_BODY]) - 8.0f;

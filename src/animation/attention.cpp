@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "animation.h"
 #include "animation/attention.h"
 #include "animation/constants.h"
 #include "animation/util.h"
@@ -25,6 +26,7 @@ enum class AttentionPhase {
 AttentionPhase g_attentionPhase = AttentionPhase::PrepPose;
 uint32_t g_attentionAudioStartMs = 0;
 bool g_attentionAudioStarted = false;
+uint32_t g_awaitInputStartedMs = 0;
 uint32_t g_nextWaitMoveMs = 0;
 bool g_waitNodHigh = false;
 bool g_waitNeckRight = false;
@@ -96,6 +98,7 @@ void commandWaitMove(uint32_t now) {
 
 void enterAwaitInput(uint32_t now) {
   g_attentionPhase = AttentionPhase::AwaitInput;
+  g_awaitInputStartedMs = now;
   g_waitNodHigh = false;
   g_waitNeckRight = false;
   scheduleNextWaitMove(now);
@@ -110,6 +113,7 @@ void startAttention() {
   g_attentionPhase = AttentionPhase::PrepPose;
   g_attentionAudioStartMs = 0;
   g_attentionAudioStarted = false;
+  g_awaitInputStartedMs = 0;
   g_nextWaitMoveMs = 0;
   g_waitNodHigh = false;
   g_waitNeckRight = false;
@@ -151,6 +155,10 @@ void updateAttention(uint32_t now) {
       break;
 
     case AttentionPhase::AwaitInput:
+      if ((now - g_awaitInputStartedMs) >= anim::NON_CONTINUOUS_HOLD_MS) {
+        finishAnimation(now);
+        break;
+      }
       updateAllServos();
       if (allAttentionServosStopped()) {
         commandWaitMove(now);
