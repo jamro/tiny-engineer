@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#include "pins.h"
 #include "servos.h"
 
 class ServoWrapper {
@@ -22,6 +23,10 @@ public:
   bool isMoving() const;
 
   friend void servoMoveAllSmooth(float toAngle);
+  friend void servoMoveAllSmoothTo(
+    const float targets[SERVO_COUNT],
+    float speedDegS
+  );
 
 private:
   int index_;
@@ -35,6 +40,13 @@ private:
 };
 
 ServoWrapper& servoAt(int index);
+void initServoOutputPin();
+void disableServoOutputs();
+void enableServoOutputs();
 void initServoPwmDriver();
 void servoMoveAllSmooth(float toAngle);
+void servoMoveAllSmoothTo(
+  const float targets[SERVO_COUNT],
+  float speedDegS = SERVO_BOOT_SPEED_DEG_S
+);
 void updateAllServos();

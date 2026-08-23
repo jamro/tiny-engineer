@@ -82,14 +82,18 @@ void bootSnapSleepPose() {
   const float handRightDown = SERVO_SPECS[SERVO_HAND_RIGHT].min;
   const float handLeftDown = SERVO_SPECS[SERVO_HAND_LEFT].max;
 
+  float targets[SERVO_COUNT];
+
   for (int servo = 0; servo < SERVO_COUNT; servo++) {
-    servoAt(servo).snapTo(servoMid(SERVO_SPECS[servo]));
+    targets[servo] = servoMid(SERVO_SPECS[servo]);
   }
 
-  servoAt(SERVO_HEAD).snapTo(headAsleep);
-  servoAt(SERVO_NECK).snapTo(mid);
-  servoAt(SERVO_HAND_RIGHT).snapTo(handRightDown);
-  servoAt(SERVO_HAND_LEFT).snapTo(handLeftDown);
+  targets[SERVO_HEAD] = headAsleep;
+  targets[SERVO_NECK] = mid;
+  targets[SERVO_HAND_RIGHT] = handRightDown;
+  targets[SERVO_HAND_LEFT] = handLeftDown;
+
+  servoMoveAllSmoothTo(targets);
 }
 
 void bootRunSleepInertia() {

@@ -46,11 +46,13 @@ bool moveServoSmooth(int index, float toAngle) {
 void centerAllServos() {
   Serial.println("Centering servos to mid (min+max)/2");
 
+  float targets[SERVO_COUNT];
+
   for (int servo = 0; servo < SERVO_COUNT; servo++) {
-    servoAt(servo).snapTo(
-      servoMid(SERVO_SPECS[servo])
-    );
+    targets[servo] = servoMid(SERVO_SPECS[servo]);
   }
+
+  servoMoveAllSmoothTo(targets);
 }
 
 void runServoTest() {

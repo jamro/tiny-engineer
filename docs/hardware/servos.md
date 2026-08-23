@@ -44,6 +44,18 @@ Verified in [`include/pins.h`](../../include/pins.h) and [`include/servos.h`](..
 | `SERVO_STEP_MS` | 10 | Live update / interpolation step (ms) |
 | `SERVO_ANGLE_DEADBAND_DEG` | **0.32** | Stop threshold (~half PWM count) |
 | `SERVO_SPEED_DEG_S` | **140.0** | Smooth rate for `POST /test/servo` (`SERVO_MAX_SPEED_DEG_S`) |
+| `SERVO_BOOT_SPEED_DEG_S` | **35.0** | Boot centering and sleep-pose moves |
+
+## Boot safety
+
+On every boot (and after each flash reset):
+
+1. **Optional OE** — if `PCA9685_OE_WIRED`, GP5 disables PCA9685 outputs before I2C init.
+2. **Early init** — PCA9685 is probed and configured immediately after `Wire.begin`, before OLED, settings, or Wi-Fi.
+3. **Neutral park** — all channels receive mid-pulse PWM while OE is still disabled (if wired), then outputs enable.
+4. **Smooth boot moves** — `centerAllServos()` and sleep-inertia pose use `servoMoveAllSmoothTo()` at `SERVO_BOOT_SPEED_DEG_S` (35°/s), not instant snaps.
+
+Set `PCA9685_OE_WIRED = true` in [`include/pins.h`](../../include/pins.h) after wiring GP5 → PCA9685 **OE**. OE is **active LOW** on the Adafruit breakout.
 
 ## Motion modes
 

@@ -8,6 +8,7 @@
 #include "audio/audio.h"
 #include "animation.h"
 #include "hardware/pca9685_servos.h"
+#include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
 #include "http/http_server.h"
 #include "settings.h"
@@ -21,6 +22,8 @@ constexpr int kBootSteps = 6;
 }  // namespace
 
 void setup() {
+  initServoOutputPin();
+
   Serial.begin(115200);
   delay(1000);
 
@@ -43,6 +46,8 @@ void setup() {
 
   delay(100);
 
+  initPca9685();
+
   initOled();
   initSettings();
 
@@ -55,7 +60,6 @@ void setup() {
   }
 
   if (sleepServos) {
-    initPca9685();
     bootSnapSleepPose();
   }
 
@@ -67,9 +71,6 @@ void setup() {
     wifiConnected() ? "WiFi OK" : "WiFi failed"
   );
 
-  if (!sleepServos) {
-    initPca9685();
-  }
   bootShowProgress(3, kBootSteps, "Servos");
 
   Serial.println();

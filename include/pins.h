@@ -18,6 +18,10 @@ constexpr int I2S_DIN  = 4;  // GP4
 // Built-in WS2812 RGB
 constexpr int RGB_LED_PIN = 10;
 
+// PCA9685 output enable (active LOW). Optional: wire OE → GP5.
+constexpr bool PCA9685_OE_WIRED = false;
+constexpr int PCA9685_OE_PIN = 5;
+
 // =====================================================
 // AUDIO
 // =====================================================
@@ -31,6 +35,9 @@ constexpr int SAMPLE_RATE = 44100;
 constexpr uint8_t PCA9685_ADDRESS = 0x40;
 
 constexpr int SERVO_STEP_MS = 10;
+
+// Boot centering / sleep-pose rate (deg/s)
+constexpr float SERVO_BOOT_SPEED_DEG_S = 35.0f;
 
 // Servo pulse range
 constexpr int SERVO_MIN_US = 800;
