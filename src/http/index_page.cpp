@@ -27,14 +27,16 @@ nav a.active{background:var(--accent);color:#fff}
 .hero h1{font-size:1.75rem;margin:0 0 .5rem;font-weight:700}
 .hero p{color:var(--muted);margin:0;font-size:1.05rem}
 .info-strip{background:var(--card);border:1px solid var(--border);border-radius:.5rem;padding:.6rem 1rem;margin:1rem 0;font-size:.85rem;color:var(--muted)}
-.cards{display:grid;gap:1rem;margin:1.5rem 0}
+.cards{display:grid;gap:.85rem;margin:1.5rem 0;grid-template-columns:1fr}
 @media(min-width:480px){.cards{grid-template-columns:1fr 1fr}}
-.card{display:block;background:var(--card);border:1px solid var(--border);border-radius:.6rem;padding:1.1rem 1.25rem;text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s}
+.card{display:block;background:var(--card);border:1px solid var(--border);border-radius:.6rem;padding:1.1rem 1.25rem;text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s,transform .15s}
 .card:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.06);text-decoration:none}
 .card h3{margin:0 0 .35rem;font-size:1rem;color:var(--accent)}
 .card p{margin:0;font-size:.9rem;color:var(--muted)}
-.github-link{display:inline-block;margin:1rem 0;padding:.5rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:.4rem;font-weight:500}
-.github-link:hover{border-color:var(--accent);text-decoration:none}
+.card-github{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(232,93,4,.28)}
+.card-github h3{color:#fff}
+.card-github p{color:rgba(255,255,255,.85)}
+.card-github:hover{background:var(--accent-hover);border-color:var(--accent-hover);box-shadow:0 4px 14px rgba(232,93,4,.35);transform:translateY(-1px);text-decoration:none}
 .page-title{font-size:1.35rem;margin:0 0 .5rem}
 .page-desc{color:var(--muted);margin:0 0 1.25rem;font-size:.95rem}
 #status{padding:.65rem 1rem;border-radius:.4rem;margin-bottom:1rem;font-size:.9rem;display:none}
@@ -92,13 +94,13 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 </div>
 <div id="health-info" class="info-strip">Loading status&hellip;</div>
 <div class="cards">
-<a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
-<a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
+<a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
 <a class="card" href="/config"><h3>Config</h3><p>Hostname, sleep timeout, volume, and welcome animation (saved in flash).</p></a>
+<a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
+<a class="card card-github" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener"><h3>GitHub docs &rarr;</h3><p>Build guide, wiring, and full project docs.</p></a>
 </div>
-<a class="github-link" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener">Full docs &amp; build guide on GitHub &rarr;</a>
 </section>
 
 <section id="view-api" class="view">
