@@ -275,6 +275,22 @@ void handleSettingsPost(WebServer& server) {
   sendSettingsJson(server, rebootRequired);
 }
 
+void handleSettingsReset(WebServer& server) {
+  bool rebootRequired = false;
+
+  if (!factoryResetSettings(&rebootRequired)) {
+    httpSendJson(
+      server,
+      400,
+      "{\"ok\":false,\"error\":\"factory reset failed\"}"
+    );
+    return;
+  }
+
+  sendSettingsJson(server, rebootRequired);
+}
+
 bool isSettingsOrAnimPath(const String& uri) {
-  return uri == "/anim" || uri == "/settings" || uri == "/auth";
+  return uri == "/anim" || uri == "/settings" || uri == "/settings/reset" ||
+         uri == "/auth";
 }

@@ -92,6 +92,7 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `wifi`, `oled`) |
 | `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_timeout`, `loading`, `access_token_set`) |
 | `POST` | `/settings?sleep_timeout=&hostname=&volume=&welcome=&continuous_timeout=&loading=&access_token=` | Update NVS settings; `reboot_required` if hostname changed |
+| `POST` | `/settings/reset` | Factory reset all settings to defaults; `reboot_required` when boot hostname/loading differed |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |

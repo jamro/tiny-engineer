@@ -83,11 +83,12 @@ Flash only when you want to try it on hardware (`pio run -t upload`).
 
 - **Partial writes:** validate first; never write NVS then fail validation mid-way.
 - **JSON buffer:** `sendSettingsJson` uses a fixed `char` buffer — bump size when adding fields.
+- **Factory reset:** `factoryResetSettings()` in [`settings_storage.cpp`](../src/settings_storage.cpp) clears NVS namespace `te` and writes all defaults; exposed as `POST /settings/reset`.
 - **Hostname-style settings:** freeze the boot value separately if live change cannot apply (see `settingsBootHostname()` / `reboot_required`).
 - **HTML string size:** the panel is a big string literal in `index_page.cpp`; keep controls compact.
 - **Doc drift:** HTML param tables must match `api.md` exactly.
 
 ## Related
 
-- Runtime API: [`api.md`](api.md) (`GET`/`POST /settings`)
+- Runtime API: [`api.md`](api.md) (`GET`/`POST /settings`, `POST /settings/reset`)
 - Endpoint sync rule: [`.cursor/rules/sync-api-endpoints.mdc`](../.cursor/rules/sync-api-endpoints.mdc)

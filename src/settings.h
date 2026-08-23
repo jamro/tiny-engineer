@@ -56,3 +56,7 @@ bool saveSettings(
   const char* accessToken,
   bool* rebootRequired
 );
+
+// Clears NVS namespace and restores all settings to defaults. *rebootRequired
+// is set when boot hostname or loading differed from defaults before reset.
+bool factoryResetSettings(bool* rebootRequired);

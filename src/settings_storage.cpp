@@ -268,3 +268,54 @@ bool saveSettings(
 
   return true;
 }
+
+bool factoryResetSettings(bool* rebootRequired) {
+  const bool hostReboot =
+    strcmp(g_bootHostname, SETTINGS_DEFAULT_HOSTNAME) != 0;
+  const bool loadingReboot =
+    strcmp(g_loading, SETTINGS_DEFAULT_LOADING) != 0;
+
+  if (rebootRequired != nullptr) {
+    *rebootRequired = hostReboot || loadingReboot;
+  }
+
+  g_sleepTimeoutMin = SETTINGS_DEFAULT_SLEEP_TIMEOUT_MIN;
+  setHostnameCache(g_hostname, SETTINGS_DEFAULT_HOSTNAME);
+  g_volume = SETTINGS_DEFAULT_VOLUME;
+  g_welcome = SETTINGS_DEFAULT_WELCOME;
+  g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
+  setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
+  setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
+
+  if (!prefs.begin(kNs, false)) {
+    Serial.println("Settings: factory reset NVS open failed");
+    return false;
+  }
+
+  prefs.clear();
+  prefs.putUInt(kKeySleep, g_sleepTimeoutMin);
+  prefs.putString(kKeyHost, g_hostname);
+  prefs.putUInt(kKeyVolume, g_volume);
+  prefs.putBool(kKeyWelcome, g_welcome);
+  prefs.putUInt(kKeyContTo, g_continuousTimeoutMin);
+  prefs.putString(kKeyLoading, g_loading);
+  prefs.putString(kKeyAccessTok, g_accessToken);
+  prefs.end();
+
+  Serial.print("Settings factory reset: sleep_timeout=");
+  Serial.print(g_sleepTimeoutMin);
+  Serial.print("min hostname=");
+  Serial.print(g_hostname);
+  Serial.print(" volume=");
+  Serial.print(g_volume);
+  Serial.print(" welcome=");
+  Serial.print(g_welcome ? "on" : "off");
+  Serial.print(" continuous_timeout=");
+  Serial.print(g_continuousTimeoutMin);
+  Serial.print("min loading=");
+  Serial.print(g_loading);
+  logAccessTokenState();
+  Serial.println();
+
+  return true;
+}

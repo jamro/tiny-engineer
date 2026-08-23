@@ -151,6 +151,32 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=1&hostname=tiny-
 
 At least one param required. Invalid or missing-all → **400**. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot.
 
+### `POST /settings/reset`
+
+Factory reset: clears the NVS `te` namespace and restores all settings to compile-time defaults. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname or loading screen differed from defaults before reset.
+
+The Config web UI clears the browser-stored Bearer token, blocks the panel behind a reboot gate, and polls `/health` until the device restarts (uptime drops), then unlocks automatically.
+
+```bash
+curl -X POST "http://tiny-engineer.local/settings/reset"
+```
+
+```json
+{
+  "ok": true,
+  "sleep_timeout": 1,
+  "hostname": "tiny-engineer",
+  "volume": 70,
+  "welcome": true,
+  "continuous_timeout": 5,
+  "loading": "progress",
+  "access_token_set": false,
+  "reboot_required": true
+}
+```
+
+NVS write failure → **400** `{"ok":false,"error":"factory reset failed"}`.
+
 ### `POST /test/audio`
 
 Plays 500 / 700 / 1000 Hz on the MAX98357A (`runSoundTest()`).
@@ -312,7 +338,7 @@ Wrong params return **400**:
 | `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo` or `/anim` params (see tables above) |
 | `401` | `{"ok":false,"error":"unauthorized"}` | Access token configured and `Authorization: Bearer` missing or wrong |
 | `404` | `{"ok":false,"error":"not found"}` | Unknown path |
-| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/settings`, `/anim`, or `/auth` path |
+| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/settings`, `/settings/reset`, `/anim`, or `/auth` path |
 
 Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET** (read) and **POST** (set). `/auth` is **GET** only and always public.
 

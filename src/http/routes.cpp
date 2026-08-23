@@ -71,6 +71,9 @@ void registerHttpRoutes() {
   server.on("/settings", HTTP_POST, []() {
     httpWithApiAuth(httpServer(), handleSettingsPost);
   });
+  server.on("/settings/reset", HTTP_POST, []() {
+    httpWithApiAuth(httpServer(), handleSettingsReset);
+  });
   registerHttpTestRoutes(server);
   server.onNotFound(handleNotFound);
 }

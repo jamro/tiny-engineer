@@ -81,6 +81,12 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 #auth-gate .form-group{margin-bottom:1rem}
 #auth-error{display:none;color:var(--error);font-size:.85rem;margin-bottom:.75rem}
 #auth-error.show{display:block}
+#reboot-gate{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;padding:2rem 1rem;align-items:center;justify-content:center}
+#reboot-gate.show{display:flex}
+#reboot-gate .auth-box{width:100%;max-width:22rem;background:var(--card);border:1px solid var(--border);border-radius:.6rem;padding:1.5rem}
+#reboot-gate h1{font-size:1.35rem;margin:0 0 .5rem}
+#reboot-gate p{color:var(--muted);margin:0 0 1.25rem;font-size:.95rem}
+#reboot-gate p:last-child{margin-bottom:0}
 body.locked nav,body.locked #status,body.locked .view,body.locked footer{display:none!important}
 .form-group input[type=password]{width:100%;padding:.5rem .65rem;border:1px solid var(--border);border-radius:.35rem;font:inherit;background:var(--card)}
 .token-row{display:flex;gap:.5rem;align-items:stretch}
@@ -97,6 +103,9 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 .field-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.35rem}
 .field-head label{margin:0;font-weight:600;font-size:.9rem}
 #config-welcome-motion-hint{display:none}
+.btn-danger{border-color:var(--error);color:var(--error);text-align:center;font-weight:600}
+.btn-danger:hover:not(:disabled){border-color:var(--error);background:#fde8e8}
+.config-danger{border-color:#f5c2c7;margin-top:1rem}
 </style>
 </head>
 <body>
@@ -112,6 +121,13 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 <div id="auth-error">Invalid access token.</div>
 <button type="submit" class="btn btn-primary" style="margin-top:0">Unlock</button>
 </form>
+</div>
+</div>
+<div id="reboot-gate">
+<div class="auth-box">
+<h1>Reset the device</h1>
+<p>Factory reset saved. Power-cycle or press the device reset button to apply hostname and boot settings.</p>
+<p id="reboot-gate-status" class="hint">Waiting for device to restart&hellip;</p>
 </div>
 </div>
 <nav>
@@ -156,6 +172,7 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 <tr><td>GET</td><td><code>/health</code></td><td>Health JSON, no side effects</td></tr>
 <tr><td>GET</td><td><code>/settings</code></td><td>Persistent settings</td></tr>
 <tr><td>POST</td><td><code>/settings</code></td><td>Update settings (see parameters below)</td></tr>
+<tr><td>POST</td><td><code>/settings/reset</code></td><td>Factory reset all settings to defaults</td></tr>
 <tr><td>GET</td><td><code>/anim</code></td><td>Current animation name</td></tr>
 <tr><td>POST</td><td><code>/anim</code></td><td>Set animation (see parameters below)</td></tr>
 <tr><td>POST</td><td><code>/test/audio</code></td><td>Play tone test</td></tr>
@@ -317,6 +334,11 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 </div>
 <button type="submit" class="btn btn-primary">Save settings</button>
 </form>
+<div class="config-section config-danger">
+<h3>Factory reset</h3>
+<p class="hint">Erases all saved settings and restores defaults.</p>
+<button type="button" id="config-factory-reset" class="btn btn-danger">Factory reset</button>
+</div>
 </section>
 
 <footer>
@@ -326,12 +348,16 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 <script>
 var SERVO_RANGES=[[60,130],[40,130],[50,140],[40,130],[40,130]];
 var TOKEN_KEY="te_access_token";
+var RESET_PENDING_KEY="te_factory_reset_pending";
+var PRE_RESET_UPTIME_KEY="te_pre_reset_uptime";
 var ACCESS_TOKEN_MASK="********";
 var accessTokenConfigured=false;
 var accessTokenMaskActive=false;
 var accessTokenClearPending=false;
 var busy=false;
 var healthTimer=null;
+var rebootWatchTimer=null;
+var lastHealthUptimeMs=0;
 var uiUnlocked=false;
 var statusEl=document.getElementById("status");
 function getStoredToken(){
@@ -341,6 +367,27 @@ function setStoredToken(token){
   try{
     if(token)sessionStorage.setItem(TOKEN_KEY,token);
     else sessionStorage.removeItem(TOKEN_KEY);
+  }catch(e){}
+}
+function isResetPending(){
+  try{return sessionStorage.getItem(RESET_PENDING_KEY)==="1";}catch(e){return false;}
+}
+function setResetPending(on){
+  try{
+    if(on)sessionStorage.setItem(RESET_PENDING_KEY,"1");
+    else sessionStorage.removeItem(RESET_PENDING_KEY);
+  }catch(e){}
+}
+function getPreResetUptime(){
+  try{
+    var v=sessionStorage.getItem(PRE_RESET_UPTIME_KEY);
+    return v?parseInt(v,10):0;
+  }catch(e){return 0;}
+}
+function setPreResetUptime(ms){
+  try{
+    if(ms>0)sessionStorage.setItem(PRE_RESET_UPTIME_KEY,String(ms));
+    else sessionStorage.removeItem(PRE_RESET_UPTIME_KEY);
   }catch(e){}
 }
 function apiFetch(path,opts){
@@ -363,17 +410,70 @@ function setBusy(on){
   document.querySelectorAll(".btn,[type=submit]").forEach(function(b){b.disabled=on;});
 }
 function showAuthGate(show){
-  document.body.classList.toggle("locked",show);
   document.getElementById("auth-gate").classList.toggle("show",show);
+  document.getElementById("reboot-gate").classList.remove("show");
+  document.body.classList.toggle("locked",show);
   if(show){
     document.getElementById("auth-error").classList.remove("show");
     document.getElementById("auth-token").value="";
     document.getElementById("auth-token").focus();
   }
 }
+function showRebootGate(show){
+  document.getElementById("reboot-gate").classList.toggle("show",show);
+  document.getElementById("auth-gate").classList.remove("show");
+  document.body.classList.toggle("locked",show);
+  if(show){
+    uiUnlocked=false;
+    stopHealthPolling();
+  }
+}
+function stopRebootWatch(){
+  if(rebootWatchTimer){clearInterval(rebootWatchTimer);rebootWatchTimer=null;}
+}
+function finishRebootPending(){
+  stopRebootWatch();
+  setResetPending(false);
+  setPreResetUptime(0);
+  showRebootGate(false);
+  enterApp();
+}
+function startRebootWatch(preResetUptime){
+  stopRebootWatch();
+  var gateStatus=document.getElementById("reboot-gate-status");
+  var sawOffline=false;
+  rebootWatchTimer=setInterval(function(){
+    fetch("/health").then(function(r){return r.json();}).then(function(j){
+      if(!j.ok)return;
+      var uptime=j.uptime_ms||0;
+      if(preResetUptime>0&&uptime<preResetUptime){
+        gateStatus.textContent="Device restarted.";
+        finishRebootPending();
+        return;
+      }
+      if(preResetUptime<=0&&uptime<30000&&sawOffline){
+        gateStatus.textContent="Device restarted.";
+        finishRebootPending();
+        return;
+      }
+      gateStatus.textContent="Waiting for device to restart\u2026";
+    }).catch(function(){
+      sawOffline=true;
+      gateStatus.textContent="Device restarting\u2026";
+    });
+  },2000);
+}
+function enterRebootPendingState(preResetUptime){
+  setResetPending(true);
+  setPreResetUptime(preResetUptime);
+  showRebootGate(true);
+  document.getElementById("reboot-gate-status").textContent="Waiting for device to restart\u2026";
+  startRebootWatch(preResetUptime);
+}
 function enterApp(){
   uiUnlocked=true;
   showAuthGate(false);
+  showRebootGate(false);
   showPage(location.pathname);
   updateServoHint();
 }
@@ -439,6 +539,7 @@ function loadHealth(){
   apiFetch("/health").then(function(r){return r.json();}).then(function(j){
     var el=document.getElementById("health-info");
     if(!j.ok){el.textContent="Could not load status.";return;}
+    if(j.uptime_ms!=null)lastHealthUptimeMs=j.uptime_ms;
     var ip=j.wifi&&j.wifi.connected?j.wifi.ip:"offline";
     var heapPct=j.heap_size?Math.round((1-j.free_heap/j.heap_size)*100):0;
     el.textContent="IP: "+ip+" \u00b7 Uptime: "+formatUptime(j.uptime_ms)+" \u00b7 Heap: "+heapPct+"% used ("+formatBytes(j.free_heap)+" free)";
@@ -615,6 +716,27 @@ document.getElementById("config-form").addEventListener("submit",function(e){
   }).catch(function(){setStatus("Network error","err");})
   .finally(function(){setBusy(false);});
 });
+document.getElementById("config-factory-reset").addEventListener("click",function(){
+  if(busy)return;
+  if(!confirm("Reset all settings to factory defaults? This cannot be undone."))return;
+  var preResetUptime=lastHealthUptimeMs;
+  setBusy(true);
+  setStatus("Resetting\u2026","loading");
+  var uptimePromise=preResetUptime>0?Promise.resolve(preResetUptime):fetch("/health").then(function(r){return r.json();}).then(function(j){return j.ok&&j.uptime_ms?j.uptime_ms:0;}).catch(function(){return 0;});
+  uptimePromise.then(function(uptime){
+    return apiFetch("/settings/reset",{method:"POST"}).then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j,uptime:uptime};});});
+  }).then(function(res){
+    if(res.ok&&res.data.ok!==false){
+      setStoredToken("");
+      setAccessTokenFromServer(false);
+      clearStatus();
+      enterRebootPendingState(res.uptime);
+    }else{
+      setStatus(res.data.error||"Factory reset failed","err");
+    }
+  }).catch(function(){setStatus("Network error","err");})
+  .finally(function(){setBusy(false);});
+});
 document.querySelectorAll("[data-anim]").forEach(function(btn){
   btn.addEventListener("click",function(){
     if(busy)return;
@@ -659,6 +781,11 @@ document.getElementById("auth-form").addEventListener("submit",function(e){
 });
 function bootUi(){
   document.body.classList.add("locked");
+  if(isResetPending()){
+    showRebootGate(true);
+    startRebootWatch(getPreResetUptime());
+    return;
+  }
   fetch("/auth").then(function(r){return r.json();}).then(function(j){
     if(!j.ok||!j.required){
       enterApp();
