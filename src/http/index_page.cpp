@@ -86,6 +86,17 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 .token-row{display:flex;gap:.5rem;align-items:stretch}
 .token-row input[type=password]{flex:1}
 .btn-token-toggle{width:auto;min-width:7rem;text-align:center;padding:.5rem .75rem;font-size:.85rem;flex-shrink:0;align-self:stretch}
+.config-section{background:var(--card);border:1px solid var(--border);border-radius:.6rem;padding:1rem 1.15rem;margin-bottom:.85rem}
+.config-section-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.85rem}
+.config-section h3{margin:0;font-size:1rem;color:var(--accent)}
+.config-section-desc{font-size:.85rem;color:var(--muted);margin:-.35rem 0 .85rem}
+.config-section .form-group:last-child{margin-bottom:0}
+.apply-badge{font-size:.7rem;font-weight:600;padding:.2rem .5rem;border-radius:.25rem;white-space:nowrap;flex-shrink:0}
+.apply-now{background:#d8f3dc;color:var(--success)}
+.apply-reboot{background:#fff3cd;color:#856404}
+.field-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.35rem}
+.field-head label{margin:0;font-weight:600;font-size:.9rem}
+#config-welcome-motion-hint{display:none}
 </style>
 </head>
 <body>
@@ -124,7 +135,7 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Hostname, sleep timeout, continuous anim timeout, volume, welcome, loading screen, and optional API access token (saved in flash).</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, and API token.</p></a>
 <a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
 <a class="card card-github" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener"><h3>GitHub docs &rarr;</h3><p>Build guide, wiring, and full project docs.</p></a>
 </div>
@@ -241,53 +252,68 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 
 <section id="view-config" class="view">
 <h2 class="page-title">Config</h2>
-<p class="page-desc">Settings are stored in flash and survive reboot. Sleep timeout, continuous timeout, volume, and welcome apply immediately; hostname and loading screen need a reboot.</p>
+<p class="page-desc">Saved to flash. Most changes apply right away.</p>
 <form id="config-form">
+<div class="config-section">
+<div class="config-section-head"><h3>Network</h3><span class="apply-badge apply-reboot">After reboot</span></div>
 <div class="form-group">
 <label for="config-hostname">Hostname</label>
 <input type="text" id="config-hostname" maxlength="31" pattern="[A-Za-z0-9]([A-Za-z0-9-]{0,29}[A-Za-z0-9])?" required>
-<p class="hint">mDNS name without .local (letters, digits, hyphen). Default: tiny-engineer</p>
+<p class="hint">Letters, digits, hyphen &mdash; no .local</p>
 </div>
+</div>
+<div class="config-section">
+<div class="config-section-head"><h3>Timeouts</h3><span class="apply-badge apply-now">Immediate</span></div>
 <div class="form-group">
 <label for="config-sleep">Sleep timeout (minutes)</label>
 <input type="number" id="config-sleep" min="1" max="1440" step="1" required>
-<p class="hint">Idle time before OLED blanks when animation is none. Default: 1</p>
+<p class="hint">Minutes idle before OLED blanks</p>
 </div>
 <div class="form-group">
 <label for="config-continuous">Continuous anim timeout (minutes)</label>
 <input type="number" id="config-continuous" min="1" max="1440" step="1" required>
-<p class="hint">Max time for typing/reading/thinking before attention then idle. Default: 5</p>
+<p class="hint">Max time for typing / reading / thinking</p>
 </div>
+</div>
+<div class="config-section">
+<div class="config-section-head"><h3>Audio</h3><span class="apply-badge apply-now">Immediate</span></div>
 <div class="form-group">
 <label for="config-volume">Volume <span id="config-volume-label">70%</span></label>
 <div class="range-row">
 <input type="range" id="config-volume-slider" min="0" max="100" value="70">
 <input type="number" id="config-volume" min="0" max="100" step="1" value="70" required>
 </div>
-<p class="hint">Speaker gain for tones and WAV playback. Default: 70</p>
 </div>
+</div>
+<div class="config-section">
+<h3>Boot behavior</h3>
+<p class="config-section-desc">Loading screen changes take effect on next boot.</p>
 <div class="form-group">
-<label for="config-loading">Boot loading screen</label>
+<div class="field-head"><label for="config-loading">Boot loading screen</label><span class="apply-badge apply-reboot">After reboot</span></div>
 <select id="config-loading">
 <option value="progress">Progress bar</option>
-<option value="sleep_inertia">Sleep inertia</option>
+<option value="sleep_inertia">Sleep inertia (no IP display)</option>
 </select>
-<p class="hint">Progress bar (default) shows steps then large IP for 3 s. Sleep inertia shows closed eyes waking up &mdash; no bar or IP. Head/neck move only when Welcome is on. Applies on next reboot.</p>
+<p id="config-welcome-motion-hint" class="hint">Head motion during boot needs Welcome enabled.</p>
 </div>
 <div class="form-group">
+<div class="field-head"><span>Welcome on boot</span><span class="apply-badge apply-now">Immediate</span></div>
 <div class="toggle-row">
 <input type="checkbox" id="config-welcome" checked>
-<label for="config-welcome">Welcome animation on boot</label>
+<label for="config-welcome">Play welcome when Wi-Fi connects</label>
 </div>
-<p class="hint">Play welcome when Wi-Fi connects at boot. Default: on. Also enables head/neck motion during sleep-inertia loading. Manual trigger via Animations still works.</p>
 </div>
+</div>
+<div class="config-section">
+<h3>Security</h3>
 <div class="form-group">
 <label for="config-access-token">Access token</label>
 <div class="token-row">
 <input type="password" id="config-access-token" maxlength="64" autocomplete="new-password" placeholder="Enter access token">
 <button type="button" id="config-access-token-toggle" class="btn btn-token-toggle" hidden>Remove token</button>
 </div>
-<p id="config-access-token-status" class="hint">API auth is off (no token configured).</p>
+<p id="config-access-token-status" class="hint">Auth disabled</p>
+</div>
 </div>
 <button type="submit" class="btn btn-primary">Save settings</button>
 </form>
@@ -469,21 +495,36 @@ function syncAccessTokenUi(){
     field.placeholder="Token will be removed on Save";
     toggle.hidden=false;
     toggle.textContent="Undo";
-    status.textContent="Access token will be removed when you save.";
+    status.textContent="Will remove on save";
   }else if(accessTokenConfigured){
     field.disabled=false;
     field.placeholder="Enter a new token to replace";
     if(accessTokenMaskActive)field.value=ACCESS_TOKEN_MASK;
     toggle.hidden=false;
     toggle.textContent="Remove token";
-    status.textContent="API auth is on. Click the field to enter a new token.";
+    status.textContent="Auth enabled \u2014 click field to replace";
   }else{
     field.disabled=false;
     if(!accessTokenMaskActive)field.value="";
     field.placeholder="Enter access token";
     toggle.hidden=true;
-    status.textContent="API auth is off. Enter a token and save to enable.";
+    status.textContent="Auth disabled";
   }
+}
+function updateWelcomeMotionHint(){
+  var loading=document.getElementById("config-loading").value;
+  var welcome=document.getElementById("config-welcome").checked;
+  document.getElementById("config-welcome-motion-hint").style.display=(loading==="sleep_inertia"&&!welcome)?"block":"none";
+}
+function buildSaveMessage(prevHost,prevLoading,res){
+  var savedHost=res.data.hostname||prevHost;
+  var savedLoading=res.data.loading==="sleep_inertia"?"sleep_inertia":"progress";
+  var hostChanged=savedHost!==prevHost||!!res.data.reboot_required;
+  var loadingChanged=savedLoading!==prevLoading;
+  if(!hostChanged&&!loadingChanged)return "Settings saved.";
+  if(hostChanged&&loadingChanged)return "Saved. Hostname and loading screen apply after reboot.";
+  if(hostChanged)return "Saved. Hostname applies after reboot.";
+  return "Saved. Loading screen applies after reboot.";
 }
 function setAccessTokenFromServer(tokenSet){
   accessTokenConfigured=!!tokenSet;
@@ -520,6 +561,8 @@ document.getElementById("config-access-token-toggle").addEventListener("click",f
   }
   syncAccessTokenUi();
 });
+document.getElementById("config-loading").addEventListener("change",updateWelcomeMotionHint);
+document.getElementById("config-welcome").addEventListener("change",updateWelcomeMotionHint);
 function loadSettings(){
   apiFetch("/settings").then(function(r){return r.json();}).then(function(j){
     if(!j.ok)return;
@@ -530,11 +573,14 @@ function loadSettings(){
     document.getElementById("config-welcome").checked=j.welcome!==false;
     document.getElementById("config-loading").value=j.loading==="sleep_inertia"?"sleep_inertia":"progress";
     setAccessTokenFromServer(!!j.access_token_set);
-  }).catch(function(){});
+    updateWelcomeMotionHint();
+  }).catch(function(){setStatus("Could not load settings","err");});
 }
 document.getElementById("config-form").addEventListener("submit",function(e){
   e.preventDefault();
   if(busy)return;
+  var prevHost=document.getElementById("config-hostname").value.trim();
+  var prevLoading=document.getElementById("config-loading").value;
   var host=document.getElementById("config-hostname").value.trim();
   var sleep=document.getElementById("config-sleep").value;
   var continuous=document.getElementById("config-continuous").value;
@@ -561,11 +607,8 @@ document.getElementById("config-form").addEventListener("submit",function(e){
       if(wasClearPending)setStoredToken("");
       else if(!accessTokenMaskActive&&newToken)setStoredToken(newToken);
       setAccessTokenFromServer(!!res.data.access_token_set);
-      if(res.data.reboot_required){
-        setStatus("Saved. Hostname applies after reboot (RESET or power cycle).","ok");
-      }else{
-        setStatus("Settings saved. Loading screen applies after reboot.","ok");
-      }
+      updateWelcomeMotionHint();
+      setStatus(buildSaveMessage(prevHost,prevLoading,res),"ok");
     }else{
       setStatus(res.data.error||"Save failed","err");
     }
