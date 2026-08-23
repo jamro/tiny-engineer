@@ -74,7 +74,7 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
   anim::logServoSnapshot("pre-transition");
 
   g_animation = id;
-  g_animationStartedMs = millis();
+  g_animationStartedMs = nowMs;
   g_hasPendingAnimation = false;
 
   switch (id) {
