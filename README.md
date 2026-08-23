@@ -71,7 +71,7 @@ curl -X POST http://tiny-engineer.local/test/led
 curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 ```
 
-`GET /` is the web control panel (includes **Config** for hostname / sleep timeout / volume). `GET /health` is health JSON. `GET`/`POST /settings` reads and writes NVS-backed settings. Test routes are **POST** (they move hardware). Full reference: [`docs/api.md`](docs/api.md).
+`GET /` is the web control panel (includes **Config** for hostname / sleep timeout / volume / welcome). `GET /health` is health JSON. `GET`/`POST /settings` reads and writes NVS-backed settings. Test routes are **POST** (they move hardware). Full reference: [`docs/api.md`](docs/api.md). How to add a setting: [`docs/settings.md`](docs/settings.md).
 
 ## Integrating with AI tools
 

@@ -62,6 +62,9 @@ nav a.active{background:var(--accent);color:#fff}
 .form-group input[type=range]{width:100%;margin:.5rem 0}
 .range-row{display:flex;align-items:center;gap:1rem}
 .range-row input[type=number]{width:5rem}
+.toggle-row{display:flex;align-items:center;gap:.65rem}
+.toggle-row input[type=checkbox]{width:1.15rem;height:1.15rem;accent-color:var(--accent)}
+.toggle-row label{margin:0;font-weight:600;font-size:.9rem}
 .hint{font-size:.8rem;color:var(--muted);margin-top:.25rem}
 table{border-collapse:collapse;width:100%;margin-bottom:1rem;font-size:.85rem}
 th,td{border:1px solid var(--border);padding:.35rem .5rem;text-align:left;vertical-align:top}
@@ -93,7 +96,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Hostname, sleep timeout, and speaker volume (saved in flash).</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Hostname, sleep timeout, volume, and welcome animation (saved in flash).</p></a>
 </div>
 <a class="github-link" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener">Full docs &amp; build guide on GitHub &rarr;</a>
 </section>
@@ -127,6 +130,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <tr><td><code>sleep_timeout</code></td><td>integer</td><td>5&ndash;3600 seconds</td></tr>
 <tr><td><code>hostname</code></td><td>string</td><td>1&ndash;31 chars, letters/digits/hyphen</td></tr>
 <tr><td><code>volume</code></td><td>integer</td><td>0&ndash;100 percent (speaker gain)</td></tr>
+<tr><td><code>welcome</code></td><td>integer</td><td>0 or 1 (boot welcome animation)</td></tr>
 </table>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
@@ -204,7 +208,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 
 <section id="view-config" class="view">
 <h2 class="page-title">Config</h2>
-<p class="page-desc">Settings are stored in flash and survive reboot. Sleep timeout and volume apply immediately; hostname needs a reboot.</p>
+<p class="page-desc">Settings are stored in flash and survive reboot. Sleep timeout, volume, and welcome apply immediately; hostname needs a reboot.</p>
 <form id="config-form">
 <div class="form-group">
 <label for="config-hostname">Hostname</label>
@@ -223,6 +227,13 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <input type="number" id="config-volume" min="0" max="100" step="1" value="70" required>
 </div>
 <p class="hint">Speaker gain for tones and WAV playback. Default: 70</p>
+</div>
+<div class="form-group">
+<div class="toggle-row">
+<input type="checkbox" id="config-welcome" checked>
+<label for="config-welcome">Welcome animation on boot</label>
+</div>
+<p class="hint">Play welcome when Wi-Fi connects at boot. Default: on. Manual trigger via Animations still works.</p>
 </div>
 <button type="submit" class="btn btn-primary">Save settings</button>
 </form>
@@ -368,6 +379,7 @@ function loadSettings(){
     document.getElementById("config-hostname").value=j.hostname||"";
     document.getElementById("config-sleep").value=j.sleep_timeout;
     setConfigVolume(j.volume!=null?j.volume:70);
+    document.getElementById("config-welcome").checked=j.welcome!==false;
   }).catch(function(){});
 }
 document.getElementById("config-form").addEventListener("submit",function(e){
@@ -376,15 +388,17 @@ document.getElementById("config-form").addEventListener("submit",function(e){
   var host=document.getElementById("config-hostname").value.trim();
   var sleep=document.getElementById("config-sleep").value;
   var volume=document.getElementById("config-volume").value;
+  var welcome=document.getElementById("config-welcome").checked?1:0;
   setBusy(true);
   setStatus("Saving\u2026","loading");
-  fetch("/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume),{method:"POST"})
+  fetch("/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume)+"&welcome="+welcome,{method:"POST"})
   .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
   .then(function(res){
     if(res.ok&&res.data.ok!==false){
       document.getElementById("config-hostname").value=res.data.hostname||host;
       document.getElementById("config-sleep").value=res.data.sleep_timeout;
       setConfigVolume(res.data.volume!=null?res.data.volume:volume);
+      document.getElementById("config-welcome").checked=res.data.welcome!==false;
       if(res.data.reboot_required){
         setStatus("Saved. Hostname applies after reboot (RESET or power cycle).","ok");
       }else{

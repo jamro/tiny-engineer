@@ -85,7 +85,7 @@ void sendAnimationJson() {
 }
 
 void sendSettingsJson(bool rebootRequired) {
-  char body[200];
+  char body[256];
 
   if (rebootRequired) {
     snprintf(
@@ -96,11 +96,13 @@ void sendSettingsJson(bool rebootRequired) {
       "\"sleep_timeout\":%lu,"
       "\"hostname\":\"%s\","
       "\"volume\":%u,"
+      "\"welcome\":%s,"
       "\"reboot_required\":true"
       "}",
       (unsigned long)settingsSleepTimeoutS(),
       settingsHostname(),
-      static_cast<unsigned>(settingsVolume())
+      static_cast<unsigned>(settingsVolume()),
+      settingsWelcomeEnabled() ? "true" : "false"
     );
   } else {
     snprintf(
@@ -110,11 +112,13 @@ void sendSettingsJson(bool rebootRequired) {
       "\"ok\":true,"
       "\"sleep_timeout\":%lu,"
       "\"hostname\":\"%s\","
-      "\"volume\":%u"
+      "\"volume\":%u,"
+      "\"welcome\":%s"
       "}",
       (unsigned long)settingsSleepTimeoutS(),
       settingsHostname(),
-      static_cast<unsigned>(settingsVolume())
+      static_cast<unsigned>(settingsVolume()),
+      settingsWelcomeEnabled() ? "true" : "false"
     );
   }
 
@@ -132,12 +136,13 @@ void handleSettingsPost() {
   const bool hasSleep = server.hasArg("sleep_timeout");
   const bool hasHost = server.hasArg("hostname");
   const bool hasVolume = server.hasArg("volume");
+  const bool hasWelcome = server.hasArg("welcome");
 
-  if (!hasSleep && !hasHost && !hasVolume) {
+  if (!hasSleep && !hasHost && !hasVolume && !hasWelcome) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, or volume\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, or welcome\"}"
     );
     return;
   }
@@ -148,6 +153,8 @@ void handleSettingsPost() {
   const char* hostPtr = nullptr;
   uint8_t volume = 0;
   const uint8_t* volumePtr = nullptr;
+  bool welcome = false;
+  const bool* welcomePtr = nullptr;
 
   if (hasSleep) {
     const String sleepArg = server.arg("sleep_timeout");
@@ -221,9 +228,28 @@ void handleSettingsPost() {
     volumePtr = &volume;
   }
 
+  if (hasWelcome) {
+    const String welcomeArg = server.arg("welcome");
+    char* end = nullptr;
+    const unsigned long parsed =
+      strtoul(welcomeArg.c_str(), &end, 10);
+
+    if (end == welcomeArg.c_str() || *end != '\0' || parsed > 1) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid welcome\"}"
+      );
+      return;
+    }
+
+    welcome = parsed == 1;
+    welcomePtr = &welcome;
+  }
+
   bool rebootRequired = false;
 
-  if (!saveSettings(sleepPtr, hostPtr, volumePtr, &rebootRequired)) {
+  if (!saveSettings(sleepPtr, hostPtr, volumePtr, welcomePtr, &rebootRequired)) {
     httpSendJson(
       server,
       400,

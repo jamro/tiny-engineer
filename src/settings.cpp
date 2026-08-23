@@ -10,6 +10,7 @@ constexpr const char* kNs = "te";
 constexpr const char* kKeySleep = "sleep_s";
 constexpr const char* kKeyHost = "host";
 constexpr const char* kKeyVolume = "vol";
+constexpr const char* kKeyWelcome = "welcome";
 
 Preferences prefs;
 
@@ -17,6 +18,7 @@ uint32_t g_sleepTimeoutS = SETTINGS_DEFAULT_SLEEP_TIMEOUT_S;
 char g_hostname[SETTINGS_HOSTNAME_MAX_LEN + 1] = {};
 char g_bootHostname[SETTINGS_HOSTNAME_MAX_LEN + 1] = {};
 uint8_t g_volume = SETTINGS_DEFAULT_VOLUME;
+bool g_welcome = SETTINGS_DEFAULT_WELCOME;
 
 void setHostnameCache(char* dest, const char* src) {
   strncpy(dest, src, SETTINGS_HOSTNAME_MAX_LEN);
@@ -28,6 +30,7 @@ void setHostnameCache(char* dest, const char* src) {
 void initSettings() {
   setHostnameCache(g_hostname, SETTINGS_DEFAULT_HOSTNAME);
   g_volume = SETTINGS_DEFAULT_VOLUME;
+  g_welcome = SETTINGS_DEFAULT_WELCOME;
 
   if (!prefs.begin(kNs, true)) {
     Serial.println("Settings: NVS open failed; using defaults");
@@ -61,6 +64,8 @@ void initSettings() {
     g_volume = SETTINGS_DEFAULT_VOLUME;
   }
 
+  g_welcome = prefs.getBool(kKeyWelcome, SETTINGS_DEFAULT_WELCOME);
+
   prefs.end();
 
   setHostnameCache(g_bootHostname, g_hostname);
@@ -70,7 +75,9 @@ void initSettings() {
   Serial.print("s hostname=");
   Serial.print(g_hostname);
   Serial.print(" volume=");
-  Serial.println(g_volume);
+  Serial.print(g_volume);
+  Serial.print(" welcome=");
+  Serial.println(g_welcome ? "on" : "off");
 }
 
 uint32_t settingsSleepTimeoutS() {
@@ -91,6 +98,10 @@ const char* settingsBootHostname() {
 
 uint8_t settingsVolume() {
   return g_volume;
+}
+
+bool settingsWelcomeEnabled() {
+  return g_welcome;
 }
 
 bool settingsValidateSleepTimeout(uint32_t sleepTimeoutS) {
@@ -137,6 +148,7 @@ bool saveSettings(
   const uint32_t* sleepTimeoutS,
   const char* hostname,
   const uint8_t* volume,
+  const bool* welcome,
   bool* rebootRequired
 ) {
   if (rebootRequired != nullptr) {
@@ -145,7 +157,8 @@ bool saveSettings(
 
   if (sleepTimeoutS == nullptr &&
       hostname == nullptr &&
-      volume == nullptr) {
+      volume == nullptr &&
+      welcome == nullptr) {
     return false;
   }
 
@@ -153,6 +166,7 @@ bool saveSettings(
   char nextHost[SETTINGS_HOSTNAME_MAX_LEN + 1];
   setHostnameCache(nextHost, g_hostname);
   uint8_t nextVolume = g_volume;
+  bool nextWelcome = g_welcome;
 
   if (sleepTimeoutS != nullptr) {
     if (!settingsValidateSleepTimeout(*sleepTimeoutS)) {
@@ -178,6 +192,10 @@ bool saveSettings(
     nextVolume = *volume;
   }
 
+  if (welcome != nullptr) {
+    nextWelcome = *welcome;
+  }
+
   if (!prefs.begin(kNs, false)) {
     Serial.println("Settings: NVS write open failed");
     return false;
@@ -186,11 +204,13 @@ bool saveSettings(
   prefs.putUInt(kKeySleep, nextSleep);
   prefs.putString(kKeyHost, nextHost);
   prefs.putUInt(kKeyVolume, nextVolume);
+  prefs.putBool(kKeyWelcome, nextWelcome);
   prefs.end();
 
   g_sleepTimeoutS = nextSleep;
   setHostnameCache(g_hostname, nextHost);
   g_volume = nextVolume;
+  g_welcome = nextWelcome;
 
   if (rebootRequired != nullptr &&
       strcmp(g_hostname, g_bootHostname) != 0) {
@@ -202,7 +222,9 @@ bool saveSettings(
   Serial.print("s hostname=");
   Serial.print(g_hostname);
   Serial.print(" volume=");
-  Serial.println(g_volume);
+  Serial.print(g_volume);
+  Serial.print(" welcome=");
+  Serial.println(g_welcome ? "on" : "off");
 
   return true;
 }

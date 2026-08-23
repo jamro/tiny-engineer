@@ -6,6 +6,7 @@
 constexpr uint32_t SETTINGS_DEFAULT_SLEEP_TIMEOUT_S = 60;
 constexpr const char* SETTINGS_DEFAULT_HOSTNAME = "tiny-engineer";
 constexpr uint8_t SETTINGS_DEFAULT_VOLUME = 70;
+constexpr bool SETTINGS_DEFAULT_WELCOME = true;
 
 constexpr uint32_t SETTINGS_SLEEP_TIMEOUT_MIN_S = 5;
 constexpr uint32_t SETTINGS_SLEEP_TIMEOUT_MAX_S = 3600;
@@ -19,6 +20,7 @@ uint32_t settingsSleepTimeoutS();
 uint32_t settingsSleepTimeoutMs();
 const char* settingsHostname();
 uint8_t settingsVolume();
+bool settingsWelcomeEnabled();
 
 // Hostname used at boot for Wi-Fi/mDNS (frozen after initSettings).
 const char* settingsBootHostname();
@@ -34,5 +36,6 @@ bool saveSettings(
   const uint32_t* sleepTimeoutS,
   const char* hostname,
   const uint8_t* volume,
+  const bool* welcome,
   bool* rebootRequired
 );

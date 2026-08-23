@@ -62,7 +62,7 @@ curl http://tiny-engineer.local/health
 
 ### `GET /settings`
 
-Persistent settings from NVS. Safe, no hardware side effects.
+Persistent settings from NVS. Safe, no hardware side effects. Developer guide for adding settings: [`settings.md`](settings.md).
 
 ```bash
 curl http://tiny-engineer.local/settings
@@ -73,7 +73,8 @@ curl http://tiny-engineer.local/settings
   "ok": true,
   "sleep_timeout": 60,
   "hostname": "tiny-engineer",
-  "volume": 70
+  "volume": 70,
+  "welcome": true
 }
 ```
 
@@ -82,16 +83,18 @@ curl http://tiny-engineer.local/settings
 | `sleep_timeout` | Idle seconds before OLED blanks when animation is `none` (default **60**) |
 | `hostname` | DHCP/mDNS label without `.local` (default **`tiny-engineer`**) |
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
+| `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**) |
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout` and `volume` apply immediately; a changed `hostname` takes effect on the **next reboot**.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, and `welcome` apply immediately; a changed `hostname` takes effect on the **next reboot**.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=120"
 curl -X POST "http://tiny-engineer.local/settings?hostname=desk-bot"
 curl -X POST "http://tiny-engineer.local/settings?volume=40"
-curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny-engineer&volume=70"
+curl -X POST "http://tiny-engineer.local/settings?welcome=0"
+curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny-engineer&volume=70&welcome=1"
 ```
 
 ```json
@@ -100,6 +103,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny
   "sleep_timeout": 90,
   "hostname": "desk-bot",
   "volume": 70,
+  "welcome": true,
   "reboot_required": true
 }
 ```
@@ -109,6 +113,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny
 | `sleep_timeout` | integer | 5–3600 seconds |
 | `hostname` | string | 1–31 chars, `[A-Za-z0-9-]`, not starting/ending with `-` |
 | `volume` | integer | 0–100 percent |
+| `welcome` | integer | `0` or `1` (boot welcome animation) |
 
 At least one param required. Invalid or missing-all → **400**. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot.
 

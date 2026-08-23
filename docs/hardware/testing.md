@@ -37,7 +37,7 @@ Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200)
 6. `Starting MAX98357A` → `I2S OK`
 7. `Centering servos` — all channels → 90°
 8. `ROBOT READY` — dim green RGB, OLED `ROBOT READY` + IP (or `WIFI FAIL`)
-9. RGB fades to white over 1 s if `welcome` runs (Wi-Fi OK), or fades off if idle
+9. RGB fades to white over 1 s if `welcome` runs (Wi-Fi OK and setting enabled), or fades off if idle
 10. If Wi-Fi OK: `HTTP: http://<ip>/`, `HTTP: http://tiny-engineer.local/`, and `/health` URLs on serial
 
 `loop()` pumps the HTTP server and updates animation RGB fades. No audio/OLED/servo/LED demos until a POST.
@@ -86,8 +86,8 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | --- | --- | --- |
 | `GET` | `/` | HTML endpoint index |
 | `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `wifi`, `oled`) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`) |
-| `POST` | `/settings?sleep_timeout=&hostname=` | Update NVS settings; `reboot_required` if hostname changed |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`) |
+| `POST` | `/settings?sleep_timeout=&hostname=&volume=&welcome=` | Update NVS settings; `reboot_required` if hostname changed |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |

@@ -108,7 +108,7 @@ void setup() {
 
   showIdleScreen();
 
-  if (wifiConnected()) {
+  if (wifiConnected() && settingsWelcomeEnabled()) {
     setAnimation(AnimationId::Welcome);
   } else {
     setRgbForAnimation(AnimationId::None, millis());
