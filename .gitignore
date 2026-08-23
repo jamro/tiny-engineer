@@ -1,6 +1,9 @@
 # Cursor hook event log
 cursor_events.log
 
+# Local secrets (Cursor CLI auth token, etc.)
+.env
+
 # platform.io
 .pio
 

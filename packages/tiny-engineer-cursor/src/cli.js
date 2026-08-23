@@ -1,3 +1,4 @@
+import { getToken, loadDotEnv } from "./env.js";
 import { animationForEvent } from "./map.js";
 import { postAnim } from "./post.js";
 
@@ -11,6 +12,11 @@ Cursor hook helper: read event JSON from stdin, pick an animation, POST to the r
 Options:
   --url <base>   Robot base URL (default: ${DEFAULT_URL})
   -h, --help     Show this help
+
+Auth:
+  If TINY_ENGINEER_TOKEN is set (process env or project-root .env), requests
+  send Authorization: Bearer <token>. Must match the device access_token.
+  No token → no Authorization header (device auth disabled).
 
 Hook mode (no animation args):
   Cursor pipes JSON with hook_event_name (tool_name for preToolUse,
@@ -86,6 +92,8 @@ function readStdin() {
  * @param {string[]} argv
  */
 export async function run(argv) {
+  loadDotEnv();
+
   const opts = parseArgs(argv);
   if (opts.error) {
     console.error(opts.error);
@@ -111,7 +119,7 @@ export async function run(argv) {
 
   const anim = animationForEvent(event);
   if (anim) {
-    await postAnim(opts.url, anim);
+    await postAnim(opts.url, anim, getToken());
   }
   process.exitCode = 0;
 }

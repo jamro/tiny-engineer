@@ -105,6 +105,7 @@ npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.
 - HTTPS **tarball** (not `github:…` SSH shorthand — that often fails in Cursor hooks with no SSH agent).
 - Bin name `tiny-engineer-cursor` required after `--package=…`.
 - Optional: `--url http://192.168.x.x` (default `http://tiny-engineer.local`).
+- Auth: if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env` file (same value). The CLI sends `Authorization: Bearer …`. No token → no header (auth disabled on device).
 - `--help` for usage and event map.
 
 ### Smoke test
