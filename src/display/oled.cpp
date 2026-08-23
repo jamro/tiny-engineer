@@ -345,37 +345,36 @@ void showBootIp(const char* ip) {
     (ip != nullptr && ip[0] != '\0') ? ip : "No IP";
   const size_t len = strlen(text);
 
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(2);
+  // Default GFX glyph is 6×8 at size 1. Pick largest integer size that
+  // keeps the whole IP on one line within OLED_WIDTH.
+  int textSize = 2;
+  int charW = 6 * textSize;
 
-  // Size-2 glyph is 12×16 px; 128/12 = 10 chars per line, two lines fill height.
-  constexpr int kCharW = 12;
-  constexpr int kMaxChars = OLED_WIDTH / kCharW;
-
-  if (static_cast<int>(len) <= kMaxChars) {
-    const int x = (OLED_WIDTH - static_cast<int>(len) * kCharW) / 2;
-    display.setCursor(x < 0 ? 0 : x, 8);
-    display.print(text);
-  } else {
-    int breakAt = kMaxChars;
-
-    for (int i = kMaxChars; i > 0; i--) {
-      if (text[i - 1] == '.') {
-        breakAt = i;
-        break;
-      }
-    }
-
-    display.setCursor(0, 0);
-    for (int i = 0; i < breakAt; i++) {
-      display.print(text[i]);
-    }
-
-    display.setCursor(0, 16);
-    display.print(text + breakAt);
+  while (textSize > 1 &&
+         static_cast<int>(len) * charW > OLED_WIDTH) {
+    textSize--;
+    charW = 6 * textSize;
   }
 
+  const int textH = 8 * textSize;
+  const int textPx = static_cast<int>(len) * charW;
+  int x = (OLED_WIDTH - textPx) / 2;
+  int y = (OLED_HEIGHT - textH) / 2;
+
+  if (x < 0) {
+    x = 0;
+  }
+
+  if (y < 0) {
+    y = 0;
+  }
+
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(textSize);
+  display.setTextWrap(false);
+  display.setCursor(x, y);
+  display.print(text);
   display.display();
 }
 

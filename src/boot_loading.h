@@ -9,4 +9,6 @@ void bootShowProgress(
 bool bootLoadingIsProgress();
 
 void bootBeginSleepingFace();
+bool bootSleepInertiaUsesServos();
+void bootSnapSleepPose();
 void bootRunSleepInertia();

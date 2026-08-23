@@ -22,12 +22,11 @@ constexpr uint32_t kBlink1AtMs = 2400;
 constexpr uint32_t kBlink2AtMs = 3800;
 constexpr uint32_t kFrameMs = 16;
 
-constexpr float kHeadAsleepOffsetDeg = -8.0f;
-constexpr float kNeckAsleepOffsetDeg = 5.0f;
-constexpr float kHeadWaveAmpDeg = 4.0f;
-constexpr float kNeckWaveAmpDeg = 5.0f;
-constexpr float kWavePeriodMs = 3200.0f;
-constexpr float kServoSpeedDegS = 40.0f;
+// Head: mid - 20° (chin down), then slow rise to mid. Neck: slight side wave only.
+constexpr float kHeadAsleepOffsetDeg = -20.0f;
+constexpr float kNeckWaveAmpDeg = 4.0f;
+constexpr float kWavePeriodMs = 2800.0f;
+constexpr float kServoSpeedDegS = 35.0f;
 constexpr float kTwoPi = 6.28318530718f;
 
 float headMid() {
@@ -73,15 +72,32 @@ void bootBeginSleepingFace() {
   updateEyes(millis());
 }
 
-void bootRunSleepInertia() {
-  const bool moveServos = settingsWelcomeEnabled();
-  const uint32_t startMs = millis();
-  const float headBase = headMid() + kHeadAsleepOffsetDeg;
-  const float neckBase = neckMid() + kNeckAsleepOffsetDeg;
+bool bootSleepInertiaUsesServos() {
+  return !bootLoadingIsProgress() && settingsWelcomeEnabled();
+}
 
-  if (moveServos) {
-    applyHeadNeck(headBase, neckBase);
+void bootSnapSleepPose() {
+  const float headAsleep = headMid() + kHeadAsleepOffsetDeg;
+  const float mid = neckMid();
+  const float handRightDown = SERVO_SPECS[SERVO_HAND_RIGHT].min;
+  const float handLeftDown = SERVO_SPECS[SERVO_HAND_LEFT].max;
+
+  for (int servo = 0; servo < SERVO_COUNT; servo++) {
+    servoAt(servo).snapTo(servoMid(SERVO_SPECS[servo]));
   }
+
+  servoAt(SERVO_HEAD).snapTo(headAsleep);
+  servoAt(SERVO_NECK).snapTo(mid);
+  servoAt(SERVO_HAND_RIGHT).snapTo(handRightDown);
+  servoAt(SERVO_HAND_LEFT).snapTo(handLeftDown);
+}
+
+void bootRunSleepInertia() {
+  const bool moveServos = bootSleepInertiaUsesServos();
+  const uint32_t startMs = millis();
+  const float headAsleep = headMid() + kHeadAsleepOffsetDeg;
+  const float headTarget = headMid();
+  const float neckTarget = neckMid();
 
   blinkBeginIdle(startMs);
   blinkSetNextBlinkMs(startMs + 60000UL);
@@ -130,27 +146,19 @@ void bootRunSleepInertia() {
     }
 
     if (moveServos) {
+      const float riseT = anim::easeInOutCubic(
+        static_cast<float>(elapsed) /
+        static_cast<float>(kTotalDurationMs)
+      );
+      const float headDeg = anim::lerp(headAsleep, headTarget, riseT);
+
+      // Sideways neck wave, amplitude fades out as head finishes rising.
       const float waveT =
         static_cast<float>(elapsed) / kWavePeriodMs;
       const float wave = sinf(waveT * kTwoPi);
-      const float settle =
-        elapsed < kOpenDurationMs
-          ? 1.0f
-          : anim::lerp(
-              1.0f,
-              0.0f,
-              anim::easeInOutCubic(
-                static_cast<float>(elapsed - kOpenDurationMs) /
-                static_cast<float>(kTotalDurationMs - kOpenDurationMs)
-              )
-            );
-
-      const float headDeg =
-        anim::lerp(headBase, headMid(), 1.0f - settle) +
-        wave * kHeadWaveAmpDeg * settle;
+      const float waveFade = 1.0f - riseT;
       const float neckDeg =
-        anim::lerp(neckBase, neckMid(), 1.0f - settle) +
-        wave * kNeckWaveAmpDeg * settle;
+        neckTarget + wave * kNeckWaveAmpDeg * waveFade;
 
       applyHeadNeck(headDeg, neckDeg);
       updateAllServos();
@@ -161,7 +169,7 @@ void bootRunSleepInertia() {
   }
 
   if (moveServos) {
-    applyHeadNeck(headMid(), neckMid());
+    applyHeadNeck(headTarget, neckTarget);
 
     const uint32_t settleStart = millis();
 

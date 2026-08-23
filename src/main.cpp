@@ -46,10 +46,17 @@ void setup() {
   initOled();
   initSettings();
 
+  const bool sleepServos = bootSleepInertiaUsesServos();
+
   if (bootLoadingIsProgress()) {
     bootShowProgress(1, kBootSteps, "Display");
   } else {
     bootBeginSleepingFace();
+  }
+
+  if (sleepServos) {
+    initPca9685();
+    bootSnapSleepPose();
   }
 
   bootShowProgress(2, kBootSteps, "WiFi...");
@@ -60,7 +67,9 @@ void setup() {
     wifiConnected() ? "WiFi OK" : "WiFi failed"
   );
 
-  initPca9685();
+  if (!sleepServos) {
+    initPca9685();
+  }
   bootShowProgress(3, kBootSteps, "Servos");
 
   Serial.println();
@@ -102,8 +111,10 @@ void setup() {
   initAudioStorage();
   bootShowProgress(5, kBootSteps, "Storage");
 
-  Serial.println("Centering servos");
-  centerAllServos();
+  if (!sleepServos) {
+    Serial.println("Centering servos");
+    centerAllServos();
+  }
 
   if (bootLoadingIsProgress()) {
     bootShowProgress(kBootSteps, kBootSteps, "Ready");
