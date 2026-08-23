@@ -197,31 +197,31 @@ void registerHttpTestRoutes(WebServer& server) {
   server.on(
     "/test/audio",
     HTTP_POST,
-    [&server]() { httpWithApiAuth(server, handleAudioTest); }
+    [&server]() { httpWithWifiAndApiAuth(server, handleAudioTest); }
   );
   server.on(
     "/test/audio/bell",
     HTTP_POST,
-    [&server]() { httpWithApiAuth(server, handleBellTest); }
+    [&server]() { httpWithWifiAndApiAuth(server, handleBellTest); }
   );
   server.on(
     "/test/screen",
     HTTP_POST,
-    [&server]() { httpWithApiAuth(server, handleScreenTest); }
+    [&server]() { httpWithWifiAndApiAuth(server, handleScreenTest); }
   );
   server.on(
     "/test/movement",
     HTTP_POST,
-    [&server]() { httpWithApiAuth(server, handleMovementTest); }
+    [&server]() { httpWithWifiAndApiAuth(server, handleMovementTest); }
   );
   server.on(
     "/test/led",
     HTTP_POST,
-    [&server]() { httpWithApiAuth(server, handleLedTest); }
+    [&server]() { httpWithWifiAndApiAuth(server, handleLedTest); }
   );
   server.on(
     "/test/servo",
     HTTP_POST,
-    [&server]() { httpWithApiAuth(server, handleServoTest); }
+    [&server]() { httpWithWifiAndApiAuth(server, handleServoTest); }
   );
 }

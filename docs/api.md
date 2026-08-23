@@ -2,11 +2,13 @@
 
 JSON HTTP server on the ESP32-C3. Source: [`src/http/http_server.cpp`](../src/http/http_server.cpp) and handlers under [`src/http/`](../src/http/), test routes in [`src/http/test_handlers.cpp`](../src/http/test_handlers.cpp).
 
-Listens on **port 80** after STA Wi-Fi connects. Base URL is the board IP (OLED / serial) or `http://tiny-engineer.local` (mDNS, 2.4 GHz only).
+Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `http://192.168.4.1/`. Base URL is the board IP (OLED / serial) or `http://tiny-engineer.local` (mDNS, 2.4 GHz only).
 
 Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). `Content-Type: application/json`. CORS: `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization`.
 
-If boot Wi-Fi fails, the server does not start (`HTTP: skipped (no wifi)`). Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
+When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`) stay available on the setup AP.
+
+If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves the Config page. If saved credentials fail, it reopens setup AP mode. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
 Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s on a missing AAAA. If a client still pauses on the hostname, force IPv4 (`curl -4`). The IP on the OLED skips DNS entirely.
 
@@ -33,13 +35,15 @@ curl http://tiny-engineer.local/auth
 ```
 
 ```json
-{ "ok": true, "required": false }
+{ "ok": true, "required": false, "wifi_configured": true, "provisioning": false }
 ```
 
 | Field | Meaning |
 | --- | --- |
 | `ok` | Always `true` on this route |
 | `required` | `true` when a non-empty access token is configured |
+| `wifi_configured` | `true` when WiFi credentials are saved in NVS |
+| `provisioning` | `true` when the setup AP is active |
 
 ### `GET /health`
 
@@ -62,6 +66,10 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
     "rssi": -42,
     "hostname": "tiny-engineer.local"
   },
+  "wifi_configured": true,
+  "provisioning": false,
+  "setup_ap_ssid": "",
+  "setup_ap_ip": "",
   "oled": true
 }
 ```
@@ -76,6 +84,10 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
 | `wifi.ip` | STA IPv4, or `""` if down |
 | `wifi.rssi` | dBm, or `0` if down |
 | `wifi.hostname` | mDNS name from settings (`{hostname}.local`, default `tiny-engineer.local`) |
+| `wifi_configured` | `true` when WiFi credentials are saved in NVS |
+| `provisioning` | `true` when setup AP mode is active |
+| `setup_ap_ssid` | Setup AP SSID when `provisioning` is true, else `""` |
+| `setup_ap_ip` | Setup AP IP when `provisioning` is true (usually `192.168.4.1`), else `""` |
 | `oled` | SSD1306 probed and initialized |
 
 ### `GET /settings`
@@ -89,29 +101,35 @@ curl http://tiny-engineer.local/settings
 ```json
 {
   "ok": true,
-  "sleep_timeout": 1,
+  "sleep_timeout": 10,
   "hostname": "tiny-engineer",
   "volume": 70,
   "welcome": true,
   "continuous_timeout": 5,
   "loading": "progress",
-  "access_token_set": false
+  "access_token_set": false,
+  "wifi_configured": true,
+  "wifi_ssid": "MyNetwork",
+  "wifi_password_set": true
 }
 ```
 
 | Field | Meaning |
 | --- | --- |
-| `sleep_timeout` | Idle minutes before OLED blanks when animation is `none` (default **1**) |
+| `sleep_timeout` | Idle minutes before OLED blanks when animation is `none` (default **10**) |
 | `hostname` | DHCP/mDNS label without `.local` (default **`tiny-engineer`**) |
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `access_token_set` | `true` when a non-empty access token is stored (secret itself is never returned) |
+| `wifi_configured` | `true` when a WiFi SSID is saved |
+| `wifi_ssid` | Saved network name (password is never returned) |
+| `wifi_password_set` | `true` when a non-empty WiFi password is saved |
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. Requires Bearer when auth is enabled.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. Outside setup AP → **400** `wifi setup only in AP mode`. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
@@ -122,7 +140,8 @@ curl -X POST "http://tiny-engineer.local/settings?continuous_timeout=10"
 curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
 curl -X POST "http://tiny-engineer.local/settings?access_token=secret"
 curl -X POST "http://tiny-engineer.local/settings?access_token="
-curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=1&hostname=tiny-engineer&volume=70&welcome=1&continuous_timeout=5&loading=progress"
+curl -X POST "http://192.168.4.1/settings?wifi_ssid=MyNetwork&wifi_password=secret"
+curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny-engineer&volume=70&welcome=1&continuous_timeout=5&loading=progress"
 ```
 
 ```json
@@ -135,6 +154,12 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=1&hostname=tiny-
   "continuous_timeout": 5,
   "loading": "progress",
   "access_token_set": true,
+  "wifi_configured": true,
+  "wifi_ssid": "MyNetwork",
+  "wifi_password_set": true,
+  "wifi_connect_success": true,
+  "wifi_ip": "192.168.1.10",
+  "wifi_hostname": "tiny-engineer.local",
   "reboot_required": true
 }
 ```
@@ -148,14 +173,16 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=1&hostname=tiny-
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `access_token` | string | 0–64 printable ASCII; empty string clears the token and disables auth |
+| `wifi_ssid` | string | 1–32 chars; setup AP only; must be sent with `wifi_password` |
+| `wifi_password` | string | 0–63 chars; setup AP only; empty allowed for open networks; tested before save |
 
-At least one param required. Invalid or missing-all → **400**. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot.
+At least one param required. Invalid or missing-all → **400**. WiFi params outside setup AP → **400** `wifi setup only in AP mode`. WiFi test failure → **400** with error such as `SSID not found`, `Auth failed`, or `Timeout`. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot. After successful WiFi save, `wifi_connect_success`, `wifi_ip`, and `wifi_hostname` are included.
 
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores all settings to compile-time defaults. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname or loading screen differed from defaults before reset.
+Factory reset: clears the NVS `te` namespace and restores all settings to compile-time defaults, including WiFi credentials. After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname, loading screen, or saved WiFi differed from defaults before reset.
 
-The Config web UI clears the browser-stored Bearer token, blocks the panel behind a reboot gate, and polls `/health` until the device restarts (uptime drops), then unlocks automatically.
+The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup page. It does not poll for reconnect.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings/reset"
@@ -164,7 +191,7 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
 ```json
 {
   "ok": true,
-  "sleep_timeout": 1,
+  "sleep_timeout": 10,
   "hostname": "tiny-engineer",
   "volume": 70,
   "welcome": true,

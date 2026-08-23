@@ -2,7 +2,7 @@
 
 Persistent settings live in NVS (namespace `te`) via [`src/settings.cpp`](../src/settings.cpp) and [`src/settings_storage.cpp`](../src/settings_storage.cpp). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
-Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_timeout`, `loading`, `access_token`. Follow the same pattern for a new one.
+Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_timeout`, `loading`, `access_token`, `wifi_ssid`, `wifi_password`. Follow the same pattern for a new one.
 
 ## Design choices
 
@@ -12,7 +12,7 @@ Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_tim
 | RAM | Cached in a module-static after `initSettings()`; callers use getters |
 | Update API | Nullable pointer args to `saveSettings(...)` — only non-null fields change |
 | HTTP | Query params on `POST /settings`; at least one param required |
-| Apply timing | Prefer immediate apply. If boot-only (like hostname), set `reboot_required` and document it |
+| Apply timing | Prefer immediate apply. If boot-only (like hostname), set `reboot_required` and document it. WiFi credentials are setup-AP-only and tested before save |
 | Types | Prefer small integers / short strings; validate before any NVS write |
 
 ## Checklist
@@ -83,7 +83,7 @@ Flash only when you want to try it on hardware (`pio run -t upload`).
 
 - **Partial writes:** validate first; never write NVS then fail validation mid-way.
 - **JSON buffer:** `sendSettingsJson` uses a fixed `char` buffer — bump size when adding fields.
-- **Factory reset:** `factoryResetSettings()` in [`settings_storage.cpp`](../src/settings_storage.cpp) clears NVS namespace `te` and writes all defaults; exposed as `POST /settings/reset`.
+- **Factory reset:** `factoryResetSettings()` in [`settings_storage.cpp`](../src/settings_storage.cpp) clears NVS namespace `te` and writes all defaults, including WiFi credentials; exposed as `POST /settings/reset`. After reset, power-cycle into setup AP mode to configure WiFi again (WiFi is not editable on the normal Config page).
 - **Hostname-style settings:** freeze the boot value separately if live change cannot apply (see `settingsBootHostname()` / `reboot_required`).
 - **HTML string size:** the panel is a big string literal in `index_page.cpp`; keep controls compact.
 - **Doc drift:** HTML param tables must match `api.md` exactly.

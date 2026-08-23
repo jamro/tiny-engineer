@@ -10,11 +10,24 @@
 #include "http/server_context.h"
 #include "http/settings_handlers.h"
 #include "http/test_handlers.h"
+#include "network/wifi_connect.h"
 #include "sleep.h"
 
 namespace {
 
 void handleIndex() {
+  WebServer& server = httpServer();
+
+  if (wifiProvisioningMode() && server.uri() == "/") {
+    server.sendHeader(
+      "Location",
+      String("http://") + wifiApIpText() + "/config",
+      true
+    );
+    server.send(302, "text/plain", "Redirecting to setup");
+    return;
+  }
+
   sendIndexPage(httpServer());
 }
 
@@ -23,6 +36,12 @@ void handleNotFound() {
 
   if (server.method() == HTTP_OPTIONS) {
     httpSendCorsPreflight(server);
+    return;
+  }
+
+  if (wifiProvisioningMode() && server.method() == HTTP_GET) {
+    server.sendHeader("Location", String("http://") + wifiApIpText() + "/config", true);
+    server.send(302, "text/plain", "Redirecting to setup");
     return;
   }
 
@@ -60,10 +79,10 @@ void registerHttpRoutes() {
     httpWithApiAuth(httpServer(), handleHealth);
   });
   server.on("/anim", HTTP_GET, []() {
-    httpWithApiAuth(httpServer(), handleAnimGet);
+    httpWithWifiAndApiAuth(httpServer(), handleAnimGet);
   });
   server.on("/anim", HTTP_POST, []() {
-    httpWithApiAuth(httpServer(), handleAnimPost);
+    httpWithWifiAndApiAuth(httpServer(), handleAnimPost);
   });
   server.on("/settings", HTTP_GET, []() {
     httpWithApiAuth(httpServer(), handleSettingsGet);

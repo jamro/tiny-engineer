@@ -11,6 +11,7 @@
 #include "display/eyes.h"
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"
+#include "network/wifi_connect.h"
 #include "settings.h"
 
 namespace {
@@ -141,5 +142,7 @@ void updateAnimation() {
     updateAllServos();
   }
 
-  updateEyes(now);
+  if (!wifiProvisioningMode()) {
+    updateEyes(now);
+  }
 }

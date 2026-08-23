@@ -43,6 +43,22 @@ bool settingsAccessTokenSet() {
   return g_accessToken[0] != '\0';
 }
 
+const char* settingsWifiSsid() {
+  return g_wifiSsid;
+}
+
+const char* settingsWifiPassword() {
+  return g_wifiPassword;
+}
+
+bool settingsWifiConfigured() {
+  return g_wifiSsid[0] != '\0';
+}
+
+bool settingsWifiPasswordSet() {
+  return g_wifiPassword[0] != '\0';
+}
+
 bool settingsValidateSleepTimeout(uint32_t sleepTimeoutMin) {
   return sleepTimeoutMin >= SETTINGS_SLEEP_TIMEOUT_MIN_MIN &&
          sleepTimeoutMin <= SETTINGS_SLEEP_TIMEOUT_MAX_MIN;
@@ -118,4 +134,22 @@ bool settingsValidateAccessToken(const char* accessToken) {
   }
 
   return true;
+}
+
+bool settingsValidateWifiSsid(const char* wifiSsid) {
+  if (wifiSsid == nullptr) {
+    return false;
+  }
+
+  const size_t len = strlen(wifiSsid);
+
+  return len >= 1 && len <= SETTINGS_WIFI_SSID_MAX_LEN;
+}
+
+bool settingsValidateWifiPassword(const char* wifiPassword) {
+  if (wifiPassword == nullptr) {
+    return false;
+  }
+
+  return strlen(wifiPassword) <= SETTINGS_WIFI_PASSWORD_MAX_LEN;
 }

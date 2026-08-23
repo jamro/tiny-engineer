@@ -90,7 +90,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 body.locked nav,body.locked #status,body.locked .view,body.locked footer{display:none!important}
 .form-group input[type=password]{width:100%;padding:.5rem .65rem;border:1px solid var(--border);border-radius:.35rem;font:inherit;background:var(--card)}
 .token-row{display:flex;gap:.5rem;align-items:stretch}
-.token-row input[type=password]{flex:1}
+.token-row input[type=password],.token-row input[type=text]{flex:1}
 .btn-token-toggle{width:auto;min-width:7rem;text-align:center;padding:.5rem .75rem;font-size:.85rem;flex-shrink:0;align-self:stretch}
 .config-section{background:var(--card);border:1px solid var(--border);border-radius:.6rem;padding:1rem 1.15rem;margin-bottom:.85rem}
 .config-section-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.85rem}
@@ -106,6 +106,9 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 .btn-danger{border-color:var(--error);color:var(--error);text-align:center;font-weight:600}
 .btn-danger:hover:not(:disabled){border-color:var(--error);background:#fde8e8}
 .config-danger{border-color:#f5c2c7;margin-top:1rem}
+body.setup-mode nav,body.setup-mode footer{display:none!important}
+body.setup-mode #config-form,body.setup-mode .config-danger{display:none!important}
+body:not(.setup-mode) #wifi-config-section{display:none!important}
 </style>
 </head>
 <body>
@@ -125,9 +128,9 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 </div>
 <div id="reboot-gate">
 <div class="auth-box">
-<h1>Reset the device</h1>
-<p>Factory reset saved. Power-cycle or press the device reset button to apply hostname and boot settings.</p>
-<p id="reboot-gate-status" class="hint">Waiting for device to restart&hellip;</p>
+<h1>Factory reset done</h1>
+<p>Settings and WiFi credentials are cleared. Power-cycle or press the device reset button.</p>
+<p>Then join the robot WiFi shown on the OLED and open the setup page to configure home WiFi.</p>
 </div>
 </div>
 <nav>
@@ -151,7 +154,7 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, and API token.</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, and API token. WiFi is set in setup mode after factory reset.</p></a>
 <a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
 <a class="card card-github" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener"><h3>GitHub docs &rarr;</h3><p>Build guide, wiring, and full project docs.</p></a>
 </div>
@@ -192,7 +195,10 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 <tr><td><code>continuous_timeout</code></td><td>integer</td><td>1&ndash;1440 minutes</td></tr>
 <tr><td><code>loading</code></td><td>string</td><td><code>progress</code> or <code>sleep_inertia</code> (boot screen; next reboot)</td></tr>
 <tr><td><code>access_token</code></td><td>string</td><td>0&ndash;64 printable ASCII; empty clears (disables auth)</td></tr>
+<tr><td><code>wifi_ssid</code></td><td>string</td><td>1&ndash;32 chars; setup AP only; requires <code>wifi_password</code></td></tr>
+<tr><td><code>wifi_password</code></td><td>string</td><td>0&ndash;63 chars; setup AP only; tested before save</td></tr>
 </table>
+<p>WiFi credentials can only be set in setup AP mode. During setup (credentials not saved), control APIs return <strong>503</strong> <code>wifi not configured</code>. Change WiFi later via factory reset.</p>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
 <tr><th>Value</th><th>Description</th></tr>
@@ -268,8 +274,27 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 </section>
 
 <section id="view-config" class="view">
-<h2 class="page-title">Config</h2>
-<p class="page-desc">Saved to flash. Most changes apply right away.</p>
+<h2 class="page-title" id="config-page-title">Config</h2>
+<p class="page-desc" id="config-page-desc">Saved to flash. Most changes apply right away.</p>
+<div id="wifi-config-section" class="config-section">
+<div class="config-section-head"><h3>WiFi</h3><span class="apply-badge apply-now">Immediate</span></div>
+<p id="wifi-config-status" class="hint">Loading WiFi status&hellip;</p>
+<div id="wifi-change-fields">
+<div class="form-group">
+<label for="config-wifi-ssid">Network name (SSID)</label>
+<input type="text" id="config-wifi-ssid" maxlength="32" autocomplete="off">
+</div>
+<div class="form-group">
+<label for="config-wifi-password">Password</label>
+<div class="token-row">
+<input type="password" id="config-wifi-password" maxlength="63" autocomplete="new-password">
+<button type="button" id="config-wifi-password-toggle" class="btn btn-token-toggle">Show</button>
+</div>
+<p class="hint">Leave empty only for open networks.</p>
+</div>
+<button type="button" id="config-wifi-connect" class="btn btn-primary" style="margin-top:0">Connect to WiFi</button>
+</div>
+</div>
 <form id="config-form">
 <div class="config-section">
 <div class="config-section-head"><h3>Network</h3><span class="apply-badge apply-reboot">After reboot</span></div>
@@ -336,7 +361,7 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 </form>
 <div class="config-section config-danger">
 <h3>Factory reset</h3>
-<p class="hint">Erases all saved settings and restores defaults.</p>
+<p class="hint">Erases all saved settings and restores defaults. WiFi credentials are cleared too. Power-cycle the device to reopen setup AP mode and configure WiFi again.</p>
 <button type="button" id="config-factory-reset" class="btn btn-danger">Factory reset</button>
 </div>
 </section>
@@ -348,17 +373,16 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 <script>
 var SERVO_RANGES=[[60,130],[40,130],[50,140],[40,130],[40,130]];
 var TOKEN_KEY="te_access_token";
-var RESET_PENDING_KEY="te_factory_reset_pending";
-var PRE_RESET_UPTIME_KEY="te_pre_reset_uptime";
 var ACCESS_TOKEN_MASK="********";
 var accessTokenConfigured=false;
 var accessTokenMaskActive=false;
 var accessTokenClearPending=false;
 var busy=false;
 var healthTimer=null;
-var rebootWatchTimer=null;
 var lastHealthUptimeMs=0;
 var uiUnlocked=false;
+var provisioningMode=false;
+var wifiConfigured=false;
 var statusEl=document.getElementById("status");
 function getStoredToken(){
   try{return sessionStorage.getItem(TOKEN_KEY)||"";}catch(e){return"";}
@@ -367,27 +391,6 @@ function setStoredToken(token){
   try{
     if(token)sessionStorage.setItem(TOKEN_KEY,token);
     else sessionStorage.removeItem(TOKEN_KEY);
-  }catch(e){}
-}
-function isResetPending(){
-  try{return sessionStorage.getItem(RESET_PENDING_KEY)==="1";}catch(e){return false;}
-}
-function setResetPending(on){
-  try{
-    if(on)sessionStorage.setItem(RESET_PENDING_KEY,"1");
-    else sessionStorage.removeItem(RESET_PENDING_KEY);
-  }catch(e){}
-}
-function getPreResetUptime(){
-  try{
-    var v=sessionStorage.getItem(PRE_RESET_UPTIME_KEY);
-    return v?parseInt(v,10):0;
-  }catch(e){return 0;}
-}
-function setPreResetUptime(ms){
-  try{
-    if(ms>0)sessionStorage.setItem(PRE_RESET_UPTIME_KEY,String(ms));
-    else sessionStorage.removeItem(PRE_RESET_UPTIME_KEY);
   }catch(e){}
 }
 function apiFetch(path,opts){
@@ -428,54 +431,44 @@ function showRebootGate(show){
     stopHealthPolling();
   }
 }
-function stopRebootWatch(){
-  if(rebootWatchTimer){clearInterval(rebootWatchTimer);rebootWatchTimer=null;}
-}
-function finishRebootPending(){
-  stopRebootWatch();
-  setResetPending(false);
-  setPreResetUptime(0);
-  showRebootGate(false);
-  enterApp();
-}
-function startRebootWatch(preResetUptime){
-  stopRebootWatch();
-  var gateStatus=document.getElementById("reboot-gate-status");
-  var sawOffline=false;
-  rebootWatchTimer=setInterval(function(){
-    fetch("/health").then(function(r){return r.json();}).then(function(j){
-      if(!j.ok)return;
-      var uptime=j.uptime_ms||0;
-      if(preResetUptime>0&&uptime<preResetUptime){
-        gateStatus.textContent="Device restarted.";
-        finishRebootPending();
-        return;
-      }
-      if(preResetUptime<=0&&uptime<30000&&sawOffline){
-        gateStatus.textContent="Device restarted.";
-        finishRebootPending();
-        return;
-      }
-      gateStatus.textContent="Waiting for device to restart\u2026";
-    }).catch(function(){
-      sawOffline=true;
-      gateStatus.textContent="Device restarting\u2026";
-    });
-  },2000);
-}
-function enterRebootPendingState(preResetUptime){
-  setResetPending(true);
-  setPreResetUptime(preResetUptime);
-  showRebootGate(true);
-  document.getElementById("reboot-gate-status").textContent="Waiting for device to restart\u2026";
-  startRebootWatch(preResetUptime);
-}
 function enterApp(){
   uiUnlocked=true;
   showAuthGate(false);
   showRebootGate(false);
-  showPage(location.pathname);
-  updateServoHint();
+  syncSetupUi(function(){
+    if(provisioningMode||!wifiConfigured){
+      showPage("/config");
+      var ssidField=document.getElementById("config-wifi-ssid");
+      if(ssidField)ssidField.focus();
+    }else{
+      showPage(location.pathname);
+    }
+    updateServoHint();
+  });
+}
+function syncSetupUi(done){
+  fetch("/health").then(function(r){return r.json();}).then(function(j){
+    if(j.ok){
+      provisioningMode=!!j.provisioning;
+      wifiConfigured=!!j.wifi_configured;
+      var inSetup=provisioningMode||!wifiConfigured;
+      document.body.classList.toggle("setup-mode",inSetup);
+      var title=document.getElementById("config-page-title");
+      var desc=document.getElementById("config-page-desc");
+      if(title)title.textContent=inSetup?"WiFi setup":"Config";
+      if(desc){
+        desc.textContent=inSetup
+          ?"Enter your home WiFi network. The robot tests the connection before saving."
+          :"Saved to flash. Most changes apply right away.";
+      }
+    }
+    if(done)done();
+  }).catch(function(){if(done)done();});
+}
+function syncWifiStatusFromSettings(j){
+  var status=document.getElementById("wifi-config-status");
+  if(!status)return;
+  status.textContent="Enter the network name and password for the WiFi you want the robot to join.";
 }
 function showPage(path){
   if(!uiUnlocked)return;
@@ -667,6 +660,8 @@ document.getElementById("config-welcome").addEventListener("change",updateWelcom
 function loadSettings(){
   apiFetch("/settings").then(function(r){return r.json();}).then(function(j){
     if(!j.ok)return;
+    wifiConfigured=!!j.wifi_configured;
+    syncWifiStatusFromSettings(j);
     document.getElementById("config-hostname").value=j.hostname||"";
     document.getElementById("config-sleep").value=j.sleep_timeout;
     document.getElementById("config-continuous").value=j.continuous_timeout!=null?j.continuous_timeout:5;
@@ -677,6 +672,44 @@ function loadSettings(){
     updateWelcomeMotionHint();
   }).catch(function(){setStatus("Could not load settings","err");});
 }
+document.getElementById("config-wifi-password-toggle").addEventListener("click",function(){
+  var field=document.getElementById("config-wifi-password");
+  var show=field.type==="password";
+  field.type=show?"text":"password";
+  this.textContent=show?"Hide":"Show";
+});
+document.getElementById("config-wifi-connect").addEventListener("click",function(){
+  if(busy)return;
+  var ssid=document.getElementById("config-wifi-ssid").value.trim();
+  var password=document.getElementById("config-wifi-password").value;
+  if(!ssid){
+    setStatus("Enter a WiFi network name.","err");
+    return;
+  }
+  setBusy(true);
+  setStatus("Testing WiFi credentials\u2026","loading");
+  var url="/settings?wifi_ssid="+encodeURIComponent(ssid)+"&wifi_password="+encodeURIComponent(password);
+  apiFetch(url,{method:"POST"})
+  .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
+  .then(function(res){
+    if(res.ok&&res.data.ok!==false&&res.data.wifi_connect_success){
+      document.getElementById("config-wifi-password").value="";
+      wifiConfigured=true;
+      provisioningMode=false;
+      document.body.classList.remove("setup-mode");
+      syncSetupUi();
+      syncWifiStatusFromSettings(res.data);
+      var next="WiFi connected. Rejoin your home network";
+      if(res.data.wifi_ip)next+=" and open http://"+res.data.wifi_ip;
+      if(res.data.wifi_hostname)next+=" or http://"+res.data.wifi_hostname;
+      next+=".";
+      setStatus(next,"ok");
+    }else{
+      setStatus(res.data.error||"WiFi connection failed","err");
+    }
+  }).catch(function(){setStatus("Network error","err");})
+  .finally(function(){setBusy(false);});
+});
 document.getElementById("config-form").addEventListener("submit",function(e){
   e.preventDefault();
   if(busy)return;
@@ -718,19 +751,17 @@ document.getElementById("config-form").addEventListener("submit",function(e){
 });
 document.getElementById("config-factory-reset").addEventListener("click",function(){
   if(busy)return;
-  if(!confirm("Reset all settings to factory defaults? This cannot be undone."))return;
-  var preResetUptime=lastHealthUptimeMs;
+  if(!confirm("Reset all settings to factory defaults? WiFi credentials will be cleared. Power-cycle the device to reopen setup AP mode and configure WiFi again."))return;
   setBusy(true);
   setStatus("Resetting\u2026","loading");
-  var uptimePromise=preResetUptime>0?Promise.resolve(preResetUptime):fetch("/health").then(function(r){return r.json();}).then(function(j){return j.ok&&j.uptime_ms?j.uptime_ms:0;}).catch(function(){return 0;});
-  uptimePromise.then(function(uptime){
-    return apiFetch("/settings/reset",{method:"POST"}).then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j,uptime:uptime};});});
-  }).then(function(res){
+  apiFetch("/settings/reset",{method:"POST"})
+  .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
+  .then(function(res){
     if(res.ok&&res.data.ok!==false){
       setStoredToken("");
       setAccessTokenFromServer(false);
       clearStatus();
-      enterRebootPendingState(res.uptime);
+      showRebootGate(true);
     }else{
       setStatus(res.data.error||"Factory reset failed","err");
     }
@@ -781,11 +812,6 @@ document.getElementById("auth-form").addEventListener("submit",function(e){
 });
 function bootUi(){
   document.body.classList.add("locked");
-  if(isResetPending()){
-    showRebootGate(true);
-    startRebootWatch(getPreResetUptime());
-    return;
-  }
   fetch("/auth").then(function(r){return r.json();}).then(function(j){
     if(!j.ok||!j.required){
       enterApp();

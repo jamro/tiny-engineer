@@ -7,7 +7,7 @@
 #include "network/wifi_connect.h"
 
 void startHttpServer() {
-  if (!wifiConnected()) {
+  if (!wifiConnected() && !wifiProvisioningMode()) {
     Serial.println("HTTP: skipped (no wifi)");
     return;
   }
@@ -21,6 +21,13 @@ void startHttpServer() {
 
   registerHttpRoutes();
   server.begin();
+
+  if (wifiProvisioningMode()) {
+    Serial.print("HTTP setup: http://");
+    Serial.print(wifiApIpText());
+    Serial.println("/config");
+    return;
+  }
 
   Serial.print("HTTP: http://");
   Serial.print(wifiIpText());
@@ -37,7 +44,7 @@ void startHttpServer() {
 }
 
 void pollHttpServer() {
-  if (!wifiConnected()) {
+  if (!wifiConnected() && !wifiProvisioningMode()) {
     delay(10);
     return;
   }

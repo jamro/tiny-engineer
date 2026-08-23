@@ -2,6 +2,7 @@
 #include "esp32-hal-rgb-led.h"
 
 #include "animation.h"
+#include "network/wifi_connect.h"
 #include "pins.h"
 #include "hardware/rgb.h"
 
@@ -10,6 +11,8 @@ namespace {
 constexpr uint8_t RGB_ANIM_WHITE = 255;
 constexpr uint8_t RGB_ANIM_RED = 255;
 constexpr uint32_t RGB_TRANSITION_MS = 1000;
+
+constexpr uint8_t RGB_PROVISIONING_B = 64;
 
 uint8_t g_startR = 0;
 uint8_t g_startG = 0;
@@ -170,6 +173,21 @@ void setRgbForAnimation(AnimationId id, uint32_t nowMs) {
 }
 
 void updateRgb(uint32_t nowMs) {
+  static bool wasProvisioning = false;
+
+  if (wifiProvisioningMode()) {
+    if (g_currentR != 0 || g_currentG != 0 || g_currentB != RGB_PROVISIONING_B) {
+      setRgb(0, 0, RGB_PROVISIONING_B);
+    }
+    wasProvisioning = true;
+    return;
+  }
+
+  if (wasProvisioning) {
+    wasProvisioning = false;
+    setRgbForAnimation(getAnimation(), nowMs);
+  }
+
   applyTransition(nowMs);
 }
 

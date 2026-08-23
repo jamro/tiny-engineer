@@ -75,6 +75,19 @@ bool httpRequireApiAuth(WebServer& server) {
   return true;
 }
 
+bool httpRequireWifiConfigured(WebServer& server) {
+  if (settingsWifiConfigured()) {
+    return true;
+  }
+
+  httpSendJson(
+    server,
+    503,
+    "{\"ok\":false,\"error\":\"wifi not configured\"}"
+  );
+  return false;
+}
+
 void httpWithApiAuth(WebServer& server, void (*handler)(WebServer&)) {
   if (!httpRequireApiAuth(server)) {
     return;
@@ -82,4 +95,12 @@ void httpWithApiAuth(WebServer& server, void (*handler)(WebServer&)) {
 
   touchApiActivity();
   handler(server);
+}
+
+void httpWithWifiAndApiAuth(WebServer& server, void (*handler)(WebServer&)) {
+  if (!httpRequireWifiConfigured(server)) {
+    return;
+  }
+
+  httpWithApiAuth(server, handler);
 }

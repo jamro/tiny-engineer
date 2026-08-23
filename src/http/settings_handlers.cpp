@@ -5,16 +5,26 @@
 #include <cstdio>
 
 #include "http/json.h"
+#include "http/server_context.h"
+#include "network/wifi_connect.h"
 #include "settings.h"
 
 namespace {
 
-void sendSettingsJson(WebServer& server, bool rebootRequired) {
-  char body[448];
+void sendSettingsJson(
+  WebServer& server,
+  bool rebootRequired,
+  bool wifiConnectSuccess
+) {
+  char body[640];
   const char* tokenSet =
     settingsAccessTokenSet() ? "true" : "false";
+  const char* wifiConfigured =
+    settingsWifiConfigured() ? "true" : "false";
+  const char* wifiPasswordSet =
+    settingsWifiPasswordSet() ? "true" : "false";
 
-  if (rebootRequired) {
+  if (wifiConnectSuccess) {
     snprintf(
       body,
       sizeof(body),
@@ -27,6 +37,44 @@ void sendSettingsJson(WebServer& server, bool rebootRequired) {
       "\"continuous_timeout\":%lu,"
       "\"loading\":\"%s\","
       "\"access_token_set\":%s,"
+      "\"wifi_configured\":%s,"
+      "\"wifi_ssid\":\"%s\","
+      "\"wifi_password_set\":%s,"
+      "\"wifi_connect_success\":true,"
+      "\"wifi_ip\":\"%s\","
+      "\"wifi_hostname\":\"%s\""
+      "%s"
+      "}",
+      (unsigned long)settingsSleepTimeoutMin(),
+      settingsHostname(),
+      static_cast<unsigned>(settingsVolume()),
+      settingsWelcomeEnabled() ? "true" : "false",
+      (unsigned long)settingsContinuousTimeoutMin(),
+      settingsLoading(),
+      tokenSet,
+      wifiConfigured,
+      settingsWifiSsid(),
+      wifiPasswordSet,
+      wifiIpText(),
+      httpMdnsHostname(),
+      rebootRequired ? ",\"reboot_required\":true" : ""
+    );
+  } else if (rebootRequired) {
+    snprintf(
+      body,
+      sizeof(body),
+      "{"
+      "\"ok\":true,"
+      "\"sleep_timeout\":%lu,"
+      "\"hostname\":\"%s\","
+      "\"volume\":%u,"
+      "\"welcome\":%s,"
+      "\"continuous_timeout\":%lu,"
+      "\"loading\":\"%s\","
+      "\"access_token_set\":%s,"
+      "\"wifi_configured\":%s,"
+      "\"wifi_ssid\":\"%s\","
+      "\"wifi_password_set\":%s,"
       "\"reboot_required\":true"
       "}",
       (unsigned long)settingsSleepTimeoutMin(),
@@ -35,7 +83,10 @@ void sendSettingsJson(WebServer& server, bool rebootRequired) {
       settingsWelcomeEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
       settingsLoading(),
-      tokenSet
+      tokenSet,
+      wifiConfigured,
+      settingsWifiSsid(),
+      wifiPasswordSet
     );
   } else {
     snprintf(
@@ -49,7 +100,10 @@ void sendSettingsJson(WebServer& server, bool rebootRequired) {
       "\"welcome\":%s,"
       "\"continuous_timeout\":%lu,"
       "\"loading\":\"%s\","
-      "\"access_token_set\":%s"
+      "\"access_token_set\":%s,"
+      "\"wifi_configured\":%s,"
+      "\"wifi_ssid\":\"%s\","
+      "\"wifi_password_set\":%s"
       "}",
       (unsigned long)settingsSleepTimeoutMin(),
       settingsHostname(),
@@ -57,7 +111,10 @@ void sendSettingsJson(WebServer& server, bool rebootRequired) {
       settingsWelcomeEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
       settingsLoading(),
-      tokenSet
+      tokenSet,
+      wifiConfigured,
+      settingsWifiSsid(),
+      wifiPasswordSet
     );
   }
 
@@ -67,7 +124,7 @@ void sendSettingsJson(WebServer& server, bool rebootRequired) {
 }  // namespace
 
 void handleSettingsGet(WebServer& server) {
-  sendSettingsJson(server, false);
+  sendSettingsJson(server, false, false);
 }
 
 void handleSettingsPost(WebServer& server) {
@@ -78,13 +135,15 @@ void handleSettingsPost(WebServer& server) {
   const bool hasContTo = server.hasArg("continuous_timeout");
   const bool hasLoading = server.hasArg("loading");
   const bool hasAccessToken = server.hasArg("access_token");
+  const bool hasWifiSsid = server.hasArg("wifi_ssid");
+  const bool hasWifiPassword = server.hasArg("wifi_password");
 
   if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasContTo &&
-      !hasLoading && !hasAccessToken) {
+      !hasLoading && !hasAccessToken && !hasWifiSsid && !hasWifiPassword) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, continuous_timeout, loading, or access_token\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, continuous_timeout, loading, access_token, wifi_ssid, or wifi_password\"}"
     );
     return;
   }
@@ -103,6 +162,11 @@ void handleSettingsPost(WebServer& server) {
   const char* loadingPtr = nullptr;
   String accessTokenArg;
   const char* accessTokenPtr = nullptr;
+  String wifiSsidArg;
+  const char* wifiSsidPtr = nullptr;
+  String wifiPasswordArg;
+  const char* wifiPasswordPtr = nullptr;
+  bool wifiConnectSuccess = false;
 
   if (hasSleep) {
     const String sleepArg = server.arg("sleep_timeout");
@@ -252,6 +316,65 @@ void handleSettingsPost(WebServer& server) {
     }
   }
 
+  if (hasWifiSsid || hasWifiPassword) {
+    if (!wifiProvisioningMode()) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"wifi setup only in AP mode\"}"
+      );
+      return;
+    }
+
+    if (!hasWifiSsid || !hasWifiPassword) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"wifi_ssid and wifi_password required together\"}"
+      );
+      return;
+    }
+
+    wifiSsidArg = server.arg("wifi_ssid");
+    wifiPasswordArg = server.arg("wifi_password");
+    wifiSsidPtr = wifiSsidArg.c_str();
+    wifiPasswordPtr = wifiPasswordArg.c_str();
+
+    if (!settingsValidateWifiSsid(wifiSsidPtr)) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid wifi_ssid\"}"
+      );
+      return;
+    }
+
+    if (!settingsValidateWifiPassword(wifiPasswordPtr)) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"wifi_password too long\"}"
+      );
+      return;
+    }
+
+    if (!wifiTestCredentials(wifiSsidPtr, wifiPasswordPtr)) {
+      char body[96];
+      snprintf(
+        body,
+        sizeof(body),
+        "{\"ok\":false,\"error\":\"%s\"}",
+        wifiLastConnectError()
+      );
+      httpSendJson(server, 400, body);
+      return;
+    }
+
+    wifiConnectSuccess = true;
+    wifiSsidPtr = wifiSsidArg.c_str();
+    wifiPasswordPtr = wifiPasswordArg.c_str();
+  }
+
   bool rebootRequired = false;
 
   if (!saveSettings(
@@ -262,6 +385,8 @@ void handleSettingsPost(WebServer& server) {
         contToPtr,
         loadingPtr,
         accessTokenPtr,
+        wifiSsidPtr,
+        wifiPasswordPtr,
         &rebootRequired
       )) {
     httpSendJson(
@@ -272,7 +397,7 @@ void handleSettingsPost(WebServer& server) {
     return;
   }
 
-  sendSettingsJson(server, rebootRequired);
+  sendSettingsJson(server, rebootRequired, wifiConnectSuccess);
 }
 
 void handleSettingsReset(WebServer& server) {
@@ -287,7 +412,7 @@ void handleSettingsReset(WebServer& server) {
     return;
   }
 
-  sendSettingsJson(server, rebootRequired);
+  sendSettingsJson(server, rebootRequired, false);
 }
 
 bool isSettingsOrAnimPath(const String& uri) {

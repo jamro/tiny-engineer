@@ -11,6 +11,13 @@ void showOledText(
   const char* line2 = nullptr
 );
 
+void showProvisioningOled(
+  const char* line1,
+  const char* line2
+);
+
+void updateProvisioningOled(uint32_t nowMs);
+
 void showBootProgress(
   int step,
   int totalSteps,

@@ -24,7 +24,7 @@ Controller is a **Waveshare ESP32-C3-Zero**. Servos, display, and audio wiring l
 
 Arduino firmware, built with [PlatformIO](https://platformio.org/). Boot inits onboard RGB, SSD1306 OLED, Wi-Fi, PCA9685 (5 servos), and MAX98357A (I2S), then serves JSON on port 80.
 
-Copy `include/secrets.h.example` to `include/secrets.h` and set `WIFI_SSID` / `WIFI_PASSWORD`. That file is gitignored.
+On first boot (or after factory reset and a power-cycle), the board opens a setup Wi-Fi network (`TinyEngineer-XXXX`). Connect to it, open `http://192.168.4.1/config`, and enter your home Wi-Fi credentials. The OLED shows setup instructions during this step. WiFi is not editable from the normal Config page afterward — use factory reset to change it.
 
 Prerequisites:
 
@@ -57,7 +57,7 @@ Board and baud rate live in `platformio.ini`. The platform package is [pioarduin
 
 ## HTTP API
 
-After Wi-Fi connects, the board listens on port 80 (`http://tiny-engineer.local/` or the IP on the OLED). Open `/` in a browser for the web control panel.
+After Wi-Fi is configured, the board listens on port 80 (`http://tiny-engineer.local/` or the IP on the OLED). Open `/` in a browser for the web control panel.
 
 ```bash
 curl http://tiny-engineer.local/auth
@@ -73,7 +73,7 @@ curl -X POST http://tiny-engineer.local/test/led
 curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 ```
 
-`GET /` is the web control panel (includes **Config** for hostname / sleep timeout / continuous anim timeout / volume / welcome / loading screen / optional access token). `GET /auth` reports whether Bearer auth is required (always public). `GET /health` is health JSON. `GET`/`POST /settings` reads and writes NVS-backed settings. When an access token is set, JSON APIs require `Authorization: Bearer <token>`. Test routes are **POST** (they move hardware). Full reference: [`docs/api.md`](docs/api.md). How to add a setting: [`docs/settings.md`](docs/settings.md).
+`GET /` is the web control panel (includes **Config** for device name / sleep timeout / continuous anim timeout / volume / welcome / loading screen / optional access token). WiFi is configured only in setup AP mode. `GET /auth` reports whether Bearer auth is required (always public). `GET /health` is health JSON. `GET`/`POST /settings` reads and writes NVS-backed settings. When WiFi credentials are not saved yet, control APIs return **503**. When an access token is set, JSON APIs require `Authorization: Bearer <token>`. Test routes are **POST** (they move hardware). Full reference: [`docs/api.md`](docs/api.md). How to add a setting: [`docs/settings.md`](docs/settings.md).
 
 ## Integrating with AI tools
 

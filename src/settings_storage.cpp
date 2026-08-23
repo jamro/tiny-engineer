@@ -15,6 +15,8 @@ constexpr const char* kKeyWelcome = "welcome";
 constexpr const char* kKeyContTo = "cont_to";
 constexpr const char* kKeyLoading = "loading";
 constexpr const char* kKeyAccessTok = "access_tok";
+constexpr const char* kKeyWifiSsid = "wifi_ssid";
+constexpr const char* kKeyWifiPass = "wifi_pass";
 
 Preferences prefs;
 
@@ -28,6 +30,8 @@ bool g_welcome = SETTINGS_DEFAULT_WELCOME;
 uint32_t g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
 char g_loading[SETTINGS_LOADING_MAX_LEN + 1] = {};
 char g_accessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1] = {};
+char g_wifiSsid[SETTINGS_WIFI_SSID_MAX_LEN + 1] = {};
+char g_wifiPassword[SETTINGS_WIFI_PASSWORD_MAX_LEN + 1] = {};
 
 void setHostnameCache(char* dest, const char* src) {
   strncpy(dest, src, SETTINGS_HOSTNAME_MAX_LEN);
@@ -44,6 +48,16 @@ void setAccessTokenCache(char* dest, const char* src) {
   dest[SETTINGS_ACCESS_TOKEN_MAX_LEN] = '\0';
 }
 
+void setWifiSsidCache(char* dest, const char* src) {
+  strncpy(dest, src, SETTINGS_WIFI_SSID_MAX_LEN);
+  dest[SETTINGS_WIFI_SSID_MAX_LEN] = '\0';
+}
+
+void setWifiPasswordCache(char* dest, const char* src) {
+  strncpy(dest, src, SETTINGS_WIFI_PASSWORD_MAX_LEN);
+  dest[SETTINGS_WIFI_PASSWORD_MAX_LEN] = '\0';
+}
+
 void logAccessTokenState() {
   Serial.print(" access_token=");
   Serial.print(g_accessToken[0] != '\0' ? "set" : "unset");
@@ -56,6 +70,8 @@ void initSettings() {
   g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
   setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
+  setWifiSsidCache(g_wifiSsid, "");
+  setWifiPasswordCache(g_wifiPassword, "");
 
   if (!prefs.begin(kNs, true)) {
     Serial.println("Settings: NVS open failed; using defaults");
@@ -117,6 +133,22 @@ void initSettings() {
     setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
   }
 
+  String wifiSsid = prefs.getString(kKeyWifiSsid, "");
+
+  if (settingsValidateWifiSsid(wifiSsid.c_str())) {
+    setWifiSsidCache(g_wifiSsid, wifiSsid.c_str());
+  } else {
+    setWifiSsidCache(g_wifiSsid, "");
+  }
+
+  String wifiPass = prefs.getString(kKeyWifiPass, "");
+
+  if (settingsValidateWifiPassword(wifiPass.c_str())) {
+    setWifiPasswordCache(g_wifiPassword, wifiPass.c_str());
+  } else {
+    setWifiPasswordCache(g_wifiPassword, "");
+  }
+
   prefs.end();
 
   setHostnameCache(g_bootHostname, g_hostname);
@@ -134,6 +166,8 @@ void initSettings() {
   Serial.print("min loading=");
   Serial.print(g_loading);
   logAccessTokenState();
+  Serial.print(" wifi=");
+  Serial.print(g_wifiSsid[0] != '\0' ? "configured" : "unset");
   Serial.println();
 }
 
@@ -145,6 +179,8 @@ bool saveSettings(
   const uint32_t* continuousTimeoutMin,
   const char* loading,
   const char* accessToken,
+  const char* wifiSsid,
+  const char* wifiPassword,
   bool* rebootRequired
 ) {
   if (rebootRequired != nullptr) {
@@ -157,7 +193,9 @@ bool saveSettings(
       welcome == nullptr &&
       continuousTimeoutMin == nullptr &&
       loading == nullptr &&
-      accessToken == nullptr) {
+      accessToken == nullptr &&
+      wifiSsid == nullptr &&
+      wifiPassword == nullptr) {
     return false;
   }
 
@@ -171,6 +209,10 @@ bool saveSettings(
   setLoadingCache(nextLoading, g_loading);
   char nextAccessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1];
   setAccessTokenCache(nextAccessToken, g_accessToken);
+  char nextWifiSsid[SETTINGS_WIFI_SSID_MAX_LEN + 1];
+  setWifiSsidCache(nextWifiSsid, g_wifiSsid);
+  char nextWifiPassword[SETTINGS_WIFI_PASSWORD_MAX_LEN + 1];
+  setWifiPasswordCache(nextWifiPassword, g_wifiPassword);
 
   if (sleepTimeoutMin != nullptr) {
     if (!settingsValidateSleepTimeout(*sleepTimeoutMin)) {
@@ -224,6 +266,22 @@ bool saveSettings(
     setAccessTokenCache(nextAccessToken, accessToken);
   }
 
+  if (wifiSsid != nullptr) {
+    if (!settingsValidateWifiSsid(wifiSsid)) {
+      return false;
+    }
+
+    setWifiSsidCache(nextWifiSsid, wifiSsid);
+  }
+
+  if (wifiPassword != nullptr) {
+    if (!settingsValidateWifiPassword(wifiPassword)) {
+      return false;
+    }
+
+    setWifiPasswordCache(nextWifiPassword, wifiPassword);
+  }
+
   if (!prefs.begin(kNs, false)) {
     Serial.println("Settings: NVS write open failed");
     return false;
@@ -236,6 +294,8 @@ bool saveSettings(
   prefs.putUInt(kKeyContTo, nextContTo);
   prefs.putString(kKeyLoading, nextLoading);
   prefs.putString(kKeyAccessTok, nextAccessToken);
+  prefs.putString(kKeyWifiSsid, nextWifiSsid);
+  prefs.putString(kKeyWifiPass, nextWifiPassword);
   prefs.end();
 
   g_sleepTimeoutMin = nextSleep;
@@ -245,6 +305,8 @@ bool saveSettings(
   g_continuousTimeoutMin = nextContTo;
   setLoadingCache(g_loading, nextLoading);
   setAccessTokenCache(g_accessToken, nextAccessToken);
+  setWifiSsidCache(g_wifiSsid, nextWifiSsid);
+  setWifiPasswordCache(g_wifiPassword, nextWifiPassword);
 
   if (rebootRequired != nullptr &&
       strcmp(g_hostname, g_bootHostname) != 0) {
@@ -264,6 +326,8 @@ bool saveSettings(
   Serial.print("min loading=");
   Serial.print(g_loading);
   logAccessTokenState();
+  Serial.print(" wifi=");
+  Serial.print(g_wifiSsid[0] != '\0' ? "configured" : "unset");
   Serial.println();
 
   return true;
@@ -274,9 +338,10 @@ bool factoryResetSettings(bool* rebootRequired) {
     strcmp(g_bootHostname, SETTINGS_DEFAULT_HOSTNAME) != 0;
   const bool loadingReboot =
     strcmp(g_loading, SETTINGS_DEFAULT_LOADING) != 0;
+  const bool wifiReboot = g_wifiSsid[0] != '\0';
 
   if (rebootRequired != nullptr) {
-    *rebootRequired = hostReboot || loadingReboot;
+    *rebootRequired = hostReboot || loadingReboot || wifiReboot;
   }
 
   g_sleepTimeoutMin = SETTINGS_DEFAULT_SLEEP_TIMEOUT_MIN;
@@ -286,6 +351,8 @@ bool factoryResetSettings(bool* rebootRequired) {
   g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
   setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
+  setWifiSsidCache(g_wifiSsid, "");
+  setWifiPasswordCache(g_wifiPassword, "");
 
   if (!prefs.begin(kNs, false)) {
     Serial.println("Settings: factory reset NVS open failed");
@@ -300,6 +367,8 @@ bool factoryResetSettings(bool* rebootRequired) {
   prefs.putUInt(kKeyContTo, g_continuousTimeoutMin);
   prefs.putString(kKeyLoading, g_loading);
   prefs.putString(kKeyAccessTok, g_accessToken);
+  prefs.putString(kKeyWifiSsid, g_wifiSsid);
+  prefs.putString(kKeyWifiPass, g_wifiPassword);
   prefs.end();
 
   Serial.print("Settings factory reset: sleep_timeout=");
@@ -315,6 +384,8 @@ bool factoryResetSettings(bool* rebootRequired) {
   Serial.print("min loading=");
   Serial.print(g_loading);
   logAccessTokenState();
+  Serial.print(" wifi=");
+  Serial.print("unset");
   Serial.println();
 
   return true;

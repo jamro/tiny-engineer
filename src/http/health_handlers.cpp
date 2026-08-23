@@ -12,13 +12,15 @@
 
 void handleAuth() {
   WebServer& server = httpServer();
-  char body[64];
+  char body[128];
 
   snprintf(
     body,
     sizeof(body),
-    "{\"ok\":true,\"required\":%s}",
-    settingsAccessTokenSet() ? "true" : "false"
+    "{\"ok\":true,\"required\":%s,\"wifi_configured\":%s,\"provisioning\":%s}",
+    settingsAccessTokenSet() ? "true" : "false",
+    settingsWifiConfigured() ? "true" : "false",
+    wifiProvisioningMode() ? "true" : "false"
   );
 
   httpSendJson(server, 200, body);
@@ -30,7 +32,7 @@ void handleHealth(WebServer& server) {
 
   refreshMdnsHostname();
 
-  char body[360];
+  char body[512];
 
   snprintf(
     body,
@@ -46,6 +48,10 @@ void handleHealth(WebServer& server) {
     "\"rssi\":%d,"
     "\"hostname\":\"%s\""
     "},"
+    "\"wifi_configured\":%s,"
+    "\"provisioning\":%s,"
+    "\"setup_ap_ssid\":\"%s\","
+    "\"setup_ap_ip\":\"%s\","
     "\"oled\":%s"
     "}",
     (unsigned long)millis(),
@@ -55,6 +61,10 @@ void handleHealth(WebServer& server) {
     wifiOk ? wifiIpText() : "",
     wifiOk ? (int)WiFi.RSSI() : 0,
     httpMdnsHostname(),
+    settingsWifiConfigured() ? "true" : "false",
+    wifiProvisioningMode() ? "true" : "false",
+    wifiProvisioningMode() ? wifiApSsid() : "",
+    wifiProvisioningMode() ? wifiApIpText() : "",
     oledAvailable ? "true" : "false"
   );
 

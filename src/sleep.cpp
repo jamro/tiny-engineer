@@ -3,6 +3,7 @@
 #include "animation.h"
 #include "display/eyes.h"
 #include "display/oled.h"
+#include "network/wifi_connect.h"
 #include "settings.h"
 #include "sleep.h"
 
@@ -53,6 +54,10 @@ void touchApiActivity() {
 }
 
 void updateSleep(uint32_t now) {
+  if (wifiProvisioningMode()) {
+    return;
+  }
+
   switch (g_state) {
     case SleepState::Awake:
       if (getAnimation() == AnimationId::None &&

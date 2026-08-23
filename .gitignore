@@ -1,14 +1,8 @@
 # Cursor hook event log
 cursor_events.log
 
-#secrets
-secrets.h
-
 # platform.io
 .pio
-
-# Local Wi-Fi credentials (never commit)
-include/secrets.h
 
 # Prerequisites
 *.d

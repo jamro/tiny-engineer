@@ -64,11 +64,12 @@ void setup() {
   }
 
   bootShowProgress(2, kBootSteps, "WiFi...");
-  runWifiTest();
+  runWifiSetup();
   bootShowProgress(
     2,
     kBootSteps,
-    wifiConnected() ? "WiFi OK" : "WiFi failed"
+    wifiConnected() ? "WiFi OK" :
+    wifiProvisioningMode() ? "WiFi setup" : "WiFi failed"
   );
 
   bootShowProgress(3, kBootSteps, "Servos");
@@ -119,11 +120,18 @@ void setup() {
 
   if (bootLoadingIsProgress()) {
     bootShowProgress(kBootSteps, kBootSteps, "Ready");
-    showBootIp(wifiConnected() ? wifiIpText() : "");
-    delay(3000);
-    showIdleScreen();
+    if (wifiProvisioningMode()) {
+      showProvisioningOled("Join this WiFi", wifiApSsid());
+    } else {
+      showBootIp(wifiConnected() ? wifiIpText() : "");
+      delay(3000);
+      showIdleScreen();
+    }
   } else {
     bootRunSleepInertia();
+    if (wifiProvisioningMode()) {
+      showProvisioningOled("Join this WiFi", wifiApSsid());
+    }
   }
 
   Serial.println();
@@ -133,17 +141,23 @@ void setup() {
 
   if (wifiConnected() && settingsWelcomeEnabled()) {
     setAnimation(AnimationId::Welcome);
+  } else if (wifiProvisioningMode()) {
+    setRgb(0, 0, 64);
   } else {
     setRgbForAnimation(AnimationId::None, millis());
   }
 
-  startHttpServer();
+  if (wifiConnected() || wifiProvisioningMode()) {
+    startHttpServer();
+  }
   initSleep();
 }
 
 void loop() {
   const uint32_t now = millis();
+  pollWifi();
   pollHttpServer();
+  updateProvisioningOled(now);
   updateSleep(now);
   updateAnimation();
   updateRgb(now);
