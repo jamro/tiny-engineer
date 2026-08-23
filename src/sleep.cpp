@@ -17,7 +17,7 @@ enum class SleepState {
 };
 
 SleepState g_state = SleepState::Awake;
-uint32_t g_lastApiActivityMs = 0;
+uint32_t g_idleSinceMs = 0;
 
 void wakeFromSleep(uint32_t now) {
   wakeOled();
@@ -33,12 +33,14 @@ void beginSleepClosing(uint32_t now) {
 }  // namespace
 
 void initSleep() {
-  g_lastApiActivityMs = millis();
+  g_idleSinceMs = millis();
 }
 
-void touchApiActivity() {
-  const uint32_t now = millis();
-  g_lastApiActivityMs = now;
+void onAnimationApplied(AnimationId id, uint32_t now) {
+  if (id == AnimationId::None) {
+    g_idleSinceMs = now;
+    return;
+  }
 
   switch (g_state) {
     case SleepState::Sleeping:
@@ -60,8 +62,11 @@ void updateSleep(uint32_t now) {
 
   switch (g_state) {
     case SleepState::Awake:
+      // g_idleSinceMs may be set with millis() after this loop's `now`
+      // (e.g. POST /anim during pollHttpServer). Guard against underflow.
       if (getAnimation() == AnimationId::None &&
-          now - g_lastApiActivityMs >= settingsSleepTimeoutMs()) {
+          now >= g_idleSinceMs &&
+          now - g_idleSinceMs >= settingsSleepTimeoutMs()) {
         beginSleepClosing(now);
       }
       break;
@@ -81,7 +86,9 @@ void updateSleep(uint32_t now) {
     case SleepState::Opening:
       if (updateSleepEyes(now) == SleepEyeResult::OpenComplete) {
         g_state = SleepState::Awake;
-        g_lastApiActivityMs = now;
+        if (getAnimation() == AnimationId::None) {
+          g_idleSinceMs = now;
+        }
       }
       break;
   }

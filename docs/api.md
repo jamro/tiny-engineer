@@ -116,7 +116,7 @@ curl http://tiny-engineer.local/settings
 
 | Field | Meaning |
 | --- | --- |
-| `sleep_timeout` | Idle minutes before OLED blanks when animation is `none` (default **10**) |
+| `sleep_timeout` | Minutes of continuous animation `none` before OLED blanks (default **10**). Any non-idle animation keeps the device awake and restarts the idle clock when returning to `none`. Other APIs do not affect the timer. |
 | `hostname` | DHCP/mDNS label without `.local` (default **`tiny-engineer`**) |
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |

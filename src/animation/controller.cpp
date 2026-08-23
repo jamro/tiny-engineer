@@ -13,6 +13,7 @@
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
 #include "settings.h"
+#include "sleep.h"
 
 namespace {
 
@@ -54,6 +55,7 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
   }
 
   setRgbForAnimation(id, nowMs);
+  onAnimationApplied(id, nowMs);
 }
 
 bool animationHoldElapsed() {

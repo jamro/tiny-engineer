@@ -3,7 +3,6 @@
 #include <cstring>
 
 #include "settings.h"
-#include "sleep.h"
 
 namespace {
 
@@ -93,7 +92,6 @@ void httpWithApiAuth(WebServer& server, void (*handler)(WebServer&)) {
     return;
   }
 
-  touchApiActivity();
   handler(server);
 }
 

@@ -158,7 +158,8 @@ void loop() {
   pollWifi();
   pollHttpServer();
   updateProvisioningOled(now);
-  updateSleep(now);
   updateAnimation();
+  // After HTTP/anim so idle timestamp from this frame is not compared to a stale `now`.
+  updateSleep(millis());
   updateRgb(now);
 }

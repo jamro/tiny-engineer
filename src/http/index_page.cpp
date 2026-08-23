@@ -1,7 +1,6 @@
 #include "http/index_page.h"
 
 #include "http/json.h"
-#include "sleep.h"
 
 namespace {
 
@@ -309,7 +308,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <div class="form-group">
 <label for="config-sleep">Sleep timeout (minutes)</label>
 <input type="number" id="config-sleep" min="1" max="1440" step="1" required>
-<p class="hint">Minutes idle before OLED blanks</p>
+<p class="hint">Minutes in animation <code>none</code> before OLED blanks</p>
 </div>
 <div class="form-group">
 <label for="config-continuous">Continuous anim timeout (minutes)</label>
@@ -845,6 +844,5 @@ document.addEventListener("DOMContentLoaded",bootUi);
 }  // namespace
 
 void sendIndexPage(WebServer& server) {
-  touchApiActivity();
   httpSendHtml(server, 200, INDEX_HTML);
 }

@@ -11,7 +11,6 @@
 #include "http/settings_handlers.h"
 #include "http/test_handlers.h"
 #include "network/wifi_connect.h"
-#include "sleep.h"
 
 namespace {
 
@@ -44,8 +43,6 @@ void handleNotFound() {
     server.send(302, "text/plain", "Redirecting to setup");
     return;
   }
-
-  touchApiActivity();
 
   if (isHttpTestPath(server.uri()) || isSettingsOrAnimPath(server.uri())) {
     httpSendJson(
