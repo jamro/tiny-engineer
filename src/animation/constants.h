@@ -78,8 +78,15 @@ constexpr float ATTENTION_HAND_RIGHT_REST =
   SERVO_SPECS[SERVO_HAND_RIGHT].min;
 constexpr float ATTENTION_HAND_RIGHT_RAISED =
   SERVO_SPECS[SERVO_HAND_RIGHT].min + 48.0f;
+constexpr float ATTENTION_HAND_POINT =
+  SERVO_SPECS[SERVO_HAND_RIGHT].min + 60.0f;
+constexpr float ATTENTION_HUMAN_NECK_GLANCE_DEG = 4.0f;
+constexpr float ATTENTION_HUMAN_HEAD_NOD_DEG = 2.0f;
+constexpr float ATTENTION_LOOK_NECK_GLANCE_DEG = 6.0f;
+constexpr float ATTENTION_LOOK_HEAD_NOD_DEG = 2.0f;
 constexpr float ATTENTION_WAIT_HEAD_NOD_DEG = 3.0f;
 constexpr float ATTENTION_WAIT_NECK_TILT_DEG = 4.0f;
+constexpr float ATTENTION_WAIT_HAND_WAVE_DEG = 7.0f;
 
 // Attention/error wait after audio before auto-finish to none.
 constexpr uint32_t NON_CONTINUOUS_HOLD_MS = 60UL * 1000UL;
