@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-struct Eye;
-
 extern bool oledAvailable;
 
 bool i2cDeviceConnected(uint8_t address);
@@ -22,12 +20,6 @@ void showBootProgress(
 void showBootIp(const char* ip);
 
 void showIdleScreen();
-
-void drawEyes(
-  const Eye& left,
-  const Eye& right,
-  int cornerRadius
-);
 
 void initOled();
 void runOledTest();

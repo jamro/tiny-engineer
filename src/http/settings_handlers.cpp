@@ -1,107 +1,15 @@
-#include <Arduino.h>
-#include <WiFi.h>
-#include <WebServer.h>
-#include <cstdio>
-#include <cstdlib>
+#include "http/settings_handlers.h"
 
-#include "animation.h"
-#include "http/index_page.h"
+#include <Arduino.h>
+#include <cstdlib>
+#include <cstdio>
+
 #include "http/json.h"
-#include "http/test_handlers.h"
-#include "http_server.h"
-#include "display/oled.h"
 #include "settings.h"
-#include "sleep.h"
-#include "wifi_connect.h"
 
 namespace {
 
-WebServer server(80);
-
-char mdnsHostname[SETTINGS_HOSTNAME_MAX_LEN + 7];
-
-void refreshMdnsHostname() {
-  snprintf(
-    mdnsHostname,
-    sizeof(mdnsHostname),
-    "%s.local",
-    settingsHostname()
-  );
-}
-
-void handleIndex() {
-  sendIndexPage(server);
-}
-
-void handleAuth() {
-  char body[64];
-
-  snprintf(
-    body,
-    sizeof(body),
-    "{\"ok\":true,\"required\":%s}",
-    settingsAccessTokenSet() ? "true" : "false"
-  );
-
-  httpSendJson(server, 200, body);
-}
-
-void handleHealth() {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
-  const bool wifiOk =
-    WiFi.status() == WL_CONNECTED;
-
-  refreshMdnsHostname();
-
-  char body[360];
-
-  snprintf(
-    body,
-    sizeof(body),
-    "{"
-    "\"ok\":true,"
-    "\"uptime_ms\":%lu,"
-    "\"free_heap\":%u,"
-    "\"heap_size\":%u,"
-    "\"wifi\":{"
-    "\"connected\":%s,"
-    "\"ip\":\"%s\","
-    "\"rssi\":%d,"
-    "\"hostname\":\"%s\""
-    "},"
-    "\"oled\":%s"
-    "}",
-    (unsigned long)millis(),
-    (unsigned)ESP.getFreeHeap(),
-    (unsigned)ESP.getHeapSize(),
-    wifiOk ? "true" : "false",
-    wifiOk ? wifiIpText() : "",
-    wifiOk ? (int)WiFi.RSSI() : 0,
-    mdnsHostname,
-    oledAvailable ? "true" : "false"
-  );
-
-  httpSendJson(server, 200, body);
-}
-
-void sendAnimationJson() {
-  char body[64];
-
-  snprintf(
-    body,
-    sizeof(body),
-    "{\"ok\":true,\"animation\":\"%s\"}",
-    animationName(getAnimation())
-  );
-
-  httpSendJson(server, 200, body);
-}
-
-void sendSettingsJson(bool rebootRequired) {
+void sendSettingsJson(WebServer& server, bool rebootRequired) {
   char body[448];
   const char* tokenSet =
     settingsAccessTokenSet() ? "true" : "false";
@@ -156,22 +64,13 @@ void sendSettingsJson(bool rebootRequired) {
   httpSendJson(server, 200, body);
 }
 
-void handleSettingsGet() {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
+}  // namespace
 
-  touchApiActivity();
-  sendSettingsJson(false);
+void handleSettingsGet(WebServer& server) {
+  sendSettingsJson(server, false);
 }
 
-void handleSettingsPost() {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
-
+void handleSettingsPost(WebServer& server) {
   const bool hasSleep = server.hasArg("sleep_timeout");
   const bool hasHost = server.hasArg("hostname");
   const bool hasVolume = server.hasArg("volume");
@@ -373,126 +272,9 @@ void handleSettingsPost() {
     return;
   }
 
-  sendSettingsJson(rebootRequired);
-}
-
-void handleAnimGet() {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
-  sendAnimationJson();
-}
-
-void handleAnimPost() {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
-
-  if (!server.hasArg("name")) {
-    httpSendJson(
-      server,
-      400,
-      "{\"ok\":false,\"error\":\"missing name\"}"
-    );
-    return;
-  }
-
-  AnimationId id;
-
-  if (!parseAnimationName(server.arg("name").c_str(), id)) {
-    httpSendJson(
-      server,
-      400,
-      "{\"ok\":false,\"error\":\"unknown animation\"}"
-    );
-    return;
-  }
-
-  setAnimation(id);
-  sendAnimationJson();
+  sendSettingsJson(server, rebootRequired);
 }
 
 bool isSettingsOrAnimPath(const String& uri) {
   return uri == "/anim" || uri == "/settings" || uri == "/auth";
-}
-
-void handleNotFound() {
-  if (server.method() == HTTP_OPTIONS) {
-    httpSendCorsPreflight(server);
-    return;
-  }
-
-  touchApiActivity();
-
-  if (isHttpTestPath(server.uri()) || isSettingsOrAnimPath(server.uri())) {
-    httpSendJson(
-      server,
-      405,
-      "{\"ok\":false,\"error\":\"method not allowed\"}"
-    );
-    return;
-  }
-
-  httpSendJson(
-    server,
-    404,
-    "{\"ok\":false,\"error\":\"not found\"}"
-  );
-}
-
-}  // namespace
-
-void startHttpServer() {
-  if (!wifiConnected()) {
-    Serial.println("HTTP: skipped (no wifi)");
-    return;
-  }
-
-  refreshMdnsHostname();
-
-  static const char* kCollectHeaders[] = {"Authorization"};
-  server.collectHeaders(kCollectHeaders, 1);
-
-  server.on("/", HTTP_GET, handleIndex);
-  server.on("/animations", HTTP_GET, handleIndex);
-  server.on("/servo", HTTP_GET, handleIndex);
-  server.on("/tests", HTTP_GET, handleIndex);
-  server.on("/api", HTTP_GET, handleIndex);
-  server.on("/config", HTTP_GET, handleIndex);
-  server.on("/auth", HTTP_GET, handleAuth);
-  server.on("/health", HTTP_GET, handleHealth);
-  server.on("/anim", HTTP_GET, handleAnimGet);
-  server.on("/anim", HTTP_POST, handleAnimPost);
-  server.on("/settings", HTTP_GET, handleSettingsGet);
-  server.on("/settings", HTTP_POST, handleSettingsPost);
-  registerHttpTestRoutes(server);
-  server.onNotFound(handleNotFound);
-
-  server.begin();
-
-  Serial.print("HTTP: http://");
-  Serial.print(wifiIpText());
-  Serial.println("/");
-  Serial.print("HTTP: http://");
-  Serial.print(mdnsHostname);
-  Serial.println("/");
-  Serial.print("HTTP: http://");
-  Serial.print(wifiIpText());
-  Serial.println("/health");
-  Serial.print("HTTP: http://");
-  Serial.print(mdnsHostname);
-  Serial.println("/health");
-}
-
-void pollHttpServer() {
-  if (!wifiConnected()) {
-    delay(10);
-    return;
-  }
-
-  server.handleClient();
 }

@@ -3,16 +3,16 @@
 #include <ESP_I2S.h>
 
 #include "pins.h"
-#include "rgb.h"
+#include "hardware/rgb.h"
 #include "display/oled.h"
-#include "audio.h"
+#include "audio/audio.h"
 #include "animation.h"
-#include "pca9685_servos.h"
-#include "wifi_connect.h"
-#include "http_server.h"
+#include "hardware/pca9685_servos.h"
+#include "network/wifi_connect.h"
+#include "http/http_server.h"
 #include "settings.h"
 #include "sleep.h"
-#include "boot_loading.h"
+#include "boot/boot_loading.h"
 
 namespace {
 

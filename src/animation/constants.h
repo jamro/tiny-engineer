@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "servo_wrapper.h"
+#include "hardware/servo_wrapper.h"
 #include "servos.h"
 
 namespace anim {

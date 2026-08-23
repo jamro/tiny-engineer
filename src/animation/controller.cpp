@@ -5,16 +5,12 @@
 #include "animation/abort.h"
 #include "animation/attention.h"
 #include "animation/error.h"
-#include "animation/reading.h"
-#include "animation/ring.h"
-#include "animation/thinking.h"
-#include "animation/typing.h"
+#include "animation/registry.h"
 #include "animation/util.h"
-#include "animation/welcome.h"
-#include "audio.h"
+#include "audio/audio.h"
 #include "display/eyes.h"
-#include "rgb.h"
-#include "servo_wrapper.h"
+#include "hardware/rgb.h"
+#include "hardware/servo_wrapper.h"
 #include "settings.h"
 
 namespace {
@@ -25,35 +21,6 @@ AnimationId g_animation = AnimationId::None;
 uint32_t g_animationStartedMs = 0;
 bool g_hasPendingAnimation = false;
 AnimationId g_pendingAnimation = AnimationId::None;
-
-void startNone() {
-  anim::stopAnimServos();
-  anim::parkNonePose();
-}
-
-const char* animNameLocal(AnimationId id) {
-  switch (id) {
-    case AnimationId::Typing:
-      return "typing";
-    case AnimationId::Reading:
-      return "reading";
-    case AnimationId::Thinking:
-      return "thinking";
-    case AnimationId::Ring:
-      return "ring";
-    case AnimationId::Welcome:
-      return "welcome";
-    case AnimationId::Attention:
-      return "attention";
-    case AnimationId::Error:
-      return "error";
-    case AnimationId::Abort:
-      return "abort";
-    case AnimationId::None:
-    default:
-      return "none";
-  }
-}
 
 void applyAnimation(AnimationId id, uint32_t nowMs) {
   if (id != AnimationId::Attention) {
@@ -66,55 +33,23 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
     stopAbortPlayback();
   }
 
-  const AnimationId from = g_animation;
+  const ModeEntry* fromEntry = modeByAnimId(g_animation);
+  const ModeEntry* entry = modeByAnimId(id);
+
   Serial.print("[anim] transition ");
-  Serial.print(animNameLocal(from));
+  Serial.print(fromEntry->name);
   Serial.print(" -> ");
-  Serial.println(animNameLocal(id));
+  Serial.println(entry->name);
   anim::logServoSnapshot("pre-transition");
 
   g_animation = id;
   g_animationStartedMs = nowMs;
   g_hasPendingAnimation = false;
 
-  switch (id) {
-    case AnimationId::Typing:
-      setEyeMode(EyeMode::Typing, g_animationStartedMs);
-      startTyping();
-      break;
-    case AnimationId::Reading:
-      setEyeMode(EyeMode::Reading, g_animationStartedMs);
-      startReading();
-      break;
-    case AnimationId::Thinking:
-      setEyeMode(EyeMode::Thinking, g_animationStartedMs);
-      startThinking(g_animationStartedMs);
-      break;
-    case AnimationId::Ring:
-      setEyeMode(EyeMode::Ring, g_animationStartedMs);
-      startRing();
-      break;
-    case AnimationId::Welcome:
-      setEyeMode(EyeMode::Welcome, g_animationStartedMs);
-      startWelcome();
-      break;
-    case AnimationId::Attention:
-      setEyeMode(EyeMode::Attention, g_animationStartedMs);
-      startAttention();
-      break;
-    case AnimationId::Error:
-      setEyeMode(EyeMode::Error, g_animationStartedMs);
-      startError();
-      break;
-    case AnimationId::Abort:
-      setEyeMode(EyeMode::Abort, g_animationStartedMs);
-      startAbort();
-      break;
-    case AnimationId::None:
-    default:
-      setEyeMode(EyeMode::Idle, g_animationStartedMs);
-      startNone();
-      break;
+  setEyeMode(entry->eyeMode, g_animationStartedMs);
+
+  if (entry->startAnim != nullptr) {
+    entry->startAnim(g_animationStartedMs);
   }
 
   setRgbForAnimation(id, nowMs);
@@ -143,7 +78,7 @@ void setAnimation(AnimationId id) {
   const uint32_t holdLeftMs =
     MIN_ANIMATION_HOLD_MS - (millis() - g_animationStartedMs);
   Serial.print("[anim] pending ");
-  Serial.print(animNameLocal(id));
+  Serial.print(modeByAnimId(id)->name);
   Serial.print(" holdLeftMs=");
   Serial.println(holdLeftMs);
 }
@@ -165,91 +100,22 @@ AnimationId pendingAnimation() {
 }
 
 bool animationIsContinuous(AnimationId id) {
-  switch (id) {
-    case AnimationId::Typing:
-    case AnimationId::Reading:
-    case AnimationId::Thinking:
-      return true;
-    default:
-      return false;
-  }
+  return modeByAnimId(id)->continuous;
 }
 
 const char* animationName(AnimationId id) {
-  switch (id) {
-    case AnimationId::Typing:
-      return "typing";
-    case AnimationId::Reading:
-      return "reading";
-    case AnimationId::Thinking:
-      return "thinking";
-    case AnimationId::Ring:
-      return "ring";
-    case AnimationId::Welcome:
-      return "welcome";
-    case AnimationId::Attention:
-      return "attention";
-    case AnimationId::Error:
-      return "error";
-    case AnimationId::Abort:
-      return "abort";
-    case AnimationId::None:
-    default:
-      return "none";
-  }
+  return modeByAnimId(id)->name;
 }
 
 bool parseAnimationName(const char* name, AnimationId& out) {
-  if (name == nullptr) {
+  const ModeEntry* entry = modeByName(name);
+
+  if (entry == nullptr) {
     return false;
   }
 
-  if (strcmp(name, "none") == 0) {
-    out = AnimationId::None;
-    return true;
-  }
-
-  if (strcmp(name, "typing") == 0) {
-    out = AnimationId::Typing;
-    return true;
-  }
-
-  if (strcmp(name, "reading") == 0) {
-    out = AnimationId::Reading;
-    return true;
-  }
-
-  if (strcmp(name, "thinking") == 0) {
-    out = AnimationId::Thinking;
-    return true;
-  }
-
-  if (strcmp(name, "ring") == 0) {
-    out = AnimationId::Ring;
-    return true;
-  }
-
-  if (strcmp(name, "welcome") == 0) {
-    out = AnimationId::Welcome;
-    return true;
-  }
-
-  if (strcmp(name, "attention") == 0) {
-    out = AnimationId::Attention;
-    return true;
-  }
-
-  if (strcmp(name, "error") == 0) {
-    out = AnimationId::Error;
-    return true;
-  }
-
-  if (strcmp(name, "abort") == 0) {
-    out = AnimationId::Abort;
-    return true;
-  }
-
-  return false;
+  out = entry->animId;
+  return true;
 }
 
 void updateAnimation() {
@@ -267,37 +133,12 @@ void updateAnimation() {
     }
   }
 
-  if (g_animation == AnimationId::None) {
-    updateAllServos();
+  const ModeEntry* entry = modeByAnimId(g_animation);
+
+  if (entry->updateAnim != nullptr) {
+    entry->updateAnim(now);
   } else {
-    switch (g_animation) {
-      case AnimationId::Typing:
-        updateTyping(now);
-        break;
-      case AnimationId::Reading:
-        updateReading(now);
-        break;
-      case AnimationId::Thinking:
-        updateThinking(now);
-        break;
-      case AnimationId::Ring:
-        updateRing(now);
-        break;
-      case AnimationId::Welcome:
-        updateWelcome(now);
-        break;
-      case AnimationId::Attention:
-        updateAttention(now);
-        break;
-      case AnimationId::Error:
-        updateError(now);
-        break;
-      case AnimationId::Abort:
-        updateAbort(now);
-        break;
-      default:
-        break;
-    }
+    updateAllServos();
   }
 
   updateEyes(now);

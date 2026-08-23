@@ -5,7 +5,7 @@
 #include <FS.h>
 #include <LittleFS.h>
 
-#include "audio.h"
+#include "audio/audio.h"
 #include "settings.h"
 
 namespace {

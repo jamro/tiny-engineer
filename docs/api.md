@@ -1,6 +1,6 @@
 # HTTP API
 
-JSON HTTP server on the ESP32-C3. Source: [`src/http_server.cpp`](../src/http_server.cpp), test routes in [`src/http/test_handlers.cpp`](../src/http/test_handlers.cpp).
+JSON HTTP server on the ESP32-C3. Source: [`src/http/http_server.cpp`](../src/http/http_server.cpp) and handlers under [`src/http/`](../src/http/), test routes in [`src/http/test_handlers.cpp`](../src/http/test_handlers.cpp).
 
 Listens on **port 80** after STA Wi-Fi connects. Base URL is the board IP (OLED / serial) or `http://tiny-engineer.local` (mDNS, 2.4 GHz only).
 
@@ -328,7 +328,7 @@ One request at a time — the Arduino `WebServer` is single-threaded.
 
 ## RGB LED
 
-Onboard WS2812 on **GPIO10** (`RGB_LED_PIN`). Animation-driven colors are handled in [`src/rgb.cpp`](../src/rgb.cpp) and switch when `POST /anim` applies a new state (same 1s minimum hold as servos/eyes).
+Onboard WS2812 on **GPIO10** (`RGB_LED_PIN`). Animation-driven colors are handled in [`src/hardware/rgb.cpp`](../src/hardware/rgb.cpp) and switch when `POST /anim` applies a new state (same 1s minimum hold as servos/eyes).
 
 | Animation | LED color |
 | --- | --- |

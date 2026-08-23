@@ -1,4 +1,4 @@
-#include "boot_loading.h"
+#include "boot/boot_loading.h"
 
 #include <Arduino.h>
 #include <cmath>
@@ -11,7 +11,7 @@
 #include "display/eyes/core/internal.h"
 #include "display/oled.h"
 #include "servos.h"
-#include "servo_wrapper.h"
+#include "hardware/servo_wrapper.h"
 #include "settings.h"
 
 namespace {

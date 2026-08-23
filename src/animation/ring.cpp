@@ -4,9 +4,9 @@
 #include "animation/constants.h"
 #include "animation/ring.h"
 #include "animation/util.h"
-#include "audio.h"
+#include "audio/audio.h"
 #include "display/eyes.h"
-#include "servo_wrapper.h"
+#include "hardware/servo_wrapper.h"
 #include "servos.h"
 
 using anim::stopAnimServos;

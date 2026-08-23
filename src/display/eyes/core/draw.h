@@ -1,0 +1,9 @@
+#pragma once
+
+#include "display/eyes.h"
+
+void drawEyes(
+  const Eye& left,
+  const Eye& right,
+  int cornerRadius
+);

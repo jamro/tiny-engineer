@@ -3,7 +3,7 @@
 
 #include "animation.h"
 #include "pins.h"
-#include "rgb.h"
+#include "hardware/rgb.h"
 
 namespace {
 

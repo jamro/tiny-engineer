@@ -1,22 +1,15 @@
 #include <Arduino.h>
 
+#include "animation/registry.h"
 #include "animation/util.h"
 #include "display/eyes.h"
 #include "display/oled.h"
 #include "display/eyes/core/blink.h"
 #include "display/eyes/core/constants.h"
+#include "display/eyes/core/draw.h"
 #include "display/eyes/core/impact.h"
 #include "display/eyes/core/internal.h"
 #include "display/eyes/core/util.h"
-#include "display/eyes/modes/abort.h"
-#include "display/eyes/modes/attention.h"
-#include "display/eyes/modes/error.h"
-#include "display/eyes/modes/idle.h"
-#include "display/eyes/modes/reading.h"
-#include "display/eyes/modes/ring.h"
-#include "display/eyes/modes/thinking.h"
-#include "display/eyes/modes/typing.h"
-#include "display/eyes/modes/welcome.h"
 
 namespace {
 
@@ -42,34 +35,10 @@ uint32_t g_sleepAnimDurationMs = 0;
 float g_sleepAnimFromAmount = 1.0f;
 
 void updateModePose(uint32_t now) {
-  switch (g_eyeMode) {
-    case EyeMode::Idle:
-      updateIdleEyes(now);
-      break;
-    case EyeMode::Typing:
-      updateTypingEyes(now);
-      break;
-    case EyeMode::Reading:
-      updateReadingEyes(now);
-      break;
-    case EyeMode::Thinking:
-      updateThinkingEyes(now);
-      break;
-    case EyeMode::Ring:
-      updateRingEyes(now);
-      break;
-    case EyeMode::Welcome:
-      updateWelcomeEyes(now);
-      break;
-    case EyeMode::Attention:
-      updateAttentionEyes(now);
-      break;
-    case EyeMode::Error:
-      updateErrorEyes(now);
-      break;
-    case EyeMode::Abort:
-      updateAbortEyes(now);
-      break;
+  const ModeEntry* entry = modeByEyeMode(g_eyeMode);
+
+  if (entry->updateEyes != nullptr) {
+    entry->updateEyes(now);
   }
 
   applyImpactOverlay(g_leftEye, g_rightEye, now);
@@ -168,46 +137,16 @@ void setEyeMode(EyeMode mode, uint32_t now) {
   g_modeStartedMs = now;
   resetImpactState();
 
-  switch (mode) {
-    case EyeMode::Idle:
-      startIdleEyes(now);
-      break;
-    case EyeMode::Typing:
-      startTypingEyes(now);
-      break;
-    case EyeMode::Reading:
-      startReadingEyes(now);
-      break;
-    case EyeMode::Thinking:
-      startThinkingEyes(now);
-      break;
-    case EyeMode::Ring:
-      startRingEyes(now);
-      break;
-    case EyeMode::Welcome:
-      blinkBeginIdle(now);
-      blinkSetOpenAmount(1.0f);
-      blinkSetNextBlinkMs(now + 10000);
-      startWelcomeEyes(now);
-      break;
-    case EyeMode::Attention:
-      blinkBeginIdle(now);
-      blinkSetOpenAmount(1.0f);
-      blinkSetNextBlinkMs(now + 1200);
-      startAttentionEyes(now);
-      break;
-    case EyeMode::Error:
-      blinkBeginIdle(now);
-      blinkSetOpenAmount(1.0f);
-      blinkSetNextBlinkMs(now + 2300);
-      startErrorEyes(now);
-      break;
-    case EyeMode::Abort:
-      blinkBeginIdle(now);
-      blinkSetOpenAmount(1.0f);
-      blinkSetNextBlinkMs(now + 1500);
-      startAbortEyes(now);
-      break;
+  const ModeEntry* entry = modeByEyeMode(mode);
+
+  if (entry->blinkHoldMs >= 0) {
+    blinkBeginIdle(now);
+    blinkSetOpenAmount(1.0f);
+    blinkSetNextBlinkMs(now + static_cast<uint32_t>(entry->blinkHoldMs));
+  }
+
+  if (entry->startEyes != nullptr) {
+    entry->startEyes(now);
   }
 
   updateModePose(now);

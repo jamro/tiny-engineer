@@ -9,7 +9,7 @@
 #endif
 
 #include "settings.h"
-#include "wifi_connect.h"
+#include "network/wifi_connect.h"
 
 namespace {
 

@@ -24,7 +24,7 @@ Manufacturer pulse window used in firmware:
 | `SERVO_MAX_US` | **2200** µs |
 | Neutral (typical) | ~1500 µs (90° in the firmware 0–180 map) |
 
-`angleToPulse()` in [`src/servo_wrapper.cpp`](../../src/servo_wrapper.cpp) maps firmware angle **0–180°** linearly onto 800–2200 µs, then onto PCA9685 12-bit counts assuming a **20 000 µs** period (rounded to nearest count):
+`angleToPulse()` in [`src/hardware/servo_wrapper.cpp`](../../src/hardware/servo_wrapper.cpp) maps firmware angle **0–180°** linearly onto 800–2200 µs, then onto PCA9685 12-bit counts assuming a **20 000 µs** period (rounded to nearest count):
 
 `counts = round(pulse_us * 4096 / 20000)`
 

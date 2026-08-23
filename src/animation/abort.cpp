@@ -4,8 +4,8 @@
 #include "animation/abort.h"
 #include "animation/constants.h"
 #include "animation/util.h"
-#include "audio.h"
-#include "servo_wrapper.h"
+#include "audio/audio.h"
+#include "hardware/servo_wrapper.h"
 #include "servos.h"
 
 using anim::stopAnimServos;

@@ -2,12 +2,12 @@
 
 Firmware is [`src/main.cpp`](../../src/main.cpp). Boot **inits** hardware and starts HTTP. Demos (OLED, tones, servo sweep) run on demand via REST. Helpers:
 
-- [`src/rgb.cpp`](../../src/rgb.cpp)
-- [`src/display/oled.cpp`](../../src/display/oled.cpp)
-- [`src/wifi_connect.cpp`](../../src/wifi_connect.cpp)
-- [`src/audio.cpp`](../../src/audio.cpp)
-- [`src/pca9685_servos.cpp`](../../src/pca9685_servos.cpp)
-- [`src/http_server.cpp`](../../src/http_server.cpp), [`src/http/test_handlers.cpp`](../../src/http/test_handlers.cpp)
+- [`src/hardware/rgb.cpp`](../../src/hardware/rgb.cpp)
+- [`src/display/oled.cpp`](../../src/display/oled.cpp) (init/boot/test: `oled_init.cpp`, `oled_boot.cpp`, `oled_test.cpp`)
+- [`src/network/wifi_connect.cpp`](../../src/network/wifi_connect.cpp)
+- [`src/audio/audio.cpp`](../../src/audio/audio.cpp)
+- [`src/hardware/pca9685_servos.cpp`](../../src/hardware/pca9685_servos.cpp)
+- [`src/http/http_server.cpp`](../../src/http/http_server.cpp), [`src/http/test_handlers.cpp`](../../src/http/test_handlers.cpp)
 
 Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi SSID/password: copy [`include/secrets.h.example`](../../include/secrets.h.example) to `include/secrets.h` (gitignored).
 

@@ -3,13 +3,12 @@
 #include <Arduino.h>
 
 #include "animation.h"
-#include "audio.h"
+#include "audio/audio.h"
 #include "display/oled.h"
 #include "http/json.h"
-#include "pca9685_servos.h"
-#include "rgb.h"
+#include "hardware/pca9685_servos.h"
+#include "hardware/rgb.h"
 #include "servos.h"
-#include "sleep.h"
 
 namespace {
 
@@ -18,23 +17,12 @@ void restoreReadyScreen() {
 }
 
 void handleAudioTest(WebServer& server) {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
   runSoundTest();
   restoreReadyScreen();
   httpSendJson(server, 200, "{\"ok\":true,\"test\":\"audio\"}");
 }
 
 void handleBellTest(WebServer& server) {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
-
   if (!playBell()) {
     restoreReadyScreen();
     httpSendJson(
@@ -50,33 +38,18 @@ void handleBellTest(WebServer& server) {
 }
 
 void handleScreenTest(WebServer& server) {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
   runOledTest();
   restoreReadyScreen();
   httpSendJson(server, 200, "{\"ok\":true,\"test\":\"screen\"}");
 }
 
 void handleMovementTest(WebServer& server) {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
   runServoTest();
   restoreReadyScreen();
   httpSendJson(server, 200, "{\"ok\":true,\"test\":\"movement\"}");
 }
 
 void handleLedTest(WebServer& server) {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
   runRgbTest();
   setRgbForAnimation(getAnimation(), millis());
   restoreReadyScreen();
@@ -134,12 +107,6 @@ bool isValidFloatArg(const String& s) {
 }
 
 void handleServoTest(WebServer& server) {
-  if (!httpRequireApiAuth(server)) {
-    return;
-  }
-
-  touchApiActivity();
-
   if (!server.hasArg("index") || !server.hasArg("angle")) {
     httpSendJson(
       server,
@@ -230,31 +197,31 @@ void registerHttpTestRoutes(WebServer& server) {
   server.on(
     "/test/audio",
     HTTP_POST,
-    [&server]() { handleAudioTest(server); }
+    [&server]() { httpWithApiAuth(server, handleAudioTest); }
   );
   server.on(
     "/test/audio/bell",
     HTTP_POST,
-    [&server]() { handleBellTest(server); }
+    [&server]() { httpWithApiAuth(server, handleBellTest); }
   );
   server.on(
     "/test/screen",
     HTTP_POST,
-    [&server]() { handleScreenTest(server); }
+    [&server]() { httpWithApiAuth(server, handleScreenTest); }
   );
   server.on(
     "/test/movement",
     HTTP_POST,
-    [&server]() { handleMovementTest(server); }
+    [&server]() { httpWithApiAuth(server, handleMovementTest); }
   );
   server.on(
     "/test/led",
     HTTP_POST,
-    [&server]() { handleLedTest(server); }
+    [&server]() { httpWithApiAuth(server, handleLedTest); }
   );
   server.on(
     "/test/servo",
     HTTP_POST,
-    [&server]() { handleServoTest(server); }
+    [&server]() { httpWithApiAuth(server, handleServoTest); }
   );
 }

@@ -4,7 +4,7 @@
 #include "animation/constants.h"
 #include "animation/thinking.h"
 #include "animation/util.h"
-#include "servo_wrapper.h"
+#include "hardware/servo_wrapper.h"
 #include "servos.h"
 
 using anim::beginEasedMove;

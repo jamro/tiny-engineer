@@ -4,7 +4,7 @@
 #include "animation/util.h"
 #include "pins.h"
 #include "servos.h"
-#include "servo_wrapper.h"
+#include "hardware/servo_wrapper.h"
 
 Adafruit_PWMServoDriver pwm(PCA9685_ADDRESS);
 

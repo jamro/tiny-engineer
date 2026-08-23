@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include "settings.h"
+#include "sleep.h"
 
 namespace {
 
@@ -72,4 +73,13 @@ bool httpRequireApiAuth(WebServer& server) {
   }
 
   return true;
+}
+
+void httpWithApiAuth(WebServer& server, void (*handler)(WebServer&)) {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
+  touchApiActivity();
+  handler(server);
 }

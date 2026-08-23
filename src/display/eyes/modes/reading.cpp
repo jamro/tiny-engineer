@@ -8,7 +8,7 @@
 #include "display/eyes/core/blink.h"
 #include "display/eyes/core/constants.h"
 #include "display/eyes/core/util.h"
-#include "servo_wrapper.h"
+#include "hardware/servo_wrapper.h"
 #include "servos.h"
 
 namespace {

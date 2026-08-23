@@ -1,6 +1,6 @@
 # Adding a setting
 
-Persistent settings live in NVS (namespace `te`) via [`src/settings.cpp`](../src/settings.cpp). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
+Persistent settings live in NVS (namespace `te`) via [`src/settings.cpp`](../src/settings.cpp) and [`src/settings_storage.cpp`](../src/settings_storage.cpp). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
 Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_timeout`, `loading`, `access_token`. Follow the same pattern for a new one.
 
@@ -19,12 +19,12 @@ Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_tim
 
 Work through these layers in order. Mirror an existing setting (`volume` is the simplest integer example; `hostname` shows reboot + string validation).
 
-### 1. Core — [`src/settings.h`](../src/settings.h) / [`src/settings.cpp`](../src/settings.cpp)
+### 1. Core — [`src/settings.h`](../src/settings.h) / [`src/settings.cpp`](../src/settings.cpp) / [`src/settings_storage.cpp`](../src/settings_storage.cpp)
 
 1. Add `SETTINGS_DEFAULT_*`, min/max (or length) constants.
-2. Add NVS key string in the anonymous namespace (e.g. `kKeyFoo = "foo"`).
-3. Add RAM cache variable; load + validate in `initSettings()`; fall back to default on bad/missing data.
-4. Add getter `settingsFoo()` and `settingsValidateFoo(...)`.
+2. Add NVS key string in [`settings_storage.cpp`](../src/settings_storage.cpp) (e.g. `kKeyFoo = "foo"`).
+3. Add RAM cache variable in [`settings_internal.h`](../src/settings_internal.h) / [`settings_storage.cpp`](../src/settings_storage.cpp); load + validate in `initSettings()`; fall back to default on bad/missing data.
+4. Add getter `settingsFoo()` and `settingsValidateFoo(...)` in [`settings.cpp`](../src/settings.cpp).
 5. Extend `saveSettings(...)` with a nullable `const T* foo`:
    - Reject the whole save if validation fails.
    - Require at least one non-null arg among all settings.
@@ -35,7 +35,7 @@ Work through these layers in order. Mirror an existing setting (`volume` is the 
 
 Call the getter wherever the value affects behavior (e.g. `settingsVolume()` in audio). Prefer reading the getter at use time so `POST /settings` applies without reboot.
 
-### 3. HTTP — [`src/http_server.cpp`](../src/http_server.cpp)
+### 3. HTTP — [`src/http/settings_handlers.cpp`](../src/http/settings_handlers.cpp)
 
 1. Include the field in both `snprintf` branches of `sendSettingsJson` (with and without `reboot_required`).
 2. Grow the JSON buffer if the payload no longer fits.

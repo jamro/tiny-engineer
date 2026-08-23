@@ -8,7 +8,7 @@
 #include "pins.h"
 #include "display/oled.h"
 #include "settings.h"
-#include "audio.h"
+#include "audio/audio.h"
 
 I2SClass I2S;
 

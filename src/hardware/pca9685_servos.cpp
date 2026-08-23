@@ -3,9 +3,9 @@
 #include "pins.h"
 #include "servos.h"
 #include "display/oled.h"
-#include "rgb.h"
-#include "servo_wrapper.h"
-#include "pca9685_servos.h"
+#include "hardware/rgb.h"
+#include "hardware/servo_wrapper.h"
+#include "hardware/pca9685_servos.h"
 
 bool pca9685Connected() {
   return i2cDeviceConnected(PCA9685_ADDRESS);
