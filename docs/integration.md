@@ -48,7 +48,7 @@ curl -X POST "http://tiny-engineer.local/anim?name=typing"
 | `error` / `abort` | Failure / cancel |
 | `none` | Idle / clear pose |
 
-Firmware holds each pose ≥1s and keeps only the **latest** pending switch — spam-safe. No auth. Prefer short timeouts (e.g. 2s) and ignore network errors so the agent never stalls if the robot is offline.
+Firmware holds each pose ≥1s and keeps only the **latest** pending switch — spam-safe. Auth is optional: if you set an access token on the device, send `Authorization: Bearer <token>` (check `GET /auth` for `required`). Prefer short timeouts (e.g. 2s) and ignore network errors so the agent never stalls if the robot is offline.
 
 ### Minimal examples
 

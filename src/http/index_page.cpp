@@ -73,9 +73,36 @@ th,td{border:1px solid var(--border);padding:.35rem .5rem;text-align:left;vertic
 th{background:#f4f4f4}
 code{background:#f4f4f4;padding:.1rem .3rem;border-radius:.2rem;font-size:.8rem}
 footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);font-size:.85rem;color:var(--muted);text-align:center}
+#auth-gate{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;padding:2rem 1rem;align-items:center;justify-content:center}
+#auth-gate.show{display:flex}
+#auth-gate .auth-box{width:100%;max-width:22rem;background:var(--card);border:1px solid var(--border);border-radius:.6rem;padding:1.5rem}
+#auth-gate h1{font-size:1.35rem;margin:0 0 .5rem}
+#auth-gate p{color:var(--muted);margin:0 0 1.25rem;font-size:.95rem}
+#auth-gate .form-group{margin-bottom:1rem}
+#auth-error{display:none;color:var(--error);font-size:.85rem;margin-bottom:.75rem}
+#auth-error.show{display:block}
+body.locked nav,body.locked #status,body.locked .view,body.locked footer{display:none!important}
+.form-group input[type=password]{width:100%;padding:.5rem .65rem;border:1px solid var(--border);border-radius:.35rem;font:inherit;background:var(--card)}
+.token-row{display:flex;gap:.5rem;align-items:stretch}
+.token-row input[type=password]{flex:1}
+.btn-token-toggle{width:auto;min-width:7rem;text-align:center;padding:.5rem .75rem;font-size:.85rem;flex-shrink:0;align-self:stretch}
 </style>
 </head>
 <body>
+<div id="auth-gate">
+<div class="auth-box">
+<h1>Access token required</h1>
+<p>Enter the device access token to use the control panel.</p>
+<form id="auth-form">
+<div class="form-group">
+<label for="auth-token">Access token</label>
+<input type="password" id="auth-token" autocomplete="current-password" required>
+</div>
+<div id="auth-error">Invalid access token.</div>
+<button type="submit" class="btn btn-primary" style="margin-top:0">Unlock</button>
+</form>
+</div>
+</div>
 <nav>
 <a href="/" data-nav="/">Home</a>
 <a href="/animations" data-nav="/animations">Animations</a>
@@ -97,7 +124,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Hostname, sleep timeout, continuous anim timeout, volume, welcome, and loading screen (saved in flash).</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Hostname, sleep timeout, continuous anim timeout, volume, welcome, loading screen, and optional API access token (saved in flash).</p></a>
 <a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
 <a class="card card-github" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener"><h3>GitHub docs &rarr;</h3><p>Build guide, wiring, and full project docs.</p></a>
 </div>
@@ -105,7 +132,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 
 <section id="view-api" class="view">
 <h2 class="page-title">API reference</h2>
-<p class="page-desc">JSON HTTP API on port 80. Test routes are POST only.</p>
+<p class="page-desc">JSON HTTP API on port 80. Optional Bearer auth when an access token is configured. Test routes are POST only. <code>GET /auth</code> is always public.</p>
 <table>
 <tr><th>Method</th><th>Path</th><th>Description</th></tr>
 <tr><td>GET</td><td><code>/</code></td><td>Web control panel</td></tr>
@@ -114,6 +141,7 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <tr><td>GET</td><td><code>/servo</code></td><td>Servo control page</td></tr>
 <tr><td>GET</td><td><code>/config</code></td><td>Config page</td></tr>
 <tr><td>GET</td><td><code>/api</code></td><td>This API reference</td></tr>
+<tr><td>GET</td><td><code>/auth</code></td><td>Whether API auth is required (always public)</td></tr>
 <tr><td>GET</td><td><code>/health</code></td><td>Health JSON, no side effects</td></tr>
 <tr><td>GET</td><td><code>/settings</code></td><td>Persistent settings</td></tr>
 <tr><td>POST</td><td><code>/settings</code></td><td>Update settings (see parameters below)</td></tr>
@@ -129,12 +157,13 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <p>POST <code>/settings</code> &mdash; query params (at least one required):</p>
 <table>
 <tr><th>Param</th><th>Type</th><th>Range</th></tr>
-<tr><td><code>sleep_timeout</code></td><td>integer</td><td>5&ndash;3600 seconds</td></tr>
+<tr><td><code>sleep_timeout</code></td><td>integer</td><td>1&ndash;1440 minutes (positive)</td></tr>
 <tr><td><code>hostname</code></td><td>string</td><td>1&ndash;31 chars, letters/digits/hyphen</td></tr>
 <tr><td><code>volume</code></td><td>integer</td><td>0&ndash;100 percent (speaker gain)</td></tr>
 <tr><td><code>welcome</code></td><td>integer</td><td>0 or 1 (boot welcome animation)</td></tr>
 <tr><td><code>continuous_timeout</code></td><td>integer</td><td>1&ndash;1440 minutes</td></tr>
 <tr><td><code>loading</code></td><td>string</td><td><code>progress</code> or <code>sleep_inertia</code> (boot screen; next reboot)</td></tr>
+<tr><td><code>access_token</code></td><td>string</td><td>0&ndash;64 printable ASCII; empty clears (disables auth)</td></tr>
 </table>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
@@ -220,9 +249,9 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 <p class="hint">mDNS name without .local (letters, digits, hyphen). Default: tiny-engineer</p>
 </div>
 <div class="form-group">
-<label for="config-sleep">Sleep timeout (seconds)</label>
-<input type="number" id="config-sleep" min="5" max="3600" step="1" required>
-<p class="hint">Idle time before OLED blanks when animation is none. Default: 60</p>
+<label for="config-sleep">Sleep timeout (minutes)</label>
+<input type="number" id="config-sleep" min="1" max="1440" step="1" required>
+<p class="hint">Idle time before OLED blanks when animation is none. Default: 1</p>
 </div>
 <div class="form-group">
 <label for="config-continuous">Continuous anim timeout (minutes)</label>
@@ -252,6 +281,14 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 </div>
 <p class="hint">Play welcome when Wi-Fi connects at boot. Default: on. Also enables head/neck motion during sleep-inertia loading. Manual trigger via Animations still works.</p>
 </div>
+<div class="form-group">
+<label for="config-access-token">Access token</label>
+<div class="token-row">
+<input type="password" id="config-access-token" maxlength="64" autocomplete="new-password" placeholder="Enter access token">
+<button type="button" id="config-access-token-toggle" class="btn btn-token-toggle" hidden>Remove token</button>
+</div>
+<p id="config-access-token-status" class="hint">API auth is off (no token configured).</p>
+</div>
 <button type="submit" class="btn btn-primary">Save settings</button>
 </form>
 </section>
@@ -262,9 +299,31 @@ footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--border);fon
 
 <script>
 var SERVO_RANGES=[[60,130],[40,130],[50,140],[40,130],[40,130]];
+var TOKEN_KEY="te_access_token";
+var ACCESS_TOKEN_MASK="********";
+var accessTokenConfigured=false;
+var accessTokenMaskActive=false;
+var accessTokenClearPending=false;
 var busy=false;
 var healthTimer=null;
+var uiUnlocked=false;
 var statusEl=document.getElementById("status");
+function getStoredToken(){
+  try{return sessionStorage.getItem(TOKEN_KEY)||"";}catch(e){return"";}
+}
+function setStoredToken(token){
+  try{
+    if(token)sessionStorage.setItem(TOKEN_KEY,token);
+    else sessionStorage.removeItem(TOKEN_KEY);
+  }catch(e){}
+}
+function apiFetch(path,opts){
+  opts=opts||{};
+  var headers=Object.assign({},opts.headers||{});
+  var token=getStoredToken();
+  if(token)headers["Authorization"]="Bearer "+token;
+  return fetch(path,Object.assign({},opts,{headers:headers}));
+}
 function setStatus(msg,type){
   statusEl.textContent=msg;
   statusEl.className="show"+(type?" "+type:"");
@@ -277,7 +336,23 @@ function setBusy(on){
   busy=on;
   document.querySelectorAll(".btn,[type=submit]").forEach(function(b){b.disabled=on;});
 }
+function showAuthGate(show){
+  document.body.classList.toggle("locked",show);
+  document.getElementById("auth-gate").classList.toggle("show",show);
+  if(show){
+    document.getElementById("auth-error").classList.remove("show");
+    document.getElementById("auth-token").value="";
+    document.getElementById("auth-token").focus();
+  }
+}
+function enterApp(){
+  uiUnlocked=true;
+  showAuthGate(false);
+  showPage(location.pathname);
+  updateServoHint();
+}
 function showPage(path){
+  if(!uiUnlocked)return;
   var map={"/":"view-home","/animations":"view-animations","/servo":"view-servo","/tests":"view-tests","/config":"view-config","/api":"view-api"};
   var id=map[path]||"view-home";
   document.querySelectorAll(".view").forEach(function(v){v.classList.remove("active");});
@@ -302,7 +377,7 @@ function apiPost(path){
   if(busy)return Promise.reject();
   setBusy(true);
   setStatus("Running\u2026","loading");
-  return fetch(path,{method:"POST"}).then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
+  return apiFetch(path,{method:"POST"}).then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
   .then(function(res){
     if(res.ok&&res.data.ok!==false){
       setStatus("Done.","ok");
@@ -315,7 +390,7 @@ function apiPost(path){
   }).finally(function(){setBusy(false);});
 }
 function refreshAnim(){
-  fetch("/anim").then(function(r){return r.json();}).then(function(j){
+  apiFetch("/anim").then(function(r){return r.json();}).then(function(j){
     if(j.ok) document.querySelector("#anim-current strong").textContent=j.animation;
   }).catch(function(){});
 }
@@ -335,7 +410,7 @@ function formatBytes(n){
   return n+" B";
 }
 function loadHealth(){
-  fetch("/health").then(function(r){return r.json();}).then(function(j){
+  apiFetch("/health").then(function(r){return r.json();}).then(function(j){
     var el=document.getElementById("health-info");
     if(!j.ok){el.textContent="Could not load status.";return;}
     var ip=j.wifi&&j.wifi.connected?j.wifi.ip:"offline";
@@ -364,7 +439,7 @@ document.getElementById("servo-form").addEventListener("submit",function(e){
   var angle=document.getElementById("servo-angle").value;
   setBusy(true);
   setStatus("Moving servo\u2026","loading");
-  fetch("/test/servo?index="+idx+"&angle="+angle,{method:"POST"})
+  apiFetch("/test/servo?index="+idx+"&angle="+angle,{method:"POST"})
   .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
   .then(function(res){
     if(res.ok&&res.data.ok!==false){
@@ -384,14 +459,69 @@ function setConfigVolume(v){
   document.getElementById("config-volume-slider").value=n;
   document.getElementById("config-volume-label").textContent=n+"%";
 }
+function syncAccessTokenUi(){
+  var field=document.getElementById("config-access-token");
+  var toggle=document.getElementById("config-access-token-toggle");
+  var status=document.getElementById("config-access-token-status");
+  if(accessTokenClearPending){
+    field.value="";
+    field.disabled=true;
+    field.placeholder="Token will be removed on Save";
+    toggle.hidden=false;
+    toggle.textContent="Undo";
+    status.textContent="Access token will be removed when you save.";
+  }else if(accessTokenConfigured){
+    field.disabled=false;
+    field.placeholder="Enter a new token to replace";
+    if(accessTokenMaskActive)field.value=ACCESS_TOKEN_MASK;
+    toggle.hidden=false;
+    toggle.textContent="Remove token";
+    status.textContent="API auth is on. Click the field to enter a new token.";
+  }else{
+    field.disabled=false;
+    if(!accessTokenMaskActive)field.value="";
+    field.placeholder="Enter access token";
+    toggle.hidden=true;
+    status.textContent="API auth is off. Enter a token and save to enable.";
+  }
+}
+function setAccessTokenFromServer(tokenSet){
+  accessTokenConfigured=!!tokenSet;
+  accessTokenClearPending=false;
+  accessTokenMaskActive=accessTokenConfigured;
+  syncAccessTokenUi();
+}
 document.getElementById("config-volume-slider").addEventListener("input",function(){
   setConfigVolume(this.value);
 });
 document.getElementById("config-volume").addEventListener("input",function(){
   setConfigVolume(this.value);
 });
+document.getElementById("config-access-token").addEventListener("focus",function(){
+  if(accessTokenMaskActive){
+    this.value="";
+    accessTokenMaskActive=false;
+  }
+});
+document.getElementById("config-access-token").addEventListener("blur",function(){
+  if(accessTokenClearPending||!accessTokenConfigured)return;
+  if(this.value.trim()===""){
+    accessTokenMaskActive=true;
+    syncAccessTokenUi();
+  }
+});
+document.getElementById("config-access-token-toggle").addEventListener("click",function(){
+  if(accessTokenClearPending){
+    accessTokenClearPending=false;
+    accessTokenMaskActive=true;
+  }else{
+    accessTokenClearPending=true;
+    accessTokenMaskActive=false;
+  }
+  syncAccessTokenUi();
+});
 function loadSettings(){
-  fetch("/settings").then(function(r){return r.json();}).then(function(j){
+  apiFetch("/settings").then(function(r){return r.json();}).then(function(j){
     if(!j.ok)return;
     document.getElementById("config-hostname").value=j.hostname||"";
     document.getElementById("config-sleep").value=j.sleep_timeout;
@@ -399,6 +529,7 @@ function loadSettings(){
     setConfigVolume(j.volume!=null?j.volume:70);
     document.getElementById("config-welcome").checked=j.welcome!==false;
     document.getElementById("config-loading").value=j.loading==="sleep_inertia"?"sleep_inertia":"progress";
+    setAccessTokenFromServer(!!j.access_token_set);
   }).catch(function(){});
 }
 document.getElementById("config-form").addEventListener("submit",function(e){
@@ -410,9 +541,14 @@ document.getElementById("config-form").addEventListener("submit",function(e){
   var volume=document.getElementById("config-volume").value;
   var welcome=document.getElementById("config-welcome").checked?1:0;
   var loading=document.getElementById("config-loading").value;
+  var newToken=document.getElementById("config-access-token").value;
+  var wasClearPending=accessTokenClearPending;
+  var url="/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume)+"&welcome="+welcome+"&continuous_timeout="+encodeURIComponent(continuous)+"&loading="+encodeURIComponent(loading);
+  if(wasClearPending)url+="&access_token=";
+  else if(!accessTokenMaskActive&&newToken)url+="&access_token="+encodeURIComponent(newToken);
   setBusy(true);
   setStatus("Saving\u2026","loading");
-  fetch("/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume)+"&welcome="+welcome+"&continuous_timeout="+encodeURIComponent(continuous)+"&loading="+encodeURIComponent(loading),{method:"POST"})
+  apiFetch(url,{method:"POST"})
   .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
   .then(function(res){
     if(res.ok&&res.data.ok!==false){
@@ -422,6 +558,9 @@ document.getElementById("config-form").addEventListener("submit",function(e){
       setConfigVolume(res.data.volume!=null?res.data.volume:volume);
       document.getElementById("config-welcome").checked=res.data.welcome!==false;
       document.getElementById("config-loading").value=res.data.loading==="sleep_inertia"?"sleep_inertia":"progress";
+      if(wasClearPending)setStoredToken("");
+      else if(!accessTokenMaskActive&&newToken)setStoredToken(newToken);
+      setAccessTokenFromServer(!!res.data.access_token_set);
       if(res.data.reboot_required){
         setStatus("Saved. Hostname applies after reboot (RESET or power cycle).","ok");
       }else{
@@ -439,7 +578,7 @@ document.querySelectorAll("[data-anim]").forEach(function(btn){
     var name=this.getAttribute("data-anim");
     setBusy(true);
     setStatus("Setting animation\u2026","loading");
-    fetch("/anim?name="+name,{method:"POST"})
+    apiFetch("/anim?name="+name,{method:"POST"})
     .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
     .then(function(res){
       if(res.ok&&res.data.ok!==false){
@@ -457,10 +596,51 @@ document.querySelectorAll("[data-test]").forEach(function(btn){
     apiPost(this.getAttribute("data-test"));
   });
 });
-document.addEventListener("DOMContentLoaded",function(){
-  showPage(location.pathname);
-  updateServoHint();
+document.getElementById("auth-form").addEventListener("submit",function(e){
+  e.preventDefault();
+  var token=document.getElementById("auth-token").value;
+  if(!token)return;
+  setStoredToken(token);
+  document.getElementById("auth-error").classList.remove("show");
+  apiFetch("/settings").then(function(r){
+    if(r.status===401){
+      setStoredToken("");
+      document.getElementById("auth-error").classList.add("show");
+      return;
+    }
+    enterApp();
+  }).catch(function(){
+    setStoredToken("");
+    document.getElementById("auth-error").classList.add("show");
+  });
 });
+function bootUi(){
+  document.body.classList.add("locked");
+  fetch("/auth").then(function(r){return r.json();}).then(function(j){
+    if(!j.ok||!j.required){
+      enterApp();
+      return;
+    }
+    var token=getStoredToken();
+    if(!token){
+      showAuthGate(true);
+      return;
+    }
+    apiFetch("/settings").then(function(r){
+      if(r.status===401){
+        setStoredToken("");
+        showAuthGate(true);
+        return;
+      }
+      enterApp();
+    }).catch(function(){
+      showAuthGate(true);
+    });
+  }).catch(function(){
+    enterApp();
+  });
+}
+document.addEventListener("DOMContentLoaded",bootUi);
 </script>
 </body>
 </html>

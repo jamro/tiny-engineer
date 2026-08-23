@@ -33,7 +33,24 @@ void handleIndex() {
   sendIndexPage(server);
 }
 
+void handleAuth() {
+  char body[64];
+
+  snprintf(
+    body,
+    sizeof(body),
+    "{\"ok\":true,\"required\":%s}",
+    settingsAccessTokenSet() ? "true" : "false"
+  );
+
+  httpSendJson(server, 200, body);
+}
+
 void handleHealth() {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
   const bool wifiOk =
     WiFi.status() == WL_CONNECTED;
@@ -85,7 +102,9 @@ void sendAnimationJson() {
 }
 
 void sendSettingsJson(bool rebootRequired) {
-  char body[384];
+  char body[448];
+  const char* tokenSet =
+    settingsAccessTokenSet() ? "true" : "false";
 
   if (rebootRequired) {
     snprintf(
@@ -99,14 +118,16 @@ void sendSettingsJson(bool rebootRequired) {
       "\"welcome\":%s,"
       "\"continuous_timeout\":%lu,"
       "\"loading\":\"%s\","
+      "\"access_token_set\":%s,"
       "\"reboot_required\":true"
       "}",
-      (unsigned long)settingsSleepTimeoutS(),
+      (unsigned long)settingsSleepTimeoutMin(),
       settingsHostname(),
       static_cast<unsigned>(settingsVolume()),
       settingsWelcomeEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
-      settingsLoading()
+      settingsLoading(),
+      tokenSet
     );
   } else {
     snprintf(
@@ -119,14 +140,16 @@ void sendSettingsJson(bool rebootRequired) {
       "\"volume\":%u,"
       "\"welcome\":%s,"
       "\"continuous_timeout\":%lu,"
-      "\"loading\":\"%s\""
+      "\"loading\":\"%s\","
+      "\"access_token_set\":%s"
       "}",
-      (unsigned long)settingsSleepTimeoutS(),
+      (unsigned long)settingsSleepTimeoutMin(),
       settingsHostname(),
       static_cast<unsigned>(settingsVolume()),
       settingsWelcomeEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
-      settingsLoading()
+      settingsLoading(),
+      tokenSet
     );
   }
 
@@ -134,11 +157,19 @@ void sendSettingsJson(bool rebootRequired) {
 }
 
 void handleSettingsGet() {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
   sendSettingsJson(false);
 }
 
 void handleSettingsPost() {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
 
   const bool hasSleep = server.hasArg("sleep_timeout");
@@ -147,18 +178,19 @@ void handleSettingsPost() {
   const bool hasWelcome = server.hasArg("welcome");
   const bool hasContTo = server.hasArg("continuous_timeout");
   const bool hasLoading = server.hasArg("loading");
+  const bool hasAccessToken = server.hasArg("access_token");
 
   if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasContTo &&
-      !hasLoading) {
+      !hasLoading && !hasAccessToken) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, continuous_timeout, or loading\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, continuous_timeout, loading, or access_token\"}"
     );
     return;
   }
 
-  uint32_t sleepTimeoutS = 0;
+  uint32_t sleepTimeoutMin = 0;
   const uint32_t* sleepPtr = nullptr;
   String hostnameArg;
   const char* hostPtr = nullptr;
@@ -170,6 +202,8 @@ void handleSettingsPost() {
   const uint32_t* contToPtr = nullptr;
   String loadingArg;
   const char* loadingPtr = nullptr;
+  String accessTokenArg;
+  const char* accessTokenPtr = nullptr;
 
   if (hasSleep) {
     const String sleepArg = server.arg("sleep_timeout");
@@ -186,9 +220,9 @@ void handleSettingsPost() {
       return;
     }
 
-    sleepTimeoutS = static_cast<uint32_t>(parsed);
+    sleepTimeoutMin = static_cast<uint32_t>(parsed);
 
-    if (!settingsValidateSleepTimeout(sleepTimeoutS)) {
+    if (!settingsValidateSleepTimeout(sleepTimeoutMin)) {
       httpSendJson(
         server,
         400,
@@ -197,7 +231,7 @@ void handleSettingsPost() {
       return;
     }
 
-    sleepPtr = &sleepTimeoutS;
+    sleepPtr = &sleepTimeoutMin;
   }
 
   if (hasHost) {
@@ -305,6 +339,20 @@ void handleSettingsPost() {
     }
   }
 
+  if (hasAccessToken) {
+    accessTokenArg = server.arg("access_token");
+    accessTokenPtr = accessTokenArg.c_str();
+
+    if (!settingsValidateAccessToken(accessTokenPtr)) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid access_token\"}"
+      );
+      return;
+    }
+  }
+
   bool rebootRequired = false;
 
   if (!saveSettings(
@@ -314,6 +362,7 @@ void handleSettingsPost() {
         welcomePtr,
         contToPtr,
         loadingPtr,
+        accessTokenPtr,
         &rebootRequired
       )) {
     httpSendJson(
@@ -328,11 +377,19 @@ void handleSettingsPost() {
 }
 
 void handleAnimGet() {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
   sendAnimationJson();
 }
 
 void handleAnimPost() {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
 
   if (!server.hasArg("name")) {
@@ -360,10 +417,15 @@ void handleAnimPost() {
 }
 
 bool isSettingsOrAnimPath(const String& uri) {
-  return uri == "/anim" || uri == "/settings";
+  return uri == "/anim" || uri == "/settings" || uri == "/auth";
 }
 
 void handleNotFound() {
+  if (server.method() == HTTP_OPTIONS) {
+    httpSendCorsPreflight(server);
+    return;
+  }
+
   touchApiActivity();
 
   if (isHttpTestPath(server.uri()) || isSettingsOrAnimPath(server.uri())) {
@@ -392,12 +454,16 @@ void startHttpServer() {
 
   refreshMdnsHostname();
 
+  static const char* kCollectHeaders[] = {"Authorization"};
+  server.collectHeaders(kCollectHeaders, 1);
+
   server.on("/", HTTP_GET, handleIndex);
   server.on("/animations", HTTP_GET, handleIndex);
   server.on("/servo", HTTP_GET, handleIndex);
   server.on("/tests", HTTP_GET, handleIndex);
   server.on("/api", HTTP_GET, handleIndex);
   server.on("/config", HTTP_GET, handleIndex);
+  server.on("/auth", HTTP_GET, handleAuth);
   server.on("/health", HTTP_GET, handleHealth);
   server.on("/anim", HTTP_GET, handleAnimGet);
   server.on("/anim", HTTP_POST, handleAnimPost);

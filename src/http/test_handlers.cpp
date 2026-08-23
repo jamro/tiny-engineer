@@ -18,6 +18,10 @@ void restoreReadyScreen() {
 }
 
 void handleAudioTest(WebServer& server) {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
   runSoundTest();
   restoreReadyScreen();
@@ -25,6 +29,10 @@ void handleAudioTest(WebServer& server) {
 }
 
 void handleBellTest(WebServer& server) {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
 
   if (!playBell()) {
@@ -42,6 +50,10 @@ void handleBellTest(WebServer& server) {
 }
 
 void handleScreenTest(WebServer& server) {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
   runOledTest();
   restoreReadyScreen();
@@ -49,6 +61,10 @@ void handleScreenTest(WebServer& server) {
 }
 
 void handleMovementTest(WebServer& server) {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
   runServoTest();
   restoreReadyScreen();
@@ -56,6 +72,10 @@ void handleMovementTest(WebServer& server) {
 }
 
 void handleLedTest(WebServer& server) {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
   runRgbTest();
   setRgbForAnimation(getAnimation(), millis());
@@ -114,6 +134,10 @@ bool isValidFloatArg(const String& s) {
 }
 
 void handleServoTest(WebServer& server) {
+  if (!httpRequireApiAuth(server)) {
+    return;
+  }
+
   touchApiActivity();
 
   if (!server.hasArg("index") || !server.hasArg("angle")) {

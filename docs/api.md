@@ -4,7 +4,7 @@ JSON HTTP server on the ESP32-C3. Source: [`src/http_server.cpp`](../src/http_se
 
 Listens on **port 80** after STA Wi-Fi connects. Base URL is the board IP (OLED / serial) or `http://tiny-engineer.local` (mDNS, 2.4 GHz only).
 
-No auth. `Content-Type: application/json`. `Access-Control-Allow-Origin: *`.
+Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). `Content-Type: application/json`. CORS: `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization`.
 
 If boot Wi-Fi fails, the server does not start (`HTTP: skipped (no wifi)`). Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
@@ -14,7 +14,7 @@ Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s
 
 ### `GET /`
 
-HTML endpoint index. Lists all routes plus supported parameters for `/anim`, `/settings`, and `/test/servo`. Safe, no hardware side effects.
+HTML endpoint index. Lists all routes plus supported parameters for `/anim`, `/settings`, and `/test/servo`. Safe, no hardware side effects. Always public (no Bearer required).
 
 Open in a browser:
 
@@ -24,12 +24,30 @@ curl http://tiny-engineer.local/
 
 Returns `Content-Type: text/html; charset=utf-8`.
 
+### `GET /auth`
+
+Whether API auth is required. Always public. Safe, no hardware side effects. Does not reveal the token.
+
+```bash
+curl http://tiny-engineer.local/auth
+```
+
+```json
+{ "ok": true, "required": false }
+```
+
+| Field | Meaning |
+| --- | --- |
+| `ok` | Always `true` on this route |
+| `required` | `true` when a non-empty access token is configured |
+
 ### `GET /health`
 
-Health. Safe, no hardware side effects. Uses live `WiFi.status()`, not the boot-time flag.
+Health. Safe, no hardware side effects. Uses live `WiFi.status()`, not the boot-time flag. Requires Bearer when auth is enabled.
 
 ```bash
 curl http://tiny-engineer.local/health
+curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
 ```
 
 ```json
@@ -71,59 +89,65 @@ curl http://tiny-engineer.local/settings
 ```json
 {
   "ok": true,
-  "sleep_timeout": 60,
+  "sleep_timeout": 1,
   "hostname": "tiny-engineer",
   "volume": 70,
   "welcome": true,
   "continuous_timeout": 5,
-  "loading": "progress"
+  "loading": "progress",
+  "access_token_set": false
 }
 ```
 
 | Field | Meaning |
 | --- | --- |
-| `sleep_timeout` | Idle seconds before OLED blanks when animation is `none` (default **60**) |
+| `sleep_timeout` | Idle minutes before OLED blanks when animation is `none` (default **1**) |
 | `hostname` | DHCP/mDNS label without `.local` (default **`tiny-engineer`**) |
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
+| `access_token_set` | `true` when a non-empty access token is stored (secret itself is never returned) |
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, and `continuous_timeout` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. Requires Bearer when auth is enabled.
 
 ```bash
-curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=120"
+curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
 curl -X POST "http://tiny-engineer.local/settings?hostname=desk-bot"
 curl -X POST "http://tiny-engineer.local/settings?volume=40"
 curl -X POST "http://tiny-engineer.local/settings?welcome=0"
 curl -X POST "http://tiny-engineer.local/settings?continuous_timeout=10"
 curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
-curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=90&hostname=tiny-engineer&volume=70&welcome=1&continuous_timeout=5&loading=progress"
+curl -X POST "http://tiny-engineer.local/settings?access_token=secret"
+curl -X POST "http://tiny-engineer.local/settings?access_token="
+curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=1&hostname=tiny-engineer&volume=70&welcome=1&continuous_timeout=5&loading=progress"
 ```
 
 ```json
 {
   "ok": true,
-  "sleep_timeout": 90,
+  "sleep_timeout": 1,
   "hostname": "desk-bot",
   "volume": 70,
   "welcome": true,
   "continuous_timeout": 5,
   "loading": "progress",
+  "access_token_set": true,
   "reboot_required": true
 }
 ```
 
 | Param | Type | Range |
 | --- | --- | --- |
-| `sleep_timeout` | integer | 5–3600 seconds |
+| `sleep_timeout` | integer | 1–1440 minutes (positive) |
 | `hostname` | string | 1–31 chars, `[A-Za-z0-9-]`, not starting/ending with `-` |
 | `volume` | integer | 0–100 percent |
 | `welcome` | integer | `0` or `1` (boot welcome animation) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
+| `access_token` | string | 0–64 printable ASCII; empty string clears the token and disables auth |
 
 At least one param required. Invalid or missing-all → **400**. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot.
 
@@ -286,10 +310,11 @@ Wrong params return **400**:
 | Status | Body | When |
 | --- | --- | --- |
 | `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo` or `/anim` params (see tables above) |
+| `401` | `{"ok":false,"error":"unauthorized"}` | Access token configured and `Authorization: Bearer` missing or wrong |
 | `404` | `{"ok":false,"error":"not found"}` | Unknown path |
-| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*` or `/anim` path |
+| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/settings`, `/anim`, or `/auth` path |
 
-Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET** (read) and **POST** (set).
+Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET** (read) and **POST** (set). `/auth` is **GET** only and always public.
 
 ## Behaviour
 
