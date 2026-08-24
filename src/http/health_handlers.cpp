@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include "display/oled.h"
+#include "hardware/chip_temp.h"
 #include "http/json.h"
 #include "http/server_context.h"
 #include "network/wifi_connect.h"
@@ -32,6 +33,15 @@ void handleHealth(WebServer& server) {
 
   refreshMdnsHostname();
 
+  float tempC = 0.0f;
+  const bool tempOk = chipTempCelsius(&tempC);
+  char tempFrag[24];
+  if (tempOk) {
+    snprintf(tempFrag, sizeof(tempFrag), "%.1f", tempC);
+  } else {
+    snprintf(tempFrag, sizeof(tempFrag), "null");
+  }
+
   char body[512];
 
   snprintf(
@@ -42,6 +52,7 @@ void handleHealth(WebServer& server) {
     "\"uptime_ms\":%lu,"
     "\"free_heap\":%u,"
     "\"heap_size\":%u,"
+    "\"cpu_temp_c\":%s,"
     "\"wifi\":{"
     "\"connected\":%s,"
     "\"ip\":\"%s\","
@@ -57,6 +68,7 @@ void handleHealth(WebServer& server) {
     (unsigned long)millis(),
     (unsigned)ESP.getFreeHeap(),
     (unsigned)ESP.getHeapSize(),
+    tempFrag,
     wifiOk ? "true" : "false",
     wifiOk ? wifiIpText() : "",
     wifiOk ? (int)WiFi.RSSI() : 0,

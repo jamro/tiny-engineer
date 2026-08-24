@@ -4,6 +4,7 @@
 
 #include "pins.h"
 #include "hardware/rgb.h"
+#include "hardware/chip_temp.h"
 #include "display/oled.h"
 #include "audio/audio.h"
 #include "animation.h"
@@ -26,6 +27,8 @@ void setup() {
 
   Serial.begin(115200);
   delay(1000);
+
+  initChipTemp();
 
   Serial.println();
   Serial.println("==========================");

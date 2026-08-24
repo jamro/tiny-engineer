@@ -534,7 +534,9 @@ function loadHealth(){
     if(j.uptime_ms!=null)lastHealthUptimeMs=j.uptime_ms;
     var ip=j.wifi&&j.wifi.connected?j.wifi.ip:"offline";
     var heapPct=j.heap_size?Math.round((1-j.free_heap/j.heap_size)*100):0;
-    el.textContent="IP: "+ip+" \u00b7 Uptime: "+formatUptime(j.uptime_ms)+" \u00b7 Heap: "+heapPct+"% used ("+formatBytes(j.free_heap)+" free)";
+    var line="IP: "+ip+" \u00b7 Uptime: "+formatUptime(j.uptime_ms)+" \u00b7 Heap: "+heapPct+"% used ("+formatBytes(j.free_heap)+" free)";
+    if(typeof j.cpu_temp_c==="number")line+=" \u00b7 Temp: "+j.cpu_temp_c.toFixed(1)+" \u00b0C";
+    el.textContent=line;
   }).catch(function(){
     document.getElementById("health-info").textContent="Could not load status.";
   });

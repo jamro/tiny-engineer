@@ -21,6 +21,7 @@ constexpr uint32_t MIN_ANIMATION_HOLD_MS = 1000;
 
 AnimationId g_animation = AnimationId::None;
 uint32_t g_animationStartedMs = 0;
+uint32_t g_continuousStartedMs = 0;
 bool g_hasPendingAnimation = false;
 AnimationId g_pendingAnimation = AnimationId::None;
 
@@ -46,6 +47,7 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
 
   g_animation = id;
   g_animationStartedMs = nowMs;
+  g_continuousStartedMs = nowMs;
   g_hasPendingAnimation = false;
 
   setEyeMode(entry->eyeMode, g_animationStartedMs);
@@ -67,6 +69,11 @@ bool animationHoldElapsed() {
 void setAnimation(AnimationId id) {
   if (id == g_animation) {
     g_hasPendingAnimation = false;
+    // Re-requesting the same continuous anim refreshes continuous_timeout
+    // without restarting motion or the 1s min-hold clock.
+    if (animationIsContinuous(id)) {
+      g_continuousStartedMs = millis();
+    }
     return;
   }
 
@@ -131,7 +138,7 @@ void updateAnimation() {
   if (animationIsContinuous(g_animation)) {
     const uint32_t timeoutMs =
       settingsContinuousTimeoutMin() * 60UL * 1000UL;
-    if ((now - g_animationStartedMs) >= timeoutMs) {
+    if ((now - g_continuousStartedMs) >= timeoutMs) {
       setAnimation(AnimationId::Attention);
     }
   }

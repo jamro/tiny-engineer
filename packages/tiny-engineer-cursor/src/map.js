@@ -6,14 +6,18 @@ export const TYPING_TOOLS = new Set([
   "Delete",
   "Shell",
   "Task",
+  "CallMcpTool",
+  "TodoWrite",
+  "GenerateImage",
+]);
+
+export const READING_TOOLS = new Set([
+  "Read",
   "Grep",
   "Glob",
   "WebSearch",
   "WebFetch",
-  "CallMcpTool",
-  "TodoWrite",
   "AwaitShell",
-  "GenerateImage",
 ]);
 
 const EVENT_ANIM = {
@@ -38,7 +42,7 @@ export function animationForEvent(event) {
 
   if (name === "preToolUse") {
     const tool = event.tool_name;
-    if (tool === "Read") return "reading";
+    if (READING_TOOLS.has(tool)) return "reading";
     if (TYPING_TOOLS.has(tool)) return "typing";
     return null;
   }
