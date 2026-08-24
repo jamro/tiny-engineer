@@ -27,6 +27,10 @@ bool settingsWelcomeEnabled() {
   return g_welcome;
 }
 
+bool settingsSerialLogEnabled() {
+  return g_serialLog;
+}
+
 uint32_t settingsContinuousTimeoutMin() {
   return g_continuousTimeoutMin;
 }

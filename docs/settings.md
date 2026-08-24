@@ -2,7 +2,7 @@
 
 Persistent settings live in NVS (namespace `te`) via [`src/settings.cpp`](../src/settings.cpp) and [`src/settings_storage.cpp`](../src/settings_storage.cpp). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
-Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_timeout`, `loading`, `access_token`, `wifi_ssid`, `wifi_password`. Follow the same pattern for a new one.
+Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token`, `wifi_ssid`, `wifi_password`. Follow the same pattern for a new one.
 
 ## Design choices
 

@@ -9,6 +9,7 @@ extern char g_hostname[SETTINGS_HOSTNAME_MAX_LEN + 1];
 extern char g_bootHostname[SETTINGS_HOSTNAME_MAX_LEN + 1];
 extern uint8_t g_volume;
 extern bool g_welcome;
+extern bool g_serialLog;
 extern uint32_t g_continuousTimeoutMin;
 extern char g_loading[SETTINGS_LOADING_MAX_LEN + 1];
 extern char g_accessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1];

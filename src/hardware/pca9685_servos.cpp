@@ -6,17 +6,18 @@
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"
 #include "hardware/pca9685_servos.h"
+#include "serial_log.h"
 
 bool pca9685Connected() {
   return i2cDeviceConnected(PCA9685_ADDRESS);
 }
 
 void initPca9685() {
-  Serial.println();
-  Serial.println("Checking PCA9685 at 0x40...");
+  serialLogPrintln();
+  serialLogPrintln("Checking PCA9685 at 0x40...");
 
   if (!pca9685Connected()) {
-    Serial.println("ERROR: PCA9685 not found");
+    serialLogPrintln("ERROR: PCA9685 not found");
 
     showOledText(
       "PCA9685 ERROR",
@@ -30,7 +31,7 @@ void initPca9685() {
     }
   }
 
-  Serial.println("PCA9685 found");
+  serialLogPrintln("PCA9685 found");
 
   initServoPwmDriver();
 }
@@ -44,7 +45,7 @@ bool moveServoSmooth(int index, float toAngle) {
 }
 
 void centerAllServos() {
-  Serial.println("Centering servos to mid (min+max)/2");
+  serialLogPrintln("Centering servos to mid (min+max)/2");
 
   float targets[SERVO_COUNT];
 
@@ -58,12 +59,12 @@ void centerAllServos() {
 void runServoTest() {
   constexpr int TOTAL_STEPS = 4;
 
-  Serial.println();
-  Serial.println("==========================");
-  Serial.println("SERVO TEST - HEAD/NECK/HANDS/BODY");
-  Serial.println("==========================");
+  serialLogPrintln();
+  serialLogPrintln("==========================");
+  serialLogPrintln("SERVO TEST - HEAD/NECK/HANDS/BODY");
+  serialLogPrintln("==========================");
 
-  Serial.println(
+  serialLogPrintln(
     "1. All servos -> 90 deg"
   );
 
@@ -79,7 +80,7 @@ void runServoTest() {
 
   delay(1000);
 
-  Serial.println(
+  serialLogPrintln(
     "2. All servos: 90 -> 105 deg"
   );
 
@@ -93,7 +94,7 @@ void runServoTest() {
     SERVO_HIGH
   );
 
-  Serial.println(
+  serialLogPrintln(
     "3. All servos: 105 -> 75 deg"
   );
 
@@ -107,7 +108,7 @@ void runServoTest() {
     SERVO_LOW
   );
 
-  Serial.println(
+  serialLogPrintln(
     "4. All servos: 75 -> 90 deg"
   );
 
@@ -123,7 +124,7 @@ void runServoTest() {
 
   showServoTestFinished();
 
-  Serial.println(
+  serialLogPrintln(
     "All 5 servos test finished"
   );
 

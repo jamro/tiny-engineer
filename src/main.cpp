@@ -13,6 +13,7 @@
 #include "network/wifi_connect.h"
 #include "http/http_server.h"
 #include "settings.h"
+#include "serial_log.h"
 #include "sleep.h"
 #include "boot/boot_loading.h"
 
@@ -26,21 +27,24 @@ void setup() {
   initServoOutputPin();
 
   Serial.begin(115200);
+  Serial.setTxTimeoutMs(0);
   delay(1000);
+
+  initSettings();
 
   initChipTemp();
 
-  Serial.println();
-  Serial.println("==========================");
-  Serial.println("TINY ENGINEER");
-  Serial.println("==========================");
+  serialLogPrintln();
+  serialLogPrintln("==========================");
+  serialLogPrintln("TINY ENGINEER");
+  serialLogPrintln("==========================");
 
   setRgb(0, 32, 0);
 
-  Serial.println();
-  Serial.println("Starting I2C");
-  Serial.println("SDA = GP0");
-  Serial.println("SCL = GP1");
+  serialLogPrintln();
+  serialLogPrintln("Starting I2C");
+  serialLogPrintln("SDA = GP0");
+  serialLogPrintln("SCL = GP1");
 
   Wire.begin(
     I2C_SDA,
@@ -52,7 +56,6 @@ void setup() {
   initPca9685();
 
   initOled();
-  initSettings();
 
   const bool sleepServos = bootSleepInertiaUsesServos();
 
@@ -77,8 +80,8 @@ void setup() {
 
   bootShowProgress(3, kBootSteps, "Servos");
 
-  Serial.println();
-  Serial.println(
+  serialLogPrintln();
+  serialLogPrintln(
     "Starting MAX98357A"
   );
 
@@ -94,7 +97,7 @@ void setup() {
         I2S_DATA_BIT_WIDTH_16BIT,
         I2S_SLOT_MODE_STEREO
       )) {
-    Serial.println(
+    serialLogPrintln(
       "ERROR: I2S initialization failed"
     );
 
@@ -110,14 +113,14 @@ void setup() {
     }
   }
 
-  Serial.println("I2S OK");
+  serialLogPrintln("I2S OK");
   bootShowProgress(4, kBootSteps, "Audio");
 
   initAudioStorage();
   bootShowProgress(5, kBootSteps, "Storage");
 
   if (!sleepServos) {
-    Serial.println("Centering servos");
+    serialLogPrintln("Centering servos");
     centerAllServos();
   }
 
@@ -137,10 +140,10 @@ void setup() {
     }
   }
 
-  Serial.println();
-  Serial.println("==========================");
-  Serial.println("ROBOT READY");
-  Serial.println("==========================");
+  serialLogPrintln();
+  serialLogPrintln("==========================");
+  serialLogPrintln("ROBOT READY");
+  serialLogPrintln("==========================");
 
   if (wifiConnected() && settingsWelcomeEnabled()) {
     setAnimation(AnimationId::Welcome);

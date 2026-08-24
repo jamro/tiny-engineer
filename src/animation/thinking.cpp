@@ -6,6 +6,7 @@
 #include "animation/util.h"
 #include "hardware/servo_wrapper.h"
 #include "servos.h"
+#include "serial_log.h"
 
 using anim::beginEasedMove;
 using anim::easedMoveDone;
@@ -215,22 +216,22 @@ void startThinkPrimaryMove(uint32_t now, const ThinkPose& pose) {
   g_thinkPhase = ThinkPhase::PrimaryMove;
   g_thinkDidMicro = false;
 
-  Serial.print("[anim] think primary head ");
-  Serial.print(headFrom, 1);
-  Serial.print("->");
-  Serial.print(headTo, 1);
-  Serial.print(" (");
-  Serial.print(headDur);
-  Serial.print("ms) neck ");
-  Serial.print(neckFrom, 1);
-  Serial.print("->");
-  Serial.print(neckTo, 1);
-  Serial.print(" (");
-  Serial.print(neckDur);
-  Serial.print("ms) headFirst=");
-  Serial.print(headFirst ? "yes" : "no");
-  Serial.print(" stagger=");
-  Serial.println(stagger);
+  serialLogPrint("[anim] think primary head ");
+  serialLogPrint(headFrom, 1);
+  serialLogPrint("->");
+  serialLogPrint(headTo, 1);
+  serialLogPrint(" (");
+  serialLogPrint(headDur);
+  serialLogPrint("ms) neck ");
+  serialLogPrint(neckFrom, 1);
+  serialLogPrint("->");
+  serialLogPrint(neckTo, 1);
+  serialLogPrint(" (");
+  serialLogPrint(neckDur);
+  serialLogPrint("ms) headFirst=");
+  serialLogPrint(headFirst ? "yes" : "no");
+  serialLogPrint(" stagger=");
+  serialLogPrintln(stagger);
 }
 
 bool thinkMovesActive() {
@@ -306,7 +307,7 @@ void beginNextThinkPose(uint32_t now) {
 }  // namespace
 
 void startThinking(uint32_t animationStartedMs) {
-  Serial.println("[anim] startThinking");
+  serialLogPrintln("[anim] startThinking");
   anim::logServoSnapshot("think-enter");
   stopAnimServos();
   anim::logServoSnapshot("think-post-stop");
@@ -330,12 +331,12 @@ void updateThinking(uint32_t now) {
 
   if (g_thinkPhase == ThinkPhase::TransitionPark) {
     if (isTransitionParkComplete()) {
-      Serial.print("[anim] think transition park complete body=");
-      Serial.print(servoAt(SERVO_BODY).angle(), 1);
-      Serial.print(" head=");
-      Serial.print(servoAt(SERVO_HEAD).angle(), 1);
-      Serial.print(" neck=");
-      Serial.println(servoAt(SERVO_NECK).angle(), 1);
+      serialLogPrint("[anim] think transition park complete body=");
+      serialLogPrint(servoAt(SERVO_BODY).angle(), 1);
+      serialLogPrint(" head=");
+      serialLogPrint(servoAt(SERVO_HEAD).angle(), 1);
+      serialLogPrint(" neck=");
+      serialLogPrintln(servoAt(SERVO_NECK).angle(), 1);
       startThinkPrimaryMove(now, perturbedPose(g_thinkPoseIndex));
     }
     return;

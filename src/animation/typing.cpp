@@ -6,6 +6,7 @@
 #include "animation/util.h"
 #include "hardware/servo_wrapper.h"
 #include "servos.h"
+#include "serial_log.h"
 
 using anim::parkTorso;
 using anim::randChance;
@@ -39,14 +40,14 @@ void commandBodyNeckSway() {
     speedDegS
   );
 
-  Serial.print("[anim] typing sway body->");
-  Serial.print(anim::TYPING_BODY_MID + offset, 1);
-  Serial.print(" neck->");
-  Serial.print(anim::TYPING_NECK_MID - offset, 1);
-  Serial.print(" speed=");
-  Serial.print(speedDegS, 1);
-  Serial.print(" dir=");
-  Serial.println(g_bodySwayPositive ? "right" : "left");
+  serialLogPrint("[anim] typing sway body->");
+  serialLogPrint(anim::TYPING_BODY_MID + offset, 1);
+  serialLogPrint(" neck->");
+  serialLogPrint(anim::TYPING_NECK_MID - offset, 1);
+  serialLogPrint(" speed=");
+  serialLogPrint(speedDegS, 1);
+  serialLogPrint(" dir=");
+  serialLogPrintln(g_bodySwayPositive ? "right" : "left");
 }
 
 void commandHandStroke() {

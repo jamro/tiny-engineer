@@ -9,6 +9,7 @@
 #include "display/oled.h"
 #include "settings.h"
 #include "audio/audio.h"
+#include "serial_log.h"
 
 I2SClass I2S;
 
@@ -22,17 +23,17 @@ void logAudioStorageContents() {
   File root = LittleFS.open("/");
 
   if (!root || !root.isDirectory()) {
-    Serial.println("LittleFS root unavailable");
+    serialLogPrintln("LittleFS root unavailable");
     return;
   }
 
-  Serial.println("LittleFS files:");
+  serialLogPrintln("LittleFS files:");
 
   File entry = root.openNextFile();
 
   while (entry) {
-    Serial.print("  ");
-    Serial.println(entry.name());
+    serialLogPrint("  ");
+    serialLogPrintln(entry.name());
     entry.close();
     entry = root.openNextFile();
   }
@@ -75,7 +76,7 @@ bool initAudioStorage() {
   );
 
   if (!audioStorageReady) {
-    Serial.println("LittleFS mount failed (run: pio run -t uploadfs)");
+    serialLogPrintln("LittleFS mount failed (run: pio run -t uploadfs)");
     return false;
   }
 
@@ -84,8 +85,8 @@ bool initAudioStorage() {
     const char* path = wavClipPath(clip);
 
     if (!LittleFS.exists(path)) {
-      Serial.print(path);
-      Serial.println(" not on LittleFS");
+      serialLogPrint(path);
+      serialLogPrintln(" not on LittleFS");
       logAudioStorageContents();
     }
   }
@@ -261,10 +262,10 @@ bool playAbort() {
 }
 
 void runSoundTest() {
-  Serial.println();
-  Serial.println("==========================");
-  Serial.println("SOUND TEST");
-  Serial.println("==========================");
+  serialLogPrintln();
+  serialLogPrintln("==========================");
+  serialLogPrintln("SOUND TEST");
+  serialLogPrintln("==========================");
 
   showOledText(
     "SOUND TEST",
@@ -295,7 +296,7 @@ void runSoundTest() {
     "OK"
   );
 
-  Serial.println("Sound OK");
+  serialLogPrintln("Sound OK");
 
   delay(500);
 }

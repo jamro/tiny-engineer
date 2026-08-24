@@ -5,10 +5,11 @@
 #include "http/routes.h"
 #include "http/server_context.h"
 #include "network/wifi_connect.h"
+#include "serial_log.h"
 
 void startHttpServer() {
   if (!wifiConnected() && !wifiProvisioningMode()) {
-    Serial.println("HTTP: skipped (no wifi)");
+    serialLogPrintln("HTTP: skipped (no wifi)");
     return;
   }
 
@@ -23,24 +24,24 @@ void startHttpServer() {
   server.begin();
 
   if (wifiProvisioningMode()) {
-    Serial.print("HTTP setup: http://");
-    Serial.print(wifiApIpText());
-    Serial.println("/config");
+    serialLogPrint("HTTP setup: http://");
+    serialLogPrint(wifiApIpText());
+    serialLogPrintln("/config");
     return;
   }
 
-  Serial.print("HTTP: http://");
-  Serial.print(wifiIpText());
-  Serial.println("/");
-  Serial.print("HTTP: http://");
-  Serial.print(httpMdnsHostname());
-  Serial.println("/");
-  Serial.print("HTTP: http://");
-  Serial.print(wifiIpText());
-  Serial.println("/health");
-  Serial.print("HTTP: http://");
-  Serial.print(httpMdnsHostname());
-  Serial.println("/health");
+  serialLogPrint("HTTP: http://");
+  serialLogPrint(wifiIpText());
+  serialLogPrintln("/");
+  serialLogPrint("HTTP: http://");
+  serialLogPrint(httpMdnsHostname());
+  serialLogPrintln("/");
+  serialLogPrint("HTTP: http://");
+  serialLogPrint(wifiIpText());
+  serialLogPrintln("/health");
+  serialLogPrint("HTTP: http://");
+  serialLogPrint(httpMdnsHostname());
+  serialLogPrintln("/health");
 }
 
 void pollHttpServer() {

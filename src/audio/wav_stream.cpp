@@ -7,6 +7,7 @@
 
 #include "audio/audio.h"
 #include "settings.h"
+#include "serial_log.h"
 
 namespace {
 
@@ -34,17 +35,17 @@ void logAudioStorageContents() {
   File root = LittleFS.open("/");
 
   if (!root || !root.isDirectory()) {
-    Serial.println("LittleFS root unavailable");
+    serialLogPrintln("LittleFS root unavailable");
     return;
   }
 
-  Serial.println("LittleFS files:");
+  serialLogPrintln("LittleFS files:");
 
   File entry = root.openNextFile();
 
   while (entry) {
-    Serial.print("  ");
-    Serial.println(entry.name());
+    serialLogPrint("  ");
+    serialLogPrintln(entry.name());
     entry.close();
     entry = root.openNextFile();
   }
@@ -164,8 +165,8 @@ bool wavStreamStart(WavClip clip) {
   const WavClipDef& def = clipDef(clip);
 
   if (!initAudioStorage()) {
-    Serial.print(def.label);
-    Serial.println(" failed: filesystem");
+    serialLogPrint(def.label);
+    serialLogPrintln(" failed: filesystem");
     return false;
   }
 
@@ -173,24 +174,24 @@ bool wavStreamStart(WavClip clip) {
 
   if (!g_file) {
     logAudioStorageContents();
-    Serial.print(def.label);
-    Serial.print(" failed: ");
-    Serial.print(def.path);
-    Serial.println(" missing");
+    serialLogPrint(def.label);
+    serialLogPrint(" failed: ");
+    serialLogPrint(def.path);
+    serialLogPrintln(" missing");
     return false;
   }
 
   if (!skipWavPcmData(g_file)) {
     g_file.close();
-    Serial.print(def.label);
-    Serial.println(" failed: invalid WAV");
+    serialLogPrint(def.label);
+    serialLogPrintln(" failed: invalid WAV");
     return false;
   }
 
   g_active = clip;
   g_playing = true;
-  Serial.print("Playing ");
-  Serial.println(def.path);
+  serialLogPrint("Playing ");
+  serialLogPrintln(def.path);
   return true;
 }
 
@@ -206,8 +207,8 @@ bool wavStreamUpdate() {
       g_file.close();
     }
     g_playing = false;
-    Serial.print(def.label);
-    Serial.println(" OK");
+    serialLogPrint(def.label);
+    serialLogPrintln(" OK");
     return false;
   }
 

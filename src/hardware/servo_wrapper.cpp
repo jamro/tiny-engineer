@@ -5,6 +5,7 @@
 #include "pins.h"
 #include "servos.h"
 #include "hardware/servo_wrapper.h"
+#include "serial_log.h"
 
 Adafruit_PWMServoDriver pwm(PCA9685_ADDRESS);
 
@@ -163,12 +164,12 @@ void ServoWrapper::writeAngle(float angle, bool log) {
   const uint16_t pulse = angleToPulse(angle);
 
   if (log) {
-    Serial.print("Servo ");
-    Serial.print(SERVO_SPECS[index_].name);
-    Serial.print(" -> ");
-    Serial.print(angle);
-    Serial.print(" deg, pulse: ");
-    Serial.println(pulse);
+    serialLogPrint("Servo ");
+    serialLogPrint(SERVO_SPECS[index_].name);
+    serialLogPrint(" -> ");
+    serialLogPrint(angle);
+    serialLogPrint(" deg, pulse: ");
+    serialLogPrintln(pulse);
   }
 
   if (pulse != lastPulse_) {
@@ -214,15 +215,15 @@ bool ServoWrapper::moveTo(float target) {
   );
   const int stepDelayMs = max(1, durationMs / steps);
 
-  Serial.print("Servo ");
-  Serial.print(SERVO_SPECS[index_].name);
-  Serial.print(" smooth ");
-  Serial.print(fromAngle);
-  Serial.print(" -> ");
-  Serial.print(target);
-  Serial.print(" deg (");
-  Serial.print(SERVO_MAX_SPEED_DEG_S);
-  Serial.println(" deg/s)");
+  serialLogPrint("Servo ");
+  serialLogPrint(SERVO_SPECS[index_].name);
+  serialLogPrint(" smooth ");
+  serialLogPrint(fromAngle);
+  serialLogPrint(" -> ");
+  serialLogPrint(target);
+  serialLogPrint(" deg (");
+  serialLogPrint(SERVO_MAX_SPEED_DEG_S);
+  serialLogPrintln(" deg/s)");
 
   for (int step = 1; step <= steps; step++) {
     const float progress =
@@ -286,9 +287,9 @@ void servoMoveAllSmoothTo(
   );
   const int stepDelayMs = max(1, durationMs / steps);
 
-  Serial.print("All servos smooth (");
-  Serial.print(speedDegS);
-  Serial.println(" deg/s)");
+  serialLogPrint("All servos smooth (");
+  serialLogPrint(speedDegS);
+  serialLogPrintln(" deg/s)");
 
   for (int step = 1; step <= steps; step++) {
     const float progress =

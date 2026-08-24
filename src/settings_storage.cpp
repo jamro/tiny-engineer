@@ -1,5 +1,6 @@
 #include "settings.h"
 #include "settings_internal.h"
+#include "serial_log.h"
 
 #include <Arduino.h>
 #include <Preferences.h>
@@ -12,6 +13,7 @@ constexpr const char* kKeySleep = "sleep_m";
 constexpr const char* kKeyHost = "host";
 constexpr const char* kKeyVolume = "vol";
 constexpr const char* kKeyWelcome = "welcome";
+constexpr const char* kKeySerialLog = "serial_log";
 constexpr const char* kKeyContTo = "cont_to";
 constexpr const char* kKeyLoading = "loading";
 constexpr const char* kKeyAccessTok = "access_tok";
@@ -27,6 +29,7 @@ char g_hostname[SETTINGS_HOSTNAME_MAX_LEN + 1] = {};
 char g_bootHostname[SETTINGS_HOSTNAME_MAX_LEN + 1] = {};
 uint8_t g_volume = SETTINGS_DEFAULT_VOLUME;
 bool g_welcome = SETTINGS_DEFAULT_WELCOME;
+bool g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
 uint32_t g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
 char g_loading[SETTINGS_LOADING_MAX_LEN + 1] = {};
 char g_accessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1] = {};
@@ -59,14 +62,15 @@ void setWifiPasswordCache(char* dest, const char* src) {
 }
 
 void logAccessTokenState() {
-  Serial.print(" access_token=");
-  Serial.print(g_accessToken[0] != '\0' ? "set" : "unset");
+  serialLogPrint(" access_token=");
+  serialLogPrint(g_accessToken[0] != '\0' ? "set" : "unset");
 }
 
 void initSettings() {
   setHostnameCache(g_hostname, SETTINGS_DEFAULT_HOSTNAME);
   g_volume = SETTINGS_DEFAULT_VOLUME;
   g_welcome = SETTINGS_DEFAULT_WELCOME;
+  g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
   g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
   setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
@@ -74,7 +78,7 @@ void initSettings() {
   setWifiPasswordCache(g_wifiPassword, "");
 
   if (!prefs.begin(kNs, true)) {
-    Serial.println("Settings: NVS open failed; using defaults");
+    serialLogPrintln("Settings: NVS open failed; using defaults");
     setHostnameCache(g_bootHostname, g_hostname);
     return;
   }
@@ -106,6 +110,7 @@ void initSettings() {
   }
 
   g_welcome = prefs.getBool(kKeyWelcome, SETTINGS_DEFAULT_WELCOME);
+  g_serialLog = prefs.getBool(kKeySerialLog, SETTINGS_DEFAULT_SERIAL_LOG);
 
   g_continuousTimeoutMin = prefs.getUInt(
     kKeyContTo,
@@ -153,22 +158,24 @@ void initSettings() {
 
   setHostnameCache(g_bootHostname, g_hostname);
 
-  Serial.print("Settings: sleep_timeout=");
-  Serial.print(g_sleepTimeoutMin);
-  Serial.print("min hostname=");
-  Serial.print(g_hostname);
-  Serial.print(" volume=");
-  Serial.print(g_volume);
-  Serial.print(" welcome=");
-  Serial.print(g_welcome ? "on" : "off");
-  Serial.print(" continuous_timeout=");
-  Serial.print(g_continuousTimeoutMin);
-  Serial.print("min loading=");
-  Serial.print(g_loading);
+  serialLogPrint("Settings: sleep_timeout=");
+  serialLogPrint(g_sleepTimeoutMin);
+  serialLogPrint("min hostname=");
+  serialLogPrint(g_hostname);
+  serialLogPrint(" volume=");
+  serialLogPrint(g_volume);
+  serialLogPrint(" welcome=");
+  serialLogPrint(g_welcome ? "on" : "off");
+  serialLogPrint(" serial_log=");
+  serialLogPrint(g_serialLog ? "on" : "off");
+  serialLogPrint(" continuous_timeout=");
+  serialLogPrint(g_continuousTimeoutMin);
+  serialLogPrint("min loading=");
+  serialLogPrint(g_loading);
   logAccessTokenState();
-  Serial.print(" wifi=");
-  Serial.print(g_wifiSsid[0] != '\0' ? "configured" : "unset");
-  Serial.println();
+  serialLogPrint(" wifi=");
+  serialLogPrint(g_wifiSsid[0] != '\0' ? "configured" : "unset");
+  serialLogPrintln();
 }
 
 bool saveSettings(
@@ -176,6 +183,7 @@ bool saveSettings(
   const char* hostname,
   const uint8_t* volume,
   const bool* welcome,
+  const bool* serialLog,
   const uint32_t* continuousTimeoutMin,
   const char* loading,
   const char* accessToken,
@@ -191,6 +199,7 @@ bool saveSettings(
       hostname == nullptr &&
       volume == nullptr &&
       welcome == nullptr &&
+      serialLog == nullptr &&
       continuousTimeoutMin == nullptr &&
       loading == nullptr &&
       accessToken == nullptr &&
@@ -204,6 +213,7 @@ bool saveSettings(
   setHostnameCache(nextHost, g_hostname);
   uint8_t nextVolume = g_volume;
   bool nextWelcome = g_welcome;
+  bool nextSerialLog = g_serialLog;
   uint32_t nextContTo = g_continuousTimeoutMin;
   char nextLoading[SETTINGS_LOADING_MAX_LEN + 1];
   setLoadingCache(nextLoading, g_loading);
@@ -240,6 +250,10 @@ bool saveSettings(
 
   if (welcome != nullptr) {
     nextWelcome = *welcome;
+  }
+
+  if (serialLog != nullptr) {
+    nextSerialLog = *serialLog;
   }
 
   if (continuousTimeoutMin != nullptr) {
@@ -283,7 +297,7 @@ bool saveSettings(
   }
 
   if (!prefs.begin(kNs, false)) {
-    Serial.println("Settings: NVS write open failed");
+    serialLogPrintln("Settings: NVS write open failed");
     return false;
   }
 
@@ -291,6 +305,7 @@ bool saveSettings(
   prefs.putString(kKeyHost, nextHost);
   prefs.putUInt(kKeyVolume, nextVolume);
   prefs.putBool(kKeyWelcome, nextWelcome);
+  prefs.putBool(kKeySerialLog, nextSerialLog);
   prefs.putUInt(kKeyContTo, nextContTo);
   prefs.putString(kKeyLoading, nextLoading);
   prefs.putString(kKeyAccessTok, nextAccessToken);
@@ -302,6 +317,7 @@ bool saveSettings(
   setHostnameCache(g_hostname, nextHost);
   g_volume = nextVolume;
   g_welcome = nextWelcome;
+  g_serialLog = nextSerialLog;
   g_continuousTimeoutMin = nextContTo;
   setLoadingCache(g_loading, nextLoading);
   setAccessTokenCache(g_accessToken, nextAccessToken);
@@ -313,22 +329,24 @@ bool saveSettings(
     *rebootRequired = true;
   }
 
-  Serial.print("Settings saved: sleep_timeout=");
-  Serial.print(g_sleepTimeoutMin);
-  Serial.print("min hostname=");
-  Serial.print(g_hostname);
-  Serial.print(" volume=");
-  Serial.print(g_volume);
-  Serial.print(" welcome=");
-  Serial.print(g_welcome ? "on" : "off");
-  Serial.print(" continuous_timeout=");
-  Serial.print(g_continuousTimeoutMin);
-  Serial.print("min loading=");
-  Serial.print(g_loading);
+  serialLogPrint("Settings saved: sleep_timeout=");
+  serialLogPrint(g_sleepTimeoutMin);
+  serialLogPrint("min hostname=");
+  serialLogPrint(g_hostname);
+  serialLogPrint(" volume=");
+  serialLogPrint(g_volume);
+  serialLogPrint(" welcome=");
+  serialLogPrint(g_welcome ? "on" : "off");
+  serialLogPrint(" serial_log=");
+  serialLogPrint(g_serialLog ? "on" : "off");
+  serialLogPrint(" continuous_timeout=");
+  serialLogPrint(g_continuousTimeoutMin);
+  serialLogPrint("min loading=");
+  serialLogPrint(g_loading);
   logAccessTokenState();
-  Serial.print(" wifi=");
-  Serial.print(g_wifiSsid[0] != '\0' ? "configured" : "unset");
-  Serial.println();
+  serialLogPrint(" wifi=");
+  serialLogPrint(g_wifiSsid[0] != '\0' ? "configured" : "unset");
+  serialLogPrintln();
 
   return true;
 }
@@ -348,6 +366,7 @@ bool factoryResetSettings(bool* rebootRequired) {
   setHostnameCache(g_hostname, SETTINGS_DEFAULT_HOSTNAME);
   g_volume = SETTINGS_DEFAULT_VOLUME;
   g_welcome = SETTINGS_DEFAULT_WELCOME;
+  g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
   g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
   setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
@@ -355,7 +374,7 @@ bool factoryResetSettings(bool* rebootRequired) {
   setWifiPasswordCache(g_wifiPassword, "");
 
   if (!prefs.begin(kNs, false)) {
-    Serial.println("Settings: factory reset NVS open failed");
+    serialLogPrintln("Settings: factory reset NVS open failed");
     return false;
   }
 
@@ -364,6 +383,7 @@ bool factoryResetSettings(bool* rebootRequired) {
   prefs.putString(kKeyHost, g_hostname);
   prefs.putUInt(kKeyVolume, g_volume);
   prefs.putBool(kKeyWelcome, g_welcome);
+  prefs.putBool(kKeySerialLog, g_serialLog);
   prefs.putUInt(kKeyContTo, g_continuousTimeoutMin);
   prefs.putString(kKeyLoading, g_loading);
   prefs.putString(kKeyAccessTok, g_accessToken);
@@ -371,22 +391,24 @@ bool factoryResetSettings(bool* rebootRequired) {
   prefs.putString(kKeyWifiPass, g_wifiPassword);
   prefs.end();
 
-  Serial.print("Settings factory reset: sleep_timeout=");
-  Serial.print(g_sleepTimeoutMin);
-  Serial.print("min hostname=");
-  Serial.print(g_hostname);
-  Serial.print(" volume=");
-  Serial.print(g_volume);
-  Serial.print(" welcome=");
-  Serial.print(g_welcome ? "on" : "off");
-  Serial.print(" continuous_timeout=");
-  Serial.print(g_continuousTimeoutMin);
-  Serial.print("min loading=");
-  Serial.print(g_loading);
+  serialLogPrint("Settings factory reset: sleep_timeout=");
+  serialLogPrint(g_sleepTimeoutMin);
+  serialLogPrint("min hostname=");
+  serialLogPrint(g_hostname);
+  serialLogPrint(" volume=");
+  serialLogPrint(g_volume);
+  serialLogPrint(" welcome=");
+  serialLogPrint(g_welcome ? "on" : "off");
+  serialLogPrint(" serial_log=");
+  serialLogPrint(g_serialLog ? "on" : "off");
+  serialLogPrint(" continuous_timeout=");
+  serialLogPrint(g_continuousTimeoutMin);
+  serialLogPrint("min loading=");
+  serialLogPrint(g_loading);
   logAccessTokenState();
-  Serial.print(" wifi=");
-  Serial.print("unset");
-  Serial.println();
+  serialLogPrint(" wifi=");
+  serialLogPrint("unset");
+  serialLogPrintln();
 
   return true;
 }

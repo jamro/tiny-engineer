@@ -107,6 +107,7 @@ curl http://tiny-engineer.local/settings
   "hostname": "tiny-engineer",
   "volume": 70,
   "welcome": true,
+  "serial_log": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "access_token_set": false,
@@ -122,6 +123,7 @@ curl http://tiny-engineer.local/settings
 | `hostname` | DHCP/mDNS label without `.local` (default **`tiny-engineer`**) |
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
+| `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `access_token_set` | `true` when a non-empty access token is stored (secret itself is never returned) |
@@ -131,19 +133,20 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. Outside setup AP → **400** `wifi setup only in AP mode`. Requires Bearer when auth is enabled.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. Outside setup AP → **400** `wifi setup only in AP mode`. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
 curl -X POST "http://tiny-engineer.local/settings?hostname=desk-bot"
 curl -X POST "http://tiny-engineer.local/settings?volume=40"
 curl -X POST "http://tiny-engineer.local/settings?welcome=0"
+curl -X POST "http://tiny-engineer.local/settings?serial_log=1"
 curl -X POST "http://tiny-engineer.local/settings?continuous_timeout=10"
 curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
 curl -X POST "http://tiny-engineer.local/settings?access_token=secret"
 curl -X POST "http://tiny-engineer.local/settings?access_token="
 curl -X POST "http://192.168.4.1/settings?wifi_ssid=MyNetwork&wifi_password=secret"
-curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny-engineer&volume=70&welcome=1&continuous_timeout=5&loading=progress"
+curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny-engineer&volume=70&welcome=1&serial_log=0&continuous_timeout=5&loading=progress"
 ```
 
 ```json
@@ -153,6 +156,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
   "hostname": "desk-bot",
   "volume": 70,
   "welcome": true,
+  "serial_log": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "access_token_set": true,
@@ -172,6 +176,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
 | `hostname` | string | 1–31 chars, `[A-Za-z0-9-]`, not starting/ending with `-` |
 | `volume` | integer | 0–100 percent |
 | `welcome` | integer | `0` or `1` (boot welcome animation) |
+| `serial_log` | integer | `0` or `1` (USB serial debug logging) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `access_token` | string | 0–64 printable ASCII; empty string clears the token and disables auth |
@@ -197,6 +202,7 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "hostname": "tiny-engineer",
   "volume": 70,
   "welcome": true,
+  "serial_log": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "access_token_set": false,

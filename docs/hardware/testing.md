@@ -92,7 +92,7 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | `GET` | `/` | HTML endpoint index |
 | `GET` | `/auth` | Auth status (`ok`, `required`) — always public |
 | `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `cpu_temp_c`, `wifi`, `oled`) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `continuous_timeout`, `loading`, `access_token_set`, `wifi_configured`, `wifi_ssid`, `wifi_password_set`) |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token_set`, `wifi_configured`, `wifi_ssid`, `wifi_password_set`) |
 | `POST` | `/settings?...&wifi_ssid=&wifi_password=` | Update NVS settings; WiFi params setup-AP-only and tested before save; `reboot_required` if hostname changed |
 | `POST` | `/settings/reset` | Factory reset all settings to defaults (clears WiFi); power-cycle to reopen setup AP |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |

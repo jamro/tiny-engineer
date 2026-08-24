@@ -59,7 +59,7 @@ Board and baud rate live in `platformio.ini`. The platform package is [pioarduin
 
 After Wi-Fi is configured, open `http://tiny-engineer.local/` (or the IP on the OLED) in a browser. The panel is the easiest way to:
 
-- **Configure** device name, sleep timeout, continuous anim timeout, volume, welcome, loading screen, and optional access token
+- **Configure** device name, sleep timeout, continuous anim timeout, volume, welcome, serial logging, loading screen, and optional access token
 - **Run hardware tests** (audio, OLED, servos, LED) without curl
 - **Trigger animations** to try poses before wiring AI hooks
 

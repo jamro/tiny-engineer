@@ -153,7 +153,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, and API token. WiFi is set in setup mode after factory reset.</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, serial logging, and API token. WiFi is set in setup mode after factory reset.</p></a>
 <a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
 <a class="card card-github" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener"><h3>GitHub docs &rarr;</h3><p>Build guide, wiring, and full project docs.</p></a>
 </div>
@@ -191,6 +191,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <tr><td><code>hostname</code></td><td>string</td><td>1&ndash;31 chars, letters/digits/hyphen</td></tr>
 <tr><td><code>volume</code></td><td>integer</td><td>0&ndash;100 percent (speaker gain)</td></tr>
 <tr><td><code>welcome</code></td><td>integer</td><td>0 or 1 (boot welcome animation)</td></tr>
+<tr><td><code>serial_log</code></td><td>integer</td><td>0 or 1 (USB serial debug logging)</td></tr>
 <tr><td><code>continuous_timeout</code></td><td>integer</td><td>1&ndash;1440 minutes</td></tr>
 <tr><td><code>loading</code></td><td>string</td><td><code>progress</code> or <code>sleep_inertia</code> (boot screen; next reboot)</td></tr>
 <tr><td><code>access_token</code></td><td>string</td><td>0&ndash;64 printable ASCII; empty clears (disables auth)</td></tr>
@@ -342,6 +343,13 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <div class="toggle-row">
 <input type="checkbox" id="config-welcome" checked>
 <label for="config-welcome">Play welcome when Wi-Fi connects</label>
+</div>
+</div>
+<div class="form-group">
+<div class="field-head"><span>Serial logging</span><span class="apply-badge apply-now">Immediate</span></div>
+<div class="toggle-row">
+<input type="checkbox" id="config-serial-log">
+<label for="config-serial-log">Log to USB serial</label>
 </div>
 </div>
 </div>
@@ -668,6 +676,7 @@ function loadSettings(){
     document.getElementById("config-continuous").value=j.continuous_timeout!=null?j.continuous_timeout:5;
     setConfigVolume(j.volume!=null?j.volume:70);
     document.getElementById("config-welcome").checked=j.welcome!==false;
+    document.getElementById("config-serial-log").checked=!!j.serial_log;
     document.getElementById("config-loading").value=j.loading==="sleep_inertia"?"sleep_inertia":"progress";
     setAccessTokenFromServer(!!j.access_token_set);
     updateWelcomeMotionHint();
@@ -721,10 +730,11 @@ document.getElementById("config-form").addEventListener("submit",function(e){
   var continuous=document.getElementById("config-continuous").value;
   var volume=document.getElementById("config-volume").value;
   var welcome=document.getElementById("config-welcome").checked?1:0;
+  var serialLog=document.getElementById("config-serial-log").checked?1:0;
   var loading=document.getElementById("config-loading").value;
   var newToken=document.getElementById("config-access-token").value;
   var wasClearPending=accessTokenClearPending;
-  var url="/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume)+"&welcome="+welcome+"&continuous_timeout="+encodeURIComponent(continuous)+"&loading="+encodeURIComponent(loading);
+  var url="/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume)+"&welcome="+welcome+"&serial_log="+serialLog+"&continuous_timeout="+encodeURIComponent(continuous)+"&loading="+encodeURIComponent(loading);
   if(wasClearPending)url+="&access_token=";
   else if(!accessTokenMaskActive&&newToken)url+="&access_token="+encodeURIComponent(newToken);
   setBusy(true);
@@ -738,6 +748,7 @@ document.getElementById("config-form").addEventListener("submit",function(e){
       document.getElementById("config-continuous").value=res.data.continuous_timeout!=null?res.data.continuous_timeout:continuous;
       setConfigVolume(res.data.volume!=null?res.data.volume:volume);
       document.getElementById("config-welcome").checked=res.data.welcome!==false;
+      document.getElementById("config-serial-log").checked=!!res.data.serial_log;
       document.getElementById("config-loading").value=res.data.loading==="sleep_inertia"?"sleep_inertia":"progress";
       if(wasClearPending)setStoredToken("");
       else if(!accessTokenMaskActive&&newToken)setStoredToken(newToken);

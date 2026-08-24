@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "driver/temperature_sensor.h"
+#include "serial_log.h"
 
 namespace {
 
@@ -14,21 +15,21 @@ void initChipTemp() {
   temperature_sensor_config_t cfg = TEMPERATURE_SENSOR_CONFIG_DEFAULT(-10, 80);
 
   if (temperature_sensor_install(&cfg, &g_tsens) != ESP_OK) {
-    Serial.println("ERROR: chip temp sensor install failed");
+    serialLogPrintln("ERROR: chip temp sensor install failed");
     g_tsens = nullptr;
     g_ready = false;
     return;
   }
 
   if (temperature_sensor_enable(g_tsens) != ESP_OK) {
-    Serial.println("ERROR: chip temp sensor enable failed");
+    serialLogPrintln("ERROR: chip temp sensor enable failed");
     g_tsens = nullptr;
     g_ready = false;
     return;
   }
 
   g_ready = true;
-  Serial.println("Chip temp sensor OK");
+  serialLogPrintln("Chip temp sensor OK");
 }
 
 bool chipTempCelsius(float* out) {

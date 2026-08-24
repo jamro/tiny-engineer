@@ -4,16 +4,17 @@
 #include "pins.h"
 #include "display/oled.h"
 #include "display/oled_internal.h"
+#include "serial_log.h"
 
 void runOledTest() {
   if (!oledAvailable) {
     return;
   }
 
-  Serial.println();
-  Serial.println("==========================");
-  Serial.println("OLED TEST");
-  Serial.println("==========================");
+  serialLogPrintln();
+  serialLogPrintln("==========================");
+  serialLogPrintln("OLED TEST");
+  serialLogPrintln("==========================");
 
   showOledText(
     "Tiny Engineer",
@@ -69,7 +70,7 @@ void runOledTest() {
     "I2C 0x3C"
   );
 
-  Serial.println("OLED OK");
+  serialLogPrintln("OLED OK");
 
   delay(800);
 }

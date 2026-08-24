@@ -14,6 +14,7 @@
 #include "network/wifi_connect.h"
 #include "settings.h"
 #include "sleep.h"
+#include "serial_log.h"
 
 namespace {
 
@@ -39,10 +40,10 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
   const ModeEntry* fromEntry = modeByAnimId(g_animation);
   const ModeEntry* entry = modeByAnimId(id);
 
-  Serial.print("[anim] transition ");
-  Serial.print(fromEntry->name);
-  Serial.print(" -> ");
-  Serial.println(entry->name);
+  serialLogPrint("[anim] transition ");
+  serialLogPrint(fromEntry->name);
+  serialLogPrint(" -> ");
+  serialLogPrintln(entry->name);
   anim::logServoSnapshot("pre-transition");
 
   g_animation = id;
@@ -87,10 +88,10 @@ void setAnimation(AnimationId id) {
 
   const uint32_t holdLeftMs =
     MIN_ANIMATION_HOLD_MS - (millis() - g_animationStartedMs);
-  Serial.print("[anim] pending ");
-  Serial.print(modeByAnimId(id)->name);
-  Serial.print(" holdLeftMs=");
-  Serial.println(holdLeftMs);
+  serialLogPrint("[anim] pending ");
+  serialLogPrint(modeByAnimId(id)->name);
+  serialLogPrint(" holdLeftMs=");
+  serialLogPrintln(holdLeftMs);
 }
 
 void finishAnimation(uint32_t nowMs) {

@@ -4,6 +4,7 @@
 #include "animation/util.h"
 #include "hardware/servo_wrapper.h"
 #include "servos.h"
+#include "serial_log.h"
 
 namespace anim {
 
@@ -101,18 +102,18 @@ namespace {
 
 void logServoAxis(const char* name, int index) {
   const ServoWrapper& servo = servoAt(index);
-  Serial.print("  ");
-  Serial.print(name);
-  Serial.print('=');
-  Serial.print(servo.angle(), 1);
-  Serial.println(servo.isMoving() ? " (moving)" : " (still)");
+  serialLogPrint("  ");
+  serialLogPrint(name);
+  serialLogPrint('=');
+  serialLogPrint(servo.angle(), 1);
+  serialLogPrintln(servo.isMoving() ? " (moving)" : " (still)");
 }
 
 }  // namespace
 
 void logServoSnapshot(const char* tag) {
-  Serial.print("[anim] ");
-  Serial.println(tag);
+  serialLogPrint("[anim] ");
+  serialLogPrintln(tag);
   logServoAxis("head", SERVO_HEAD);
   logServoAxis("neck", SERVO_NECK);
   logServoAxis("handL", SERVO_HAND_LEFT);
@@ -132,16 +133,16 @@ void parkTorso(float speedDegS) {
   const float bodyMid = servoMid(SERVO_SPECS[SERVO_BODY]);
   const float neckMid = servoMid(SERVO_SPECS[SERVO_NECK]);
 
-  Serial.print("[anim] parkTorso body ");
-  Serial.print(servoAt(SERVO_BODY).angle(), 1);
-  Serial.print(" -> ");
-  Serial.print(bodyMid, 1);
-  Serial.print(" neck ");
-  Serial.print(servoAt(SERVO_NECK).angle(), 1);
-  Serial.print(" -> ");
-  Serial.print(neckMid, 1);
-  Serial.print(" speed=");
-  Serial.println(speedDegS, 1);
+  serialLogPrint("[anim] parkTorso body ");
+  serialLogPrint(servoAt(SERVO_BODY).angle(), 1);
+  serialLogPrint(" -> ");
+  serialLogPrint(bodyMid, 1);
+  serialLogPrint(" neck ");
+  serialLogPrint(servoAt(SERVO_NECK).angle(), 1);
+  serialLogPrint(" -> ");
+  serialLogPrint(neckMid, 1);
+  serialLogPrint(" speed=");
+  serialLogPrintln(speedDegS, 1);
 
   servoAt(SERVO_BODY).setTarget(bodyMid, speedDegS);
   servoAt(SERVO_NECK).setTarget(neckMid, speedDegS);

@@ -5,6 +5,7 @@
 #include "pins.h"
 #include "display/oled.h"
 #include "display/oled_internal.h"
+#include "serial_log.h"
 
 bool i2cDeviceConnected(uint8_t address) {
   Wire.beginTransmission(address);
@@ -12,22 +13,22 @@ bool i2cDeviceConnected(uint8_t address) {
 }
 
 void initOled() {
-  Serial.println();
-  Serial.println("Checking OLED at 0x3C...");
+  serialLogPrintln();
+  serialLogPrintln("Checking OLED at 0x3C...");
 
   if (!i2cDeviceConnected(OLED_ADDRESS)) {
-    Serial.println("ERROR: OLED not found");
+    serialLogPrintln("ERROR: OLED not found");
     oledAvailable = false;
     return;
   }
 
-  Serial.println("OLED found");
+  serialLogPrintln("OLED found");
 
   if (!display.begin(
         SSD1306_SWITCHCAPVCC,
         OLED_ADDRESS
       )) {
-    Serial.println("ERROR: OLED initialization failed");
+    serialLogPrintln("ERROR: OLED initialization failed");
     oledAvailable = false;
     return;
   }
@@ -40,5 +41,5 @@ void initOled() {
 
   oledAvailable = true;
 
-  Serial.println("OLED initialized");
+  serialLogPrintln("OLED initialized");
 }

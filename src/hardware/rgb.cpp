@@ -5,6 +5,7 @@
 #include "network/wifi_connect.h"
 #include "pins.h"
 #include "hardware/rgb.h"
+#include "serial_log.h"
 
 namespace {
 
@@ -247,7 +248,7 @@ void updateRgb(uint32_t nowMs) {
 }
 
 void runRgbTest() {
-  Serial.println("RGB test");
+  serialLogPrintln("RGB test");
 
   setRgb(64, 0, 0);
   delay(300);
@@ -263,5 +264,5 @@ void runRgbTest() {
 
   setRgb(0, 0, 0);
 
-  Serial.println("RGB OK");
+  serialLogPrintln("RGB OK");
 }

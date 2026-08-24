@@ -7,6 +7,7 @@ constexpr uint32_t SETTINGS_DEFAULT_SLEEP_TIMEOUT_MIN = 10;
 constexpr const char* SETTINGS_DEFAULT_HOSTNAME = "tiny-engineer";
 constexpr uint8_t SETTINGS_DEFAULT_VOLUME = 70;
 constexpr bool SETTINGS_DEFAULT_WELCOME = true;
+constexpr bool SETTINGS_DEFAULT_SERIAL_LOG = false;
 constexpr uint32_t SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN = 5;
 constexpr const char* SETTINGS_DEFAULT_LOADING = "progress";
 constexpr const char* SETTINGS_DEFAULT_ACCESS_TOKEN = "";
@@ -30,6 +31,7 @@ uint32_t settingsSleepTimeoutMs();
 const char* settingsHostname();
 uint8_t settingsVolume();
 bool settingsWelcomeEnabled();
+bool settingsSerialLogEnabled();
 uint32_t settingsContinuousTimeoutMin();
 const char* settingsLoading();
 const char* settingsAccessToken();
@@ -59,6 +61,7 @@ bool saveSettings(
   const char* hostname,
   const uint8_t* volume,
   const bool* welcome,
+  const bool* serialLog,
   const uint32_t* continuousTimeoutMin,
   const char* loading,
   const char* accessToken,

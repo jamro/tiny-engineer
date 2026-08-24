@@ -5,6 +5,7 @@
 
 #include "settings.h"
 #include "network/wifi_connect.h"
+#include "serial_log.h"
 
 namespace {
 
@@ -78,21 +79,21 @@ void waitForLinkLocalIpv6() {
   }
 
   if (WiFi.STA.hasLinkLocalIPv6()) {
-    Serial.print("IPv6 LL: ");
-    Serial.println(WiFi.linkLocalIPv6());
+    serialLogPrint("IPv6 LL: ");
+    serialLogPrintln(WiFi.linkLocalIPv6());
   } else {
-    Serial.println("IPv6 LL: timeout");
+    serialLogPrintln("IPv6 LL: timeout");
   }
 }
 
 void startMdns(const char* hostname) {
   if (MDNS.begin(hostname)) {
     MDNS.addService("http", "tcp", 80);
-    Serial.print("mDNS: ");
-    Serial.print(hostname);
-    Serial.println(".local");
+    serialLogPrint("mDNS: ");
+    serialLogPrint(hostname);
+    serialLogPrintln(".local");
   } else {
-    Serial.println("ERROR: mDNS failed");
+    serialLogPrintln("ERROR: mDNS failed");
   }
 }
 
@@ -103,7 +104,7 @@ void startCaptiveDns() {
 
   dnsServer.start(53, "*", WiFi.softAPIP());
   dnsStarted = true;
-  Serial.println("DNS: captive portal active");
+  serialLogPrintln("DNS: captive portal active");
 }
 
 void stopCaptiveDns() {
@@ -118,10 +119,10 @@ void stopCaptiveDns() {
 bool connectSta(const char* ssid, const char* password) {
   const char* hostname = settingsHostname();
 
-  Serial.print("SSID: ");
-  Serial.println(ssid);
-  Serial.print("Hostname: ");
-  Serial.println(hostname);
+  serialLogPrint("SSID: ");
+  serialLogPrintln(ssid);
+  serialLogPrint("Hostname: ");
+  serialLogPrintln(hostname);
 
   WiFi.persistent(false);
   WiFi.disconnect(true);
@@ -136,18 +137,18 @@ bool connectSta(const char* ssid, const char* password) {
       millis() - startMs < WIFI_TIMEOUT_MS
   ) {
     delay(WIFI_POLL_MS);
-    Serial.print(".");
+    serialLogPrint(".");
   }
 
-  Serial.println();
+  serialLogPrintln();
 
   if (WiFi.status() != WL_CONNECTED) {
     setConnectError(failReason(WiFi.status()));
     staConnected = false;
     ipText[0] = '\0';
 
-    Serial.print("ERROR: WIFI failed: ");
-    Serial.println(connectError);
+    serialLogPrint("ERROR: WIFI failed: ");
+    serialLogPrintln(connectError);
     return false;
   }
 
@@ -155,10 +156,10 @@ bool connectSta(const char* ssid, const char* password) {
   staConnected = true;
   WiFi.setSleep(false);
 
-  Serial.print("WIFI OK  IP=");
-  Serial.println(ipText);
-  Serial.print("Hostname: ");
-  Serial.println(WiFi.getHostname());
+  serialLogPrint("WIFI OK  IP=");
+  serialLogPrintln(ipText);
+  serialLogPrint("Hostname: ");
+  serialLogPrintln(WiFi.getHostname());
 
   waitForLinkLocalIpv6();
   startMdns(hostname);
@@ -190,10 +191,10 @@ void startProvisioningAp() {
 
   startCaptiveDns();
 
-  Serial.print("AP setup SSID: ");
-  Serial.println(apSsid);
-  Serial.print("AP IP: ");
-  Serial.println(apIpText);
+  serialLogPrint("AP setup SSID: ");
+  serialLogPrintln(apSsid);
+  serialLogPrint("AP IP: ");
+  serialLogPrintln(apIpText);
 }
 
 }  // namespace
@@ -250,10 +251,10 @@ bool wifiTestCredentials(const char* ssid, const char* password) {
     return false;
   }
 
-  Serial.println();
-  Serial.println("==========================");
-  Serial.println("WIFI TEST (provisioning)");
-  Serial.println("==========================");
+  serialLogPrintln();
+  serialLogPrintln("==========================");
+  serialLogPrintln("WIFI TEST (provisioning)");
+  serialLogPrintln("==========================");
 
   buildApSsid();
   WiFi.persistent(false);
@@ -278,15 +279,15 @@ bool wifiTestCredentials(const char* ssid, const char* password) {
 }
 
 void runWifiSetup() {
-  Serial.println();
-  Serial.println("==========================");
-  Serial.println("WIFI SETUP");
-  Serial.println("==========================");
+  serialLogPrintln();
+  serialLogPrintln("==========================");
+  serialLogPrintln("WIFI SETUP");
+  serialLogPrintln("==========================");
 
   connectError[0] = '\0';
 
   if (settingsWifiConfigured()) {
-    Serial.println("Trying saved WiFi credentials");
+    serialLogPrintln("Trying saved WiFi credentials");
 
     WiFi.persistent(false);
     WiFi.mode(WIFI_STA);
@@ -297,9 +298,9 @@ void runWifiSetup() {
       return;
     }
 
-    Serial.println("Saved WiFi failed; opening setup AP");
+    serialLogPrintln("Saved WiFi failed; opening setup AP");
   } else {
-    Serial.println("No WiFi credentials; opening setup AP");
+    serialLogPrintln("No WiFi credentials; opening setup AP");
   }
 
   startProvisioningAp();

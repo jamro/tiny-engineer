@@ -16,7 +16,7 @@ void sendSettingsJson(
   bool rebootRequired,
   bool wifiConnectSuccess
 ) {
-  char body[640];
+  char body[704];
   const char* tokenSet =
     settingsAccessTokenSet() ? "true" : "false";
   const char* wifiConfigured =
@@ -34,6 +34,7 @@ void sendSettingsJson(
       "\"hostname\":\"%s\","
       "\"volume\":%u,"
       "\"welcome\":%s,"
+      "\"serial_log\":%s,"
       "\"continuous_timeout\":%lu,"
       "\"loading\":\"%s\","
       "\"access_token_set\":%s,"
@@ -49,6 +50,7 @@ void sendSettingsJson(
       settingsHostname(),
       static_cast<unsigned>(settingsVolume()),
       settingsWelcomeEnabled() ? "true" : "false",
+      settingsSerialLogEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
       settingsLoading(),
       tokenSet,
@@ -69,6 +71,7 @@ void sendSettingsJson(
       "\"hostname\":\"%s\","
       "\"volume\":%u,"
       "\"welcome\":%s,"
+      "\"serial_log\":%s,"
       "\"continuous_timeout\":%lu,"
       "\"loading\":\"%s\","
       "\"access_token_set\":%s,"
@@ -81,6 +84,7 @@ void sendSettingsJson(
       settingsHostname(),
       static_cast<unsigned>(settingsVolume()),
       settingsWelcomeEnabled() ? "true" : "false",
+      settingsSerialLogEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
       settingsLoading(),
       tokenSet,
@@ -98,6 +102,7 @@ void sendSettingsJson(
       "\"hostname\":\"%s\","
       "\"volume\":%u,"
       "\"welcome\":%s,"
+      "\"serial_log\":%s,"
       "\"continuous_timeout\":%lu,"
       "\"loading\":\"%s\","
       "\"access_token_set\":%s,"
@@ -109,6 +114,7 @@ void sendSettingsJson(
       settingsHostname(),
       static_cast<unsigned>(settingsVolume()),
       settingsWelcomeEnabled() ? "true" : "false",
+      settingsSerialLogEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
       settingsLoading(),
       tokenSet,
@@ -132,18 +138,20 @@ void handleSettingsPost(WebServer& server) {
   const bool hasHost = server.hasArg("hostname");
   const bool hasVolume = server.hasArg("volume");
   const bool hasWelcome = server.hasArg("welcome");
+  const bool hasSerialLog = server.hasArg("serial_log");
   const bool hasContTo = server.hasArg("continuous_timeout");
   const bool hasLoading = server.hasArg("loading");
   const bool hasAccessToken = server.hasArg("access_token");
   const bool hasWifiSsid = server.hasArg("wifi_ssid");
   const bool hasWifiPassword = server.hasArg("wifi_password");
 
-  if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasContTo &&
-      !hasLoading && !hasAccessToken && !hasWifiSsid && !hasWifiPassword) {
+  if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasSerialLog &&
+      !hasContTo && !hasLoading && !hasAccessToken && !hasWifiSsid &&
+      !hasWifiPassword) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, continuous_timeout, loading, access_token, wifi_ssid, or wifi_password\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, access_token, wifi_ssid, or wifi_password\"}"
     );
     return;
   }
@@ -156,6 +164,8 @@ void handleSettingsPost(WebServer& server) {
   const uint8_t* volumePtr = nullptr;
   bool welcome = false;
   const bool* welcomePtr = nullptr;
+  bool serialLog = false;
+  const bool* serialLogPtr = nullptr;
   uint32_t continuousTimeoutMin = 0;
   const uint32_t* contToPtr = nullptr;
   String loadingArg;
@@ -257,6 +267,25 @@ void handleSettingsPost(WebServer& server) {
 
     welcome = parsed == 1;
     welcomePtr = &welcome;
+  }
+
+  if (hasSerialLog) {
+    const String serialLogArg = server.arg("serial_log");
+    char* end = nullptr;
+    const unsigned long parsed =
+      strtoul(serialLogArg.c_str(), &end, 10);
+
+    if (end == serialLogArg.c_str() || *end != '\0' || parsed > 1) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid serial_log\"}"
+      );
+      return;
+    }
+
+    serialLog = parsed == 1;
+    serialLogPtr = &serialLog;
   }
 
   if (hasContTo) {
@@ -382,6 +411,7 @@ void handleSettingsPost(WebServer& server) {
         hostPtr,
         volumePtr,
         welcomePtr,
+        serialLogPtr,
         contToPtr,
         loadingPtr,
         accessTokenPtr,
