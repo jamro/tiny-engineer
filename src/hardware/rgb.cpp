@@ -12,6 +12,11 @@ constexpr uint8_t RGB_ANIM_WHITE = 255;
 constexpr uint8_t RGB_ANIM_RED = 255;
 constexpr uint32_t RGB_TRANSITION_MS = 1000;
 
+constexpr uint8_t RGB_PULSE_MIN = 26;   // ~10% of 255
+constexpr uint8_t RGB_PULSE_MAX = 255;  // 100%
+constexpr uint32_t RGB_PULSE_PHASE_MS = 500;
+constexpr uint32_t RGB_PULSE_CYCLE_MS = RGB_PULSE_PHASE_MS * 3;
+
 constexpr uint8_t RGB_PROVISIONING_B = 64;
 
 uint8_t g_startR = 0;
@@ -26,6 +31,8 @@ uint8_t g_currentB = 0;
 uint32_t g_transitionStartMs = 0;
 bool g_transitionActive = false;
 bool g_twoPhaseTransition = false;
+bool g_pulseActive = false;
+uint32_t g_pulseStartMs = 0;
 
 uint8_t lerpChannel(uint8_t from, uint8_t to, float t) {
   return static_cast<uint8_t>(from + (to - from) * t);
@@ -44,8 +51,8 @@ bool sameColor(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2, uint8
 }
 
 void writeRgb(uint8_t r, uint8_t g, uint8_t b) {
-  // Waveshare ESP32-C3-Zero WS2812 uses RGB byte order (not GRB).
-  rgbLedWriteOrdered(RGB_LED_PIN, LED_COLOR_ORDER_RGB, r, g, b);
+  // Waveshare ESP32-C3-Zero onboard WS2812 uses GRB byte order.
+  rgbLedWriteOrdered(RGB_LED_PIN, LED_COLOR_ORDER_GRB, r, g, b);
   g_currentR = r;
   g_currentG = g;
   g_currentB = b;
@@ -78,8 +85,32 @@ void resolveAnimationTarget(AnimationId id, uint8_t& r, uint8_t& g, uint8_t& b) 
   }
 }
 
+bool isPulseAnimation(AnimationId id) {
+  return id == AnimationId::Attention || id == AnimationId::Error;
+}
+
 bool sameTarget(uint8_t r, uint8_t g, uint8_t b) {
   return r == g_targetR && g == g_targetG && b == g_targetB;
+}
+
+void applyPulse(uint32_t nowMs) {
+  const uint32_t elapsed =
+    (nowMs >= g_pulseStartMs) ? ((nowMs - g_pulseStartMs) % RGB_PULSE_CYCLE_MS) : 0;
+
+  uint8_t level = RGB_PULSE_MAX;
+  if (elapsed < RGB_PULSE_PHASE_MS) {
+    const float t =
+      static_cast<float>(elapsed) / static_cast<float>(RGB_PULSE_PHASE_MS);
+    level = lerpChannel(RGB_PULSE_MIN, RGB_PULSE_MAX, t);
+  } else if (elapsed < RGB_PULSE_PHASE_MS * 2) {
+    level = RGB_PULSE_MAX;
+  } else {
+    const float t = static_cast<float>(elapsed - RGB_PULSE_PHASE_MS * 2) /
+      static_cast<float>(RGB_PULSE_PHASE_MS);
+    level = lerpChannel(RGB_PULSE_MAX, RGB_PULSE_MIN, t);
+  }
+
+  writeRgb(level, 0, 0);
 }
 
 void applyTransition(uint32_t nowMs) {
@@ -141,15 +172,34 @@ void setRgb(uint8_t r, uint8_t g, uint8_t b) {
   g_targetB = b;
   g_transitionActive = false;
   g_twoPhaseTransition = false;
+  g_pulseActive = false;
 }
 
 void setRgbForAnimation(AnimationId id, uint32_t nowMs) {
+  if (isPulseAnimation(id)) {
+    if (g_pulseActive) {
+      return;
+    }
+    g_pulseActive = true;
+    g_pulseStartMs = nowMs;
+    g_transitionActive = false;
+    g_twoPhaseTransition = false;
+    g_targetR = RGB_ANIM_RED;
+    g_targetG = 0;
+    g_targetB = 0;
+    applyPulse(nowMs);
+    return;
+  }
+
+  const bool wasPulsing = g_pulseActive;
+  g_pulseActive = false;
+
   uint8_t r = 0;
   uint8_t g = 0;
   uint8_t b = 0;
   resolveAnimationTarget(id, r, g, b);
 
-  if (sameTarget(r, g, b) && !g_transitionActive) {
+  if (!wasPulsing && sameTarget(r, g, b) && !g_transitionActive) {
     return;
   }
 
@@ -186,6 +236,11 @@ void updateRgb(uint32_t nowMs) {
   if (wasProvisioning) {
     wasProvisioning = false;
     setRgbForAnimation(getAnimation(), nowMs);
+  }
+
+  if (g_pulseActive) {
+    applyPulse(nowMs);
+    return;
   }
 
   applyTransition(nowMs);

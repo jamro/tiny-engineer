@@ -388,13 +388,15 @@ Onboard WS2812 on **GPIO10** (`RGB_LED_PIN`). Animation-driven colors are handle
 | Animation | LED color |
 | --- | --- |
 | `typing`, `reading`, `thinking`, `welcome`, `ring` | White (full intensity) |
-| `attention`, `error`, `abort` | Red (full intensity) |
+| `attention`, `error` | Red pulse: 500 ms 10%→100%, 500 ms hold 100%, 500 ms 100%→10%, repeat |
+| `abort` | Red (full intensity, solid) |
 | `none` | Off |
 
-Transitions take **1 s** with smooth fade in/out:
+Transitions take **1 s** with smooth fade in/out (pulse modes start immediately, no enter fade):
 
 - **Off ↔ color** — single 1 s fade (e.g. idle → typing fades in white; ring → `none` fades out).
-- **White ↔ red** — fade out to black (500 ms), then fade in to the new color (500 ms).
+- **White ↔ solid red** — fade out to black (500 ms), then fade in to the new color (500 ms).
+- **Leaving pulse** — 1 s fade from the current pulse brightness to the new target.
 
 Switching between animations that share the same color (e.g. `typing` → `reading`) does not restart a fade.
 
