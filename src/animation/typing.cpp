@@ -18,6 +18,9 @@ using anim::stopAnimServos;
 namespace {
 
 bool g_typingMoveRight = true;
+bool g_rightIsPress = true;
+bool g_leftIsPress = true;
+bool g_lastStrokeWasPress = false;
 bool g_headHigh = true;
 bool g_bodySwayPositive = true;
 bool g_swayFrozen = false;
@@ -55,20 +58,29 @@ void commandHandStroke() {
     g_typingMoveRight = !g_typingMoveRight;
   }
 
-  const float depth = 0.35f + 0.45f * randUnit();
-  const bool pressHigh = randChance(50);
-  const float speedDegS =
-    SERVO_MAX_SPEED_DEG_S * (0.75f + 0.25f * randUnit());
+  const bool isPress = g_typingMoveRight ? g_rightIsPress : g_leftIsPress;
+  g_lastStrokeWasPress = isPress;
 
   if (g_typingMoveRight) {
-    const float target = pressHigh
-      ? anim::TYPING_RIGHT_LOW + depth * anim::TYPING_HAND_BAND_DEG
-      : anim::TYPING_RIGHT_HIGH - depth * anim::TYPING_HAND_BAND_DEG;
+    g_rightIsPress = !g_rightIsPress;
+  } else {
+    g_leftIsPress = !g_leftIsPress;
+  }
+
+  const float lift = 0.55f + 0.45f * randUnit();
+  const float speedDegS = isPress
+    ? SERVO_MAX_SPEED_DEG_S * (0.55f + 0.20f * randUnit())
+    : SERVO_MAX_SPEED_DEG_S * (0.85f + 0.15f * randUnit());
+
+  if (g_typingMoveRight) {
+    const float target = isPress
+      ? anim::TYPING_RIGHT_LOW
+      : anim::TYPING_RIGHT_LOW + lift * anim::TYPING_HAND_BAND_DEG;
     servoAt(SERVO_HAND_RIGHT).setTarget(target, speedDegS);
   } else {
-    const float target = pressHigh
-      ? anim::TYPING_LEFT_LOW + depth * anim::TYPING_HAND_BAND_DEG
-      : anim::TYPING_LEFT_HIGH - depth * anim::TYPING_HAND_BAND_DEG;
+    const float target = isPress
+      ? anim::TYPING_LEFT_HIGH
+      : anim::TYPING_LEFT_HIGH - lift * anim::TYPING_HAND_BAND_DEG;
     servoAt(SERVO_HAND_LEFT).setTarget(target, speedDegS);
   }
 }
@@ -92,9 +104,9 @@ void commandHead() {
 }
 
 void advanceTypingStep() {
-  const uint32_t pauseMs = randChance(8)
-    ? randRangeMs(40, 90)
-    : randRangeMs(0, 25);
+  const uint32_t pauseMs = g_lastStrokeWasPress
+    ? randRangeMs(15, 40)
+    : (randChance(8) ? randRangeMs(40, 90) : randRangeMs(0, 25));
   g_handPauseUntilMs = millis() + pauseMs;
 }
 
@@ -133,6 +145,9 @@ void beginNextSway() {
 void startTyping() {
   stopAnimServos();
   g_typingMoveRight = randChance(50);
+  g_rightIsPress = true;
+  g_leftIsPress = true;
+  g_lastStrokeWasPress = false;
   g_bodySwayPositive = randChance(50);
   g_swayFrozen = false;
   g_handPauseUntilMs = 0;

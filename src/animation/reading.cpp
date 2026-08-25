@@ -51,18 +51,18 @@ void commandReadingNeck() {
 }
 
 void commandScrollPress() {
-  const float depth = 0.55f + 0.45f * randUnit();
+  const float lift = 0.55f + 0.45f * randUnit();
   const float speedDegS =
-    SERVO_MAX_SPEED_DEG_S * (0.75f + 0.25f * randUnit());
+    SERVO_MAX_SPEED_DEG_S * (0.85f + 0.15f * randUnit());
   servoAt(SERVO_HAND_RIGHT).setTarget(
-    anim::TYPING_RIGHT_LOW + depth * anim::TYPING_HAND_BAND_DEG,
+    anim::TYPING_RIGHT_LOW + lift * anim::TYPING_HAND_BAND_DEG,
     speedDegS
   );
 }
 
 void commandScrollRelease() {
   const float speedDegS =
-    SERVO_MAX_SPEED_DEG_S * (0.75f + 0.25f * randUnit());
+    SERVO_MAX_SPEED_DEG_S * (0.55f + 0.20f * randUnit());
   servoAt(SERVO_HAND_RIGHT).setTarget(anim::TYPING_RIGHT_LOW, speedDegS);
 }
 
@@ -182,7 +182,7 @@ void updateReading(uint32_t now) {
       } else {
         g_scrollPressesLeft--;
         if (g_scrollPressesLeft > 0) {
-          g_handPauseUntilMs = millis() + randRangeMs(40, 120);
+          g_handPauseUntilMs = millis() + randRangeMs(55, 160);
         } else {
           endScrollBurst(now);
         }
