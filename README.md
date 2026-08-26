@@ -14,6 +14,8 @@ When you ask Cursor, Claude Code, or another agent to do a task, the model is bu
 
 ![Tiny Engineer at its desk](docs/tiny-engineer-preview.jpg)
 
+[Watch the project video](https://www.youtube.com/watch?v=gVmg_FFCgAY)
+
 ## Hardware
 
 Controller is a **Waveshare ESP32-C3-Zero**. Servos, display, and audio wiring live in `[docs/hardware/](docs/hardware/README.md)`. Robot layout and servo axes: `[docs/robot-movement.md](docs/robot-movement.md)`.
