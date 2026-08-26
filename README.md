@@ -121,6 +121,8 @@ Cursor projects can map agent events to poses via hooks — [docs/hooks.md](docs
 
 Print it, wire it, change the CAD, swap animations, or hook up a different agent. Issues and PRs welcome — especially new integrations.
 
+![Tiny Engineer](docs/tiny-engineer-preview.jpg)
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
