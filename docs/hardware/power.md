@@ -6,7 +6,7 @@ One common **nominal 5 V** rail feeds the robot.
 
 | Net | Source | Loads |
 | --- | --- | --- |
-| **+5V** | USB **5V** in the wiring PNG (Adafruit 5993 VBUS) | ESP32 **5V**, PCA9685 **5V**, MAX98357A **Vin**; servos from PCA9685 **V+** |
+| **+5V** | Adafruit 5993 **VBUS** (USB **5V** in the wiring PNG) | ESP32 **5V**, PCA9685 **5V**, MAX98357A **Vin**; servos from PCA9685 **V+** |
 | **3V3** | ESP32 onboard LDO, from the 5 V input | ESP32 core/GPIO, PCA9685 **VCC**, OLED **VCC** |
 | **GND** | 5993 GND + ESP32 GND | Everything |
 
@@ -34,15 +34,13 @@ This **excludes**:
 - OLED
 - PCA9685 logic
 - MAX98357A + speaker peaks
-- USB / programming host if that path is also loaded
+- USB host current shared with programming when flashing over the same cable
 
 ## USB-C 5993 vs real supply
 
 Adafruit 5993 CC resistors ask the upstream port for **5 V / up to ~1.5 A**. Whether 1.5 A actually arrives depends on the charger/port.
 
 Five servos at stall (~1.3 A @ 4.8 V) plus the rest of the robot leaves **little safety margin** on a 1.5 A USB source.
-
-**TBD — final guaranteed power-supply current.**
 
 Recommendation:
 
@@ -63,22 +61,19 @@ If the rail sags under servo or audio load:
 
 Bring-up test turns all five servos together — that is a power-stress moment.
 
-## Bulk capacitance
+## Single USB (5993)
 
-If transients appear on **V+** at the PCA9685 (servo start current), add bulk capacitance **near the PCA9685 servo supply (V+)**, not on the 3V3 rail.
+The robot uses **one** USB-C connector: the Adafruit 5993.
 
-Exact value: **TBD — determine experimentally**. Start from typical servo-bus practice (tens to hundreds of µF electrolytic plus local ceramics) and confirm with a scope on V+ during simultaneous servo starts. Do not treat any guessed value as final.
+| Net | 5993 | ESP32 |
+| --- | --- | --- |
+| +5V | **VBUS** | **5V** pad (and the shared +5V rail) |
+| GND | **GND** | **GND** |
+| USB D− | **D−** | **GPIO18** (native USB D−) |
+| USB D+ | **D+** | **GPIO19** (native USB D+) |
 
-## Power sequencing / dual USB
+That one cable supplies robot power and programming / serial CDC (`ARDUINO_USB_MODE=1`, `ARDUINO_USB_CDC_ON_BOOT=1`, monitor 115200).
 
-Two USB-C ports exist (ESP32 for development, 5993 for robot power). Both 5 V nets must not fight.
+Leave the ESP32-C3-Zero **onboard USB-C unused** when the robot is assembled so two 5 V sources cannot fight on the same rail. For early bare-module flashing before 5993 data is wired, the onboard port is fine.
 
-**TBD — verify on hardware** whether the C3-Zero 5V pad and onboard USB VBUS are directly common, and whether the robot should:
-
-- run from 5993 alone (unplug ESP32 USB after flashing), or
-- use a diode/ideal-OR, or
-- keep one source only during tests.
-
-Until that is measured: avoid feeding two strong 5 V sources into the same rail without checking for back-feed.
-
-Related: [wiring.md](wiring.md), [components.md](components.md).
+Related: [wiring.md](wiring.md), [components.md](components.md), [interfaces.md](interfaces.md).

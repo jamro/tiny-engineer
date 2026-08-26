@@ -2,7 +2,7 @@
 
 Selected hardware only. Do not substitute parts from this list without updating this file, [pinout.md](pinout.md), and [wiring.md](wiring.md).
 
-Constants cited below match [`include/pins.h`](../../include/pins.h) unless marked TBD.
+Constants cited below match [`include/pins.h`](../../include/pins.h).
 
 ## Waveshare ESP32-C3-Zero
 
@@ -10,11 +10,11 @@ Constants cited below match [`include/pins.h`](../../include/pins.h) unless mark
 | --- | --- |
 | Exact model | Waveshare ESP32-C3-Zero (ESP32-C3FH4) |
 | Quantity | 1 |
-| Purpose | Main controller: I2C, I2S, USB CDC, Wi-Fi, BLE, onboard RGB |
+| Purpose | Main controller: I2C, I2S, USB CDC, Wi-Fi, onboard RGB |
 | Operating voltage | GPIO **3.3 V**. External power on the **5V** pad: 3.7–6 V (robot uses the +5V rail) |
 | Logic | **3.3 V only** — do not drive 5 V into GPIO |
-| Radio | Wi-Fi 2.4 GHz, Bluetooth LE, onboard ceramic antenna |
-| USB | Onboard USB-C, **native USB** (no USB–UART bridge chip) |
+| Radio | Wi-Fi 2.4 GHz (product use). BLE present on silicon but **out of scope** |
+| USB | Native USB on GPIO18/19 — reached via Adafruit 5993 D+/D− (onboard USB-C unused when assembled) |
 | Flash | 4 MB stacked flash on GPIO12–GPIO17 (those GPIOs are **not exposed**) |
 | Onboard RGB | WS2812 on **GPIO10** |
 | Firmware notes | Boot: dim green status. Animations: white (typing/reading/thinking/welcome/ring), pulsing red (attention/error), solid red (abort), off (idle). 1 s fade between non-pulse states. Fatal init errors: solid dim red + hang. See [`docs/api.md`](../../api.md#rgb-led) |
@@ -49,7 +49,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h) unless mark
 | --- | --- |
 | Exact model | PowerHD HD-1370A analog micro servo |
 | Quantity | 5 |
-| Purpose | Robot joints (exact mechanism per channel: [TBD](servos.md#channel-to-mechanism-mapping)) |
+| Purpose | Robot joints (Head / Neck / L hand / R hand / Body — [robot-movement.md](../robot-movement.md)) |
 | Operating voltage | 4.8–6.0 V (robot: **+5V** via PCA9685 **V+**) |
 | Interface | Analog PWM, ~50 Hz. Signal is 3.3 V from PCA9685 — acceptable for this servo class |
 | Pulse | Neutral ~1500 µs. Declared range ~**800–2200 µs** (`SERVO_MIN_US` / `SERVO_MAX_US`) |
@@ -64,7 +64,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h) unless mark
 > [!WARNING]
 > Never power the servos from the ESP32 3.3 V regulator.
 
-Firmware must use **per-servo safe ranges** after the mechanism is installed. Do not command full 0–180° / 800–2200 µs on the assembled robot. See [servos.md](servos.md).
+Firmware uses **per-servo safe ranges** in [`include/servos.h`](../../include/servos.h) (`SERVO_SPECS`). Tune after assembly if needed. Do not command full 0–180° / 800–2200 µs on the assembled robot. See [servos.md](servos.md).
 
 ## MAX98357A I2S class-D mono amplifier
 
@@ -78,7 +78,7 @@ Firmware must use **per-servo safe ranges** after the mechanism is installed. Do
 | Interface | I2S: **BCLK**, **WS/LRC**, **DIN**. No MCLK |
 | Sample rates | Chip: 8–96 kHz. Firmware: **44100 Hz**, 16-bit, stereo slot mode |
 | Output power (typical) | ~1.8 W into 8 Ω @ 5 V / 10% THD (datasheet-class figure) |
-| Important pins | Drawn: **Vin**, **GND**, **BCLK**, **LRC**, **DIN**. Not drawn: **SPK+**, **SPK-**, GAIN, SD — **TBD — verify on hardware** (breakouts often default GAIN floating ≈ 9 dB, SD pulled up = left channel) |
+| Important pins | Drawn: **Vin**, **GND**, **BCLK**, **LRC**, **DIN**. **SPK+** / **SPK-** not drawn. **GAIN** / **SD** not wired (breakout defaults: GAIN floating ≈ 9 dB, SD pulled up ≈ left channel) |
 | Limits | Output is **BTL**. Do not connect SPK- to GND. Do not feed SPK+/SPK- into another amplifier. Do not drive the speaker from ESP32 GPIO |
 
 > [!WARNING]
@@ -88,7 +88,7 @@ Firmware must use **per-servo safe ranges** after the mechanism is installed. Do
 
 | Field | Value |
 | --- | --- |
-| Exact model | 8 Ω / 1 W mono speaker (exact vendor P/N: **TBD**) |
+| Exact model | Generic 8 Ω / 1 W mono speaker |
 | Quantity | 1 |
 | Purpose | Acoustic output |
 | Operating voltage | Not a voltage-rail device — driven by MAX98357A BTL |
@@ -101,7 +101,7 @@ Speaker wiring is **not** drawn on `docs/wiring/Tiny Engineer.drawio`. Electrica
 
 | Field | Value |
 | --- | --- |
-| Exact model | 0.91" 128×32 SSD1306 I2C OLED (exact vendor P/N: **TBD**) |
+| Exact model | Generic 0.91" 128×32 SSD1306 I2C OLED |
 | Quantity | 1 |
 | Purpose | Status / test UI |
 | Operating voltage | Module **VCC** from ESP32 **3V3** (confirmed in [`docs/wiring`](../wiring/Tiny%20Engineer.drawio.png)) |
@@ -118,17 +118,17 @@ Speaker wiring is **not** drawn on `docs/wiring/Tiny Engineer.drawio`. Electrica
 | --- | --- |
 | Exact model | Adafruit 5993 — USB Type C Vertical Breakout, downstream connection |
 | Quantity | 1 |
-| Purpose | Convenient **robot +5V power input** (not programming) |
+| Purpose | Sole robot USB-C: **+5V power** and **programming / CDC** |
 | Operating voltage | USB **VBUS** = 5 V |
 | Electrical | Two 5.1 kΩ CC resistors request 5 V and **up to ~1.5 A**. Actual current is whatever the **upstream source** can give |
-| Interface | Power only on this robot: **VBUS**, **GND**. D+/D−/CC/SBU unused |
-| Important pins | Drawing: USB **5V**, USB **GND** (Adafruit **VBUS** / **GND**). D+/D− unused |
-| Limits | **Not** a USB-PD voltage converter. It does not step 9 V/12 V/20 V down to 5 V. 1.5 A is close to theoretical robot peak — see [power.md](power.md) |
+| Interface | **VBUS**, **GND**, **D+**, **D−**. Wire D−→ESP32 GPIO18, D+→ESP32 GPIO19 |
+| Important pins | Drawing may show USB **5V** / **GND** only; also wire **D+/D−** to native USB |
+| Limits | **Not** a USB-PD voltage converter. It does not step 9 V/12 V/20 V down to 5 V. Prefer a **5 V / ≥2 A** host — see [power.md](power.md) |
 
 Prefer a final 5 V supply of **at least ~2 A** with margin if several servos move while audio plays.
 
 ## Mechanical / RF notes for firmware and CAD
 
 - Keep metal and dense plastic **off** the ESP32 ceramic antenna area.
-- Servo horns and end stops must be calibrated **after** installation; firmware ranges are still the uninstalled test band (75–105°).
-- GPIO18/19 are native USB. Do not reassign them while using onboard USB-C for flash/serial.
+- Servo horns and end stops: start from `SERVO_SPECS` in [`include/servos.h`](../../include/servos.h); tune after installation if needed. Bench-only test band remains 75–105°.
+- GPIO18/19 are native USB via the 5993 data wires. Do not reassign them while using USB CDC for flash/serial.

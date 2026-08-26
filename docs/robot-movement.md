@@ -6,9 +6,11 @@ The robot sits in a chair beside a desk. A miniature laptop and a service bell s
 |------:|-------|--------|----------|----------|----------------|
 | 0 | **Head** | Face up / down (pitch) | down | up | 60 – 130 |
 | 1 | **Neck** | Head left / right (yaw) | right | left | 40 – 130 |
-| 2 | **Left hand** | Hand up / down | down | up | 50 – 140 |
-| 3 | **Right hand** | Hand up / down (inverted scale) | up | down | 40 – 130 |
+| 2 | **Left hand** | Hand up / down | down | up | 45 – 135 |
+| 3 | **Right hand** | Hand up / down (inverted scale) | up | down | 35 – 125 |
 | 4 | **Body** | Whole torso left / right | right | left | 40 – 130 |
+
+Ranges match `SERVO_SPECS` in [`include/servos.h`](../include/servos.h). They are starting limits — tune after mechanical assembly if horns, linkages, or collisions need a tighter band.
 
 **Head** tilts the face toward or away from the laptop. **Neck** pans the head side to side. **Hands** lift and lower over the keyboard; the forearms have no elbow servo — the arm linkage is fixed, so only the hand joint moves. **Left** and **right** hand servos use opposite scales: on the left, higher angle is up; on the right, higher angle is down (rest pose for typing is left at `max`, right at `min`). **Body** rotates the whole upper body in the chair while the base stays put.
 

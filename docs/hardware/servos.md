@@ -85,31 +85,14 @@ All five channels get the **same** angle. This is a wiring/power test, not a pos
 | --- | --- | --- | --- |
 | 1 | Electrical PWM | Pulse widths the servo electronics accept (~800–2200 µs @ 50 Hz) | In firmware |
 | 2 | Nominal manufacturer angle | Marketing / datasheet travel (0–180° **or** ~130° over full pulse — sources disagree) | Do not trust for installed mechanics |
-| 3 | Mechanical safe range | After horns, linkages, and collisions exist | **TBD per servo** |
+| 3 | Mechanical safe range | Per-joint min/max after horns and linkages | Defined in `SERVO_SPECS` ([`include/servos.h`](../../include/servos.h)); see [robot-movement.md](../robot-movement.md). Tunable after assembly |
 
-Firmware must eventually command **range 3**, clipped inside range 1.
+Animations and poses command **range 3**, clipped inside range 1. Bench bring-up (`runServoTest`, `/test/servo`) may still use the electrical band.
 
-Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out the 5 V rail.
+Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out the 5 V rail. Use the **75 / 90 / 105** test band on the bare bench; on the assembled robot stay inside `SERVO_SPECS` (tune those limits if needed after mounting).
 
 ## Channel-to-mechanism mapping
 
 See [robot-movement.md](../robot-movement.md) for layout, axis directions, and per-servo safe angles (`include/servos.h`).
-
-## Future per-servo config
-
-Store calibrated limits per channel, conceptually:
-
-```cpp
-struct ServoConfig {
-    uint8_t channel;
-    float minAngle;
-    float centerAngle;
-    float maxAngle;
-};
-```
-
-Optional later fields (not in repo today): pulse override, invert, name.
-
-Until that exists, keep using the **75 / 90 / 105** test band on the bench, then replace with measured min/center/max after the mechanism is mounted.
 
 Related: [power.md](power.md), [wiring.md](wiring.md), [testing.md](testing.md).

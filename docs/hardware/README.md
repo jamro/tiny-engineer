@@ -15,12 +15,12 @@ Conflict order: firmware GPIO numbers → wiring PNG connections → this `docs/
 
 Small desktop robot with:
 
-- 5 analog micro servos (head / arms / “bell” leg — mechanical mapping [TBD](servos.md#channel-to-mechanism-mapping))
+- 5 analog micro servos (head, neck, hands, body — [robot-movement.md](../robot-movement.md))
 - I2C OLED status display
-- I2S speaker for tones / later audio
-- ESP32-C3 Wi-Fi + BLE for later high-level control
+- I2S speaker for tones and WAV playback
+- ESP32-C3 Wi-Fi for HTTP control and AI hooks
 
-Current firmware (`src/main.cpp`) is a **hardware bring-up test**, not the final robot application.
+Firmware (`src/main.cpp`) is the robot application: Wi-Fi, settings, hardware tests, animations, and the JSON API.
 
 ## Hardware architecture
 
@@ -82,7 +82,7 @@ Speaker **SPK+/SPK-** are not on the PNG. See [wiring.md](wiring.md#not-on-the-d
 | Audio amp | MAX98357A I2S class-D (mono) | 1 |
 | Speaker | 8 Ω / 1 W mono | 1 |
 | Display | 0.91" 128×32 OLED, SSD1306, I2C | 1 |
-| Robot 5 V input | Adafruit 5993 USB-C breakout | 1 |
+| Robot USB | Adafruit 5993 USB-C breakout (power + data) | 1 |
 
 Full inventory: [components.md](components.md).
 
@@ -93,14 +93,13 @@ Full inventory: [components.md](components.md).
 | I2C | GP0/SDA, GP1/SCL (OLED pad **SCK**) | PCA9685 `0x40`, SSD1306 `0x3C` |
 | I2S | GP2/BCLK, GP3/LRC, GP4/DIN | MAX98357A |
 | Servo PWM | *(none on ESP32)* | PCA9685 channels 0–4 @ 50 Hz |
-| USB (dev) | onboard USB-C (native USB D−/D+) | programming + serial CDC |
-| USB (power) | Drawing: USB **5V** / **GND** (Adafruit 5993) | robot +5V rail |
+| USB | Adafruit 5993 (VBUS/GND + D+/D− → GP19/GP18) | Power, flash, serial CDC |
 
 Details: [interfaces.md](interfaces.md), [pinout.md](pinout.md).
 
 ## Power architecture
 
-Single nominal **+5V** supply. ESP32 onboard LDO makes **3V3** for logic only. PCA9685 **V+** (servos) is electrically separate from PCA9685 **VCC** (logic).
+Single nominal **+5V** supply via the Adafruit 5993. ESP32 onboard LDO makes **3V3** for logic only. PCA9685 **V+** (servos) is electrically separate from PCA9685 **VCC** (logic).
 
 Adafruit 5993 CC resistors request **5 V / up to ~1.5 A**. Five stalled servos alone can approach that. Prefer a **5 V / ≥2 A** source with margin.
 
@@ -113,10 +112,10 @@ Details: [power.md](power.md).
 | [components.md](components.md) | Inventory, voltages, limits |
 | [pinout.md](pinout.md) | GPIO map + allocation rules |
 | [wiring.md](wiring.md) | Every electrical connection |
-| [power.md](power.md) | Budget, brownout symptoms, bulk cap |
-| [servos.md](servos.md) | PWM, test limits, per-servo calibration |
+| [power.md](power.md) | Budget, brownout symptoms, single-USB policy |
+| [servos.md](servos.md) | PWM, test limits, safe ranges |
 | [interfaces.md](interfaces.md) | I2C / I2S / PWM / USB |
-| [testing.md](testing.md) | Bring-up sketch, failures, what to check |
+| [testing.md](testing.md) | Bring-up sequence, failures, what to check |
 
 Existing schematic sketch (not a substitute for the tables here): [`docs/wiring/Tiny Engineer.drawio`](../wiring/Tiny%20Engineer.drawio) / [PNG](../wiring/Tiny%20Engineer.drawio.png).
 
@@ -125,4 +124,3 @@ Existing schematic sketch (not a substitute for the tables here): [`docs/wiring/
 1. Repository firmware / `include/pins.h`
 2. This `docs/hardware/` set and `docs/wiring/`
 3. Component datasheets
-4. Assumptions — always marked **TBD**

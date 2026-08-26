@@ -127,10 +127,9 @@ All five servos move together on `POST /test/movement`. A weak USB port often di
 
 ## What this test does not prove
 
-- Per-servo mechanical limits or channel→joint mapping (**TBD**)
-- BLE
+- That tuned mechanical limits match a particular physical build (start from `SERVO_SPECS`; adjust after assembly)
+- BLE (out of scope)
 - Speaker power rating vs max amp output
-- Dual USB-C back-feed behaviour (**TBD**)
 - I2C at high speed
 
 Related: [pinout.md](pinout.md), [wiring.md](wiring.md), [servos.md](servos.md).

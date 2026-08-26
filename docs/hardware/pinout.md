@@ -25,8 +25,8 @@ Logic level: **3.3 V**.
 | GPIO9 | **Reserved** | BOOT button / strapping. Do not pick casually for peripherals |
 | GPIO10 | **Occupied** | Onboard WS2812 |
 | GPIO12–GPIO17 | **Unavailable** | Stacked flash, not brought out |
-| GPIO18 | **Reserved while using onboard USB-C** | Native USB D− |
-| GPIO19 | **Reserved while using onboard USB-C** | Native USB D+ |
+| GPIO18 | **Reserved** | Native USB D− (via Adafruit 5993 D−) |
+| GPIO19 | **Reserved** | Native USB D+ (via Adafruit 5993 D+) |
 
 ## Free / default-function pads
 
@@ -45,7 +45,11 @@ Power pads (not GPIO): **5V**, **GND**, **3V3**.
 
 | PCA9685 channel | Firmware | Mechanism |
 | --- | --- | --- |
-| 0–4 | `SERVO_CHANNELS[]` | **TBD** — see [servos.md](servos.md) |
+| 0 | `SERVO_HEAD` | Head pitch — [robot-movement.md](../robot-movement.md) |
+| 1 | `SERVO_NECK` | Neck yaw |
+| 2 | `SERVO_HAND_LEFT` | Left hand |
+| 3 | `SERVO_HAND_RIGHT` | Right hand |
+| 4 | `SERVO_BODY` | Body / torso |
 | 5–15 | unused | available |
 
 ## Other constants in `pins.h` (not pins)
@@ -68,7 +72,7 @@ New hardware **must not** pick pins ad-hoc.
 1. Choose a pad from the **Free** table above, or a documented unused PCA9685 channel.
 2. Do not use **Reserved** or **Unavailable** pins.
 3. Update **both**:
-   - [`include/pins.h`](../../include/pins.h) (or the future central pin header)
+   - [`include/pins.h`](../../include/pins.h)
    - this `pinout.md`
 4. Update [wiring.md](wiring.md) and [interfaces.md](interfaces.md) in the same change.
 5. Stay in the **3.3 V** GPIO domain. Level-shift if a new device is 5 V-only.

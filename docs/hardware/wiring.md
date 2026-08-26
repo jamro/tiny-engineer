@@ -12,6 +12,7 @@ Diagram colour: **red** = 5 V, **blue** = GND, thin wires = signals.
 | --- | --- |
 | USB **5V** | +5V rail (Adafruit 5993 **VBUS**) |
 | USB **GND** | Common **GND** |
+| USB **D−** / **D+** | 5993 data → ESP32 **GP18** / **GP19** (may be omitted on PNG) |
 | ESP32 **GP0** | GPIO0, I2C **SDA** |
 | ESP32 **GP1** | GPIO1, I2C **SCL** |
 | ESP32 **GP2** | GPIO2, I2S **BCLK** |
@@ -30,13 +31,15 @@ On Adafruit PCA9685, header/terminal **V+** is normally the same servo rail as t
 
 | From | Pin | To | Pin | Purpose |
 | --- | --- | --- | --- | --- |
-| USB | 5V | ESP32-C3-Zero | 5V | Board 5 V in |
-| USB | 5V | PCA9685 | 5V | Servo-rail in |
-| USB | 5V | MAX98357A | Vin | Amp power |
-| USB | GND | ESP32-C3-Zero | GND | Common ground |
-| USB | GND | PCA9685 | GND (logic/header side) | Common ground |
-| USB | GND | OLED | GND | Common ground |
-| USB | GND | MAX98357A | GND | Common ground |
+| USB (5993) | 5V / VBUS | ESP32-C3-Zero | 5V | Board 5 V in |
+| USB (5993) | 5V / VBUS | PCA9685 | 5V | Servo-rail in |
+| USB (5993) | 5V / VBUS | MAX98357A | Vin | Amp power |
+| USB (5993) | GND | ESP32-C3-Zero | GND | Common ground |
+| USB (5993) | GND | PCA9685 | GND (logic/header side) | Common ground |
+| USB (5993) | GND | OLED | GND | Common ground |
+| USB (5993) | GND | MAX98357A | GND | Common ground |
+| USB (5993) | D− | ESP32-C3-Zero | GP18 | Native USB D− (flash / CDC) |
+| USB (5993) | D+ | ESP32-C3-Zero | GP19 | Native USB D+ (flash / CDC) |
 | ESP32-C3-Zero | 3V3 | PCA9685 | VCC | PCA9685 logic |
 | ESP32-C3-Zero | 3V3 | OLED | VCC | OLED power |
 | ESP32-C3-Zero | GP0 | PCA9685 | SDA | I2C data |
@@ -85,7 +88,7 @@ PCA9685 GND (servo header)
   → Servo GND
 ```
 
-USB block in the drawing is the robot **power** input (Adafruit 5993). It is not the ESP32’s own USB-C programming port.
+USB block in the drawing is the Adafruit **5993** — robot **power** (VBUS/GND) and, when wired, **programming** (D+/D− → GP19/GP18). The PNG may show only 5V/GND; data wires are required for the single-USB design. See [interfaces.md](interfaces.md).
 
 ## I2C (as drawn)
 
@@ -116,17 +119,17 @@ One generic **Servo** block:
 | 5V | V+ |
 | GND | GND |
 
-Firmware drives **channels 0–4** the same way (`SERVO_CHANNELS`). The drawing does not number the PWM header. Channel-to-mechanism mapping: **TBD** — [servos.md](servos.md).
+Firmware drives **channels 0–4** (`SERVO_CHANNELS`). The drawing does not number the PWM header. Channel → joint: [robot-movement.md](../robot-movement.md) / [`include/servos.h`](../../include/servos.h).
 
 ## Pads drawn with no wires
 
 ESP32-C3-Zero, unused in the PNG:
 
-**GP6, GP7, GP8, GP9, GP10, GP18, GP19, GP20, GP21**
+**GP6, GP7, GP8, GP9, GP10, GP20, GP21**
 
-GP5 = optional PCA9685 OE (not in PNG). GP9 = BOOT, GP10 = onboard WS2812, GP18/GP19 = native USB. See [pinout.md](pinout.md).
+GP5 = optional PCA9685 OE (not in PNG). GP9 = BOOT, GP10 = onboard WS2812. GP18/GP19 = native USB — wire from 5993 D−/D+ even if the base PNG omits them. See [pinout.md](pinout.md).
 
-PCA9685 **OE** optional on GP5 — not drawn on base PNG. MAX98357A **GAIN** / **SD** / **SPK+** / **SPK-** not drawn.
+PCA9685 **OE** optional on GP5 — not drawn on base PNG. MAX98357A **GAIN** / **SD** not wired (breakout defaults). **SPK+** / **SPK-** not drawn.
 
 ## Not on the drawing
 
@@ -136,19 +139,20 @@ Still part of the selected hardware; do not invent extra ESP32 GPIO for them.
 | --- | --- |
 | Speaker | Terminals → MAX98357A **SPK+** and **SPK-** only |
 | 4 extra HD-1370A | Same 3-wire pattern as the drawn servo, on PCA9685 PWM 0–4 |
-| Adafruit 5993 D+/D−/CC/SBU | Unused; drawing uses USB **5V** and **GND** only |
+| Adafruit 5993 D+/D− | Wire to ESP32 **GP19** / **GP18** for flash and CDC (single-USB design) |
+| MAX98357A GAIN / SD | Not wired; leave breakout defaults |
 
 > [!WARNING]
 > MAX98357A output is BTL. **SPK- is not ground.** Never tie SPK- or SPK+ to GND. Never drive the speaker from ESP32 GPIO.
 
-## USB connectors (two different things)
+## USB connector (single)
 
-| Connector | On the drawing? | Role |
-| --- | --- | --- |
-| Block labelled **USB** | Yes (5V + GND) | Robot +5V in (Adafruit 5993) |
-| ESP32-C3-Zero USB-C | No | Flash + serial CDC |
+| Connector | Role |
+| --- | --- |
+| Adafruit **5993** | Only robot USB-C: **VBUS/GND** (power) + **D+/D−** → GP19/GP18 (flash / serial CDC) |
+| ESP32-C3-Zero onboard USB-C | Leave **unused** when 5993 data is wired (avoids dual 5 V feed) |
 
-See [interfaces.md](interfaces.md).
+See [interfaces.md](interfaces.md), [power.md](power.md).
 
 ## Assembly checks
 
