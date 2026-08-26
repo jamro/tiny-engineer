@@ -14,7 +14,7 @@ When you ask Cursor, Claude Code, or another agent to do a task, the model is bu
 
 ![Tiny Engineer at its desk](docs/tiny-engineer-preview.jpg)
 
-[Watch the project video](https://www.youtube.com/watch?v=gVmg_FFCgAY)
+[Watch the project video](https://youtu.be/RX_QRxdXMjg)
 
 ## Docs
 
