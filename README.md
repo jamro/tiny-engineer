@@ -1,32 +1,130 @@
 # Tiny Engineer
 
-Imagine your AI coding agent had a tiny body and worked at the desk next to you.
+> Give your AI coding agent a body.
 
-Tiny Software Engineer is a physical avatar for an AI coding agent. It reads, thinks, types, and reacts as the agent works — turning invisible software activity into the behavior of a tiny teammate sitting beside you.
+Tiny Engineer demo
 
-Instead of watching a progress spinner, just glance at your desk and see your AI at work.
+Tiny Engineer is an open-source, 3D-printable desktop robot that physically acts out what an AI coding agent is doing: reading, thinking, coding, finishing tasks. It runs on an ESP32 over Wi-Fi and exposes a simple REST API, so any tool that can make an HTTP request can drive it.
 
----
+**[Watch the demo](https://youtu.be/RX_QRxdXMjg) · [Build your own](#build-your-own) · [How it works](#how-it-works) · [API**](docs/api.md)
 
-Tiny Engineer is a small Wi-Fi desk robot that acts out your AI coding assistant while it works.
+## Why?
 
-When you ask Cursor, Claude Code, or another agent to do a task, the model is busy somewhere in the cloud. On your desk, Tiny Engineer pretends it is the one doing the job: typing on a keyboard, leaning in to read, pausing to think, then getting back to work.
+AI coding agents increasingly spend long stretches working on their own. I wanted to see what mine was doing without staring at the IDE.
 
-![Tiny Engineer at its desk](docs/tiny-engineer-preview.jpg)
+So I built a slightly ridiculous desk robot: instead of another spinner or status line, there is a tiny teammate sitting next to me, visibly reading, thinking, and typing while the agent works.
 
-[Watch the project video](https://youtu.be/RX_QRxdXMjg)
+## How it works
 
-## Docs
+Tiny Engineer is **agent-agnostic**. The robot is an HTTP server on your LAN. Integrations (Cursor hooks, shell scripts, other IDEs) are just clients that `POST` animation names. Cursor is one of those clients — not the architecture.
 
-| Goal | Doc |
-| --- | --- |
-| Build end-to-end (parts, print, wire, flash, first anim) | [docs/getting-started.md](docs/getting-started.md) |
-| Cursor hooks | [docs/hooks.md](docs/hooks.md) |
-| Any IDE / REST | [docs/integration.md](docs/integration.md) |
-| HTTP API | [docs/api.md](docs/api.md) |
-| Wiring / power reference | [docs/hardware/README.md](docs/hardware/README.md) |
-| Printable parts | [3d_models/README.md](3d_models/README.md) |
-| Full index | [docs/README.md](docs/README.md) |
+```mermaid
+flowchart TB
+  Agent[AI coding agent]
+  Agent --> Int["Hooks / scripts / REST"]
+  Int --> Wifi[Wi-Fi HTTP]
+  Wifi --> Esp[ESP32-C3]
+  Esp --> Out["Servos / OLED / audio / RGB"]
+```
+
+
+
+- Any tool → [integration guide](docs/integration.md) and [HTTP API](docs/api.md)
+- Cursor → [hooks](docs/hooks.md)
+
+
+
+## Build your own
+
+End-to-end path (details live in the linked docs):
+
+1. **Get the electronics** — [hardware inventory](docs/hardware/components.md)
+2. **3D print the parts** — [printables](3d_models/README.md)
+3. **Assemble the mechanics** — fit the five servos — [3D models](3d_models/README.md), [servo axes](docs/robot-movement.md)
+4. **Wire the electronics** — [wiring](docs/hardware/wiring.md), [hardware overview](docs/hardware/README.md)
+5. **Flash the ESP32 firmware** — [getting started → Flash](docs/getting-started.md#4-flash)
+6. **Configure Wi-Fi** — [getting started → Wi-Fi](docs/getting-started.md#5-wi-fi-setup)
+7. **Test the robot** — web UI + a curl — [getting started → Prove it](docs/getting-started.md#6-prove-it)
+8. **Connect your coding agent** — [Cursor hooks](docs/hooks.md) or [any IDE / REST](docs/integration.md)
+
+Full walkthrough: [docs/getting-started.md](docs/getting-started.md).
+
+## Hardware overview
+
+Major pieces (exact models and counts in the BOM):
+
+
+| Role        | Part                                                | Qty   |
+| ----------- | --------------------------------------------------- | ----- |
+| Controller  | Waveshare ESP32-C3-Zero                             | 1     |
+| Servo PWM   | Adafruit PCA9685                                    | 1     |
+| Actuators   | PowerHD HD-1370A micro servos                       | 5     |
+| Display     | 0.91" 128×32 SSD1306 OLED (I2C)                     | 1     |
+| Audio       | MAX98357A + 8 Ω / 1 W speaker                       | 1 + 1 |
+| USB / power | Adafruit 5993 USB-C breakout; **5 V / ≥2 A** supply | 1     |
+| Structure   | 3D-printed parts                                    | —     |
+
+
+Complete inventory and limits: [docs/hardware/components.md](docs/hardware/components.md).
+
+## Quick start
+
+Firmware is Arduino on [PlatformIO](https://platformio.org/). From the project root:
+
+```bash
+pio run                 # build
+pio run -t upload       # flash firmware + LittleFS
+pio device monitor      # serial (115200)
+```
+
+If servos move but audio is silent, run `pio run -t uploadfs` once.
+
+**Wi-Fi (first boot):** join `TinyEngineer-XXXX`, open `http://192.168.4.1/config`, enter a **2.4 GHz** network. OLED shows the setup steps.
+
+**Web UI:** `http://tiny-engineer.local/` (or the IP on the OLED) — settings, hardware tests, animations.
+
+**Make it move:**
+
+```bash
+curl -X POST "http://tiny-engineer.local/anim?name=ring"
+```
+
+Full route list: [docs/api.md](docs/api.md). Settings: [docs/settings.md](docs/settings.md).
+
+## AI integrations
+
+Anything that can `POST` over HTTP can drive the robot:
+
+```bash
+curl -X POST "http://tiny-engineer.local/anim?name=typing"
+```
+
+Useful `name` values: `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, `abort`, `none`.
+
+Cursor projects can map agent events to poses via hooks — [docs/hooks.md](docs/hooks.md). Broader patterns and examples: [docs/integration.md](docs/integration.md).
+
+## Documentation
+
+
+| Goal                     | Doc                                                        |
+| ------------------------ | ---------------------------------------------------------- |
+| Build end-to-end         | [docs/getting-started.md](docs/getting-started.md)         |
+| Parts / BOM              | [docs/hardware/components.md](docs/hardware/components.md) |
+| Wiring / power           | [docs/hardware/README.md](docs/hardware/README.md)         |
+| Printable parts          | [3d_models/README.md](3d_models/README.md)                 |
+| Servo axes / safe ranges | [docs/robot-movement.md](docs/robot-movement.md)           |
+| HTTP API                 | [docs/api.md](docs/api.md)                                 |
+| Settings                 | [docs/settings.md](docs/settings.md)                       |
+| Cursor hooks             | [docs/hooks.md](docs/hooks.md)                             |
+| Any IDE / REST           | [docs/integration.md](docs/integration.md)                 |
+| Full index               | [docs/README.md](docs/README.md)                           |
+
+
+
+
+## Build one, break one, share it
+
+Print it, wire it, change the CAD, swap animations, or hook up a different agent. Issues and PRs welcome — especially new integrations.
 
 ## License
 
