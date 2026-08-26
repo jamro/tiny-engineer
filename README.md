@@ -16,19 +16,24 @@ So I built a slightly ridiculous desk robot: instead of another spinner or statu
 
 ## How it works
 
-Tiny Engineer is **agent-agnostic**. The robot is an HTTP server on your LAN. Integrations (Cursor hooks, shell scripts, other IDEs) are just clients that `POST` animation names. Cursor is one of those clients — not the architecture.
+![How Tiny Engineer works](docs/how-it-works.jpg)
 
-```mermaid
-flowchart TB
-  Agent[AI coding agent]
-  Agent --> Int["Hooks / scripts / REST"]
-  Int --> Wifi[Wi-Fi HTTP]
-  Wifi --> Esp[ESP32-C3]
-  Esp --> Out["Servos / OLED / audio / RGB"]
-```
+An AI agent works; an integration turns that into events; the robot’s REST API on your LAN receives them; the hardware moves and reacts.
 
-- Any tool → [integration guide](docs/integration.md) and [HTTP API](docs/api.md)
-- Cursor → [hooks](docs/hooks.md)
+**Two ways in**
+
+- **Built-in** — Cursor Agent → Cursor hooks → `tiny-engineer-cursor` → HTTP over Wi-Fi
+- **Bring your own** — Claude, Codex, or any other agent → your script/plugin/app → HTTP REST
+
+Both hit the same Tiny Engineer REST API (`/anim`). The ESP32-C3 runs that API, robot logic, and animations, then drives:
+
+| Bus | Hardware | Role |
+| --- | --- | --- |
+| I2C | PCA9685 → 5× servos | Head / neck, hands / body |
+| I2C | SSD1306 OLED | Status, face, info |
+| I2S | MAX98357A → speaker | Audio |
+
+Cursor is one, sample, client, not the architecture. Details: [Cursor hooks](docs/hooks.md) · [any integration](docs/integration.md) · [HTTP API](docs/api.md)
 
 ## Build your own
 
