@@ -4,6 +4,17 @@ Selected hardware only. Do not substitute parts from this list without updating 
 
 Constants cited below match [`include/pins.h`](../../include/pins.h).
 
+## Product links
+
+| Part | Link |
+| --- | --- |
+| Waveshare ESP32-C3-Zero | https://docs.waveshare.com/ESP32-C3-Zero |
+| Adafruit PCA9685 16-channel PWM servo driver | https://www.adafruit.com/product/815 |
+| PowerHD HD-1370A | https://www.chd.hk/Product_Detail.aspx?id=30 |
+| MAX98357A I2S class-D mono amplifier | https://www.aliexpress.us/item/3256805196806369.html |
+| 0.91" 128×32 OLED (SSD1306, I2C) | https://www.raystar-optronics.com/oled-graphic-display-module/oled-i2c-ssd1306.html |
+| Adafruit 5993 USB-C breakout | https://www.adafruit.com/product/5993 |
+
 ## Waveshare ESP32-C3-Zero
 
 | Field | Value |
