@@ -2,11 +2,11 @@
 
 > Give your AI coding agent a body.
 
-Tiny Engineer demo
+![Tiny Engineer demo](docs/tiny-engineer-preview.gif)
 
 Tiny Engineer is an open-source, 3D-printable desktop robot that physically acts out what an AI coding agent is doing: reading, thinking, coding, finishing tasks. It runs on an ESP32 over Wi-Fi and exposes a simple REST API, so any tool that can make an HTTP request can drive it.
 
-**[Watch the demo](https://youtu.be/RX_QRxdXMjg) · [Build your own](#build-your-own) · [How it works](#how-it-works) · [API**](docs/api.md)
+**[Watch the demo](https://youtu.be/RX_QRxdXMjg) · [Build your own](#build-your-own) · [How it works](#how-it-works) · [API](docs/api.md)**
 
 ## Why?
 
@@ -27,12 +27,8 @@ flowchart TB
   Esp --> Out["Servos / OLED / audio / RGB"]
 ```
 
-
-
 - Any tool → [integration guide](docs/integration.md) and [HTTP API](docs/api.md)
 - Cursor → [hooks](docs/hooks.md)
-
-
 
 ## Build your own
 
@@ -53,17 +49,15 @@ Full walkthrough: [docs/getting-started.md](docs/getting-started.md).
 
 Major pieces (exact models and counts in the BOM):
 
-
-| Role        | Part                                                | Qty   |
-| ----------- | --------------------------------------------------- | ----- |
-| Controller  | Waveshare ESP32-C3-Zero                             | 1     |
-| Servo PWM   | Adafruit PCA9685                                    | 1     |
-| Actuators   | PowerHD HD-1370A micro servos                       | 5     |
-| Display     | 0.91" 128×32 SSD1306 OLED (I2C)                     | 1     |
-| Audio       | MAX98357A + 8 Ω / 1 W speaker                       | 1 + 1 |
-| USB / power | Adafruit 5993 USB-C breakout; **5 V / ≥2 A** supply | 1     |
-| Structure   | 3D-printed parts                                    | —     |
-
+| Role | Part | Qty |
+| --- | --- | --- |
+| Controller | Waveshare ESP32-C3-Zero | 1 |
+| Servo PWM | Adafruit PCA9685 | 1 |
+| Actuators | PowerHD HD-1370A micro servos | 5 |
+| Display | 0.91" 128×32 SSD1306 OLED (I2C) | 1 |
+| Audio | MAX98357A + 8 Ω / 1 W speaker | 1 + 1 |
+| USB / power | Adafruit 5993 USB-C breakout; **5 V / ≥2 A** supply | 1 |
+| Structure | 3D-printed parts | — |
 
 Complete inventory and limits: [docs/hardware/components.md](docs/hardware/components.md).
 
@@ -105,22 +99,18 @@ Cursor projects can map agent events to poses via hooks — [docs/hooks.md](docs
 
 ## Documentation
 
-
-| Goal                     | Doc                                                        |
-| ------------------------ | ---------------------------------------------------------- |
-| Build end-to-end         | [docs/getting-started.md](docs/getting-started.md)         |
-| Parts / BOM              | [docs/hardware/components.md](docs/hardware/components.md) |
-| Wiring / power           | [docs/hardware/README.md](docs/hardware/README.md)         |
-| Printable parts          | [3d_models/README.md](3d_models/README.md)                 |
-| Servo axes / safe ranges | [docs/robot-movement.md](docs/robot-movement.md)           |
-| HTTP API                 | [docs/api.md](docs/api.md)                                 |
-| Settings                 | [docs/settings.md](docs/settings.md)                       |
-| Cursor hooks             | [docs/hooks.md](docs/hooks.md)                             |
-| Any IDE / REST           | [docs/integration.md](docs/integration.md)                 |
-| Full index               | [docs/README.md](docs/README.md)                           |
-
-
-
+| Goal | Doc |
+| --- | --- |
+| Build end-to-end | [docs/getting-started.md](docs/getting-started.md) |
+| Parts / BOM | [docs/hardware/components.md](docs/hardware/components.md) |
+| Wiring / power | [docs/hardware/README.md](docs/hardware/README.md) |
+| Printable parts | [3d_models/README.md](3d_models/README.md) |
+| Servo axes / safe ranges | [docs/robot-movement.md](docs/robot-movement.md) |
+| HTTP API | [docs/api.md](docs/api.md) |
+| Settings | [docs/settings.md](docs/settings.md) |
+| Cursor hooks | [docs/hooks.md](docs/hooks.md) |
+| Any IDE / REST | [docs/integration.md](docs/integration.md) |
+| Full index | [docs/README.md](docs/README.md) |
 
 ## Build one, break one, share it
 
