@@ -2,10 +2,15 @@
 
 Printable parts and source CAD for the Tiny Engineer desk robot.
 
-- **Source CAD:** [`cad/TinyEngineer.f3d`](cad/TinyEngineer.f3d) (Fusion 360)
-- **Printables:** [`parts/*.3mf`](parts/)
+## Source CAD (edit / resize)
 
-Print settings, fasteners, and full assembly steps are **not documented yet**. Use the part table below, then electrical and bring-up docs.
+The full assembly — all components composed — lives in [`cad/TinyEngineer.f3d`](cad/TinyEngineer.f3d) (Autodesk Fusion). Open that file to adjust the model or adapt it to different hardware sizing (e.g. different servos).
+
+## Printables
+
+Individual parts are exported to [`parts/`](parts/) as `.3mf` files. They are ready to print in an orientation that does not need supports. Print with **PLA** or **PETG**.
+
+Assembly uses a bunch of **2 mm diameter screws** — no glue. Easy to dismount and modify later. Exact screw lengths/counts and full assembly steps are **not documented yet**. Use the part table below, then electrical and bring-up docs.
 
 ## Parts
 

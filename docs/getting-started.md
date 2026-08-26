@@ -25,9 +25,9 @@ Gather electronics from [hardware/components.md](hardware/components.md). Minimu
 
 ### 2. Print and mechanical
 
-Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/*.3mf`, source `cad/TinyEngineer.f3d`).
+Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware).
 
-Print settings, fasteners, and a full assembly SOP are **not documented yet** — use the parts table there as the inventory. After print:
+Join printed parts with **2 mm diameter screws** (no glue; easy to dismount later). Exact screw lengths/counts and a full assembly SOP are **not documented yet** — use the parts table there as the inventory. After print:
 
 - Fit the five servos (head, neck, left/right hand, body) — axes and safe ranges: [robot-movement.md](robot-movement.md)
 - Leave the ESP32 ceramic antenna clear of metal / dense plastic ([hardware/components.md](hardware/components.md))
