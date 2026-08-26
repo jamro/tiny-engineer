@@ -12,7 +12,7 @@ Tiny Engineer is a small Wi-Fi desk robot that acts out your AI coding assistant
 
 When you ask Cursor, Claude Code, or another agent to do a task, the model is busy somewhere in the cloud. On your desk, Tiny Engineer pretends it is the one doing the job: typing on a keyboard, leaning in to read, pausing to think, then getting back to work.
 
-![Tiny Engineer at its desk](docs/tiny-engineer-preview.png)
+![Tiny Engineer at its desk](docs/tiny-engineer-preview.jpg)
 
 ## Hardware
 
