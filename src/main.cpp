@@ -8,6 +8,8 @@
 #include "display/oled.h"
 #include "audio/audio.h"
 #include "animation.h"
+#include "animation/constants.h"
+#include "animation/util.h"
 #include "hardware/pca9685_servos.h"
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
@@ -147,6 +149,8 @@ void setup() {
 
   if (wifiConnected() && settingsWelcomeEnabled()) {
     setAnimation(AnimationId::Welcome);
+  } else if (wifiConnected() && !settingsWelcomeEnabled()) {
+    anim::parkHands(anim::TRANSITION_HAND_SPEED_DEG_S);
   } else if (wifiProvisioningMode()) {
     setRgb(0, 0, 64);
   } else {
