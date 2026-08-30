@@ -39,6 +39,8 @@ Cursor is one, sample, client, not the architecture. Details: [Cursor hooks](doc
 
 End-to-end path (details live in the linked docs):
 
+New to hardware? Start with **[From Code to Circuits](docs/hardware-for-software-engineers/README.md)** — hardware and electronics for software engineers; Tiny Engineer is the worked example.
+
 1. **Get the electronics** — [hardware inventory](docs/hardware/components.md)
 2. **3D print the parts** — [printables](3d_models/README.md)
 3. **Assemble the mechanics** — fit the five servos — [3D models](3d_models/README.md), [servo axes](docs/robot-movement.md)

@@ -4,6 +4,7 @@ Pick a path. Depth lives in the linked pages.
 
 | You want to… | Start here |
 | --- | --- |
+| **Bridge into hardware/electronics** (software engineer background) | [hardware-for-software-engineers/README.md](hardware-for-software-engineers/README.md) |
 | **Build from scratch** (parts → print → wire → flash) | [getting-started.md](getting-started.md) |
 | **Use with Cursor** (robot already on Wi‑Fi) | [getting-started.md](getting-started.md) → [hooks.md](hooks.md) |
 | **Flash / configure** only | [getting-started.md](getting-started.md)#4-flash |
