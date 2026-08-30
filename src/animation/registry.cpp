@@ -5,6 +5,7 @@
 
 #include "animation/abort.h"
 #include "animation/attention.h"
+#include "animation/dead.h"
 #include "animation/error.h"
 #include "animation/reading.h"
 #include "animation/ring.h"
@@ -16,6 +17,7 @@
 #include "animation/welcome.h"
 #include "display/eyes/modes/abort.h"
 #include "display/eyes/modes/attention.h"
+#include "display/eyes/modes/dead.h"
 #include "display/eyes/modes/error.h"
 #include "display/eyes/modes/idle.h"
 #include "display/eyes/modes/reading.h"
@@ -85,6 +87,10 @@ void updateWakeupAt(uint32_t nowMs) {
 
 void startSleepAt(uint32_t /*nowMs*/) {
   startSleepAnim();
+}
+
+void startDeadAt(uint32_t /*nowMs*/) {
+  startDead();
 }
 
 constexpr ModeEntry kModes[] = {
@@ -208,6 +214,17 @@ constexpr ModeEntry kModes[] = {
     updateSleepAnim,
     startIdleEyes,
     updateIdleEyes,
+  },
+  {
+    AnimationId::Dead,
+    EyeMode::Dead,
+    "dead",
+    false,
+    -1,
+    startDeadAt,
+    updateDead,
+    startDeadEyes,
+    updateDeadEyes,
   },
 };
 

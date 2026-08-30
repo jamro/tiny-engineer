@@ -53,7 +53,7 @@ During normal operation the onboard WS2812 tracks the active animation (not boot
 | Animation | LED |
 | --- | --- |
 | `typing`, `reading`, `thinking`, `welcome`, `ring`, `wakeup` | White |
-| `attention`, `error` | Pulsing red (10%↔100%, 1.5 s cycle) |
+| `attention`, `error`, `dead` | Pulsing red (10%↔100%, 1.5 s cycle) |
 | `abort` | Solid red |
 | `none`, `sleep` | Off |
 

@@ -25,6 +25,7 @@ enum class ErrorLook {
 enum class ErrorPhase {
   ObstaclePose,
   PlayAudio,
+  Finished,
   BlockedHold,
 };
 
@@ -159,7 +160,7 @@ uint32_t errorAudioElapsed(uint32_t now) {
   return now - g_errorAudioStartMs;
 }
 
-void updateError(uint32_t now) {
+bool updateErrorWarning(uint32_t now) {
   switch (g_errorPhase) {
     case ErrorPhase::ObstaclePose:
       updateAllServos();
@@ -170,10 +171,11 @@ void updateError(uint32_t now) {
           g_nextHoldMoveMs = now + ERROR_AUDIO_UHOH_END_MS;
           g_errorPhase = ErrorPhase::PlayAudio;
         } else {
-          enterBlockedHold(now);
+          g_errorPhase = ErrorPhase::Finished;
+          return true;
         }
       }
-      break;
+      return false;
 
     case ErrorPhase::PlayAudio:
       updateAllServos();
@@ -181,19 +183,34 @@ void updateError(uint32_t now) {
         commandNervousLook(now);
       }
       if (!updateErrorPlayback()) {
-        enterBlockedHold(now);
+        g_errorPhase = ErrorPhase::Finished;
+        return true;
       }
-      break;
+      return false;
 
+    case ErrorPhase::Finished:
     case ErrorPhase::BlockedHold:
-      if ((now - g_blockedHoldStartedMs) >= anim::NON_CONTINUOUS_HOLD_MS) {
-        finishAnimation(now);
-        break;
-      }
-      updateAllServos();
-      if (allErrorServosStopped()) {
-        commandNervousLook(now);
-      }
-      break;
+      return true;
+  }
+
+  return false;
+}
+
+void updateError(uint32_t now) {
+  if (g_errorPhase != ErrorPhase::BlockedHold) {
+    if (updateErrorWarning(now)) {
+      enterBlockedHold(now);
+    }
+    return;
+  }
+
+  if ((now - g_blockedHoldStartedMs) >= anim::NON_CONTINUOUS_HOLD_MS) {
+    finishAnimation(now);
+    return;
+  }
+
+  updateAllServos();
+  if (allErrorServosStopped()) {
+    commandNervousLook(now);
   }
 }

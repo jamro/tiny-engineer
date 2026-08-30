@@ -11,7 +11,8 @@ enum class AnimationId {
   Error,
   Abort,
   Wakeup,
-  Sleep
+  Sleep,
+  Dead
 };
 
 void setAnimation(AnimationId id);

@@ -321,7 +321,7 @@ curl http://tiny-engineer.local/anim
 
 | Field | Meaning |
 | --- | --- |
-| `animation` | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, `abort`, `wakeup`, or `sleep` |
+| `animation` | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, `abort`, `dead`, `wakeup`, or `sleep` |
 
 ### `POST /anim`
 
@@ -329,7 +329,7 @@ Request an animation switch. Each animation runs at least **1s**; if the current
 
 | Param | Type | Values |
 | --- | --- | --- |
-| `name` | string | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, `abort`, `wakeup`, `sleep` |
+| `name` | string | `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, `abort`, `dead`, `wakeup`, `sleep` |
 
 ```bash
 curl -X POST "http://tiny-engineer.local/anim?name=typing"
@@ -342,6 +342,7 @@ curl -X POST "http://tiny-engineer.local/anim?name=sleep"
 curl -X POST "http://tiny-engineer.local/anim?name=attention"
 curl -X POST "http://tiny-engineer.local/anim?name=error"
 curl -X POST "http://tiny-engineer.local/anim?name=abort"
+curl -X POST "http://tiny-engineer.local/anim?name=dead"
 curl -X POST "http://tiny-engineer.local/anim?name=none"
 ```
 
@@ -360,6 +361,7 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 | `attention` | Friendly input-request gesture synced to `attention.wav` (~3.0 s, "pst... human.... you might want to take a look"). Moves into a calm prompt pose first (centered body/neck, head slightly up, right hand raised partway), waits until all servos stop, then plays audio with phased eye cues and light neck/head/hand motion during playback (whisper hold → lean toward user → glance/point on "take a look"). After audio ends (or if audio fails to start), holds a gentle waiting loop for **1 minute** (soft head/neck drifts plus occasional slight right-hand waves), then returns to `none`. Requires `attention.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
 | `error` | Critical task-obstacle gesture synced to `error.wav` (~2.2 s, "Uh-oh. Human, we have a problem."). Moves into an obstacle-presenting pose first (body/neck angled toward the task, head concerned/down, right hand presenting the blocker, left hand indicating task area), waits until the pose settles, then plays audio with small nervous head/neck glances during playback. After audio ends (or if audio fails to start), holds a subtle blocked loop for **1 minute**, then returns to `none`. Requires `error.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
 | `abort` | **One-shot** resigned abort gesture synced to `abort.wav` (~2.5 s, "Fine. I didn't want to finish it anyway."). Raises both hands, lifts the head, and twists the neck sideways before audio starts. During playback it shrugs, dips the head, and adds a dismissive side twist with matching eye glances/squints. Requires `abort.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, returns to `none` pose and `GET /anim` reports `none`. |
+| `dead` | **Hold.** Out-of-power: same obstacle pose + `error.wav` as `error` ("Uh-oh. Human, we have a problem."), but eyes use a failing-display flicker (irregular heights + brief blank pulses, denser near the end) instead of the error nervous scan. When the line ends (or audio fails), eyes squeeze nearly shut (~300 ms) while head/hands collapse, hold shut briefly (~200 ms), then snap to **X X**. Stays in that pose with X eyes and pulsing red until another animation is requested. Does not auto-return to `none`. Requires `error.wav` on LittleFS. |
 | `wakeup` | **One-shot** sleep-inertia wake (~5.5 s + settle), same sequence as boot `loading=sleep_inertia`. Eyes open over 2 s (cubic ease) from closed, two blinks at 2.4 s and 3.8 s, head rises from chin-down with a fading neck wave. Always moves head/neck/hands (API path). After completion, `GET /anim` reports `none`. Does not play welcome audio — use `welcome` for that. |
 | `sleep` | **One-shot** enter sleep: eye close + head lowers to chin-down (`SLEEP_HEAD_DOWN`, same pose `wakeup` starts from), then blank OLED and `DISPLAYOFF`. Same path as the idle `sleep_timeout`. Holds `sleep` until the head settles; then `GET /anim` reports `none` while the device stays asleep until another non-`sleep`/`none` animation wakes it. |
 
@@ -368,7 +370,7 @@ Wrong params return **400**:
 | `error` | When |
 | --- | --- |
 | `missing name` | Query param `name` absent |
-| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, `abort`, `wakeup`, or `sleep` |
+| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, `abort`, `dead`, `wakeup`, or `sleep` |
 
 ## Errors
 
@@ -398,7 +400,7 @@ Onboard WS2812 on **GPIO10** (`RGB_LED_PIN`). Animation-driven colors are handle
 | Animation | LED color |
 | --- | --- |
 | `typing`, `reading`, `thinking`, `welcome`, `ring`, `wakeup` | White (full intensity) |
-| `attention`, `error` | Red pulse: 500 ms 10%→100%, 500 ms hold 100%, 500 ms 100%→10%, repeat |
+| `attention`, `error`, `dead` | Red pulse: 500 ms 10%→100%, 500 ms hold 100%, 500 ms 100%→10%, repeat |
 | `abort` | Red (full intensity, solid) |
 | `none`, `sleep` | Off |
 

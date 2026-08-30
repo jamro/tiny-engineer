@@ -211,6 +211,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <tr><td><code>attention</code></td><td>Input-request gesture + audio</td></tr>
 <tr><td><code>error</code></td><td>Obstacle gesture + audio</td></tr>
 <tr><td><code>abort</code></td><td>Abort gesture + audio</td></tr>
+<tr><td><code>dead</code></td><td>Out-of-power: error line, then X X</td></tr>
 <tr><td><code>wakeup</code></td><td>One-shot sleep-inertia wake</td></tr>
 <tr><td><code>sleep</code></td><td>Close eyes and sleep</td></tr>
 </table>
@@ -238,6 +239,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <button class="btn" data-anim="attention"><span class="btn-title">Attention</span><span class="btn-hint">+ audio, 1 min hold</span></button>
 <button class="btn" data-anim="error"><span class="btn-title">Error</span><span class="btn-hint">+ audio, 1 min hold</span></button>
 <button class="btn" data-anim="abort"><span class="btn-title">Abort</span><span class="btn-hint">One-shot + audio</span></button>
+<button class="btn" data-anim="dead"><span class="btn-title">Dead</span><span class="btn-hint">Error line, then X X</span></button>
 </div>
 </section>
 

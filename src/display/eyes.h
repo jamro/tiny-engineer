@@ -19,7 +19,8 @@ enum class EyeMode {
   Attention,
   Error,
   Abort,
-  Wakeup
+  Wakeup,
+  Dead
 };
 
 enum class SleepEyeResult {

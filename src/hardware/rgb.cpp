@@ -73,6 +73,7 @@ void resolveAnimationTarget(AnimationId id, uint8_t& r, uint8_t& g, uint8_t& b) 
       break;
     case AnimationId::Attention:
     case AnimationId::Error:
+    case AnimationId::Dead:
     case AnimationId::Abort:
       r = RGB_ANIM_RED;
       g = 0;
@@ -89,7 +90,9 @@ void resolveAnimationTarget(AnimationId id, uint8_t& r, uint8_t& g, uint8_t& b) 
 }
 
 bool isPulseAnimation(AnimationId id) {
-  return id == AnimationId::Attention || id == AnimationId::Error;
+  return id == AnimationId::Attention
+    || id == AnimationId::Error
+    || id == AnimationId::Dead;
 }
 
 bool sameTarget(uint8_t r, uint8_t g, uint8_t b) {

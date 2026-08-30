@@ -10,6 +10,7 @@
 #include "display/eyes/core/impact.h"
 #include "display/eyes/core/internal.h"
 #include "display/eyes/core/util.h"
+#include "animation/dead.h"
 
 namespace {
 
@@ -45,6 +46,11 @@ void updateModePose(uint32_t now) {
 }
 
 void drawCurrentEyes() {
+  if (g_eyeMode == EyeMode::Dead && deadShowingX()) {
+    drawDeadXEyes(g_leftEye, g_rightEye);
+    return;
+  }
+
   const Eye left = eyes::renderEye(g_leftEye, blinkOpenAmount());
   const Eye right = eyes::renderEye(g_rightEye, blinkOpenAmount());
   drawEyes(left, right, eyes::EYE_CORNER_RADIUS);
@@ -250,7 +256,8 @@ void updateEyes(uint32_t now) {
   updateModePose(now);
 
   if (g_eyeMode != EyeMode::Welcome &&
-      g_eyeMode != EyeMode::Wakeup) {
+      g_eyeMode != EyeMode::Wakeup &&
+      g_eyeMode != EyeMode::Dead) {
     blinkAdvance(now);
   }
 

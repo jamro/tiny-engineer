@@ -132,4 +132,8 @@ constexpr float ABORT_HAND_LEFT_UP =
 constexpr float ABORT_HAND_LEFT_SHRUG =
   SERVO_SPECS[SERVO_HAND_LEFT].max - 43.0f;
 
+// Power-loss collapse: chin fully down, hands parked.
+constexpr float DEAD_HEAD_DOWN = SERVO_SPECS[SERVO_HEAD].min;
+constexpr float DEAD_COLLAPSE_SPEED_DEG_S = 48.0f;
+
 }  // namespace anim
