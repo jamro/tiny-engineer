@@ -12,6 +12,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 | Adafruit PCA9685 16-channel PWM servo driver | https://www.adafruit.com/product/815 |
 | PowerHD HD-1370A | https://www.chd.hk/Product_Detail.aspx?id=30 |
 | MAX98357A I2S class-D mono amplifier | https://www.aliexpress.us/item/3256805196806369.html |
+| 8 Ω / 1 W mono speaker | https://www.aliexpress.us/item/3256807341987395.html |
 | 0.91" 128×32 OLED (SSD1306, I2C) | https://www.raystar-optronics.com/oled-graphic-display-module/oled-i2c-ssd1306.html |
 | Adafruit 5993 USB-C breakout | https://www.adafruit.com/product/5993 |
 
@@ -99,7 +100,7 @@ Firmware uses **per-servo safe ranges** in [`include/servos.h`](../../include/se
 
 | Field | Value |
 | --- | --- |
-| Exact model | Generic 8 Ω / 1 W mono speaker |
+| Exact model | 8 Ω / 1 W mono speaker (AliExpress listing above) |
 | Quantity | 1 |
 | Purpose | Acoustic output |
 | Operating voltage | Not a voltage-rail device — driven by MAX98357A BTL |
