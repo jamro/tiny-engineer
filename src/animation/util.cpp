@@ -180,6 +180,14 @@ void parkNonePose() {
   );
 }
 
+void parkSleepPose() {
+  parkForTransition();
+  servoAt(SERVO_HEAD).setTarget(
+    SLEEP_HEAD_DOWN,
+    SERVO_BOOT_SPEED_DEG_S
+  );
+}
+
 void snapHeadToRangeHigh(float highDeg) {
   servoAt(SERVO_HEAD).setTarget(
     highDeg,

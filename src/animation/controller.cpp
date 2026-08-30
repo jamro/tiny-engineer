@@ -46,6 +46,14 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
   serialLogPrintln(entry->name);
   anim::logServoSnapshot("pre-transition");
 
+  // Raise head out of sleep pose before the new anim claims servos.
+  // None / Sleep / Wakeup must keep chin-down (or own the rise).
+  if (id != AnimationId::None &&
+      id != AnimationId::Sleep &&
+      id != AnimationId::Wakeup) {
+    prepareSleepWakePose();
+  }
+
   g_animation = id;
   g_animationStartedMs = nowMs;
   g_continuousStartedMs = nowMs;

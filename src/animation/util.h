@@ -42,6 +42,7 @@ void parkForTransition();
 bool isTransitionParkComplete();
 void parkHandsAndBody();
 void parkNonePose();
+void parkSleepPose();
 void snapHeadToRangeHigh(float highDeg);
 
 void logServoSnapshot(const char* tag);

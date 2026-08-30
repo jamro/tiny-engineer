@@ -100,7 +100,7 @@ Anything that can `POST` over HTTP can drive the robot:
 curl -X POST "http://tiny-engineer.local/anim?name=typing"
 ```
 
-Useful `name` values: `typing`, `reading`, `thinking`, `ring`, `welcome`, `attention`, `error`, `abort`, `none`.
+Useful `name` values: `typing`, `reading`, `thinking`, `ring`, `welcome`, `wakeup`, `sleep`, `attention`, `error`, `abort`, `none`.
 
 Cursor projects can map agent events to poses via hooks — [docs/hooks.md](docs/hooks.md). Broader patterns and examples: [docs/integration.md](docs/integration.md).
 

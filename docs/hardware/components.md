@@ -29,7 +29,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 | USB | Native USB on GPIO18/19 — reached via Adafruit 5993 D+/D− (onboard USB-C unused when assembled) |
 | Flash | 4 MB stacked flash on GPIO12–GPIO17 (those GPIOs are **not exposed**) |
 | Onboard RGB | WS2812 on **GPIO10** |
-| Firmware notes | Boot: dim green status. Animations: white (typing/reading/thinking/welcome/ring), pulsing red (attention/error), solid red (abort), off (idle). 1 s fade between non-pulse states. Fatal init errors: solid dim red + hang. See [`docs/api.md`](../../api.md#rgb-led) |
+| Firmware notes | Boot: dim green status. Animations: white (typing/reading/thinking/welcome/ring/wakeup), pulsing red (attention/error), solid red (abort), off (idle/sleep). 1 s fade between non-pulse states. Fatal init errors: solid dim red + hang. See [`docs/api.md`](../../api.md#rgb-led) |
 | BOOT | Button / strapping on **GPIO9** |
 | RESET | Separate RESET button (CHIP_EN), not a GPIO |
 | UART0 silkscreen | TX = GPIO21, RX = GPIO20 |

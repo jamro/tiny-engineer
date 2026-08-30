@@ -1,9 +1,14 @@
 #include <Arduino.h>
 
 #include "animation.h"
+#include "animation/constants.h"
 #include "display/eyes.h"
+#include "display/eyes/core/internal.h"
 #include "display/oled.h"
+#include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
+#include "pins.h"
+#include "servos.h"
 #include "settings.h"
 #include "sleep.h"
 
@@ -19,6 +24,10 @@ enum class SleepState {
 SleepState g_state = SleepState::Awake;
 uint32_t g_idleSinceMs = 0;
 
+void commandSleepHead(float deg) {
+  servoAt(SERVO_HEAD).setTarget(deg, SERVO_BOOT_SPEED_DEG_S);
+}
+
 void wakeFromSleep(uint32_t now) {
   wakeOled();
   startEyesForWake(now);
@@ -27,6 +36,7 @@ void wakeFromSleep(uint32_t now) {
 
 void beginSleepClosing(uint32_t now) {
   requestSleepEyeClose(now);
+  commandSleepHead(anim::SLEEP_HEAD_DOWN);
   g_state = SleepState::Closing;
 }
 
@@ -36,9 +46,43 @@ void initSleep() {
   g_idleSinceMs = millis();
 }
 
+void prepareSleepWakePose() {
+  if (g_state != SleepState::Closing &&
+      g_state != SleepState::Sleeping) {
+    return;
+  }
+
+  commandSleepHead(anim::SLEEP_HEAD_AWAKE);
+}
+
+void requestSleep() {
+  if (g_state == SleepState::Sleeping ||
+      g_state == SleepState::Closing) {
+    return;
+  }
+
+  beginSleepClosing(millis());
+}
+
 void onAnimationApplied(AnimationId id, uint32_t now) {
   if (id == AnimationId::None) {
     g_idleSinceMs = now;
+    return;
+  }
+
+  if (id == AnimationId::Sleep) {
+    return;
+  }
+
+  if (id == AnimationId::Wakeup) {
+    clearSleepEyeAnim();
+
+    if (g_state == SleepState::Sleeping) {
+      wakeOled();
+      eyes::setEyesRunning(true);
+    }
+
+    g_state = SleepState::Awake;
     return;
   }
 
@@ -67,7 +111,7 @@ void updateSleep(uint32_t now) {
       if (getAnimation() == AnimationId::None &&
           now >= g_idleSinceMs &&
           now - g_idleSinceMs >= settingsSleepTimeoutMs()) {
-        beginSleepClosing(now);
+        setAnimation(AnimationId::Sleep);
       }
       break;
 

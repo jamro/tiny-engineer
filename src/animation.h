@@ -9,7 +9,9 @@ enum class AnimationId {
   Welcome,
   Attention,
   Error,
-  Abort
+  Abort,
+  Wakeup,
+  Sleep
 };
 
 void setAnimation(AnimationId id);

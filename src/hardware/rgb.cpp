@@ -66,6 +66,7 @@ void resolveAnimationTarget(AnimationId id, uint8_t& r, uint8_t& g, uint8_t& b) 
     case AnimationId::Thinking:
     case AnimationId::Welcome:
     case AnimationId::Ring:
+    case AnimationId::Wakeup:
       r = RGB_ANIM_WHITE;
       g = RGB_ANIM_WHITE;
       b = RGB_ANIM_WHITE;
@@ -78,6 +79,7 @@ void resolveAnimationTarget(AnimationId id, uint8_t& r, uint8_t& g, uint8_t& b) 
       b = 0;
       break;
     case AnimationId::None:
+    case AnimationId::Sleep:
     default:
       r = 0;
       g = 0;

@@ -211,6 +211,8 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <tr><td><code>attention</code></td><td>Input-request gesture + audio</td></tr>
 <tr><td><code>error</code></td><td>Obstacle gesture + audio</td></tr>
 <tr><td><code>abort</code></td><td>Abort gesture + audio</td></tr>
+<tr><td><code>wakeup</code></td><td>One-shot sleep-inertia wake</td></tr>
+<tr><td><code>sleep</code></td><td>Close eyes and sleep</td></tr>
 </table>
 <p>POST <code>/test/servo</code> &mdash; query params:</p>
 <table>
@@ -231,6 +233,8 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <button class="btn" data-anim="thinking"><span class="btn-title">Thinking</span><span class="btn-hint">Continuous</span></button>
 <button class="btn" data-anim="ring"><span class="btn-title">Bell</span><span class="btn-hint">One-shot</span></button>
 <button class="btn" data-anim="welcome"><span class="btn-title">Welcome</span><span class="btn-hint">One-shot</span></button>
+<button class="btn" data-anim="wakeup"><span class="btn-title">Wakeup</span><span class="btn-hint">Sleep inertia</span></button>
+<button class="btn" data-anim="sleep"><span class="btn-title">Sleep</span><span class="btn-hint">Close + OLED off</span></button>
 <button class="btn" data-anim="attention"><span class="btn-title">Attention</span><span class="btn-hint">+ audio, 1 min hold</span></button>
 <button class="btn" data-anim="error"><span class="btn-title">Error</span><span class="btn-hint">+ audio, 1 min hold</span></button>
 <button class="btn" data-anim="abort"><span class="btn-title">Abort</span><span class="btn-hint">One-shot + audio</span></button>

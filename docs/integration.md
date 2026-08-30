@@ -44,6 +44,8 @@ curl -X POST "http://tiny-engineer.local/anim?name=typing"
 | `thinking` | Agent reasoning / waiting on a long step |
 | `ring` | Turn finished (attention ping) |
 | `welcome` | Session start / greeting |
+| `wakeup` | Sleep-inertia wake (eyes/head) |
+| `sleep` | Force sleep (eye close + OLED off) |
 | `attention` | Needs user input |
 | `error` / `abort` | Failure / cancel |
 | `none` | Idle / clear pose |

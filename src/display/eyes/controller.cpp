@@ -192,6 +192,10 @@ void requestSleepEyeOpen(uint32_t now) {
   g_forceRedraw = true;
 }
 
+void clearSleepEyeAnim() {
+  g_sleepEyeAnim = SleepEyeAnim::None;
+}
+
 void startEyesForWake(uint32_t now) {
   g_eyesActive = true;
   blinkResetCounters();
@@ -245,7 +249,8 @@ void updateEyes(uint32_t now) {
 
   updateModePose(now);
 
-  if (g_eyeMode != EyeMode::Welcome) {
+  if (g_eyeMode != EyeMode::Welcome &&
+      g_eyeMode != EyeMode::Wakeup) {
     blinkAdvance(now);
   }
 
