@@ -127,4 +127,7 @@ Print it, wire it, change the CAD, swap animations, or hook up a different agent
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+- **Software** (firmware, integrations, scripts, documentation) — [MIT](LICENSE)
+- **Hardware designs** (CAD source and `.3mf` printables in [`3d_models/`](3d_models/)) — [CERN-OHL-S-2.0](3d_models/LICENSE)
+
+See [LICENSING.md](LICENSING.md) for scope and effective date. The **Tiny Engineer** name and logo are not licensed — see [TRADEMARK.md](TRADEMARK.md).

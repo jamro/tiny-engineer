@@ -46,3 +46,11 @@ Full build path (print → wire → flash): [docs/getting-started.md](../docs/ge
 1. Servo axes and safe ranges: [docs/robot-movement.md](../docs/robot-movement.md)
 2. Wiring and power: [docs/hardware/wiring.md](../docs/hardware/wiring.md), [docs/hardware/README.md](../docs/hardware/README.md)
 3. Bring-up and failures: [docs/hardware/testing.md](../docs/hardware/testing.md)
+
+## License
+
+CAD source (`.f3d`) in [`cad/`](cad/) and printable parts (`.3mf`) in [`parts/`](parts/) are licensed under [CERN-OHL-S-2.0](LICENSE). See [NOTICE](NOTICE) for copyright, Source Location, and product notice requirements.
+
+Commercial use is allowed. If you modify and distribute Products based on these designs, reciprocal provisions require sharing your Complete Source under the same license. This documentation file is software documentation and remains under the MIT License — see [LICENSING.md](../LICENSING.md).
+
+The **Tiny Engineer** name and logo are not licensed — see [TRADEMARK.md](../TRADEMARK.md).

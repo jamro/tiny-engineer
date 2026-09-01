@@ -1,0 +1,22 @@
+version = 1
+
+SPDX-FileCopyrightText = "2026 Krzysztof Jamroz"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "3d_models/cad/**"
+SPDX-FileCopyrightText = "2026 Krzysztof Jamroz"
+SPDX-License-Identifier = "CERN-OHL-S-2.0"
+
+[[annotations]]
+path = "3d_models/parts/**"
+SPDX-FileCopyrightText = "2026 Krzysztof Jamroz"
+SPDX-License-Identifier = "CERN-OHL-S-2.0"
+
+[[annotations]]
+path = "LICENSE"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "3d_models/LICENSE"
+SPDX-License-Identifier = "CERN-OHL-S-2.0"

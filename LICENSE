@@ -1,3 +1,7 @@
+This MIT License applies to the software portions of this repository as
+described in LICENSING.md. Hardware design files under 3d_models/cad/
+and 3d_models/parts/ are licensed separately under CERN-OHL-S-2.0.
+
 MIT License
 
 Copyright (c) 2026 Krzysztof Jamroz
