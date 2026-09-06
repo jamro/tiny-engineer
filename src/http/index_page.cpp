@@ -67,6 +67,22 @@ nav a.active{background:var(--accent);color:#fff}
 .toggle-row input[type=checkbox]{width:1.15rem;height:1.15rem;accent-color:var(--accent)}
 .toggle-row label{margin:0;font-weight:600;font-size:.9rem}
 .hint{font-size:.8rem;color:var(--muted);margin-top:.25rem}
+.hint.warn{color:var(--error)}
+.servo-actions{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1rem}
+.servo-actions .btn{text-align:center;font-weight:600}
+.servo-actions .btn-primary{margin-top:0}
+.servo-slider-wrap{flex:1;min-width:0}
+.servo-slider-track{position:relative;height:2rem}
+.servo-slider-bg{position:absolute;left:.625rem;right:.625rem;top:50%;height:.4rem;margin-top:-.2rem;background:#e8e4df;border-radius:99px;pointer-events:none}
+.servo-safe-band{position:absolute;top:0;bottom:0;background:#f4c9a8;border-radius:99px}
+#servo-slider{-webkit-appearance:none;appearance:none;background:transparent;position:relative;z-index:1;width:100%;height:2rem;margin:0}
+#servo-slider::-webkit-slider-runnable-track{height:2rem;background:transparent;border:none}
+#servo-slider::-moz-range-track{height:.4rem;background:transparent;border:none}
+#servo-slider::-webkit-slider-thumb{-webkit-appearance:none;width:1.25rem;height:1.25rem;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);margin-top:.375rem;cursor:pointer}
+#servo-slider::-moz-range-thumb{width:1.25rem;height:1.25rem;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:pointer}
+.servo-scale{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);padding:0 .625rem;margin-top:.1rem}
+.servo-range{align-items:flex-start}
+.servo-range input[type=number]{margin-top:.2rem;height:2rem;padding:.25rem .4rem}
 table{border-collapse:collapse;width:100%;margin-bottom:1rem;font-size:.85rem}
 th,td{border:1px solid var(--border);padding:.35rem .5rem;text-align:left;vertical-align:top}
 th{background:#f4f4f4}
@@ -260,12 +276,21 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 </div>
 <div class="form-group">
 <label for="servo-angle">Angle</label>
-<div class="range-row">
+<div class="range-row servo-range">
+<div class="servo-slider-wrap">
+<div class="servo-slider-track">
+<div class="servo-slider-bg"><div id="servo-safe-band" class="servo-safe-band"></div></div>
 <input type="range" id="servo-slider" min="0" max="180" value="90">
+</div>
+<div class="servo-scale"><span>0&deg;</span><span>90&deg;</span><span>180&deg;</span></div>
+</div>
 <input type="number" id="servo-angle" min="0" max="180" value="90">
 </div>
 </div>
+<div class="servo-actions">
+<button type="button" id="servo-center" class="btn">Center</button>
 <button type="submit" class="btn btn-primary">Move servo</button>
+</div>
 </form>
 </section>
 
@@ -389,7 +414,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 </footer>
 
 <script>
-var SERVO_RANGES=[[60,130],[40,130],[50,140],[40,130],[40,130]];
+var SERVO_RANGES=[[60,130],[40,130],[45,135],[35,125],[40,130]];
 var TOKEN_KEY="te_access_token";
 var ACCESS_TOKEN_MASK="********";
 var accessTokenConfigured=false;
@@ -560,20 +585,36 @@ function loadHealth(){
     document.getElementById("health-info").textContent="Could not load status.";
   });
 }
-function updateServoHint(){
+function currentServoRange(){
   var idx=parseInt(document.getElementById("servo-index").value,10);
-  var r=SERVO_RANGES[idx];
-  document.getElementById("servo-range-hint").textContent="Safe range: "+r[0]+"\u2013"+r[1]+"\u00b0";
+  return SERVO_RANGES[idx]||SERVO_RANGES[0];
 }
-document.getElementById("servo-slider").addEventListener("input",function(){
-  document.getElementById("servo-angle").value=this.value;
-});
-document.getElementById("servo-angle").addEventListener("input",function(){
-  document.getElementById("servo-slider").value=this.value;
-});
-document.getElementById("servo-index").addEventListener("change",updateServoHint);
-document.getElementById("servo-form").addEventListener("submit",function(e){
-  e.preventDefault();
+function updateServoRangeHint(){
+  var r=currentServoRange();
+  var angle=parseFloat(document.getElementById("servo-angle").value);
+  var hint=document.getElementById("servo-range-hint");
+  var inRange=!isNaN(angle)&&angle>=r[0]&&angle<=r[1];
+  if(inRange){
+    hint.textContent="Safe range: "+r[0]+"\u2013"+r[1]+"\u00b0";
+    hint.classList.remove("warn");
+  }else{
+    hint.textContent="Outside safe range \u2014 firmware clamps to "+r[0]+"\u2013"+r[1]+"\u00b0";
+    hint.classList.add("warn");
+  }
+}
+function updateServoHint(){
+  var r=currentServoRange();
+  var band=document.getElementById("servo-safe-band");
+  band.style.left=(r[0]/180*100)+"%";
+  band.style.width=((r[1]-r[0])/180*100)+"%";
+  updateServoRangeHint();
+}
+function setServoAngle(v){
+  document.getElementById("servo-slider").value=v;
+  document.getElementById("servo-angle").value=v;
+  updateServoRangeHint();
+}
+function moveServo(){
   if(busy)return;
   var idx=document.getElementById("servo-index").value;
   var angle=document.getElementById("servo-angle").value;
@@ -589,6 +630,23 @@ document.getElementById("servo-form").addEventListener("submit",function(e){
     }
   }).catch(function(){setStatus("Network error","err");})
   .finally(function(){setBusy(false);});
+}
+document.getElementById("servo-slider").addEventListener("input",function(){
+  document.getElementById("servo-angle").value=this.value;
+  updateServoRangeHint();
+});
+document.getElementById("servo-angle").addEventListener("input",function(){
+  document.getElementById("servo-slider").value=this.value;
+  updateServoRangeHint();
+});
+document.getElementById("servo-index").addEventListener("change",updateServoHint);
+document.getElementById("servo-center").addEventListener("click",function(){
+  setServoAngle(90);
+  moveServo();
+});
+document.getElementById("servo-form").addEventListener("submit",function(e){
+  e.preventDefault();
+  moveServo();
 });
 function setConfigVolume(v){
   var n=parseInt(v,10);
