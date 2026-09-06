@@ -133,7 +133,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. Outside setup AP → **400** `wifi setup only in AP mode`. Requires Bearer when auth is enabled.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. `hostname` may be sent with those WiFi params (same validation as Config); it is saved before the STA connect so mDNS uses the chosen name immediately. Outside setup AP → **400** `wifi setup only in AP mode`. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
@@ -145,7 +145,7 @@ curl -X POST "http://tiny-engineer.local/settings?continuous_timeout=10"
 curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
 curl -X POST "http://tiny-engineer.local/settings?access_token=secret"
 curl -X POST "http://tiny-engineer.local/settings?access_token="
-curl -X POST "http://192.168.4.1/settings?wifi_ssid=MyNetwork&wifi_password=secret"
+curl -X POST "http://192.168.4.1/settings?wifi_ssid=MyNetwork&wifi_password=secret&hostname=desk-bot"
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny-engineer&volume=70&welcome=1&serial_log=0&continuous_timeout=5&loading=progress"
 ```
 
@@ -165,7 +165,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
   "wifi_password_set": true,
   "wifi_connect_success": true,
   "wifi_ip": "192.168.1.10",
-  "wifi_hostname": "tiny-engineer.local",
+  "wifi_hostname": "desk-bot.local",
   "reboot_required": true
 }
 ```

@@ -198,7 +198,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <tr><td><code>wifi_ssid</code></td><td>string</td><td>1&ndash;32 chars; setup AP only; requires <code>wifi_password</code></td></tr>
 <tr><td><code>wifi_password</code></td><td>string</td><td>0&ndash;63 chars; setup AP only; tested before save</td></tr>
 </table>
-<p>WiFi credentials can only be set in setup AP mode. During setup (credentials not saved), control APIs return <strong>503</strong> <code>wifi not configured</code>. Change WiFi later via factory reset.</p>
+<p>WiFi credentials can only be set in setup AP mode. During setup, <code>hostname</code> may be sent with <code>wifi_ssid</code> and <code>wifi_password</code> (same hostname rules as Config). During setup (credentials not saved), control APIs return <strong>503</strong> <code>wifi not configured</code>. Change WiFi later via factory reset.</p>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
 <tr><th>Value</th><th>Description</th></tr>
@@ -297,6 +297,11 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <button type="button" id="config-wifi-password-toggle" class="btn btn-token-toggle">Show</button>
 </div>
 <p class="hint">Leave empty only for open networks.</p>
+</div>
+<div class="form-group">
+<label for="config-wifi-hostname">Hostname</label>
+<input type="text" id="config-wifi-hostname" maxlength="31" pattern="[A-Za-z0-9]([A-Za-z0-9-]{0,29}[A-Za-z0-9])?" required>
+<p class="hint">Letters, digits, hyphen &mdash; no .local</p>
 </div>
 <button type="button" id="config-wifi-connect" class="btn btn-primary" style="margin-top:0">Connect to WiFi</button>
 </div>
@@ -471,7 +476,7 @@ function syncSetupUi(done){
       if(title)title.textContent=inSetup?"WiFi setup":"Config";
       if(desc){
         desc.textContent=inSetup
-          ?"Enter your home WiFi network. The robot tests the connection before saving."
+          ?"Enter a device name and your home WiFi network. The robot tests the connection before saving."
           :"Saved to flash. Most changes apply right away.";
       }
     }
@@ -678,6 +683,7 @@ function loadSettings(){
     wifiConfigured=!!j.wifi_configured;
     syncWifiStatusFromSettings(j);
     document.getElementById("config-hostname").value=j.hostname||"";
+    document.getElementById("config-wifi-hostname").value=j.hostname||"";
     document.getElementById("config-sleep").value=j.sleep_timeout;
     document.getElementById("config-continuous").value=j.continuous_timeout!=null?j.continuous_timeout:5;
     setConfigVolume(j.volume!=null?j.volume:70);
@@ -698,13 +704,17 @@ document.getElementById("config-wifi-connect").addEventListener("click",function
   if(busy)return;
   var ssid=document.getElementById("config-wifi-ssid").value.trim();
   var password=document.getElementById("config-wifi-password").value;
+  var hostField=document.getElementById("config-wifi-hostname");
+  hostField.value=hostField.value.trim();
   if(!ssid){
     setStatus("Enter a WiFi network name.","err");
     return;
   }
+  if(!hostField.reportValidity())return;
+  var host=hostField.value;
   setBusy(true);
   setStatus("Testing WiFi credentials\u2026","loading");
-  var url="/settings?wifi_ssid="+encodeURIComponent(ssid)+"&wifi_password="+encodeURIComponent(password);
+  var url="/settings?wifi_ssid="+encodeURIComponent(ssid)+"&wifi_password="+encodeURIComponent(password)+"&hostname="+encodeURIComponent(host);
   apiFetch(url,{method:"POST"})
   .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
   .then(function(res){

@@ -387,6 +387,29 @@ void handleSettingsPost(WebServer& server) {
       return;
     }
 
+    if (hasHost) {
+      if (!saveSettings(
+            nullptr,
+            hostPtr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr
+          )) {
+        httpSendJson(
+          server,
+          400,
+          "{\"ok\":false,\"error\":\"save failed\"}"
+        );
+        return;
+      }
+    }
+
     if (!wifiTestCredentials(wifiSsidPtr, wifiPasswordPtr)) {
       char body[96];
       snprintf(
@@ -427,6 +450,7 @@ void handleSettingsPost(WebServer& server) {
     return;
   }
 
+  refreshMdnsHostname();
   sendSettingsJson(server, rebootRequired, wifiConnectSuccess);
 }
 

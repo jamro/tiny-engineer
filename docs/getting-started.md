@@ -64,7 +64,7 @@ pio device monitor --port /dev/cu.usbserial-XXXX
 
 ### 5. Wi‑Fi setup
 
-First boot (or after factory reset + power-cycle): join setup network `TinyEngineer-XXXX`, open `http://192.168.4.1/config`, enter home Wi‑Fi (**2.4 GHz** only). OLED shows setup steps. Wi‑Fi is not editable from the normal Config page later — factory reset to change it.
+First boot (or after factory reset + power-cycle): join setup network `TinyEngineer-XXXX`, open `http://192.168.4.1/config`, enter a hostname (same rules as Config: letters, digits, hyphen, no `.local`) and home Wi‑Fi (**2.4 GHz** only). OLED shows setup steps. Wi‑Fi is not editable from the normal Config page later — factory reset to change it.
 
 ### 6. Prove it
 
