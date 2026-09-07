@@ -196,8 +196,7 @@ To run globally across all projects on your machine, configure `~/.gemini/config
 
 - **Building for one IDE / custom agent** → REST. One `POST`, zero Node dependency.
 - **Using Cursor and want zero mapping code** → Cursor CLI + hooks.
-- **Using Antigravity CLI and want zero mapping code** → Antigravity CLI + hooks.
-- **All** are fine together: CLIs are just thin clients of the same `/anim` API.
+- **Both** are fine together: CLI is just a thin client of the same `/anim` API.
 
 Prerequisites for either path: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer.local/health` (or the OLED IP) responds.
 

@@ -34,7 +34,7 @@ Both hit the same Tiny Engineer REST API (`/anim`). The ESP32-C3 runs that API, 
 | I2C | SSD1306 OLED | Status, face, info |
 | I2S | MAX98357A → speaker | Audio |
 
-Cursor and Antigravity CLI are sample clients, not the architecture. Details: [Integrations](docs/integration.md) · [Cursor hooks](docs/hooks.md) · [HTTP API](docs/api.md)
+Cursor is one, sample, client, not the architecture. Details: [Cursor hooks](docs/hooks.md) · [any integration](docs/integration.md) · [HTTP API](docs/api.md)
 
 ## Build your own
 
