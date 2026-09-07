@@ -137,3 +137,9 @@ node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js
 - **Both** are fine together: CLI is just a thin client of the same `/anim` API.
 
 Prerequisites for either path: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer.local/health` (or the OLED IP) responds.
+
+---
+
+## Optional extras
+
+Same `POST /anim` API; not part of the two paths above. On macOS you can run a small host helper that POSTs `sleep` / `wakeup` when the screen locks or unlocks: [`macos-lock-unlock.md`](macos-lock-unlock.md). The robot does not need it.

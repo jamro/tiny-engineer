@@ -13,6 +13,6 @@ Pick a path. Depth lives in the linked pages.
 | **HTTP API / settings** | [api.md](api.md); add a setting: [settings.md](settings.md) |
 | **Any IDE / scripts** | [integration.md](integration.md) |
 
-Also: [robot-movement.md](robot-movement.md) (servo axes and safe ranges).
+Also: [robot-movement.md](robot-movement.md) (servo axes and safe ranges); optional [macos-lock-unlock.md](macos-lock-unlock.md) (sleep/wake on Mac screen lock).
 
 **Source of truth:** pin constants in firmware (`include/pins.h`); electrical detail in `docs/hardware/`; HTTP shapes in [api.md](api.md).
