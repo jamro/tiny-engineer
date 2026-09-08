@@ -11,6 +11,7 @@ public:
 
   float angle() const;
   bool moveTo(float target);
+  bool moveToElectrical(float target, float speedDegS);
   void snapTo(float angle);
 
   void setTarget(
@@ -27,6 +28,10 @@ public:
     const float targets[SERVO_COUNT],
     float speedDegS
   );
+  friend void servoMoveAllToElectrical(
+    const float targets[SERVO_COUNT],
+    float speedDegS
+  );
 
 private:
   int index_;
@@ -36,7 +41,7 @@ private:
   uint32_t lastUpdateMs_;
   uint16_t lastPulse_;
 
-  void writeAngle(float angle, bool log);
+  void writeAngle(float angle, bool log, bool electrical);
 };
 
 ServoWrapper& servoAt(int index);
@@ -48,5 +53,9 @@ void servoMoveAllSmooth(float toAngle);
 void servoMoveAllSmoothTo(
   const float targets[SERVO_COUNT],
   float speedDegS = SERVO_BOOT_SPEED_DEG_S
+);
+void servoMoveAllToElectrical(
+  const float targets[SERVO_COUNT],
+  float speedDegS = SERVO_CALIB_SPEED_DEG_S
 );
 void updateAllServos();

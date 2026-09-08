@@ -23,6 +23,8 @@ constexpr uint8_t SETTINGS_VOLUME_MIN = 0;
 constexpr uint8_t SETTINGS_VOLUME_MAX = 100;
 constexpr uint32_t SETTINGS_CONTINUOUS_TIMEOUT_MIN_MIN = 1;
 constexpr uint32_t SETTINGS_CONTINUOUS_TIMEOUT_MAX_MIN = 1440;
+constexpr size_t SETTINGS_SERVO_COUNT = 5;
+constexpr uint8_t SETTINGS_SERVO_ANGLE_MAX = 180;
 
 void initSettings();
 
@@ -40,6 +42,8 @@ const char* settingsWifiSsid();
 const char* settingsWifiPassword();
 bool settingsWifiConfigured();
 bool settingsWifiPasswordSet();
+float settingsServoMin(int index);
+float settingsServoMax(int index);
 
 // Hostname used at boot for Wi-Fi/mDNS (frozen after initSettings).
 const char* settingsBootHostname();
@@ -52,6 +56,10 @@ bool settingsValidateLoading(const char* loading);
 bool settingsValidateAccessToken(const char* accessToken);
 bool settingsValidateWifiSsid(const char* wifiSsid);
 bool settingsValidateWifiPassword(const char* wifiPassword);
+bool settingsValidateServoRanges(
+  const uint8_t* servoMins,
+  const uint8_t* servoMaxs
+);
 
 // Updates RAM cache and NVS for any non-null args. Returns false on validation
 // failure (no write). If hostname is set and differs from boot hostname,
@@ -67,9 +75,12 @@ bool saveSettings(
   const char* accessToken,
   const char* wifiSsid,
   const char* wifiPassword,
+  const uint8_t* servoMins,
+  const uint8_t* servoMaxs,
   bool* rebootRequired
 );
 
-// Clears NVS namespace and restores all settings to defaults. *rebootRequired
-// is set when boot hostname or loading differed from defaults before reset.
+// Clears NVS namespace and restores settings to defaults except servo
+// min/max, which stay as currently saved. *rebootRequired is set when boot
+// hostname or loading differed from defaults before reset.
 bool factoryResetSettings(bool* rebootRequired);

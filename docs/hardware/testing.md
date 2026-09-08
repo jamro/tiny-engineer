@@ -9,7 +9,7 @@ Firmware is [`src/main.cpp`](../../src/main.cpp). Boot **inits** hardware and st
 - [`src/hardware/pca9685_servos.cpp`](../../src/hardware/pca9685_servos.cpp)
 - [`src/http/http_server.cpp`](../../src/http/http_server.cpp), [`src/http/test_handlers.cpp`](../../src/http/test_handlers.cpp)
 
-Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi credentials are saved in NVS and configured only in setup AP mode (first boot, or after factory reset + power-cycle).
+Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi credentials are saved in NVS and configured only in setup AP mode (first boot, or after factory reset + power-cycle). Servo min/max are also setup-AP-only; factory reset keeps them.
 
 Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200). Physical board is **Waveshare ESP32-C3-Zero**; PlatformIO env name is `esp32-c3-devkitm-1`.
 
@@ -108,16 +108,18 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | `GET` | `/` | HTML endpoint index |
 | `GET` | `/auth` | Auth status (`ok`, `required`) — always public |
 | `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `cpu_temp_c`, `wifi`, `oled`) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token_set`, `wifi_configured`, `wifi_ssid`, `wifi_password_set`) |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token_set`, `wifi_configured`, `wifi_ssid`, `wifi_password_set`, `servo_mins`, `servo_maxs`) |
 | `POST` | `/settings?...&wifi_ssid=&wifi_password=` | Update NVS settings; WiFi params setup-AP-only and tested before save; `reboot_required` if hostname changed |
-| `POST` | `/settings/reset` | Factory reset all settings to defaults (clears WiFi); power-cycle to reopen setup AP |
+| `POST` | `/settings?...&servo_mins=&servo_maxs=` | Servo min/max comma lists; setup-AP-only |
+| `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges); power-cycle to reopen setup AP |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |
 | `POST` | `/test/led` | `{"ok":true,"test":"led"}` after `runRgbTest()` |
 | `POST` | `/test/servo?index=&angle=` | `{"ok":true,"test":"servo","index":N,"angle":A}` after `moveServoSmooth()` |
+| `POST` | `/setup/servo?all=90` or `?index=&angle=` | Setup AP only; slow 0–180° move (`SERVO_CALIB_SPEED_DEG_S`) |
 
-GET on a test path returns `405`. Bad `/test/servo` or `/settings` params return `400`. Missing/wrong Bearer when auth enabled returns `401`. Control APIs return `503` when WiFi credentials are not saved. Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
+GET on a test path returns `405`. Bad `/test/servo`, `/setup/servo`, or `/settings` params return `400`. Missing/wrong Bearer when auth enabled returns `401`. Control APIs return `503` when WiFi credentials are not saved (`/setup/servo` stays available). Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
 
 HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisioning.
 
@@ -127,7 +129,7 @@ HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisio
 | --- | --- | --- |
 | OLED `ERROR: OLED not found` then rest of boot runs | Nothing ACK’d at `0x3C` | OLED **VCC=3V3**, GND, SDA=GP0, **SCK**=GP1, common ground, address jumper still 0x3C |
 | OLED found but `ERROR: OLED initialization failed` | ACK then `display.begin` failed | Wiring/power glitch, wrong size module, I2C noise |
-| OLED shows `Join this WiFi` / AP name, then `Then open` / `192.168.4.1` | Setup AP mode active | Connect to the shown AP, open `http://192.168.4.1/config`, enter home WiFi credentials |
+| OLED shows `Join this WiFi` / AP name, then `Then open` / `192.168.4.1` | Setup AP mode active | Connect to the shown AP, open `http://192.168.4.1/config`, finish the servo + WiFi wizard |
 | OLED `WiFi failed` then setup AP | Saved STA credentials failed | Join setup AP, open `http://192.168.4.1/config`, enter home WiFi again |
 | `ERROR: PCA9685 not found` + red RGB + **hang** | Nothing ACK’d at `0x40` | PCA9685 **VCC=3V3** (not V+), GND, SDA/SCL, I2C address pads, +5V not required for the ACK but needed later for motion |
 | `ERROR: I2S initialization failed` + red RGB + **hang** | `I2S.begin` failed | GPIO2/3/4 not shorted to 5V/GND; pin constants; USB CDC still alive so you can read the line |

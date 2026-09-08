@@ -13,6 +13,7 @@ static const char INDEX_HTML[] = R"html(<!DOCTYPE html>
 <style>
 :root{--bg:#faf9f7;--text:#1a1a1a;--muted:#666;--accent:#e85d04;--accent-hover:#d45304;--card:#fff;--border:#e0ddd8;--success:#2d6a4f;--error:#c1121f;--loading:#555}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);max-width:42rem;margin:0 auto;padding:0 1rem 3rem;line-height:1.5}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
@@ -123,7 +124,27 @@ body.locked nav,body.locked #status,body.locked .view,body.locked footer{display
 .config-danger{border-color:#f5c2c7;margin-top:1rem}
 body.setup-mode nav,body.setup-mode footer{display:none!important}
 body.setup-mode #config-form,body.setup-mode .config-danger{display:none!important}
-body:not(.setup-mode) #wifi-config-section{display:none!important}
+body.setup-mode #config-page-title,body.setup-mode #config-page-desc{display:none!important}
+body:not(.setup-mode) #setup-wizard{display:none!important}
+.setup-progress-track{height:.35rem;background:#e8e4df;border-radius:99px;margin:0 0 1.25rem;overflow:hidden}
+.setup-progress-bar{height:100%;width:50%;background:var(--accent);border-radius:99px}
+.setup-footer{display:flex;gap:.75rem;margin-top:1.25rem;align-items:stretch}
+.setup-footer[hidden]{display:none!important}
+.setup-footer .btn{width:auto;min-width:7rem;text-align:center;font-weight:600}
+.setup-footer .btn-primary{margin-top:0;flex:1}
+.setup-copy{font-size:.9rem;color:var(--muted);margin:0 0 1rem}
+.joint-tabs{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:0 0 1rem}
+.joint-tabs .btn{width:100%;min-height:2.85rem;padding:.65rem .5rem;font-size:.95rem;text-align:center;font-weight:600}
+.joint-tabs .btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.calib-guide{pointer-events:none;user-select:none;margin:.25rem 0 .5rem}
+.calib-marker{position:absolute;top:50%;width:1.25rem;height:1.25rem;margin-top:-.625rem;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transform:translateX(-50%);z-index:1}
+.calib-angle-readout{text-align:center;font-size:2rem;font-weight:700;margin:.35rem 0 .85rem;letter-spacing:-.02em}
+.calib-nudge{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin:0 0 1rem}
+.calib-nudge .btn{width:100%;min-height:3.1rem;text-align:center;font-weight:700;font-size:1.05rem;padding:.7rem .35rem}
+.calib-minmax{display:flex;gap:.5rem;margin:.75rem 0}
+.calib-minmax .btn{flex:1;text-align:center;font-weight:600;min-height:2.85rem}
+#setup-move-90{margin-top:0}
+#setup-horns-done{margin-top:.75rem;text-align:center;font-weight:600}
 </style>
 </head>
 <body>
@@ -144,8 +165,8 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <div id="reboot-gate">
 <div class="auth-box">
 <h1>Factory reset done</h1>
-<p>Settings and WiFi credentials are cleared. Power-cycle or press the device reset button.</p>
-<p>Then join the robot WiFi shown on the OLED and open the setup page to configure home WiFi.</p>
+<p>Settings and WiFi credentials are cleared. Servo ranges stay. Power-cycle or press the device reset button.</p>
+<p>Then join the robot WiFi shown on the OLED and open the setup page to configure home WiFi. You can retune servo ranges there.</p>
 </div>
 </div>
 <nav>
@@ -169,7 +190,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, serial logging, and API token. WiFi is set in setup mode after factory reset.</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, serial logging, and API token. WiFi is set in setup mode after factory reset; servo ranges can be retuned there too.</p></a>
 <a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
 <a class="card card-github" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener"><h3>GitHub docs &rarr;</h3><p>Build guide, wiring, and full project docs.</p></a>
 </div>
@@ -199,6 +220,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <tr><td>POST</td><td><code>/test/movement</code></td><td>All servos exercise</td></tr>
 <tr><td>POST</td><td><code>/test/led</code></td><td>RGB LED cycle</td></tr>
 <tr><td>POST</td><td><code>/test/servo</code></td><td>Move one servo (see parameters below)</td></tr>
+<tr><td>POST</td><td><code>/setup/servo</code></td><td>Setup AP only: slow 0&ndash;180&deg; move (see parameters below)</td></tr>
 </table>
 <p>POST <code>/settings</code> &mdash; query params (at least one required):</p>
 <table>
@@ -213,8 +235,10 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <tr><td><code>access_token</code></td><td>string</td><td>0&ndash;64 printable ASCII; empty clears (disables auth)</td></tr>
 <tr><td><code>wifi_ssid</code></td><td>string</td><td>1&ndash;32 chars; setup AP only; requires <code>wifi_password</code></td></tr>
 <tr><td><code>wifi_password</code></td><td>string</td><td>0&ndash;63 chars; setup AP only; tested before save</td></tr>
+<tr><td><code>servo_mins</code></td><td>string</td><td>5 comma-separated ints 0&ndash;180; setup AP only; requires <code>servo_maxs</code></td></tr>
+<tr><td><code>servo_maxs</code></td><td>string</td><td>5 comma-separated ints 0&ndash;180; setup AP only; each max &gt; min</td></tr>
 </table>
-<p>WiFi credentials can only be set in setup AP mode. During setup, <code>hostname</code> may be sent with <code>wifi_ssid</code> and <code>wifi_password</code> (same hostname rules as Config). During setup (credentials not saved), control APIs return <strong>503</strong> <code>wifi not configured</code>. Change WiFi later via factory reset.</p>
+<p>WiFi credentials and servo min/max can only be set in setup AP mode. During setup, <code>hostname</code> may be sent with <code>wifi_ssid</code> and <code>wifi_password</code> (same hostname rules as Config). During setup (credentials not saved), control APIs return <strong>503</strong> <code>wifi not configured</code>; <code>POST /setup/servo</code> stays available. Change WiFi later via factory reset. Servo ranges survive factory reset and can be retuned in the setup wizard.</p>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
 <tr><th>Value</th><th>Description</th></tr>
@@ -235,6 +259,13 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <table>
 <tr><th>Param</th><th>Type</th><th>Range</th></tr>
 <tr><td><code>index</code></td><td>integer</td><td>0&ndash;4</td></tr>
+<tr><td><code>angle</code></td><td>number</td><td>0&ndash;180</td></tr>
+</table>
+<p>POST <code>/setup/servo</code> &mdash; setup AP only, ~25&deg;/s, no safe-range clamp. Query params:</p>
+<table>
+<tr><th>Param</th><th>Type</th><th>Range</th></tr>
+<tr><td><code>all</code></td><td>integer</td><td><code>90</code> (move every joint to 90&deg;)</td></tr>
+<tr><td><code>index</code></td><td>integer</td><td>0&ndash;4 (required with <code>angle</code> when <code>all</code> is omitted)</td></tr>
 <tr><td><code>angle</code></td><td>number</td><td>0&ndash;180</td></tr>
 </table>
 </section>
@@ -307,6 +338,61 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <section id="view-config" class="view">
 <h2 class="page-title" id="config-page-title">Config</h2>
 <p class="page-desc" id="config-page-desc">Saved to flash. Most changes apply right away.</p>
+<div id="setup-wizard">
+<h2 class="page-title">Tiny Engineer setup</h2>
+<p id="setup-progress-label" class="page-desc">Step 1 of 2 &middot; Servos</p>
+<div class="setup-progress-track"><div id="setup-progress-bar" class="setup-progress-bar"></div></div>
+<div id="setup-step-servos">
+<div id="setup-phase-horns">
+<div class="config-section">
+<h3>Attach the printed parts</h3>
+<p class="setup-copy">All joints use the full 0&ndash;180&deg; electrical scale. <strong>90&deg;</strong> is shaft center, not the middle of the safe band.</p>
+<p class="setup-copy">Press each printed part onto the servo shaft at rest: head toward the laptop, neck straight, hands down, body centered in the chair. Snug the shaft screws.</p>
+<button type="button" id="setup-move-90" class="btn btn-primary">Move all to 90&deg;</button>
+<button type="button" id="setup-horns-done" class="btn">Parts are on &rarr;</button>
+</div>
+</div>
+<div id="setup-phase-ranges" hidden>
+<div class="config-section">
+<h3>Find safe ranges</h3>
+<p class="setup-copy">Move one joint at a time with the buttons. Stop before cables pull taut or parts collide. The bar is a guide only. Stock limits are pre-filled; other joints park at 90&deg; when you switch tabs.</p>
+<div class="joint-tabs" id="setup-joint-tabs">
+<button type="button" class="btn active" data-joint="0">Head</button>
+<button type="button" class="btn" data-joint="1">Neck</button>
+<button type="button" class="btn" data-joint="2">Left hand</button>
+<button type="button" class="btn" data-joint="3">Right hand</button>
+<button type="button" class="btn" data-joint="4">Body</button>
+</div>
+<p id="setup-joint-copy" class="setup-copy"></p>
+<p id="setup-body-sym" class="hint" hidden></p>
+<div class="form-group">
+<div class="calib-angle-readout"><span id="setup-calib-angle">90</span>&deg;</div>
+<div class="calib-guide" aria-hidden="true">
+<div class="servo-slider-wrap">
+<div class="servo-slider-track">
+<div class="servo-slider-bg"><div id="setup-calib-band" class="servo-safe-band"></div><div id="setup-calib-marker" class="calib-marker"></div></div>
+</div>
+<div class="servo-scale"><span>0&deg;</span><span>90&deg;</span><span>180&deg;</span></div>
+</div>
+</div>
+</div>
+<div class="calib-nudge">
+<button type="button" class="btn" data-nudge="-10">&minus;10&deg;</button>
+<button type="button" class="btn" data-nudge="-5">&minus;5&deg;</button>
+<button type="button" class="btn" data-nudge="-1">&minus;1&deg;</button>
+<button type="button" class="btn" data-nudge="1">+1&deg;</button>
+<button type="button" class="btn" data-nudge="5">+5&deg;</button>
+<button type="button" class="btn" data-nudge="10">+10&deg;</button>
+</div>
+<div class="calib-minmax">
+<button type="button" id="setup-set-min" class="btn">Set min (<span id="setup-min-label">60</span>&deg;)</button>
+<button type="button" id="setup-set-max" class="btn">Set max (<span id="setup-max-label">130</span>&deg;)</button>
+</div>
+<button type="button" id="setup-reset-joint" class="btn">Reset to default</button>
+</div>
+</div>
+</div>
+<div id="setup-step-network" hidden>
 <div id="wifi-config-section" class="config-section">
 <div class="config-section-head"><h3>WiFi</h3><span class="apply-badge apply-now">Immediate</span></div>
 <p id="wifi-config-status" class="hint">Loading WiFi status&hellip;</p>
@@ -329,6 +415,12 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 <p class="hint">Letters, digits, hyphen &mdash; no .local</p>
 </div>
 <button type="button" id="config-wifi-connect" class="btn btn-primary" style="margin-top:0">Connect to WiFi</button>
+</div>
+</div>
+</div>
+<div id="setup-footer" class="setup-footer">
+<button type="button" id="setup-back" class="btn" hidden>Back</button>
+<button type="button" id="setup-next" class="btn btn-primary" hidden>Next: Network</button>
 </div>
 </div>
 <form id="config-form">
@@ -404,7 +496,7 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 </form>
 <div class="config-section config-danger">
 <h3>Factory reset</h3>
-<p class="hint">Erases all saved settings and restores defaults. WiFi credentials are cleared too. Power-cycle the device to reopen setup AP mode and configure WiFi again.</p>
+<p class="hint">Erases saved settings and restores defaults. WiFi credentials are cleared. Servo ranges stay. Power-cycle the device to reopen setup AP mode and configure WiFi again.</p>
 <button type="button" id="config-factory-reset" class="btn btn-danger">Factory reset</button>
 </div>
 </section>
@@ -414,7 +506,21 @@ body:not(.setup-mode) #wifi-config-section{display:none!important}
 </footer>
 
 <script>
+var SERVO_DEFAULT_RANGES=[[60,130],[40,130],[45,135],[35,125],[40,130]];
 var SERVO_RANGES=[[60,130],[40,130],[45,135],[35,125],[40,130]];
+var SETUP_STEPS=[{id:"servos",title:"Servos"},{id:"network",title:"Network"}];
+var SETUP_JOINT_COPY=[
+  "Pitch only. Watch cable slack to the head. Stop before the head hits the neck piece. Down is toward the laptop; up is away.",
+  "Yaw left and right. Stop when the cables pull taut. Do not twist until the loom binds.",
+  "Lowest is forearm horizontal. Highest is upper arm horizontal. On this servo, higher angle is up.",
+  "Same physical stops, inverted scale: higher angle is down. Physical lowest (forearm horizontal) is toward the high end of the bar; physical highest (upper arm horizontal) is toward the low end.",
+  "Rotate until the right hand sits over the bell at the extreme. Prefer a band symmetric about 90\u00b0 (hint only \u2014 stock 40\u2013130 is fine)."
+];
+var setupStepIndex=0;
+var setupServoPhase="horns";
+var setupCalibJoint=0;
+var setupCalibDeg=90;
+var setupCalibRanges=[[60,130],[40,130],[45,135],[35,125],[40,130]];
 var TOKEN_KEY="te_access_token";
 var ACCESS_TOKEN_MASK="********";
 var accessTokenConfigured=false;
@@ -480,9 +586,8 @@ function enterApp(){
   showRebootGate(false);
   syncSetupUi(function(){
     if(provisioningMode||!wifiConfigured){
+      resetSetupWizard();
       showPage("/config");
-      var ssidField=document.getElementById("config-wifi-ssid");
-      if(ssidField)ssidField.focus();
     }else{
       showPage(location.pathname);
     }
@@ -501,9 +606,10 @@ function syncSetupUi(done){
       if(title)title.textContent=inSetup?"WiFi setup":"Config";
       if(desc){
         desc.textContent=inSetup
-          ?"Enter a device name and your home WiFi network. The robot tests the connection before saving."
+          ?"Calibrate servos, then enter a device name and your home WiFi network. The robot tests the connection before saving."
           :"Saved to flash. Most changes apply right away.";
       }
+      if(inSetup)applySetupWizardUi();
     }
     if(done)done();
   }).catch(function(){if(done)done();});
@@ -512,6 +618,119 @@ function syncWifiStatusFromSettings(j){
   var status=document.getElementById("wifi-config-status");
   if(!status)return;
   status.textContent="Enter the network name and password for the WiFi you want the robot to join.";
+}
+function cloneRanges(src){
+  return src.map(function(r){return [r[0],r[1]];});
+}
+function applyServoRangesFromSettings(j){
+  if(!j||!j.servo_mins||!j.servo_maxs||j.servo_mins.length!==5||j.servo_maxs.length!==5)return;
+  for(var i=0;i<5;i++)SERVO_RANGES[i]=[j.servo_mins[i],j.servo_maxs[i]];
+}
+function resetSetupWizard(){
+  setupStepIndex=0;
+  setupServoPhase="horns";
+  setupCalibJoint=0;
+  setupCalibDeg=90;
+  setupCalibRanges=cloneRanges(SERVO_RANGES);
+  applySetupWizardUi();
+}
+function calibRangesValid(){
+  for(var i=0;i<5;i++){
+    if(!(setupCalibRanges[i][0]<setupCalibRanges[i][1]))return false;
+  }
+  return true;
+}
+function applySetupWizardUi(){
+  var total=SETUP_STEPS.length;
+  var step=setupStepIndex;
+  var horns=setupServoPhase==="horns";
+  document.getElementById("setup-progress-label").textContent="Step "+(step+1)+" of "+total+" \u00b7 "+SETUP_STEPS[step].title;
+  document.getElementById("setup-progress-bar").style.width=((step+1)/total*100)+"%";
+  document.getElementById("setup-step-servos").hidden=step!==0;
+  document.getElementById("setup-step-network").hidden=step!==1;
+  document.getElementById("setup-phase-horns").hidden=step!==0||!horns;
+  document.getElementById("setup-phase-ranges").hidden=step!==0||horns;
+  document.getElementById("setup-footer").hidden=step===0&&horns;
+  document.getElementById("setup-back").hidden=!(step===1||(step===0&&!horns));
+  document.getElementById("setup-next").hidden=!(step===0&&!horns);
+  document.getElementById("setup-next").disabled=!calibRangesValid();
+  if(step===0&&!horns)updateCalibUi();
+  if(step===1){
+    var ssidField=document.getElementById("config-wifi-ssid");
+    if(ssidField)ssidField.focus();
+  }
+}
+function setupCalibAngle(){
+  return setupCalibDeg;
+}
+function setSetupCalibAngle(v){
+  var n=parseInt(v,10);
+  if(isNaN(n))n=90;
+  if(n<0)n=0;
+  if(n>180)n=180;
+  setupCalibDeg=n;
+  document.getElementById("setup-calib-angle").textContent=String(n);
+  document.getElementById("setup-calib-marker").style.left=(n/180*100)+"%";
+}
+function nudgeCalib(delta){
+  if(busy)return;
+  var prev=setupCalibDeg;
+  var next=prev+delta;
+  if(next<0)next=0;
+  if(next>180)next=180;
+  if(next===prev)return;
+  setSetupCalibAngle(next);
+  setupPostServo("index="+setupCalibJoint+"&angle="+next).then(function(res){
+    if(!res.ok||res.data.ok===false)setSetupCalibAngle(prev);
+  });
+}
+function updateCalibUi(){
+  var r=setupCalibRanges[setupCalibJoint];
+  var band=document.getElementById("setup-calib-band");
+  band.style.left=(r[0]/180*100)+"%";
+  band.style.width=((r[1]-r[0])/180*100)+"%";
+  document.getElementById("setup-min-label").textContent=r[0];
+  document.getElementById("setup-max-label").textContent=r[1];
+  document.getElementById("setup-joint-copy").textContent=SETUP_JOINT_COPY[setupCalibJoint];
+  document.querySelectorAll("#setup-joint-tabs [data-joint]").forEach(function(btn){
+    btn.classList.toggle("active",parseInt(btn.getAttribute("data-joint"),10)===setupCalibJoint);
+  });
+  var sym=document.getElementById("setup-body-sym");
+  if(setupCalibJoint===4){
+    sym.hidden=false;
+    sym.textContent="Distance below 90\u00b0: "+(90-r[0])+"\u00b0 \u00b7 above 90\u00b0: "+(r[1]-90)+"\u00b0";
+  }else{
+    sym.hidden=true;
+  }
+  document.getElementById("setup-next").disabled=!calibRangesValid();
+  setSetupCalibAngle(setupCalibDeg);
+}
+function setupPostServo(query){
+  setBusy(true);
+  setStatus("Moving servos\u2026","loading");
+  return apiFetch("/setup/servo?"+query,{method:"POST"})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
+    .then(function(res){
+      if(res.ok&&res.data.ok!==false){
+        clearStatus();
+      }else{
+        setStatus(res.data.error||"Move failed","err");
+      }
+      return res;
+    })
+    .catch(function(){
+      setStatus("Network error","err");
+      return {ok:false,data:{}};
+    })
+    .finally(function(){setBusy(false);});
+}
+function selectCalibJoint(idx){
+  setupCalibJoint=idx;
+  setSetupCalibAngle(90);
+  updateCalibUi();
+  setupPostServo("all=90").then(function(){
+    setSetupCalibAngle(90);
+  });
 }
 function showPage(path){
   if(!uiUnlocked)return;
@@ -750,8 +969,90 @@ function loadSettings(){
     document.getElementById("config-loading").value=j.loading==="sleep_inertia"?"sleep_inertia":"progress";
     setAccessTokenFromServer(!!j.access_token_set);
     updateWelcomeMotionHint();
+    applyServoRangesFromSettings(j);
+    setupCalibRanges=cloneRanges(SERVO_RANGES);
+    updateServoHint();
+    if(provisioningMode||!wifiConfigured)applySetupWizardUi();
   }).catch(function(){setStatus("Could not load settings","err");});
 }
+document.getElementById("setup-move-90").addEventListener("click",function(){
+  if(busy)return;
+  setupPostServo("all=90");
+});
+document.getElementById("setup-horns-done").addEventListener("click",function(){
+  setupServoPhase="ranges";
+  setupCalibJoint=0;
+  setSetupCalibAngle(90);
+  applySetupWizardUi();
+});
+document.getElementById("setup-back").addEventListener("click",function(){
+  if(setupStepIndex===1){
+    setupStepIndex=0;
+    setupServoPhase="ranges";
+    applySetupWizardUi();
+    return;
+  }
+  if(setupStepIndex===0&&setupServoPhase==="ranges"){
+    setupServoPhase="horns";
+    applySetupWizardUi();
+  }
+});
+document.getElementById("setup-next").addEventListener("click",function(){
+  if(busy||!calibRangesValid())return;
+  var mins=setupCalibRanges.map(function(r){return r[0];}).join(",");
+  var maxs=setupCalibRanges.map(function(r){return r[1];}).join(",");
+  setBusy(true);
+  setStatus("Saving servo ranges\u2026","loading");
+  apiFetch("/settings?servo_mins="+encodeURIComponent(mins)+"&servo_maxs="+encodeURIComponent(maxs),{method:"POST"})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
+    .then(function(res){
+      if(res.ok&&res.data.ok!==false){
+        applyServoRangesFromSettings(res.data);
+        setupCalibRanges=cloneRanges(SERVO_RANGES);
+        updateServoHint();
+        setupStepIndex=1;
+        applySetupWizardUi();
+        clearStatus();
+      }else{
+        setStatus(res.data.error||"Save failed","err");
+      }
+    })
+    .catch(function(){setStatus("Network error","err");})
+    .finally(function(){setBusy(false);});
+});
+document.querySelectorAll("#setup-joint-tabs [data-joint]").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    if(busy)return;
+    selectCalibJoint(parseInt(this.getAttribute("data-joint"),10));
+  });
+});
+document.querySelectorAll(".calib-nudge [data-nudge]").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    nudgeCalib(parseInt(this.getAttribute("data-nudge"),10));
+  });
+});
+document.getElementById("setup-set-min").addEventListener("click",function(){
+  var a=setupCalibAngle();
+  if(isNaN(a)||a>=setupCalibRanges[setupCalibJoint][1]){
+    setStatus("Min must be less than max.","err");
+    return;
+  }
+  setupCalibRanges[setupCalibJoint][0]=a;
+  updateCalibUi();
+});
+document.getElementById("setup-set-max").addEventListener("click",function(){
+  var a=setupCalibAngle();
+  if(isNaN(a)||a<=setupCalibRanges[setupCalibJoint][0]){
+    setStatus("Max must be greater than min.","err");
+    return;
+  }
+  setupCalibRanges[setupCalibJoint][1]=a;
+  updateCalibUi();
+});
+document.getElementById("setup-reset-joint").addEventListener("click",function(){
+  setupCalibRanges[setupCalibJoint]=[SERVO_DEFAULT_RANGES[setupCalibJoint][0],SERVO_DEFAULT_RANGES[setupCalibJoint][1]];
+  updateCalibUi();
+});
 document.getElementById("config-wifi-password-toggle").addEventListener("click",function(){
   var field=document.getElementById("config-wifi-password");
   var show=field.type==="password";
@@ -837,7 +1138,7 @@ document.getElementById("config-form").addEventListener("submit",function(e){
 });
 document.getElementById("config-factory-reset").addEventListener("click",function(){
   if(busy)return;
-  if(!confirm("Reset all settings to factory defaults? WiFi credentials will be cleared. Power-cycle the device to reopen setup AP mode and configure WiFi again."))return;
+  if(!confirm("Reset settings to factory defaults? WiFi credentials will be cleared. Servo ranges stay. Power-cycle the device to reopen setup AP mode and configure WiFi again."))return;
   setBusy(true);
   setStatus("Resetting\u2026","loading");
   apiFetch("/settings/reset",{method:"POST"})

@@ -1,7 +1,13 @@
 #include "settings.h"
 #include "settings_internal.h"
+#include "servos.h"
 
 #include <cstring>
+
+static_assert(
+  SERVO_COUNT == SETTINGS_SERVO_COUNT,
+  "SETTINGS_SERVO_COUNT must match SERVO_COUNT"
+);
 
 uint32_t settingsSleepTimeoutMin() {
   return g_sleepTimeoutMin;
@@ -61,6 +67,22 @@ bool settingsWifiConfigured() {
 
 bool settingsWifiPasswordSet() {
   return g_wifiPassword[0] != '\0';
+}
+
+float settingsServoMin(int index) {
+  if (index < 0 || index >= static_cast<int>(SETTINGS_SERVO_COUNT)) {
+    return 0.0f;
+  }
+
+  return static_cast<float>(g_servoMin[index]);
+}
+
+float settingsServoMax(int index) {
+  if (index < 0 || index >= static_cast<int>(SETTINGS_SERVO_COUNT)) {
+    return static_cast<float>(SETTINGS_SERVO_ANGLE_MAX);
+  }
+
+  return static_cast<float>(g_servoMax[index]);
 }
 
 bool settingsValidateSleepTimeout(uint32_t sleepTimeoutMin) {
@@ -156,4 +178,26 @@ bool settingsValidateWifiPassword(const char* wifiPassword) {
   }
 
   return strlen(wifiPassword) <= SETTINGS_WIFI_PASSWORD_MAX_LEN;
+}
+
+bool settingsValidateServoRanges(
+  const uint8_t* servoMins,
+  const uint8_t* servoMaxs
+) {
+  if (servoMins == nullptr || servoMaxs == nullptr) {
+    return false;
+  }
+
+  for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
+    if (servoMins[i] > SETTINGS_SERVO_ANGLE_MAX ||
+        servoMaxs[i] > SETTINGS_SERVO_ANGLE_MAX) {
+      return false;
+    }
+
+    if (servoMins[i] >= servoMaxs[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }

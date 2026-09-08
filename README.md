@@ -81,7 +81,7 @@ pio device monitor      # serial (115200)
 
 If servos move but audio is silent, run `pio run -t uploadfs` once.
 
-**Wi-Fi (first boot):** join `TinyEngineer-XXXX`, open `http://192.168.4.1/config`, enter a **2.4 GHz** network. OLED shows the setup steps.
+**Wi-Fi (first boot):** join `TinyEngineer-XXXX`, open `http://192.168.4.1/config`. Wizard: servo calibration, then a **2.4 GHz** network. OLED shows the join-AP steps.
 
 **Web UI:** `http://tiny-engineer.local/` (or the IP on the OLED) — settings, hardware tests, animations.
 

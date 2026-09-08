@@ -24,6 +24,7 @@ bool g_lastStrokeWasPress = false;
 bool g_headHigh = true;
 bool g_bodySwayPositive = true;
 bool g_swayFrozen = false;
+bool g_loggedSwaySplit = false;
 uint32_t g_handPauseUntilMs = 0;
 uint32_t g_headPauseUntilMs = 0;
 uint32_t g_swayPauseUntilMs = 0;
@@ -132,11 +133,21 @@ void beginNextHeadMove() {
 
 void advanceSwayStep() {
   g_bodySwayPositive = !g_bodySwayPositive;
-  g_swayPauseUntilMs = millis() + randRangeMs(40, 160);
+  const uint32_t pauseMs = randRangeMs(40, 160);
+  g_swayPauseUntilMs = millis() + pauseMs;
+  g_loggedSwaySplit = false;
+
+  serialLogPrint("[anim] typing sway done body=");
+  serialLogPrint(servoAt(SERVO_BODY).angle(), 1);
+  serialLogPrint(" neck=");
+  serialLogPrint(servoAt(SERVO_NECK).angle(), 1);
+  serialLogPrint(" pauseMs=");
+  serialLogPrintln(pauseMs);
 }
 
 void beginNextSway() {
   g_swayPauseUntilMs = 0;
+  g_loggedSwaySplit = false;
   commandBodyNeckSway();
 }
 
@@ -150,6 +161,7 @@ void startTyping() {
   g_lastStrokeWasPress = false;
   g_bodySwayPositive = randChance(50);
   g_swayFrozen = false;
+  g_loggedSwaySplit = false;
   g_handPauseUntilMs = 0;
   g_swayPauseUntilMs = 0;
   g_headHigh = true;
@@ -207,6 +219,14 @@ void updateTyping(uint32_t now) {
       }
     } else if (!body.isMoving() && !neck.isMoving()) {
       advanceSwayStep();
+    } else if (!g_loggedSwaySplit) {
+      if (!body.isMoving() && neck.isMoving()) {
+        g_loggedSwaySplit = true;
+        serialLogPrintln("[anim] typing sway body still, neck moving");
+      } else if (body.isMoving() && !neck.isMoving()) {
+        g_loggedSwaySplit = true;
+        serialLogPrintln("[anim] typing sway neck still, body moving");
+      }
     }
   }
 }
