@@ -58,9 +58,16 @@ Several serial ports:
 
 ```bash
 pio device list
-pio run -t upload --upload-port /dev/cu.usbserial-XXXX
-pio device monitor --port /dev/cu.usbserial-XXXX
+pio run -t upload --upload-port <PORT>
+pio device monitor --port <PORT>
 ```
+
+`<PORT>` is the name `pio device list` prints for the board, and it is
+platform-specific: `COM4` on Windows, `/dev/cu.usbmodemXXXX` or
+`/dev/cu.usbserial-XXXX` on macOS, `/dev/ttyACM0` or `/dev/ttyUSB0` on Linux.
+Pick the entry whose hardware ID shows Espressif's `VID:PID=303A:1001` (the
+ESP32-C3's native USB) or your board's USB-serial bridge — `pio device list`
+also lists Bluetooth serial ports, which are not the board.
 
 ### 5. Wi‑Fi setup
 
