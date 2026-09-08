@@ -6,6 +6,8 @@
 #include "http/json.h"
 #include "hardware/pca9685_servos.h"
 #include "hardware/rgb.h"
+#include "audio/audio.h"
+#include "display/oled.h"
 #include "network/wifi_connect.h"
 #include "servos.h"
 #include "settings.h"
@@ -278,10 +280,34 @@ void handleSetupLed(WebServer& server) {
   httpSendJson(server, 200, body);
 }
 
+void handleSetupAudio(WebServer& server) {
+  if (!wifiProvisioningMode()) {
+    httpSendJson(
+      server,
+      400,
+      "{\"ok\":false,\"error\":\"setup audio only in AP mode\"}"
+    );
+    return;
+  }
+
+  if (!playWelcome()) {
+    showIdleScreen();
+    httpSendJson(
+      server,
+      500,
+      "{\"ok\":false,\"error\":\"welcome playback failed\"}"
+    );
+    return;
+  }
+
+  showIdleScreen();
+  httpSendJson(server, 200, "{\"ok\":true,\"setup\":\"audio\"}");
+}
+
 }  // namespace
 
 bool isHttpSetupPath(const String& uri) {
-  return uri == "/setup/servo" || uri == "/setup/led";
+  return uri == "/setup/servo" || uri == "/setup/led" || uri == "/setup/audio";
 }
 
 void registerHttpSetupRoutes(WebServer& server) {
@@ -294,5 +320,10 @@ void registerHttpSetupRoutes(WebServer& server) {
     "/setup/led",
     HTTP_POST,
     [&server]() { httpWithApiAuth(server, handleSetupLed); }
+  );
+  server.on(
+    "/setup/audio",
+    HTTP_POST,
+    [&server]() { httpWithApiAuth(server, handleSetupAudio); }
   );
 }

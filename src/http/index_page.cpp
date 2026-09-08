@@ -127,7 +127,7 @@ body.setup-mode #config-form,body.setup-mode .config-danger{display:none!importa
 body.setup-mode #config-page-title,body.setup-mode #config-page-desc{display:none!important}
 body:not(.setup-mode) #setup-wizard{display:none!important}
 .setup-progress-track{height:.35rem;background:#e8e4df;border-radius:99px;margin:0 0 1.25rem;overflow:hidden}
-.setup-progress-bar{height:100%;width:33%;background:var(--accent);border-radius:99px}
+.setup-progress-bar{height:100%;width:25%;background:var(--accent);border-radius:99px}
 .setup-footer{display:flex;gap:.75rem;margin-top:1.25rem;align-items:stretch}
 .setup-footer[hidden]{display:none!important}
 .setup-footer .btn{width:auto;min-width:7rem;text-align:center;font-weight:600}
@@ -158,6 +158,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 .led-test .btn.G{background:#43a047;border-color:#43a047}
 .led-test .btn.B{background:#1e88e5;border-color:#1e88e5}
 #setup-led-remap-toggle{margin-top:0;text-align:center;font-weight:600}
+#setup-audio-play{margin-top:0}
 .led-byte{margin:0 0 1rem;padding-bottom:.85rem;border-bottom:1px solid var(--border)}
 .led-byte:last-child{margin-bottom:0;padding-bottom:0;border-bottom:0}
 .led-byte-label{font-weight:600;font-size:.9rem;margin:0 0 .45rem}
@@ -244,6 +245,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <tr><td>POST</td><td><code>/test/servo</code></td><td>Move one servo (see parameters below)</td></tr>
 <tr><td>POST</td><td><code>/setup/servo</code></td><td>Setup AP only: slow 0&ndash;180&deg; move (see parameters below)</td></tr>
 <tr><td>POST</td><td><code>/setup/led</code></td><td>Setup AP only: light logical RGB or one WS2812 wire byte (see parameters below)</td></tr>
+<tr><td>POST</td><td><code>/setup/audio</code></td><td>Setup AP only: play welcome.wav from LittleFS</td></tr>
 </table>
 <p>POST <code>/settings</code> &mdash; query params (at least one required):</p>
 <table>
@@ -262,7 +264,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <tr><td><code>servo_maxs</code></td><td>string</td><td>5 comma-separated ints 0&ndash;180; setup AP only; each max &gt; min</td></tr>
 <tr><td><code>rgb_order</code></td><td>string</td><td><code>RGB</code>, <code>RBG</code>, <code>GRB</code>, <code>GBR</code>, <code>BRG</code>, or <code>BGR</code>; setup AP only; default <code>GRB</code></td></tr>
 </table>
-<p>WiFi credentials, servo min/max, and RGB LED mapping can only be set in setup AP mode. During setup, <code>hostname</code> may be sent with <code>wifi_ssid</code> and <code>wifi_password</code> (same hostname rules as Config). During setup (credentials not saved), control APIs return <strong>503</strong> <code>wifi not configured</code>; <code>POST /setup/servo</code> and <code>POST /setup/led</code> stay available. Change WiFi later via factory reset. Servo ranges and RGB mapping survive factory reset and can be retuned in the setup wizard.</p>
+<p>WiFi credentials, servo min/max, and RGB LED mapping can only be set in setup AP mode. During setup, <code>hostname</code> may be sent with <code>wifi_ssid</code> and <code>wifi_password</code> (same hostname rules as Config). During setup (credentials not saved), control APIs return <strong>503</strong> <code>wifi not configured</code>; <code>POST /setup/servo</code>, <code>POST /setup/led</code>, and <code>POST /setup/audio</code> stay available. Change WiFi later via factory reset. Servo ranges and RGB mapping survive factory reset and can be retuned in the setup wizard.</p>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
 <tr><th>Value</th><th>Description</th></tr>
@@ -299,6 +301,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <tr><td><code>rgb_order</code></td><td>string</td><td><code>RGB</code>, <code>RBG</code>, <code>GRB</code>, <code>GBR</code>, <code>BRG</code>, or <code>BGR</code> (optional with <code>color</code>)</td></tr>
 <tr><td><code>byte</code></td><td>string</td><td><code>0</code>, <code>1</code>, <code>2</code>, or <code>off</code> (omit or <code>off</code> releases the hold)</td></tr>
 </table>
+<p>POST <code>/setup/audio</code> &mdash; setup AP only, no Wi-Fi gate. Plays <code>welcome.wav</code> from LittleFS. No query params.</p>
 </section>
 
 <section id="view-animations" class="view">
@@ -371,7 +374,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <p class="page-desc" id="config-page-desc">Saved to flash. Most changes apply right away.</p>
 <div id="setup-wizard">
 <h2 class="page-title">Tiny Engineer setup</h2>
-<p id="setup-progress-label" class="page-desc">Step 1 of 3 &middot; Servos</p>
+<p id="setup-progress-label" class="page-desc">Step 1 of 4 &middot; Servos</p>
 <div class="setup-progress-track"><div id="setup-progress-bar" class="setup-progress-bar"></div></div>
 <div id="setup-step-servos">
 <div id="setup-phase-horns">
@@ -468,6 +471,13 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 </div>
 </div>
 </div>
+</div>
+</div>
+<div id="setup-step-speaker" hidden>
+<div class="config-section">
+<h3>Speaker</h3>
+<p class="setup-copy">Play the welcome clip. You should hear speech from the speaker. Skip if you want &mdash; you can test again later from Tests.</p>
+<button type="button" id="setup-audio-play" class="btn btn-primary">Play</button>
 </div>
 </div>
 <div id="setup-step-network" hidden>
@@ -586,7 +596,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <script>
 var SERVO_DEFAULT_RANGES=[[60,130],[40,130],[45,135],[35,125],[40,130]];
 var SERVO_RANGES=[[60,130],[40,130],[45,135],[35,125],[40,130]];
-var SETUP_STEPS=[{id:"servos",title:"Servos"},{id:"led",title:"RGB mapping"},{id:"network",title:"Network"}];
+var SETUP_STEPS=[{id:"servos",title:"Servos"},{id:"led",title:"RGB mapping"},{id:"speaker",title:"Speaker"},{id:"network",title:"Network"}];
 var RGB_ORDERS=["RGB","RBG","GRB","GBR","BRG","BGR"];
 var SETUP_JOINT_COPY=[
   "Pitch only. Watch cable slack to the head. Stop before the head hits the neck piece. Down is toward the laptop; up is away.",
@@ -688,7 +698,7 @@ function syncSetupUi(done){
       if(title)title.textContent=inSetup?"WiFi setup":"Config";
       if(desc){
         desc.textContent=inSetup
-          ?"Calibrate servos, map the onboard LED, then enter a device name and your home WiFi network. The robot tests the connection before saving."
+          ?"Calibrate servos, check the LED and speaker, then enter a device name and your home WiFi network. The robot tests the connection before saving."
           :"Saved to flash. Most changes apply right away.";
       }
       if(inSetup)applySetupWizardUi();
@@ -797,19 +807,22 @@ function applySetupWizardUi(){
   document.getElementById("setup-progress-bar").style.width=((step+1)/total*100)+"%";
   document.getElementById("setup-step-servos").hidden=step!==0;
   document.getElementById("setup-step-led").hidden=step!==1;
+  document.getElementById("setup-step-speaker").hidden=step!==2;
   document.getElementById("setup-step-network").hidden=step!==last;
   document.getElementById("setup-phase-horns").hidden=step!==0||!horns;
   document.getElementById("setup-phase-ranges").hidden=step!==0||horns;
   document.getElementById("setup-footer").hidden=step===0&&horns;
   document.getElementById("setup-back").hidden=step===0&&horns;
   document.getElementById("setup-next").hidden=step===last||(step===0&&horns);
-  document.getElementById("setup-next").textContent=step===0?"Next: RGB mapping":"Next: Network";
+  document.getElementById("setup-next").textContent=step===0?"Next: RGB mapping":(step===1?"Next: Speaker":"Next: Network");
   if(step===0){
     document.getElementById("setup-next").disabled=!calibRangesValid();
   }else if(step===1){
     document.getElementById("setup-next").disabled=!ledMappingValid();
     document.getElementById("setup-led-remap").hidden=!setupLedRemapOpen;
     if(setupLedRemapOpen)updateLedLooksUi();
+  }else if(step===2){
+    document.getElementById("setup-next").disabled=false;
   }
   if(step===0&&!horns)updateCalibUi();
   if(step===last){
@@ -1144,6 +1157,11 @@ document.getElementById("setup-horns-done").addEventListener("click",function(){
   applySetupWizardUi();
 });
 document.getElementById("setup-back").addEventListener("click",function(){
+  if(setupStepIndex===3){
+    setupStepIndex=2;
+    applySetupWizardUi();
+    return;
+  }
   if(setupStepIndex===2){
     setupStepIndex=1;
     applySetupWizardUi();
@@ -1163,6 +1181,11 @@ document.getElementById("setup-back").addEventListener("click",function(){
 });
 document.getElementById("setup-next").addEventListener("click",function(){
   if(busy)return;
+  if(setupStepIndex===2){
+    setupStepIndex=3;
+    applySetupWizardUi();
+    return;
+  }
   if(setupStepIndex===1){
     if(!ledMappingValid())return;
     var order=rgbOrderFromLooks();
@@ -1217,6 +1240,22 @@ document.getElementById("setup-led-remap-toggle").addEventListener("click",funct
   setupLedRemapOpen=true;
   document.getElementById("setup-led-remap").hidden=false;
   updateLedLooksUi();
+});
+document.getElementById("setup-audio-play").addEventListener("click",function(){
+  if(busy)return;
+  setBusy(true);
+  setStatus("Playing\u2026","loading");
+  apiFetch("/setup/audio",{method:"POST"})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
+    .then(function(res){
+      if(res.ok&&res.data.ok!==false){
+        setStatus("Done.","ok");
+      }else{
+        setStatus(res.data.error||"Playback failed","err");
+      }
+    })
+    .catch(function(){setStatus("Network error","err");})
+    .finally(function(){setBusy(false);applySetupWizardUi();});
 });
 document.querySelectorAll(".led-light[data-led-byte]").forEach(function(btn){
   btn.addEventListener("click",function(){

@@ -120,8 +120,9 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | `POST` | `/test/servo?index=&angle=` | `{"ok":true,"test":"servo","index":N,"angle":A}` after `moveServoSmooth()` |
 | `POST` | `/setup/servo?all=90` or `?index=&angle=` | Setup AP only; slow 0–180° move (`SERVO_CALIB_SPEED_DEG_S`) |
 | `POST` | `/setup/led?color=R` / `G` / `B` or `?byte=0` / `1` / `2` / `off` | Setup AP only; light logical RGB or one WS2812 wire byte, or release hold |
+| `POST` | `/setup/audio` | Setup AP only; play `welcome.wav` (`playWelcome()`) |
 
-GET on a test path returns `405`. Bad `/test/servo`, `/setup/servo`, `/setup/led`, or `/settings` params return `400`. Missing/wrong Bearer when auth enabled returns `401`. Control APIs return `503` when WiFi credentials are not saved (`/setup/servo` and `/setup/led` stay available). Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
+GET on a test path returns `405`. Bad `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, or `/settings` params return `400`. Missing/wrong Bearer when auth enabled returns `401`. Control APIs return `503` when WiFi credentials are not saved (`/setup/servo`, `/setup/led`, and `/setup/audio` stay available). Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
 
 HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisioning.
 
@@ -131,7 +132,7 @@ HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisio
 | --- | --- | --- |
 | OLED `ERROR: OLED not found` then rest of boot runs | Nothing ACK’d at `0x3C` | OLED **VCC=3V3**, GND, SDA=GP0, **SCK**=GP1, common ground, address jumper still 0x3C |
 | OLED found but `ERROR: OLED initialization failed` | ACK then `display.begin` failed | Wiring/power glitch, wrong size module, I2C noise |
-| OLED shows `Join this WiFi` / AP name, then `Then open` / `192.168.4.1` | Setup AP mode active | Connect to the shown AP, open `http://192.168.4.1/config`, finish the servo + LED + WiFi wizard |
+| OLED shows `Join this WiFi` / AP name, then `Then open` / `192.168.4.1` | Setup AP mode active | Connect to the shown AP, open `http://192.168.4.1/config`, finish the servo + LED + speaker + WiFi wizard |
 | OLED `WiFi failed` then setup AP | Saved STA credentials failed | Join setup AP, open `http://192.168.4.1/config`, enter home WiFi again |
 | `ERROR: PCA9685 not found` + red RGB + **hang** | Nothing ACK’d at `0x40` | PCA9685 **VCC=3V3** (not V+), GND, SDA/SCL, I2C address pads, +5V not required for the ACK but needed later for motion |
 | `ERROR: I2S initialization failed` + red RGB + **hang** | `I2S.begin` failed | GPIO2/3/4 not shorted to 5V/GND; pin constants; USB CDC still alive so you can read the line |
