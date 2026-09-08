@@ -118,6 +118,7 @@ Cursor projects can map agent events to poses via hooks — [docs/hooks.md](docs
 | Settings | [docs/settings.md](docs/settings.md) |
 | Cursor hooks | [docs/hooks.md](docs/hooks.md) |
 | Any IDE / REST | [docs/integration.md](docs/integration.md) |
+| Firmware / package tests | [docs/testing.md](docs/testing.md) |
 | Full index | [docs/README.md](docs/README.md) |
 
 ## Build one, break one, share it

@@ -1,17 +1,3 @@
-# Host tests (Option A)
+# Host tests
 
-Firmware logic that does not need Arduino runs on the host with Unity.
-
-```bash
-pio test -e native
-```
-
-That env compiles only `src/settings/validate.cpp`. It does not flash the ESP32.
-
-`pio run` builds firmware only (`default_envs`). Native is **`pio test -e native`**, not `pio run -e native`.
-
-JS package tests (unchanged by this suite):
-
-```bash
-npm test --prefix packages/tiny-engineer-cursor
-```
+Commands: [`docs/testing.md`](../docs/testing.md).
