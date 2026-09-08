@@ -13,6 +13,12 @@ constexpr uint8_t RGB_ANIM_WHITE = 255;
 constexpr uint8_t RGB_ANIM_RED = 255;
 constexpr uint32_t RGB_TRANSITION_MS = 1000;
 
+// Boot-failure blink codes. The gap is 10x the pause between blinks within a
+// train, so the cycle boundary stays unmistakable as more codes are added: even
+// a long count reads as one group followed by an obvious silence.
+constexpr uint32_t RGB_CODE_BLINK_MS = 300;
+constexpr uint32_t RGB_CODE_GAP_MS = 3000;
+
 constexpr uint8_t RGB_PULSE_MIN = 26;   // ~10% of 255
 constexpr uint8_t RGB_PULSE_MAX = 255;  // 100%
 constexpr uint32_t RGB_PULSE_PHASE_MS = 500;
@@ -250,6 +256,19 @@ void updateRgb(uint32_t nowMs) {
   }
 
   applyTransition(nowMs);
+}
+
+void haltWithRgbCode(uint8_t blinks) {
+  while (true) {
+    for (uint8_t i = 0; i < blinks; i++) {
+      setRgb(64, 0, 0);
+      delay(RGB_CODE_BLINK_MS);
+      setRgb(0, 0, 0);
+      delay(RGB_CODE_BLINK_MS);
+    }
+
+    delay(RGB_CODE_GAP_MS);
+  }
 }
 
 void runRgbTest() {

@@ -24,11 +24,7 @@ void initPca9685() {
       "Not found"
     );
 
-    setRgb(64, 0, 0);
-
-    while (true) {
-      delay(1000);
-    }
+    haltWithRgbCode(RGB_CODE_PCA9685);
   }
 
   serialLogPrintln("PCA9685 found");

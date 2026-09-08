@@ -108,11 +108,7 @@ void setup() {
       "Init failed"
     );
 
-    setRgb(64, 0, 0);
-
-    while (true) {
-      delay(1000);
-    }
+    haltWithRgbCode(RGB_CODE_I2S);
   }
 
   serialLogPrintln("I2S OK");

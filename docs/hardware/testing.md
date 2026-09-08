@@ -26,6 +26,22 @@ Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200)
 | Servos | Smooth move to mid (or sleep pose) at 35°/s |
 | HTTP | Port 80 if Wi-Fi connected |
 | Success | Dim green RGB during init; then animation LED (see below) |
+| Fatal init failure | Red blink code on the WS2812 (see below) |
+
+## Boot-failure blink codes
+
+A fatal init failure halts boot and blinks the onboard WS2812 red. The number of
+flashes before the long gap identifies the subsystem:
+
+| Blinks | Meaning |
+| --- | --- |
+| 1 | PCA9685 not found on I2C `0x40` |
+| 2 | MAX98357A / I2S init failed |
+
+Each flash is 300 ms on, 300 ms off; the gap between repeats is 3 s, so the start of a
+cycle is easy to find. Serial carries the same message, but the blink code is readable
+with no cable attached — and with `serial_log` off (the default) the serial line is
+silent, which makes the LED the only signal a first-boot board gives you.
 
 ## Expected boot sequence
 
