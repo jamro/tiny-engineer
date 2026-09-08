@@ -7,6 +7,7 @@
 #include "hardware/servo_wrapper.h"
 #include "hardware/pca9685_servos.h"
 #include "serial_log.h"
+#include "settings/settings.h"
 
 bool pca9685Connected() {
   return i2cDeviceConnected(PCA9685_ADDRESS);
@@ -40,13 +41,32 @@ bool moveServoSmooth(int index, float toAngle) {
   return servoAt(index).moveTo(toAngle);
 }
 
+bool moveServoSmoothElectrical(int index, float toAngle) {
+  if (index < 0 || index >= SERVO_COUNT) {
+    return false;
+  }
+
+  return servoAt(index).moveToElectrical(toAngle, SERVO_CALIB_SPEED_DEG_S);
+}
+
+void servoMoveAllToElectricalAngle(float angle) {
+  float targets[SERVO_COUNT];
+
+  for (int servo = 0; servo < SERVO_COUNT; servo++) {
+    targets[servo] = angle;
+  }
+
+  servoMoveAllToElectrical(targets, SERVO_CALIB_SPEED_DEG_S);
+}
+
 void centerAllServos() {
   serialLogPrintln("Centering servos to mid (min+max)/2");
 
   float targets[SERVO_COUNT];
 
   for (int servo = 0; servo < SERVO_COUNT; servo++) {
-    targets[servo] = servoMid(SERVO_SPECS[servo]);
+    targets[servo] =
+      (settingsServoMin(servo) + settingsServoMax(servo)) * 0.5f;
   }
 
   servoMoveAllSmoothTo(targets);

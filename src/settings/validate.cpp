@@ -1,67 +1,6 @@
-#include "settings.h"
-#include "settings_internal.h"
+#include "settings/settings.h"
 
 #include <cstring>
-
-uint32_t settingsSleepTimeoutMin() {
-  return g_sleepTimeoutMin;
-}
-
-uint32_t settingsSleepTimeoutMs() {
-  return g_sleepTimeoutMin * 60UL * 1000UL;
-}
-
-const char* settingsHostname() {
-  return g_hostname;
-}
-
-const char* settingsBootHostname() {
-  return g_bootHostname;
-}
-
-uint8_t settingsVolume() {
-  return g_volume;
-}
-
-bool settingsWelcomeEnabled() {
-  return g_welcome;
-}
-
-bool settingsSerialLogEnabled() {
-  return g_serialLog;
-}
-
-uint32_t settingsContinuousTimeoutMin() {
-  return g_continuousTimeoutMin;
-}
-
-const char* settingsLoading() {
-  return g_loading;
-}
-
-const char* settingsAccessToken() {
-  return g_accessToken;
-}
-
-bool settingsAccessTokenSet() {
-  return g_accessToken[0] != '\0';
-}
-
-const char* settingsWifiSsid() {
-  return g_wifiSsid;
-}
-
-const char* settingsWifiPassword() {
-  return g_wifiPassword;
-}
-
-bool settingsWifiConfigured() {
-  return g_wifiSsid[0] != '\0';
-}
-
-bool settingsWifiPasswordSet() {
-  return g_wifiPassword[0] != '\0';
-}
 
 bool settingsValidateSleepTimeout(uint32_t sleepTimeoutMin) {
   return sleepTimeoutMin >= SETTINGS_SLEEP_TIMEOUT_MIN_MIN &&
@@ -156,4 +95,39 @@ bool settingsValidateWifiPassword(const char* wifiPassword) {
   }
 
   return strlen(wifiPassword) <= SETTINGS_WIFI_PASSWORD_MAX_LEN;
+}
+
+bool settingsValidateServoRanges(
+  const uint8_t* servoMins,
+  const uint8_t* servoMaxs
+) {
+  if (servoMins == nullptr || servoMaxs == nullptr) {
+    return false;
+  }
+
+  for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
+    if (servoMins[i] > SETTINGS_SERVO_ANGLE_MAX ||
+        servoMaxs[i] > SETTINGS_SERVO_ANGLE_MAX) {
+      return false;
+    }
+
+    if (servoMins[i] >= servoMaxs[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool settingsValidateRgbOrder(const char* rgbOrder) {
+  if (rgbOrder == nullptr) {
+    return false;
+  }
+
+  return strcmp(rgbOrder, "RGB") == 0 ||
+         strcmp(rgbOrder, "RBG") == 0 ||
+         strcmp(rgbOrder, "GRB") == 0 ||
+         strcmp(rgbOrder, "GBR") == 0 ||
+         strcmp(rgbOrder, "BRG") == 0 ||
+         strcmp(rgbOrder, "BGR") == 0;
 }

@@ -14,7 +14,7 @@
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
 #include "http/http_server.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "serial_log.h"
 #include "sleep.h"
 #include "boot/boot_loading.h"

@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#include "settings.h"
+#include "settings/settings.h"
 
 inline void serialLogPrintln() {
   if (settingsSerialLogEnabled()) {

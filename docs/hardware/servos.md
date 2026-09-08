@@ -85,11 +85,11 @@ All five channels get the **same** angle. This is a wiring/power test, not a pos
 | --- | --- | --- | --- |
 | 1 | Electrical PWM | Pulse widths the servo electronics accept (~800–2200 µs @ 50 Hz) | In firmware |
 | 2 | Nominal manufacturer angle | Marketing / datasheet travel (0–180° **or** ~130° over full pulse — sources disagree) | Do not trust for installed mechanics |
-| 3 | Mechanical safe range | Per-joint min/max after horns and linkages | Defined in `SERVO_SPECS` ([`include/servos.h`](../../include/servos.h)); see [robot-movement.md](../robot-movement.md). Tunable after assembly |
+| 3 | Mechanical safe range | Per-joint min/max after horns and linkages | Stock defaults in `SERVO_SPECS` ([`include/servos.h`](../../include/servos.h)); saved to NVS in the setup AP wizard. See [robot-movement.md](../robot-movement.md) |
 
 Animations and poses command **range 3**, clipped inside range 1. Bench bring-up (`runServoTest`, `/test/servo`) may still use the electrical band.
 
-Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out the 5 V rail. Use the **75 / 90 / 105** test band on the bare bench; on the assembled robot stay inside `SERVO_SPECS` (tune those limits if needed after mounting).
+Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out the 5 V rail. Use the **75 / 90 / 105** test band on the bare bench; on the assembled robot stay inside the saved min/max (stock `SERVO_SPECS` until you calibrate in setup AP).
 
 ## Channel-to-mechanism mapping
 

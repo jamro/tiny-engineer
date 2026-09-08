@@ -6,9 +6,9 @@ Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `htt
 
 Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). `Content-Type: application/json`. CORS: `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization`.
 
-When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`) stay available on the setup AP.
+When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`) stay available on the setup AP.
 
-If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves the Config page. If saved credentials fail, it reopens setup AP mode. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
+If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a four-step setup wizard at `/config` (servo calibration, RGB LED, speaker test, then Wi-Fi). If saved credentials fail, it reopens setup AP mode. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
 Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s on a missing AAAA. If a client still pauses on the hostname, force IPv4 (`curl -4`). The IP on the OLED skips DNS entirely.
 
@@ -16,7 +16,7 @@ Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s
 
 ### `GET /`
 
-HTML endpoint index. Lists all routes plus supported parameters for `/anim`, `/settings`, and `/test/servo`. Safe, no hardware side effects. Always public (no Bearer required).
+HTML endpoint index. Lists all routes plus supported parameters for `/anim`, `/settings`, `/test/servo`, `/setup/servo`, `/setup/led`, and `/setup/audio`. Safe, no hardware side effects. Always public (no Bearer required).
 
 Open in a browser:
 
@@ -113,7 +113,10 @@ curl http://tiny-engineer.local/settings
   "access_token_set": false,
   "wifi_configured": true,
   "wifi_ssid": "MyNetwork",
-  "wifi_password_set": true
+  "wifi_password_set": true,
+  "servo_mins": [60, 40, 45, 35, 40],
+  "servo_maxs": [130, 130, 135, 125, 130],
+  "rgb_order": "GRB"
 }
 ```
 
@@ -130,10 +133,13 @@ curl http://tiny-engineer.local/settings
 | `wifi_configured` | `true` when a WiFi SSID is saved |
 | `wifi_ssid` | Saved network name (password is never returned) |
 | `wifi_password_set` | `true` when a non-empty WiFi password is saved |
+| `servo_mins` | Per-joint safe minimum degrees `[head, neck, left, right, body]` (stock defaults **60, 40, 45, 35, 40**) |
+| `servo_maxs` | Per-joint safe maximum degrees (stock defaults **130, 130, 135, 125, 130**). Each max must be greater than the matching min |
+| `rgb_order` | Onboard WS2812 wire-byte order (`RGB`, `RBG`, `GRB`, `GBR`, `BRG`, `BGR`). Default **`GRB`**. Survives factory reset |
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. `hostname` may be sent with those WiFi params (same validation as Config); it is saved before the STA connect so mDNS uses the chosen name immediately. Outside setup AP → **400** `wifi setup only in AP mode`. Requires Bearer when auth is enabled.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. `hostname` may be sent with those WiFi params (same validation as Config); it is saved before the STA connect so mDNS uses the chosen name immediately. Outside setup AP → **400** `wifi setup only in AP mode`. Servo ranges (`servo_mins` + `servo_maxs`) are also **setup AP only**; they apply immediately to motion clamps. Outside setup AP → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) is **setup AP only** and applies immediately to the onboard LED. Outside setup AP → **400** `rgb setup only in AP mode`. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
@@ -146,6 +152,8 @@ curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
 curl -X POST "http://tiny-engineer.local/settings?access_token=secret"
 curl -X POST "http://tiny-engineer.local/settings?access_token="
 curl -X POST "http://192.168.4.1/settings?wifi_ssid=MyNetwork&wifi_password=secret&hostname=desk-bot"
+curl -X POST "http://192.168.4.1/settings?servo_mins=60,40,45,35,40&servo_maxs=130,130,135,125,130"
+curl -X POST "http://192.168.4.1/settings?rgb_order=GRB"
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny-engineer&volume=70&welcome=1&serial_log=0&continuous_timeout=5&loading=progress"
 ```
 
@@ -163,6 +171,9 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
   "wifi_configured": true,
   "wifi_ssid": "MyNetwork",
   "wifi_password_set": true,
+  "servo_mins": [60, 40, 45, 35, 40],
+  "servo_maxs": [130, 130, 135, 125, 130],
+  "rgb_order": "GRB",
   "wifi_connect_success": true,
   "wifi_ip": "192.168.1.10",
   "wifi_hostname": "desk-bot.local",
@@ -182,14 +193,17 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
 | `access_token` | string | 0–64 printable ASCII; empty string clears the token and disables auth |
 | `wifi_ssid` | string | 1–32 chars; setup AP only; must be sent with `wifi_password` |
 | `wifi_password` | string | 0–63 chars; setup AP only; empty allowed for open networks; tested before save |
+| `servo_mins` | string | Five comma-separated integers `0`–`180` (`head,neck,left,right,body`); setup AP only; must be sent with `servo_maxs` |
+| `servo_maxs` | string | Five comma-separated integers `0`–`180`; setup AP only; each value must be greater than the matching min |
+| `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR`; setup AP only; default `GRB` |
 
-At least one param required. Invalid or missing-all → **400**. WiFi params outside setup AP → **400** `wifi setup only in AP mode`. WiFi test failure → **400** with error such as `SSID not found`, `Auth failed`, or `Timeout`. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot. After successful WiFi save, `wifi_connect_success`, `wifi_ip`, and `wifi_hostname` are included.
+At least one param required. Invalid or missing-all → **400**. WiFi params outside setup AP → **400** `wifi setup only in AP mode`. Servo range params outside setup AP → **400** `servo setup only in AP mode`. RGB order outside setup AP → **400** `rgb setup only in AP mode`. WiFi test failure → **400** with error such as `SSID not found`, `Auth failed`, or `Timeout`. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot. After successful WiFi save, `wifi_connect_success`, `wifi_ip`, and `wifi_hostname` are included.
 
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores all settings to compile-time defaults, including WiFi credentials. After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname, loading screen, or saved WiFi differed from defaults before reset.
+Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults, including WiFi credentials. **Servo min/max and RGB LED mapping (`rgb_order`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname, loading screen, or saved WiFi differed from defaults before reset.
 
-The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup page. It does not poll for reconnect.
+The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup wizard. It does not poll for reconnect.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings/reset"
@@ -278,6 +292,91 @@ curl -X POST http://tiny-engineer.local/test/led
 { "ok": true, "test": "led" }
 ```
 
+### `POST /setup/servo`
+
+Setup AP only. Slowly move one servo, or all five to 90°, using the full **0–180°** electrical range (no saved safe-range clamp). ~25°/s (`SERVO_CALIB_SPEED_DEG_S`). Used by the setup wizard for seating printed parts at 90° and for range finding. Handler blocks until the move finishes. Does **not** require Wi-Fi credentials. Outside provisioning → **400** `setup servo only in AP mode`.
+
+Either `all=90`, or `index` + `angle`.
+
+| Param | Type | Range |
+| --- | --- | --- |
+| `all` | integer | `90` (every joint to 90°) |
+| `index` | integer | `0`–`4` (required with `angle` when `all` is omitted) |
+| `angle` | number | `0`–`180` |
+
+```bash
+curl -X POST "http://192.168.4.1/setup/servo?all=90"
+curl -X POST "http://192.168.4.1/setup/servo?index=0&angle=90"
+```
+
+```json
+{ "ok": true, "setup": "servo", "index": 0, "angle": 90 }
+```
+
+Wrong params return **400** and do not move any servo:
+
+| `error` | When |
+| --- | --- |
+| `setup servo only in AP mode` | Not in setup AP |
+| `invalid all` | `all` present but not `90` |
+| `missing index or angle` | Neither `all=90` nor both `index` and `angle` |
+| `invalid index` | Non-integer `index` |
+| `index out of range` | `index` outside `0`–`4` |
+| `invalid angle` | Non-numeric `angle` |
+| `angle out of range` | `angle` outside `0`–`180` |
+
+After STA is up, use `POST /test/servo` (clamped to saved min/max).
+
+### `POST /setup/led`
+
+Setup AP only. Holds the LED so provisioning dim-blue does not clobber the preview. Does **not** require Wi-Fi credentials. Outside provisioning → **400** `setup led only in AP mode`.
+
+Logical **color** (`R` / `G` / `B`) lights firmware red/green/blue using the saved `rgb_order`, or `rgb_order` query if sent (wizard remap preview). Wire **byte** lights that WS2812 channel order-independent (`LED_COLOR_ORDER_RGB`, that channel 255). `byte=off` or neither `color` nor `byte` releases the hold and restores dim blue. Do not send `color` and `byte` together.
+
+| Param | Type | Range |
+| --- | --- | --- |
+| `color` | string | `R`, `G`, or `B` (logical; uses saved or `rgb_order`) |
+| `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR` (optional with `color`) |
+| `byte` | string | `0`, `1`, `2`, or `off` (omit or `off` releases the hold) |
+
+```bash
+curl -X POST "http://192.168.4.1/setup/led?color=R"
+curl -X POST "http://192.168.4.1/setup/led?color=R&rgb_order=GRB"
+curl -X POST "http://192.168.4.1/setup/led?byte=0"
+curl -X POST "http://192.168.4.1/setup/led?byte=off"
+```
+
+```json
+{ "ok": true, "setup": "led", "color": "R" }
+```
+
+Wrong params return **400** and do not change hold state except `off` / omitted light params:
+
+| `error` | When |
+| --- | --- |
+| `setup led only in AP mode` | Not in setup AP |
+| `color and byte conflict` | Both `color` and a numeric `byte` present |
+| `invalid color` | `color` not `R`, `G`, or `B` |
+| `invalid rgb_order` | `rgb_order` present but not a valid permutation |
+| `invalid byte` | `byte` present but not an integer and not `off` |
+| `byte out of range` | Integer `byte` outside `0`–`2` |
+
+Save the labeled permutation with `POST /settings?rgb_order=GRB` (setup AP only). The saved order applies immediately to animation colors, boot status, halt blinks, and `POST /test/led`.
+
+### `POST /setup/audio`
+
+Setup AP only. Plays `welcome.wav` from LittleFS (`playWelcome()`, ~2.7 s). Same speaker gain as settings `volume`. No query params. Does **not** require Wi-Fi credentials. Handler blocks until playback finishes. Outside provisioning → **400** `setup audio only in AP mode`. Missing/unreadable WAV → **500** `welcome playback failed`.
+
+```bash
+curl -X POST "http://192.168.4.1/setup/audio"
+```
+
+```json
+{ "ok": true, "setup": "audio" }
+```
+
+After STA is up, use `POST /test/audio/bell` (or `/test/audio` for tones).
+
 ### `POST /test/servo`
 
 Smoothly move one servo to an angle at **~40°/s** (`SERVO_SPEED_DEG_S`) from its last commanded position. Query params required. Handler blocks until the move finishes.
@@ -305,7 +404,7 @@ Wrong params return **400** and do not move any servo:
 | `invalid angle` | Non-numeric `angle` |
 | `angle out of range` | `angle` outside `0`–`180` |
 
-Assembled robot: prefer the safe band in [servos.md](hardware/servos.md); this route allows full electrical travel for bench bring-up.
+Assembled robot: firmware clamps to the NVS min/max from setup (stock defaults in [robot-movement.md](robot-movement.md)); this route still accepts 0–180 and clamps. For unclamped assembly moves, use setup AP `POST /setup/servo`.
 
 ### `GET /anim`
 
@@ -376,10 +475,10 @@ Wrong params return **400**:
 
 | Status | Body | When |
 | --- | --- | --- |
-| `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo` or `/anim` params (see tables above) |
+| `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, or `/anim` params (see tables above) |
 | `401` | `{"ok":false,"error":"unauthorized"}` | Access token configured and `Authorization: Bearer` missing or wrong |
 | `404` | `{"ok":false,"error":"not found"}` | Unknown path |
-| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/settings`, `/settings/reset`, `/anim`, or `/auth` path |
+| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/settings`, `/settings/reset`, `/anim`, or `/auth` path |
 
 Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET** (read) and **POST** (set). `/auth` is **GET** only and always public.
 
@@ -395,7 +494,7 @@ One request at a time — the Arduino `WebServer` is single-threaded.
 
 ## RGB LED
 
-Onboard WS2812 on **GPIO10** (`RGB_LED_PIN`). Animation-driven colors are handled in [`src/hardware/rgb.cpp`](../src/hardware/rgb.cpp) and switch when `POST /anim` applies a new state (same 1s minimum hold as servos/eyes).
+Onboard WS2812 on **GPIO10** (`RGB_LED_PIN`). Byte order is the saved `rgb_order` setting (default **GRB**). Animation-driven colors are handled in [`src/hardware/rgb.cpp`](../src/hardware/rgb.cpp) and switch when `POST /anim` applies a new state (same 1s minimum hold as servos/eyes).
 
 | Animation | LED color |
 | --- | --- |

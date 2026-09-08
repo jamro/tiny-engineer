@@ -3,20 +3,76 @@
 #include <Arduino.h>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 
+#include "display/oled.h"
 #include "http/json.h"
 #include "http/server_context.h"
 #include "network/wifi_connect.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 namespace {
+
+void formatServoRangeJson(char* dest, size_t destSize) {
+  snprintf(
+    dest,
+    destSize,
+    "\"servo_mins\":[%u,%u,%u,%u,%u],"
+    "\"servo_maxs\":[%u,%u,%u,%u,%u],"
+    "\"rgb_order\":\"%s\"",
+    static_cast<unsigned>(settingsServoMin(0)),
+    static_cast<unsigned>(settingsServoMin(1)),
+    static_cast<unsigned>(settingsServoMin(2)),
+    static_cast<unsigned>(settingsServoMin(3)),
+    static_cast<unsigned>(settingsServoMin(4)),
+    static_cast<unsigned>(settingsServoMax(0)),
+    static_cast<unsigned>(settingsServoMax(1)),
+    static_cast<unsigned>(settingsServoMax(2)),
+    static_cast<unsigned>(settingsServoMax(3)),
+    static_cast<unsigned>(settingsServoMax(4)),
+    settingsRgbOrder()
+  );
+}
+
+bool parseServoCsv(const String& raw, uint8_t out[SETTINGS_SERVO_COUNT]) {
+  const char* p = raw.c_str();
+
+  for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
+    if (p == nullptr || *p == '\0') {
+      return false;
+    }
+
+    char* end = nullptr;
+    const unsigned long parsed = strtoul(p, &end, 10);
+
+    if (end == p || parsed > 255) {
+      return false;
+    }
+
+    if (i + 1 < SETTINGS_SERVO_COUNT) {
+      if (*end != ',') {
+        return false;
+      }
+
+      p = end + 1;
+    } else if (*end != '\0') {
+      return false;
+    }
+
+    out[i] = static_cast<uint8_t>(parsed);
+  }
+
+  return true;
+}
 
 void sendSettingsJson(
   WebServer& server,
   bool rebootRequired,
   bool wifiConnectSuccess
 ) {
-  char body[704];
+  char servoJson[128];
+  formatServoRangeJson(servoJson, sizeof(servoJson));
+  char body[960];
   const char* tokenSet =
     settingsAccessTokenSet() ? "true" : "false";
   const char* wifiConfigured =
@@ -41,6 +97,7 @@ void sendSettingsJson(
       "\"wifi_configured\":%s,"
       "\"wifi_ssid\":\"%s\","
       "\"wifi_password_set\":%s,"
+      "%s,"
       "\"wifi_connect_success\":true,"
       "\"wifi_ip\":\"%s\","
       "\"wifi_hostname\":\"%s\""
@@ -57,6 +114,7 @@ void sendSettingsJson(
       wifiConfigured,
       settingsWifiSsid(),
       wifiPasswordSet,
+      servoJson,
       wifiIpText(),
       httpMdnsHostname(),
       rebootRequired ? ",\"reboot_required\":true" : ""
@@ -78,6 +136,7 @@ void sendSettingsJson(
       "\"wifi_configured\":%s,"
       "\"wifi_ssid\":\"%s\","
       "\"wifi_password_set\":%s,"
+      "%s,"
       "\"reboot_required\":true"
       "}",
       (unsigned long)settingsSleepTimeoutMin(),
@@ -90,7 +149,8 @@ void sendSettingsJson(
       tokenSet,
       wifiConfigured,
       settingsWifiSsid(),
-      wifiPasswordSet
+      wifiPasswordSet,
+      servoJson
     );
   } else {
     snprintf(
@@ -108,7 +168,8 @@ void sendSettingsJson(
       "\"access_token_set\":%s,"
       "\"wifi_configured\":%s,"
       "\"wifi_ssid\":\"%s\","
-      "\"wifi_password_set\":%s"
+      "\"wifi_password_set\":%s,"
+      "%s"
       "}",
       (unsigned long)settingsSleepTimeoutMin(),
       settingsHostname(),
@@ -120,7 +181,8 @@ void sendSettingsJson(
       tokenSet,
       wifiConfigured,
       settingsWifiSsid(),
-      wifiPasswordSet
+      wifiPasswordSet,
+      servoJson
     );
   }
 
@@ -144,14 +206,17 @@ void handleSettingsPost(WebServer& server) {
   const bool hasAccessToken = server.hasArg("access_token");
   const bool hasWifiSsid = server.hasArg("wifi_ssid");
   const bool hasWifiPassword = server.hasArg("wifi_password");
+  const bool hasServoMins = server.hasArg("servo_mins");
+  const bool hasServoMaxs = server.hasArg("servo_maxs");
+  const bool hasRgbOrder = server.hasArg("rgb_order");
 
   if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasSerialLog &&
       !hasContTo && !hasLoading && !hasAccessToken && !hasWifiSsid &&
-      !hasWifiPassword) {
+      !hasWifiPassword && !hasServoMins && !hasServoMaxs && !hasRgbOrder) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, access_token, wifi_ssid, or wifi_password\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, access_token, wifi_ssid, wifi_password, servo_mins, servo_maxs, or rgb_order\"}"
     );
     return;
   }
@@ -176,6 +241,12 @@ void handleSettingsPost(WebServer& server) {
   const char* wifiSsidPtr = nullptr;
   String wifiPasswordArg;
   const char* wifiPasswordPtr = nullptr;
+  uint8_t servoMins[SETTINGS_SERVO_COUNT] = {};
+  uint8_t servoMaxs[SETTINGS_SERVO_COUNT] = {};
+  const uint8_t* servoMinsPtr = nullptr;
+  const uint8_t* servoMaxsPtr = nullptr;
+  String rgbOrderArg;
+  const char* rgbOrderPtr = nullptr;
   bool wifiConnectSuccess = false;
 
   if (hasSleep) {
@@ -387,30 +458,7 @@ void handleSettingsPost(WebServer& server) {
       return;
     }
 
-    if (hasHost) {
-      if (!saveSettings(
-            nullptr,
-            hostPtr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr
-          )) {
-        httpSendJson(
-          server,
-          400,
-          "{\"ok\":false,\"error\":\"save failed\"}"
-        );
-        return;
-      }
-    }
-
-    if (!wifiTestCredentials(wifiSsidPtr, wifiPasswordPtr)) {
+    if (!wifiTestCredentials(wifiSsidPtr, wifiPasswordPtr, hostPtr)) {
       char body[96];
       snprintf(
         body,
@@ -427,6 +475,72 @@ void handleSettingsPost(WebServer& server) {
     wifiPasswordPtr = wifiPasswordArg.c_str();
   }
 
+  if (hasServoMins || hasServoMaxs) {
+    if (!wifiProvisioningMode()) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"servo setup only in AP mode\"}"
+      );
+      return;
+    }
+
+    if (!hasServoMins || !hasServoMaxs) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"servo_mins and servo_maxs required together\"}"
+      );
+      return;
+    }
+
+    if (!parseServoCsv(server.arg("servo_mins"), servoMins) ||
+        !parseServoCsv(server.arg("servo_maxs"), servoMaxs)) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid servo_mins or servo_maxs\"}"
+      );
+      return;
+    }
+
+    if (!settingsValidateServoRanges(servoMins, servoMaxs)) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"servo ranges out of range\"}"
+      );
+      return;
+    }
+
+    servoMinsPtr = servoMins;
+    servoMaxsPtr = servoMaxs;
+  }
+
+  if (hasRgbOrder) {
+    if (!wifiProvisioningMode()) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"rgb setup only in AP mode\"}"
+      );
+      return;
+    }
+
+    rgbOrderArg = server.arg("rgb_order");
+
+    if (!settingsValidateRgbOrder(rgbOrderArg.c_str())) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid rgb_order\"}"
+      );
+      return;
+    }
+
+    rgbOrderPtr = rgbOrderArg.c_str();
+  }
+
   bool rebootRequired = false;
 
   if (!saveSettings(
@@ -440,8 +554,15 @@ void handleSettingsPost(WebServer& server) {
         accessTokenPtr,
         wifiSsidPtr,
         wifiPasswordPtr,
+        servoMinsPtr,
+        servoMaxsPtr,
+        rgbOrderPtr,
         &rebootRequired
       )) {
+    if (wifiConnectSuccess) {
+      wifiRestoreProvisioningAp();
+    }
+
     httpSendJson(
       server,
       400,
@@ -452,6 +573,12 @@ void handleSettingsPost(WebServer& server) {
 
   refreshMdnsHostname();
   sendSettingsJson(server, rebootRequired, wifiConnectSuccess);
+
+  if (wifiConnectSuccess) {
+    delay(300);
+    wifiStopProvisioningAp();
+    showBootIp(wifiIpText());
+  }
 }
 
 void handleSettingsReset(WebServer& server) {
@@ -471,5 +598,5 @@ void handleSettingsReset(WebServer& server) {
 
 bool isSettingsOrAnimPath(const String& uri) {
   return uri == "/anim" || uri == "/settings" || uri == "/settings/reset" ||
-         uri == "/auth";
+         uri == "/auth" || uri == "/setup/servo";
 }

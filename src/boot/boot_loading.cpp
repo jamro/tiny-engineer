@@ -13,7 +13,7 @@
 #include "hardware/servo_wrapper.h"
 #include "pins.h"
 #include "servos.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 namespace {
 
