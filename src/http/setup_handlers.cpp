@@ -5,8 +5,10 @@
 
 #include "http/json.h"
 #include "hardware/pca9685_servos.h"
+#include "hardware/rgb.h"
 #include "network/wifi_connect.h"
 #include "servos.h"
+#include "settings.h"
 
 namespace {
 
@@ -158,10 +160,128 @@ void handleSetupServo(WebServer& server) {
   httpSendJson(server, 200, body);
 }
 
+void handleSetupLed(WebServer& server) {
+  if (!wifiProvisioningMode()) {
+    httpSendJson(
+      server,
+      400,
+      "{\"ok\":false,\"error\":\"setup led only in AP mode\"}"
+    );
+    return;
+  }
+
+  const bool hasColor = server.hasArg("color");
+  const bool hasByte = server.hasArg("byte");
+  const String byteArg = hasByte ? server.arg("byte") : "";
+  const bool byteOff = hasByte && byteArg == "off";
+
+  if (hasColor && hasByte && !byteOff) {
+    httpSendJson(
+      server,
+      400,
+      "{\"ok\":false,\"error\":\"color and byte conflict\"}"
+    );
+    return;
+  }
+
+  if (hasColor) {
+    const String colorArg = server.arg("color");
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+
+    if (colorArg == "R") {
+      r = 255;
+    } else if (colorArg == "G") {
+      g = 255;
+    } else if (colorArg == "B") {
+      b = 255;
+    } else {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid color\"}"
+      );
+      return;
+    }
+
+    const char* orderPtr = nullptr;
+    String orderArg;
+
+    if (server.hasArg("rgb_order")) {
+      orderArg = server.arg("rgb_order");
+
+      if (!settingsValidateRgbOrder(orderArg.c_str())) {
+        httpSendJson(
+          server,
+          400,
+          "{\"ok\":false,\"error\":\"invalid rgb_order\"}"
+        );
+        return;
+      }
+
+      orderPtr = orderArg.c_str();
+    }
+
+    rgbSetupHoldLogical(r, g, b, orderPtr);
+
+    char body[72];
+
+    snprintf(
+      body,
+      sizeof(body),
+      "{\"ok\":true,\"setup\":\"led\",\"color\":\"%s\"}",
+      colorArg.c_str()
+    );
+
+    httpSendJson(server, 200, body);
+    return;
+  }
+
+  if (!hasByte || byteOff) {
+    rgbSetupRelease();
+    httpSendJson(server, 200, "{\"ok\":true,\"setup\":\"led\",\"off\":true}");
+    return;
+  }
+
+  if (!isDigitsOnly(byteArg)) {
+    httpSendJson(
+      server,
+      400,
+      "{\"ok\":false,\"error\":\"invalid byte\"}"
+    );
+    return;
+  }
+
+  const int byteIndex = byteArg.toInt();
+
+  if (byteIndex < 0 || byteIndex > 2) {
+    httpSendJson(
+      server,
+      400,
+      "{\"ok\":false,\"error\":\"byte out of range\"}"
+    );
+    return;
+  }
+
+  rgbSetupHoldWireByte(static_cast<uint8_t>(byteIndex));
+
+  char body[64];
+
+  snprintf(
+    body,
+    sizeof(body),
+    "{\"ok\":true,\"setup\":\"led\",\"byte\":%d}",
+    byteIndex
+  );
+
+  httpSendJson(server, 200, body);
+}
+
 }  // namespace
 
 bool isHttpSetupPath(const String& uri) {
-  return uri == "/setup/servo";
+  return uri == "/setup/servo" || uri == "/setup/led";
 }
 
 void registerHttpSetupRoutes(WebServer& server) {
@@ -169,5 +289,10 @@ void registerHttpSetupRoutes(WebServer& server) {
     "/setup/servo",
     HTTP_POST,
     [&server]() { httpWithApiAuth(server, handleSetupServo); }
+  );
+  server.on(
+    "/setup/led",
+    HTTP_POST,
+    [&server]() { httpWithApiAuth(server, handleSetupLed); }
   );
 }

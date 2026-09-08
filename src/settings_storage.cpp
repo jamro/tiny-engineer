@@ -26,6 +26,7 @@ constexpr const char* kKeyAccessTok = "access_tok";
 constexpr const char* kKeyWifiSsid = "wifi_ssid";
 constexpr const char* kKeyWifiPass = "wifi_pass";
 constexpr const char* kKeyServoRanges = "sranges";
+constexpr const char* kKeyRgbOrder = "rgb_ord";
 constexpr size_t kServoRangesLen = SETTINGS_SERVO_COUNT * 2;
 
 Preferences prefs;
@@ -88,6 +89,7 @@ char g_wifiSsid[SETTINGS_WIFI_SSID_MAX_LEN + 1] = {};
 char g_wifiPassword[SETTINGS_WIFI_PASSWORD_MAX_LEN + 1] = {};
 uint8_t g_servoMin[SETTINGS_SERVO_COUNT] = {};
 uint8_t g_servoMax[SETTINGS_SERVO_COUNT] = {};
+char g_rgbOrder[SETTINGS_RGB_ORDER_MAX_LEN + 1] = {};
 
 void setHostnameCache(char* dest, const char* src) {
   strncpy(dest, src, SETTINGS_HOSTNAME_MAX_LEN);
@@ -114,6 +116,11 @@ void setWifiPasswordCache(char* dest, const char* src) {
   dest[SETTINGS_WIFI_PASSWORD_MAX_LEN] = '\0';
 }
 
+void setRgbOrderCache(char* dest, const char* src) {
+  strncpy(dest, src, SETTINGS_RGB_ORDER_MAX_LEN);
+  dest[SETTINGS_RGB_ORDER_MAX_LEN] = '\0';
+}
+
 void logAccessTokenState() {
   serialLogPrint(" access_token=");
   serialLogPrint(g_accessToken[0] != '\0' ? "set" : "unset");
@@ -130,6 +137,7 @@ void initSettings() {
   setWifiSsidCache(g_wifiSsid, "");
   setWifiPasswordCache(g_wifiPassword, "");
   fillDefaultServoRanges(g_servoMin, g_servoMax);
+  setRgbOrderCache(g_rgbOrder, SETTINGS_DEFAULT_RGB_ORDER);
 
   if (!prefs.begin(kNs, true)) {
     serialLogPrintln("Settings: NVS open failed; using defaults");
@@ -223,6 +231,14 @@ void initSettings() {
     }
   }
 
+  String rgbOrder = prefs.getString(kKeyRgbOrder, SETTINGS_DEFAULT_RGB_ORDER);
+
+  if (settingsValidateRgbOrder(rgbOrder.c_str())) {
+    setRgbOrderCache(g_rgbOrder, rgbOrder.c_str());
+  } else {
+    setRgbOrderCache(g_rgbOrder, SETTINGS_DEFAULT_RGB_ORDER);
+  }
+
   prefs.end();
 
   setHostnameCache(g_bootHostname, g_hostname);
@@ -245,6 +261,8 @@ void initSettings() {
   serialLogPrint(" wifi=");
   serialLogPrint(g_wifiSsid[0] != '\0' ? "configured" : "unset");
   logServoRanges();
+  serialLogPrint(" rgb_order=");
+  serialLogPrint(g_rgbOrder);
   serialLogPrintln();
 }
 
@@ -261,6 +279,7 @@ bool saveSettings(
   const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
+  const char* rgbOrder,
   bool* rebootRequired
 ) {
   if (rebootRequired != nullptr) {
@@ -278,7 +297,8 @@ bool saveSettings(
       wifiSsid == nullptr &&
       wifiPassword == nullptr &&
       servoMins == nullptr &&
-      servoMaxs == nullptr) {
+      servoMaxs == nullptr &&
+      rgbOrder == nullptr) {
     return false;
   }
 
@@ -301,6 +321,8 @@ bool saveSettings(
   uint8_t nextServoMax[SETTINGS_SERVO_COUNT];
   memcpy(nextServoMin, g_servoMin, SETTINGS_SERVO_COUNT);
   memcpy(nextServoMax, g_servoMax, SETTINGS_SERVO_COUNT);
+  char nextRgbOrder[SETTINGS_RGB_ORDER_MAX_LEN + 1];
+  setRgbOrderCache(nextRgbOrder, g_rgbOrder);
 
   if (sleepTimeoutMin != nullptr) {
     if (!settingsValidateSleepTimeout(*sleepTimeoutMin)) {
@@ -387,6 +409,14 @@ bool saveSettings(
     memcpy(nextServoMax, servoMaxs, SETTINGS_SERVO_COUNT);
   }
 
+  if (rgbOrder != nullptr) {
+    if (!settingsValidateRgbOrder(rgbOrder)) {
+      return false;
+    }
+
+    setRgbOrderCache(nextRgbOrder, rgbOrder);
+  }
+
   if (!prefs.begin(kNs, false)) {
     serialLogPrintln("Settings: NVS write open failed");
     return false;
@@ -406,6 +436,7 @@ bool saveSettings(
   prefs.putString(kKeyWifiSsid, nextWifiSsid);
   prefs.putString(kKeyWifiPass, nextWifiPassword);
   prefs.putBytes(kKeyServoRanges, servoBlob, kServoRangesLen);
+  prefs.putString(kKeyRgbOrder, nextRgbOrder);
   prefs.end();
 
   g_sleepTimeoutMin = nextSleep;
@@ -420,6 +451,7 @@ bool saveSettings(
   setWifiPasswordCache(g_wifiPassword, nextWifiPassword);
   memcpy(g_servoMin, nextServoMin, SETTINGS_SERVO_COUNT);
   memcpy(g_servoMax, nextServoMax, SETTINGS_SERVO_COUNT);
+  setRgbOrderCache(g_rgbOrder, nextRgbOrder);
 
   if (rebootRequired != nullptr &&
       strcmp(g_hostname, g_bootHostname) != 0) {
@@ -444,6 +476,8 @@ bool saveSettings(
   serialLogPrint(" wifi=");
   serialLogPrint(g_wifiSsid[0] != '\0' ? "configured" : "unset");
   logServoRanges();
+  serialLogPrint(" rgb_order=");
+  serialLogPrint(g_rgbOrder);
   serialLogPrintln();
 
   return true;
@@ -470,7 +504,8 @@ bool factoryResetSettings(bool* rebootRequired) {
   setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
   setWifiSsidCache(g_wifiSsid, "");
   setWifiPasswordCache(g_wifiPassword, "");
-  // Keep g_servoMin / g_servoMax; write them back after prefs.clear().
+  // Keep g_servoMin / g_servoMax and g_rgbOrder; write them back after
+  // prefs.clear().
 
   if (!prefs.begin(kNs, false)) {
     serialLogPrintln("Settings: factory reset NVS open failed");
@@ -491,6 +526,7 @@ bool factoryResetSettings(bool* rebootRequired) {
   uint8_t servoBlob[kServoRangesLen];
   packServoRanges(servoBlob, g_servoMin, g_servoMax);
   prefs.putBytes(kKeyServoRanges, servoBlob, kServoRangesLen);
+  prefs.putString(kKeyRgbOrder, g_rgbOrder);
   prefs.end();
 
   serialLogPrint("Settings factory reset: sleep_timeout=");
@@ -511,6 +547,8 @@ bool factoryResetSettings(bool* rebootRequired) {
   serialLogPrint(" wifi=");
   serialLogPrint("unset");
   logServoRanges();
+  serialLogPrint(" rgb_order=");
+  serialLogPrint(g_rgbOrder);
   serialLogPrintln();
 
   return true;

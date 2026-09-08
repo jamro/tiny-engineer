@@ -1,7 +1,8 @@
 # Name,   Type, SubType, Offset,  Size, Flags
+# 4MB: one app slot (USB flash, no OTA). Dual 0x150000 OTA apps overflowed
+# the firmware (~1.38MB HTML UI). LittleFS stays 1.25MB for WAVs.
 nvs,      data, nvs,     0x9000,  0x5000,
 otadata,  data, ota,     0xe000,  0x2000,
-app0,     app,  ota_0,   0x10000, 0x150000,
-app1,     app,  ota_1,   0x160000,0x150000,
+app0,     app,  ota_0,   0x10000, 0x2A0000,
 spiffs,   data, spiffs,  0x2B0000,0x140000,
 coredump, data, coredump,0x3F0000,0x10000,

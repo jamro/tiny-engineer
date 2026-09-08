@@ -17,7 +17,8 @@ void formatServoRangeJson(char* dest, size_t destSize) {
     dest,
     destSize,
     "\"servo_mins\":[%u,%u,%u,%u,%u],"
-    "\"servo_maxs\":[%u,%u,%u,%u,%u]",
+    "\"servo_maxs\":[%u,%u,%u,%u,%u],"
+    "\"rgb_order\":\"%s\"",
     static_cast<unsigned>(settingsServoMin(0)),
     static_cast<unsigned>(settingsServoMin(1)),
     static_cast<unsigned>(settingsServoMin(2)),
@@ -27,7 +28,8 @@ void formatServoRangeJson(char* dest, size_t destSize) {
     static_cast<unsigned>(settingsServoMax(1)),
     static_cast<unsigned>(settingsServoMax(2)),
     static_cast<unsigned>(settingsServoMax(3)),
-    static_cast<unsigned>(settingsServoMax(4))
+    static_cast<unsigned>(settingsServoMax(4)),
+    settingsRgbOrder()
   );
 }
 
@@ -67,9 +69,9 @@ void sendSettingsJson(
   bool rebootRequired,
   bool wifiConnectSuccess
 ) {
-  char servoJson[96];
+  char servoJson[128];
   formatServoRangeJson(servoJson, sizeof(servoJson));
-  char body[896];
+  char body[960];
   const char* tokenSet =
     settingsAccessTokenSet() ? "true" : "false";
   const char* wifiConfigured =
@@ -205,14 +207,15 @@ void handleSettingsPost(WebServer& server) {
   const bool hasWifiPassword = server.hasArg("wifi_password");
   const bool hasServoMins = server.hasArg("servo_mins");
   const bool hasServoMaxs = server.hasArg("servo_maxs");
+  const bool hasRgbOrder = server.hasArg("rgb_order");
 
   if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasSerialLog &&
       !hasContTo && !hasLoading && !hasAccessToken && !hasWifiSsid &&
-      !hasWifiPassword && !hasServoMins && !hasServoMaxs) {
+      !hasWifiPassword && !hasServoMins && !hasServoMaxs && !hasRgbOrder) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, access_token, wifi_ssid, wifi_password, servo_mins, or servo_maxs\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, access_token, wifi_ssid, wifi_password, servo_mins, servo_maxs, or rgb_order\"}"
     );
     return;
   }
@@ -241,6 +244,8 @@ void handleSettingsPost(WebServer& server) {
   uint8_t servoMaxs[SETTINGS_SERVO_COUNT] = {};
   const uint8_t* servoMinsPtr = nullptr;
   const uint8_t* servoMaxsPtr = nullptr;
+  String rgbOrderArg;
+  const char* rgbOrderPtr = nullptr;
   bool wifiConnectSuccess = false;
 
   if (hasSleep) {
@@ -466,6 +471,7 @@ void handleSettingsPost(WebServer& server) {
             nullptr,
             nullptr,
             nullptr,
+            nullptr,
             nullptr
           )) {
         httpSendJson(
@@ -536,6 +542,30 @@ void handleSettingsPost(WebServer& server) {
     servoMaxsPtr = servoMaxs;
   }
 
+  if (hasRgbOrder) {
+    if (!wifiProvisioningMode()) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"rgb setup only in AP mode\"}"
+      );
+      return;
+    }
+
+    rgbOrderArg = server.arg("rgb_order");
+
+    if (!settingsValidateRgbOrder(rgbOrderArg.c_str())) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid rgb_order\"}"
+      );
+      return;
+    }
+
+    rgbOrderPtr = rgbOrderArg.c_str();
+  }
+
   bool rebootRequired = false;
 
   if (!saveSettings(
@@ -551,6 +581,7 @@ void handleSettingsPost(WebServer& server) {
         wifiPasswordPtr,
         servoMinsPtr,
         servoMaxsPtr,
+        rgbOrderPtr,
         &rebootRequired
       )) {
     httpSendJson(

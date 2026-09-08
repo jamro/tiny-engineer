@@ -85,6 +85,10 @@ float settingsServoMax(int index) {
   return static_cast<float>(g_servoMax[index]);
 }
 
+const char* settingsRgbOrder() {
+  return g_rgbOrder;
+}
+
 bool settingsValidateSleepTimeout(uint32_t sleepTimeoutMin) {
   return sleepTimeoutMin >= SETTINGS_SLEEP_TIMEOUT_MIN_MIN &&
          sleepTimeoutMin <= SETTINGS_SLEEP_TIMEOUT_MAX_MIN;
@@ -200,4 +204,17 @@ bool settingsValidateServoRanges(
   }
 
   return true;
+}
+
+bool settingsValidateRgbOrder(const char* rgbOrder) {
+  if (rgbOrder == nullptr) {
+    return false;
+  }
+
+  return strcmp(rgbOrder, "RGB") == 0 ||
+         strcmp(rgbOrder, "RBG") == 0 ||
+         strcmp(rgbOrder, "GRB") == 0 ||
+         strcmp(rgbOrder, "GBR") == 0 ||
+         strcmp(rgbOrder, "BRG") == 0 ||
+         strcmp(rgbOrder, "BGR") == 0;
 }

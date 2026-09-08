@@ -127,7 +127,7 @@ body.setup-mode #config-form,body.setup-mode .config-danger{display:none!importa
 body.setup-mode #config-page-title,body.setup-mode #config-page-desc{display:none!important}
 body:not(.setup-mode) #setup-wizard{display:none!important}
 .setup-progress-track{height:.35rem;background:#e8e4df;border-radius:99px;margin:0 0 1.25rem;overflow:hidden}
-.setup-progress-bar{height:100%;width:50%;background:var(--accent);border-radius:99px}
+.setup-progress-bar{height:100%;width:33%;background:var(--accent);border-radius:99px}
 .setup-footer{display:flex;gap:.75rem;margin-top:1.25rem;align-items:stretch}
 .setup-footer[hidden]{display:none!important}
 .setup-footer .btn{width:auto;min-width:7rem;text-align:center;font-weight:600}
@@ -145,6 +145,28 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 .calib-minmax .btn{flex:1;text-align:center;font-weight:600;min-height:2.85rem}
 #setup-move-90{margin-top:0}
 #setup-horns-done{margin-top:.75rem;text-align:center;font-weight:600}
+.led-map{display:flex;gap:.65rem;align-items:flex-end;margin:0 0 1.15rem}
+.led-chip-wrap{text-align:center}
+.led-chip{width:2.5rem;height:2.5rem;border-radius:.45rem;border:1px solid var(--border)}
+.led-chip.R{background:#e53935}
+.led-chip.G{background:#43a047}
+.led-chip.B{background:#1e88e5}
+.led-chip-letter{display:block;font-size:.8rem;font-weight:700;margin-top:.25rem}
+.led-test{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin:0 0 1rem}
+.led-test .btn{width:100%;min-height:3.1rem;text-align:center;font-weight:700;padding:.7rem .35rem;color:#fff}
+.led-test .btn.R{background:#e53935;border-color:#e53935}
+.led-test .btn.G{background:#43a047;border-color:#43a047}
+.led-test .btn.B{background:#1e88e5;border-color:#1e88e5}
+#setup-led-remap-toggle{margin-top:0;text-align:center;font-weight:600}
+.led-byte{margin:0 0 1rem;padding-bottom:.85rem;border-bottom:1px solid var(--border)}
+.led-byte:last-child{margin-bottom:0;padding-bottom:0;border-bottom:0}
+.led-byte-label{font-weight:600;font-size:.9rem;margin:0 0 .45rem}
+.led-looks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-top:.5rem}
+.led-looks .btn{width:100%;min-height:2.85rem;text-align:center;font-weight:600;padding:.65rem .35rem}
+.led-looks .btn.active.R{background:#e53935;color:#fff;border-color:#e53935}
+.led-looks .btn.active.G{background:#43a047;color:#fff;border-color:#43a047}
+.led-looks .btn.active.B{background:#1e88e5;color:#fff;border-color:#1e88e5}
+.led-light{margin-top:0;text-align:center;font-weight:600}
 </style>
 </head>
 <body>
@@ -165,8 +187,8 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <div id="reboot-gate">
 <div class="auth-box">
 <h1>Factory reset done</h1>
-<p>Settings and WiFi credentials are cleared. Servo ranges stay. Power-cycle or press the device reset button.</p>
-<p>Then join the robot WiFi shown on the OLED and open the setup page to configure home WiFi. You can retune servo ranges there.</p>
+<p>Settings and WiFi credentials are cleared. Servo ranges and RGB LED mapping stay. Power-cycle or press the device reset button.</p>
+<p>Then join the robot WiFi shown on the OLED and open the setup page to configure home WiFi. You can retune servo ranges and LED mapping there.</p>
 </div>
 </div>
 <nav>
@@ -190,7 +212,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, serial logging, and API token. WiFi is set in setup mode after factory reset; servo ranges can be retuned there too.</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, serial logging, and API token. WiFi is set in setup mode after factory reset; servo ranges and RGB mapping can be retuned there too.</p></a>
 <a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
 <a class="card card-github" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener"><h3>GitHub docs &rarr;</h3><p>Build guide, wiring, and full project docs.</p></a>
 </div>
@@ -221,6 +243,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <tr><td>POST</td><td><code>/test/led</code></td><td>RGB LED cycle</td></tr>
 <tr><td>POST</td><td><code>/test/servo</code></td><td>Move one servo (see parameters below)</td></tr>
 <tr><td>POST</td><td><code>/setup/servo</code></td><td>Setup AP only: slow 0&ndash;180&deg; move (see parameters below)</td></tr>
+<tr><td>POST</td><td><code>/setup/led</code></td><td>Setup AP only: light logical RGB or one WS2812 wire byte (see parameters below)</td></tr>
 </table>
 <p>POST <code>/settings</code> &mdash; query params (at least one required):</p>
 <table>
@@ -237,8 +260,9 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <tr><td><code>wifi_password</code></td><td>string</td><td>0&ndash;63 chars; setup AP only; tested before save</td></tr>
 <tr><td><code>servo_mins</code></td><td>string</td><td>5 comma-separated ints 0&ndash;180; setup AP only; requires <code>servo_maxs</code></td></tr>
 <tr><td><code>servo_maxs</code></td><td>string</td><td>5 comma-separated ints 0&ndash;180; setup AP only; each max &gt; min</td></tr>
+<tr><td><code>rgb_order</code></td><td>string</td><td><code>RGB</code>, <code>RBG</code>, <code>GRB</code>, <code>GBR</code>, <code>BRG</code>, or <code>BGR</code>; setup AP only; default <code>GRB</code></td></tr>
 </table>
-<p>WiFi credentials and servo min/max can only be set in setup AP mode. During setup, <code>hostname</code> may be sent with <code>wifi_ssid</code> and <code>wifi_password</code> (same hostname rules as Config). During setup (credentials not saved), control APIs return <strong>503</strong> <code>wifi not configured</code>; <code>POST /setup/servo</code> stays available. Change WiFi later via factory reset. Servo ranges survive factory reset and can be retuned in the setup wizard.</p>
+<p>WiFi credentials, servo min/max, and RGB LED mapping can only be set in setup AP mode. During setup, <code>hostname</code> may be sent with <code>wifi_ssid</code> and <code>wifi_password</code> (same hostname rules as Config). During setup (credentials not saved), control APIs return <strong>503</strong> <code>wifi not configured</code>; <code>POST /setup/servo</code> and <code>POST /setup/led</code> stay available. Change WiFi later via factory reset. Servo ranges and RGB mapping survive factory reset and can be retuned in the setup wizard.</p>
 <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
 <table>
 <tr><th>Value</th><th>Description</th></tr>
@@ -267,6 +291,13 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <tr><td><code>all</code></td><td>integer</td><td><code>90</code> (move every joint to 90&deg;)</td></tr>
 <tr><td><code>index</code></td><td>integer</td><td>0&ndash;4 (required with <code>angle</code> when <code>all</code> is omitted)</td></tr>
 <tr><td><code>angle</code></td><td>number</td><td>0&ndash;180</td></tr>
+</table>
+<p>POST <code>/setup/led</code> &mdash; setup AP only, no Wi-Fi gate. Lights a logical color or one WS2812 <em>wire</em> byte. Query params:</p>
+<table>
+<tr><th>Param</th><th>Type</th><th>Range</th></tr>
+<tr><td><code>color</code></td><td>string</td><td><code>R</code>, <code>G</code>, or <code>B</code> (logical; uses saved or <code>rgb_order</code>)</td></tr>
+<tr><td><code>rgb_order</code></td><td>string</td><td><code>RGB</code>, <code>RBG</code>, <code>GRB</code>, <code>GBR</code>, <code>BRG</code>, or <code>BGR</code> (optional with <code>color</code>)</td></tr>
+<tr><td><code>byte</code></td><td>string</td><td><code>0</code>, <code>1</code>, <code>2</code>, or <code>off</code> (omit or <code>off</code> releases the hold)</td></tr>
 </table>
 </section>
 
@@ -340,7 +371,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <p class="page-desc" id="config-page-desc">Saved to flash. Most changes apply right away.</p>
 <div id="setup-wizard">
 <h2 class="page-title">Tiny Engineer setup</h2>
-<p id="setup-progress-label" class="page-desc">Step 1 of 2 &middot; Servos</p>
+<p id="setup-progress-label" class="page-desc">Step 1 of 3 &middot; Servos</p>
 <div class="setup-progress-track"><div id="setup-progress-bar" class="setup-progress-bar"></div></div>
 <div id="setup-step-servos">
 <div id="setup-phase-horns">
@@ -392,6 +423,53 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 </div>
 </div>
 </div>
+<div id="setup-step-led" hidden>
+<div class="config-section">
+<h3>RGB LED</h3>
+<p class="setup-copy">Tap Red, Green, and Blue. The LED should match. If a color looks wrong or stays off, change the mapping &mdash; some boards swap the LED wires.</p>
+<div class="led-test">
+<button type="button" class="btn R" data-led-color="R">Red</button>
+<button type="button" class="btn G" data-led-color="G">Green</button>
+<button type="button" class="btn B" data-led-color="B">Blue</button>
+</div>
+<button type="button" id="setup-led-remap-toggle" class="btn">Change color mapping</button>
+<div id="setup-led-remap" hidden>
+<p class="setup-copy">Light one channel at a time. Tap the color you <strong>actually</strong> see.</p>
+<p class="setup-copy"><strong>Current mapping</strong></p>
+<div id="setup-led-map" class="led-map"></div>
+<div class="led-byte">
+<p class="led-byte-label">First byte</p>
+<button type="button" class="btn led-light" data-led-byte="0">Light</button>
+<p class="hint">Looks like</p>
+<div class="led-looks" data-led-byte="0">
+<button type="button" class="btn R" data-look="R">Red</button>
+<button type="button" class="btn G" data-look="G">Green</button>
+<button type="button" class="btn B" data-look="B">Blue</button>
+</div>
+</div>
+<div class="led-byte">
+<p class="led-byte-label">Second byte</p>
+<button type="button" class="btn led-light" data-led-byte="1">Light</button>
+<p class="hint">Looks like</p>
+<div class="led-looks" data-led-byte="1">
+<button type="button" class="btn R" data-look="R">Red</button>
+<button type="button" class="btn G" data-look="G">Green</button>
+<button type="button" class="btn B" data-look="B">Blue</button>
+</div>
+</div>
+<div class="led-byte">
+<p class="led-byte-label">Third byte</p>
+<button type="button" class="btn led-light" data-led-byte="2">Light</button>
+<p class="hint">Looks like</p>
+<div class="led-looks" data-led-byte="2">
+<button type="button" class="btn R" data-look="R">Red</button>
+<button type="button" class="btn G" data-look="G">Green</button>
+<button type="button" class="btn B" data-look="B">Blue</button>
+</div>
+</div>
+</div>
+</div>
+</div>
 <div id="setup-step-network" hidden>
 <div id="wifi-config-section" class="config-section">
 <div class="config-section-head"><h3>WiFi</h3><span class="apply-badge apply-now">Immediate</span></div>
@@ -420,7 +498,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 </div>
 <div id="setup-footer" class="setup-footer">
 <button type="button" id="setup-back" class="btn" hidden>Back</button>
-<button type="button" id="setup-next" class="btn btn-primary" hidden>Next: Network</button>
+<button type="button" id="setup-next" class="btn btn-primary" hidden>Next: RGB mapping</button>
 </div>
 </div>
 <form id="config-form">
@@ -496,7 +574,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 </form>
 <div class="config-section config-danger">
 <h3>Factory reset</h3>
-<p class="hint">Erases saved settings and restores defaults. WiFi credentials are cleared. Servo ranges stay. Power-cycle the device to reopen setup AP mode and configure WiFi again.</p>
+<p class="hint">Erases saved settings and restores defaults. WiFi credentials are cleared. Servo ranges and RGB LED mapping stay. Power-cycle the device to reopen setup AP mode and configure WiFi again.</p>
 <button type="button" id="config-factory-reset" class="btn btn-danger">Factory reset</button>
 </div>
 </section>
@@ -508,7 +586,8 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <script>
 var SERVO_DEFAULT_RANGES=[[60,130],[40,130],[45,135],[35,125],[40,130]];
 var SERVO_RANGES=[[60,130],[40,130],[45,135],[35,125],[40,130]];
-var SETUP_STEPS=[{id:"servos",title:"Servos"},{id:"network",title:"Network"}];
+var SETUP_STEPS=[{id:"servos",title:"Servos"},{id:"led",title:"RGB mapping"},{id:"network",title:"Network"}];
+var RGB_ORDERS=["RGB","RBG","GRB","GBR","BRG","BGR"];
 var SETUP_JOINT_COPY=[
   "Pitch only. Watch cable slack to the head. Stop before the head hits the neck piece. Down is toward the laptop; up is away.",
   "Yaw left and right. Stop when the cables pull taut. Do not twist until the loom binds.",
@@ -521,6 +600,9 @@ var setupServoPhase="horns";
 var setupCalibJoint=0;
 var setupCalibDeg=90;
 var setupCalibRanges=[[60,130],[40,130],[45,135],[35,125],[40,130]];
+var setupRgbOrder="GRB";
+var setupLedLooks=["G","R","B"];
+var setupLedRemapOpen=false;
 var TOKEN_KEY="te_access_token";
 var ACCESS_TOKEN_MASK="********";
 var accessTokenConfigured=false;
@@ -606,7 +688,7 @@ function syncSetupUi(done){
       if(title)title.textContent=inSetup?"WiFi setup":"Config";
       if(desc){
         desc.textContent=inSetup
-          ?"Calibrate servos, then enter a device name and your home WiFi network. The robot tests the connection before saving."
+          ?"Calibrate servos, map the onboard LED, then enter a device name and your home WiFi network. The robot tests the connection before saving."
           :"Saved to flash. Most changes apply right away.";
       }
       if(inSetup)applySetupWizardUi();
@@ -626,12 +708,78 @@ function applyServoRangesFromSettings(j){
   if(!j||!j.servo_mins||!j.servo_maxs||j.servo_mins.length!==5||j.servo_maxs.length!==5)return;
   for(var i=0;i<5;i++)SERVO_RANGES[i]=[j.servo_mins[i],j.servo_maxs[i]];
 }
+function applyRgbOrderFromSettings(j){
+  if(j&&typeof j.rgb_order==="string"&&RGB_ORDERS.indexOf(j.rgb_order)>=0){
+    setupRgbOrder=j.rgb_order;
+  }
+  applyRgbOrder(setupRgbOrder);
+}
+function applyRgbOrder(order){
+  if(RGB_ORDERS.indexOf(order)<0)order="GRB";
+  setupLedLooks=[order.charAt(0),order.charAt(1),order.charAt(2)];
+}
+function rgbOrderFromLooks(){
+  return setupLedLooks.join("");
+}
+function ledMappingValid(){
+  return RGB_ORDERS.indexOf(rgbOrderFromLooks())>=0;
+}
+function renderLedMap(){
+  var map=document.getElementById("setup-led-map");
+  if(!map)return;
+  map.innerHTML="";
+  for(var i=0;i<3;i++){
+    var ch=setupLedLooks[i];
+    var wrap=document.createElement("div");
+    wrap.className="led-chip-wrap";
+    var chip=document.createElement("div");
+    chip.className="led-chip "+ch;
+    var letter=document.createElement("span");
+    letter.className="led-chip-letter";
+    letter.textContent=ch;
+    wrap.appendChild(chip);
+    wrap.appendChild(letter);
+    map.appendChild(wrap);
+  }
+}
+function updateLedLooksUi(){
+  document.querySelectorAll(".led-looks").forEach(function(row){
+    var byte=parseInt(row.getAttribute("data-led-byte"),10);
+    var picked=setupLedLooks[byte];
+    row.querySelectorAll("[data-look]").forEach(function(btn){
+      btn.classList.toggle("active",btn.getAttribute("data-look")===picked);
+    });
+  });
+  renderLedMap();
+}
+function releaseSetupLed(){
+  apiFetch("/setup/led?byte=off",{method:"POST"}).catch(function(){});
+}
+function setupLedPreview(query){
+  apiFetch("/setup/led?"+query,{method:"POST"})
+    .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
+    .then(function(res){
+      if(res.ok&&res.data.ok!==false){
+        clearStatus();
+      }else{
+        setStatus(res.data.error||"LED preview failed","err");
+      }
+    })
+    .catch(function(){setStatus("Network error","err");});
+}
+function setupLedTestColor(ch){
+  var order=ledMappingValid()?rgbOrderFromLooks():setupRgbOrder;
+  setupLedPreview("color="+encodeURIComponent(ch)+"&rgb_order="+encodeURIComponent(order));
+}
 function resetSetupWizard(){
   setupStepIndex=0;
   setupServoPhase="horns";
   setupCalibJoint=0;
   setupCalibDeg=90;
   setupCalibRanges=cloneRanges(SERVO_RANGES);
+  applyRgbOrder(setupRgbOrder);
+  setupLedRemapOpen=false;
+  releaseSetupLed();
   applySetupWizardUi();
 }
 function calibRangesValid(){
@@ -643,19 +791,28 @@ function calibRangesValid(){
 function applySetupWizardUi(){
   var total=SETUP_STEPS.length;
   var step=setupStepIndex;
+  var last=total-1;
   var horns=setupServoPhase==="horns";
   document.getElementById("setup-progress-label").textContent="Step "+(step+1)+" of "+total+" \u00b7 "+SETUP_STEPS[step].title;
   document.getElementById("setup-progress-bar").style.width=((step+1)/total*100)+"%";
   document.getElementById("setup-step-servos").hidden=step!==0;
-  document.getElementById("setup-step-network").hidden=step!==1;
+  document.getElementById("setup-step-led").hidden=step!==1;
+  document.getElementById("setup-step-network").hidden=step!==last;
   document.getElementById("setup-phase-horns").hidden=step!==0||!horns;
   document.getElementById("setup-phase-ranges").hidden=step!==0||horns;
   document.getElementById("setup-footer").hidden=step===0&&horns;
-  document.getElementById("setup-back").hidden=!(step===1||(step===0&&!horns));
-  document.getElementById("setup-next").hidden=!(step===0&&!horns);
-  document.getElementById("setup-next").disabled=!calibRangesValid();
+  document.getElementById("setup-back").hidden=step===0&&horns;
+  document.getElementById("setup-next").hidden=step===last||(step===0&&horns);
+  document.getElementById("setup-next").textContent=step===0?"Next: RGB mapping":"Next: Network";
+  if(step===0){
+    document.getElementById("setup-next").disabled=!calibRangesValid();
+  }else if(step===1){
+    document.getElementById("setup-next").disabled=!ledMappingValid();
+    document.getElementById("setup-led-remap").hidden=!setupLedRemapOpen;
+    if(setupLedRemapOpen)updateLedLooksUi();
+  }
   if(step===0&&!horns)updateCalibUi();
-  if(step===1){
+  if(step===last){
     var ssidField=document.getElementById("config-wifi-ssid");
     if(ssidField)ssidField.focus();
   }
@@ -970,6 +1127,7 @@ function loadSettings(){
     setAccessTokenFromServer(!!j.access_token_set);
     updateWelcomeMotionHint();
     applyServoRangesFromSettings(j);
+    applyRgbOrderFromSettings(j);
     setupCalibRanges=cloneRanges(SERVO_RANGES);
     updateServoHint();
     if(provisioningMode||!wifiConfigured)applySetupWizardUi();
@@ -986,7 +1144,13 @@ document.getElementById("setup-horns-done").addEventListener("click",function(){
   applySetupWizardUi();
 });
 document.getElementById("setup-back").addEventListener("click",function(){
+  if(setupStepIndex===2){
+    setupStepIndex=1;
+    applySetupWizardUi();
+    return;
+  }
   if(setupStepIndex===1){
+    releaseSetupLed();
     setupStepIndex=0;
     setupServoPhase="ranges";
     applySetupWizardUi();
@@ -998,7 +1162,30 @@ document.getElementById("setup-back").addEventListener("click",function(){
   }
 });
 document.getElementById("setup-next").addEventListener("click",function(){
-  if(busy||!calibRangesValid())return;
+  if(busy)return;
+  if(setupStepIndex===1){
+    if(!ledMappingValid())return;
+    var order=rgbOrderFromLooks();
+    setBusy(true);
+    setStatus("Saving LED mapping\u2026","loading");
+    apiFetch("/settings?rgb_order="+encodeURIComponent(order),{method:"POST"})
+      .then(function(r){return r.json().then(function(j){return{ok:r.ok,data:j};});})
+      .then(function(res){
+        if(res.ok&&res.data.ok!==false){
+          applyRgbOrderFromSettings(res.data);
+          releaseSetupLed();
+          setupStepIndex=2;
+          applySetupWizardUi();
+          clearStatus();
+        }else{
+          setStatus(res.data.error||"Save failed","err");
+        }
+      })
+      .catch(function(){setStatus("Network error","err");})
+      .finally(function(){setBusy(false);applySetupWizardUi();});
+    return;
+  }
+  if(setupStepIndex!==0||!calibRangesValid())return;
   var mins=setupCalibRanges.map(function(r){return r[0];}).join(",");
   var maxs=setupCalibRanges.map(function(r){return r[1];}).join(",");
   setBusy(true);
@@ -1018,7 +1205,37 @@ document.getElementById("setup-next").addEventListener("click",function(){
       }
     })
     .catch(function(){setStatus("Network error","err");})
-    .finally(function(){setBusy(false);});
+    .finally(function(){setBusy(false);applySetupWizardUi();});
+});
+document.querySelectorAll("[data-led-color]").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    if(busy)return;
+    setupLedTestColor(this.getAttribute("data-led-color"));
+  });
+});
+document.getElementById("setup-led-remap-toggle").addEventListener("click",function(){
+  setupLedRemapOpen=true;
+  document.getElementById("setup-led-remap").hidden=false;
+  updateLedLooksUi();
+});
+document.querySelectorAll(".led-light[data-led-byte]").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    if(busy)return;
+    var byte=this.getAttribute("data-led-byte");
+    setupLedPreview("byte="+encodeURIComponent(byte));
+  });
+});
+document.querySelectorAll(".led-looks [data-look]").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    var row=this.closest(".led-looks");
+    if(!row)return;
+    var byte=parseInt(row.getAttribute("data-led-byte"),10);
+    setupLedLooks[byte]=this.getAttribute("data-look");
+    updateLedLooksUi();
+    if(setupStepIndex===1){
+      document.getElementById("setup-next").disabled=!ledMappingValid();
+    }
+  });
 });
 document.querySelectorAll("#setup-joint-tabs [data-joint]").forEach(function(btn){
   btn.addEventListener("click",function(){
@@ -1138,7 +1355,7 @@ document.getElementById("config-form").addEventListener("submit",function(e){
 });
 document.getElementById("config-factory-reset").addEventListener("click",function(){
   if(busy)return;
-  if(!confirm("Reset settings to factory defaults? WiFi credentials will be cleared. Servo ranges stay. Power-cycle the device to reopen setup AP mode and configure WiFi again."))return;
+  if(!confirm("Reset settings to factory defaults? WiFi credentials will be cleared. Servo ranges and RGB LED mapping stay. Power-cycle the device to reopen setup AP mode and configure WiFi again."))return;
   setBusy(true);
   setStatus("Resetting\u2026","loading");
   apiFetch("/settings/reset",{method:"POST"})
