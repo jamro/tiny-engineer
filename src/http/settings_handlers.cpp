@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "display/oled.h"
 #include "http/json.h"
 #include "http/server_context.h"
 #include "network/wifi_connect.h"
@@ -457,33 +458,7 @@ void handleSettingsPost(WebServer& server) {
       return;
     }
 
-    if (hasHost) {
-      if (!saveSettings(
-            nullptr,
-            hostPtr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr,
-            nullptr
-          )) {
-        httpSendJson(
-          server,
-          400,
-          "{\"ok\":false,\"error\":\"save failed\"}"
-        );
-        return;
-      }
-    }
-
-    if (!wifiTestCredentials(wifiSsidPtr, wifiPasswordPtr)) {
+    if (!wifiTestCredentials(wifiSsidPtr, wifiPasswordPtr, hostPtr)) {
       char body[96];
       snprintf(
         body,
@@ -584,6 +559,10 @@ void handleSettingsPost(WebServer& server) {
         rgbOrderPtr,
         &rebootRequired
       )) {
+    if (wifiConnectSuccess) {
+      wifiRestoreProvisioningAp();
+    }
+
     httpSendJson(
       server,
       400,
@@ -594,6 +573,12 @@ void handleSettingsPost(WebServer& server) {
 
   refreshMdnsHostname();
   sendSettingsJson(server, rebootRequired, wifiConnectSuccess);
+
+  if (wifiConnectSuccess) {
+    delay(300);
+    wifiStopProvisioningAp();
+    showBootIp(wifiIpText());
+  }
 }
 
 void handleSettingsReset(WebServer& server) {

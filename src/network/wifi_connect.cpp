@@ -116,8 +116,15 @@ void stopCaptiveDns() {
   dnsStarted = false;
 }
 
-bool connectSta(const char* ssid, const char* password) {
-  const char* hostname = settingsHostname();
+bool connectSta(
+  const char* ssid,
+  const char* password,
+  const char* hostnameOverride = nullptr
+) {
+  const char* hostname =
+    (hostnameOverride != nullptr && hostnameOverride[0] != '\0')
+      ? hostnameOverride
+      : settingsHostname();
 
   serialLogPrint("SSID: ");
   serialLogPrintln(ssid);
@@ -125,7 +132,7 @@ bool connectSta(const char* ssid, const char* password) {
   serialLogPrintln(hostname);
 
   WiFi.persistent(false);
-  WiFi.disconnect(true);
+  WiFi.disconnect(false);
   WiFi.setHostname(hostname);
   WiFi.enableIPv6(true);
   WiFi.begin(ssid, password);
@@ -235,7 +242,16 @@ void wifiStopProvisioningAp() {
   provisioning = false;
 }
 
-bool wifiTestCredentials(const char* ssid, const char* password) {
+void wifiRestoreProvisioningAp() {
+  WiFi.disconnect(false);
+  startProvisioningAp();
+}
+
+bool wifiTestCredentials(
+  const char* ssid,
+  const char* password,
+  const char* hostname
+) {
   if (ssid == nullptr || password == nullptr) {
     setConnectError("Missing credentials");
     return false;
@@ -262,19 +278,11 @@ bool wifiTestCredentials(const char* ssid, const char* password) {
   WiFi.softAP(apSsid);
   startCaptiveDns();
 
-  if (!connectSta(ssid, password)) {
-    WiFi.disconnect(true);
-    WiFi.mode(WIFI_AP);
-    WiFi.softAP(apSsid);
-    provisioning = true;
-    staConnected = false;
-    ipText[0] = '\0';
+  if (!connectSta(ssid, password, hostname)) {
+    wifiRestoreProvisioningAp();
     return false;
   }
 
-  stopCaptiveDns();
-  WiFi.softAPdisconnect(true);
-  provisioning = false;
   return true;
 }
 
