@@ -10,7 +10,7 @@
 #include "display/oled.h"
 #include "network/wifi_connect.h"
 #include "servos.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 namespace {
 

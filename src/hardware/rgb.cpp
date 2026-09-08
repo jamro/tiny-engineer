@@ -6,7 +6,7 @@
 #include "pins.h"
 #include "hardware/rgb.h"
 #include "serial_log.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 #include <cstring>
 

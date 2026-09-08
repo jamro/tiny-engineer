@@ -1,6 +1,6 @@
 # Adding a setting
 
-Persistent settings live in NVS (namespace `te`) via [`src/settings.cpp`](../src/settings.cpp) and [`src/settings_storage.cpp`](../src/settings_storage.cpp). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
+Persistent settings live in NVS (namespace `te`) under [`src/settings/`](../src/settings/). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
 Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token`, `wifi_ssid`, `wifi_password`, `sranges` (packed servo min/max blob), `rgb_ord` (WS2812 byte-order string). Follow the same pattern for a new one.
 
@@ -19,17 +19,19 @@ Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `
 
 Work through these layers in order. Mirror an existing setting (`volume` is the simplest integer example; `hostname` shows reboot + string validation).
 
-### 1. Core — [`src/settings.h`](../src/settings.h) / [`src/settings.cpp`](../src/settings.cpp) / [`src/settings_storage.cpp`](../src/settings_storage.cpp)
+### 1. Core — [`src/settings/`](../src/settings/)
 
-1. Add `SETTINGS_DEFAULT_*`, min/max (or length) constants.
-2. Add NVS key string in [`settings_storage.cpp`](../src/settings_storage.cpp) (e.g. `kKeyFoo = "foo"`).
-3. Add RAM cache variable in [`settings_internal.h`](../src/settings_internal.h) / [`settings_storage.cpp`](../src/settings_storage.cpp); load + validate in `initSettings()`; fall back to default on bad/missing data.
-4. Add getter `settingsFoo()` and `settingsValidateFoo(...)` in [`settings.cpp`](../src/settings.cpp).
-5. Extend `saveSettings(...)` with a nullable `const T* foo`:
+Public API: [`settings.h`](../src/settings/settings.h). RAM cache: [`internal.h`](../src/settings/internal.h) / [`cache.cpp`](../src/settings/cache.cpp). NVS keys: [`nvs.h`](../src/settings/nvs.h) / [`nvs.cpp`](../src/settings/nvs.cpp). Load: [`load.cpp`](../src/settings/load.cpp). Save: [`save.cpp`](../src/settings/save.cpp). Reset: [`reset.cpp`](../src/settings/reset.cpp). Getters: [`getters.cpp`](../src/settings/getters.cpp). Validation: [`validate.cpp`](../src/settings/validate.cpp).
+
+1. Add `SETTINGS_DEFAULT_*`, min/max (or length) constants in [`settings.h`](../src/settings/settings.h).
+2. Add NVS key string in [`nvs.h`](../src/settings/nvs.h) (e.g. `kKeyFoo = "foo"`) and persist it in `writeAllToNvs` / `settingsNvsPutAll` in [`nvs.cpp`](../src/settings/nvs.cpp).
+3. Add RAM cache variable in [`internal.h`](../src/settings/internal.h) / [`cache.cpp`](../src/settings/cache.cpp); load + validate in `initSettings()` ([`load.cpp`](../src/settings/load.cpp)); fall back to default on bad/missing data.
+4. Add getter `settingsFoo()` in [`getters.cpp`](../src/settings/getters.cpp) and `settingsValidateFoo(...)` in [`validate.cpp`](../src/settings/validate.cpp).
+5. Extend `saveSettings(...)` in [`save.cpp`](../src/settings/save.cpp) with a nullable `const T* foo`:
    - Reject the whole save if validation fails.
    - Require at least one non-null arg among all settings.
    - Write all persisted fields together (current pattern rewrites sleep/host/volume/welcome/continuous_timeout/loading/access_token each save).
-6. Log the new value on load and save (for secrets like `access_token`, log set/unset only — never the raw value).
+6. Log the new value on load and save via `logSettingsSnapshot` in [`cache.cpp`](../src/settings/cache.cpp) (for secrets like `access_token`, log set/unset only — never the raw value).
 
 ### 2. Consumers
 
@@ -83,7 +85,7 @@ Flash only when you want to try it on hardware (`pio run -t upload`).
 
 - **Partial writes:** validate first; never write NVS then fail validation mid-way.
 - **JSON buffer:** `sendSettingsJson` uses a fixed `char` buffer — bump size when adding fields.
-- **Factory reset:** `factoryResetSettings()` in [`settings_storage.cpp`](../src/settings_storage.cpp) clears NVS namespace `te` and writes defaults, including WiFi credentials. Servo min/max (`sranges`) and RGB LED mapping (`rgb_ord`) are written back unchanged. Exposed as `POST /settings/reset`. After reset, power-cycle into setup AP mode to configure WiFi again (WiFi is not editable on the normal Config page). Servo ranges and LED mapping can be retuned in that wizard.
+- **Factory reset:** `factoryResetSettings()` in [`reset.cpp`](../src/settings/reset.cpp) clears NVS namespace `te` and writes defaults, including WiFi credentials. Servo min/max (`sranges`) and RGB LED mapping (`rgb_ord`) are written back unchanged. Exposed as `POST /settings/reset`. After reset, power-cycle into setup AP mode to configure WiFi again (WiFi is not editable on the normal Config page). Servo ranges and LED mapping can be retuned in that wizard.
 - **Hostname-style settings:** freeze the boot value separately if live change cannot apply (see `settingsBootHostname()` / `reboot_required`).
 - **HTML string size:** the panel is a big string literal in `index_page.cpp`; keep controls compact.
 - **Doc drift:** HTML param tables must match `api.md` exactly.

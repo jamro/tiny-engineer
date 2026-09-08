@@ -9,7 +9,7 @@
 #include "http/json.h"
 #include "http/server_context.h"
 #include "network/wifi_connect.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 void handleAuth() {
   WebServer& server = httpServer();

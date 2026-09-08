@@ -2,7 +2,7 @@
 
 #include <cstring>
 
-#include "settings.h"
+#include "settings/settings.h"
 
 namespace {
 

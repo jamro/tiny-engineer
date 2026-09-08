@@ -6,7 +6,7 @@
 #include "servos.h"
 #include "hardware/servo_wrapper.h"
 #include "serial_log.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 Adafruit_PWMServoDriver pwm(PCA9685_ADDRESS);
 

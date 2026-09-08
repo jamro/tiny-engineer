@@ -3,7 +3,7 @@
 #include <ESPmDNS.h>
 #include <DNSServer.h>
 
-#include "settings.h"
+#include "settings/settings.h"
 #include "network/wifi_connect.h"
 #include "serial_log.h"
 

@@ -6,7 +6,7 @@
 #include <LittleFS.h>
 
 #include "audio/audio.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "serial_log.h"
 
 namespace {

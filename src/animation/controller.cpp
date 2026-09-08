@@ -12,7 +12,7 @@
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "sleep.h"
 #include "serial_log.h"
 

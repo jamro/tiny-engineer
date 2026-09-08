@@ -7,7 +7,7 @@
 #include "hardware/servo_wrapper.h"
 #include "hardware/pca9685_servos.h"
 #include "serial_log.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 bool pca9685Connected() {
   return i2cDeviceConnected(PCA9685_ADDRESS);

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "settings.h"
+#include "settings/settings.h"
 
 extern uint32_t g_sleepTimeoutMin;
 extern char g_hostname[SETTINGS_HOSTNAME_MAX_LEN + 1];
@@ -26,3 +26,4 @@ void setWifiSsidCache(char* dest, const char* src);
 void setWifiPasswordCache(char* dest, const char* src);
 void setRgbOrderCache(char* dest, const char* src);
 void logAccessTokenState();
+void logSettingsSnapshot(const char* prefix);
