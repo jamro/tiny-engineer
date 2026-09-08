@@ -6,6 +6,9 @@
   "bin": {
     "tiny-engineer-cursor": "./bin/tiny-engineer-cursor.js"
   },
+  "scripts": {
+    "test": "node --test"
+  },
   "files": [
     "bin",
     "src"
