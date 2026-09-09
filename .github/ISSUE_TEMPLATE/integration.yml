@@ -1,0 +1,52 @@
+name: Integration
+description: Cursor hooks, Antigravity CLI, or raw REST not matching agent events.
+title: "fix: "
+labels: [integration]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Same robot API for every client: `POST /anim?name=…`. See [docs/integration.md](https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md).
+        Clients should use a short timeout (about 2s) and ignore network errors so a missing robot does not stall the agent.
+  - type: dropdown
+    id: path
+    attributes:
+      label: Path
+      options:
+        - Cursor hooks (`tiny-engineer-cursor`)
+        - Antigravity CLI (`tiny-engineer-antigravity`)
+        - Raw REST / curl / other agent
+    validations:
+      required: true
+  - type: input
+    id: event
+    attributes:
+      label: Agent event → pose
+      description: Hook event or script step, and the `name` you sent (`typing`, `reading`, `thinking`, `ring`, `welcome`, `wakeup`, `sleep`, `attention`, `error`, `abort`, `dead`, `none`).
+      placeholder: "sessionStart → welcome; then tool call → typing"
+    validations:
+      required: true
+  - type: dropdown
+    id: token
+    attributes:
+      label: Access token
+      options:
+        - Unset (default open LAN)
+        - Set; client sends Authorization Bearer
+        - Set; client does not send it
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Repro
+      description: Hook snippet, CLI invocation, or curl. Redact tokens.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+    validations:
+      required: true

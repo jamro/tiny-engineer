@@ -13,6 +13,7 @@ Pick a path. Depth lives in the linked pages.
 | **HTTP API / settings** | [api.md](api.md); add a setting: [settings.md](settings.md) |
 | **Any IDE / scripts** | [integration.md](integration.md) |
 | **Firmware / package tests** | [testing.md](testing.md) |
+| **Contribute / report a vuln** | [CONTRIBUTING.md](../CONTRIBUTING.md); [SECURITY.md](../SECURITY.md) |
 
 Also: [robot-movement.md](robot-movement.md) (servo axes and safe ranges); optional [macos-lock-unlock.md](macos-lock-unlock.md) (sleep/wake on Mac screen lock).
 

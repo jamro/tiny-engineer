@@ -1,0 +1,38 @@
+---
+description: Conventional Commits mapped to SemVer; use this repo's types and scopes for commit and PR titles.
+alwaysApply: true
+---
+
+# Commit messages
+
+Format: `type(scope): summary`
+
+- Imperative, lowercase `type`, no trailing period
+- One scope, or omit if the change spans several
+- PR title uses the same format (squash-friendly)
+- Full table and legal notes: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+| Type | SemVer |
+| --- | --- |
+| `feat` | MINOR |
+| `fix` | PATCH |
+| `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | MAJOR |
+| `docs`, `style`, `test`, `chore`, `ci`, `refactor` (unless breaking) | no bump |
+
+Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `cursor`, `antigravity`, `cad`, `docs`, `scripts`, `ci`.
+
+**Breaking here:** removed/renamed HTTP route or query param; NVS key rename that drops settings; pinout change; default servo range change that invalidates calibration; hook CLI flag or event rename. Use `!` on the type **and** a `BREAKING CHANGE:` footer.
+
+CAD-only `feat(cad)` / `fix(cad)` versions the hardware design, not npm packages.
+
+Examples:
+
+```
+feat(anim): add dead pose
+fix(cad): add screw hole to desk pad
+feat(http)!: drop query alias on /anim
+
+BREAKING CHANGE: POST /anim no longer accepts the old `n` alias; use `name`.
+```
+
+Do not use `Feat/branch-name`, `Fixed foo.`, or unscoped `add wakeup animation`.

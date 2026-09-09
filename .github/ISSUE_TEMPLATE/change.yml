@@ -1,0 +1,35 @@
+name: Change / idea
+description: New pose, HTTP change, CAD, docs, or other enhancement.
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Firmware
+        - HTTP API
+        - Animation / pose
+        - CAD / printables
+        - Docs
+        - Integration (Cursor / Antigravity / REST)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is painful or missing today? Not the implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: |
+        If this is HTTP, say the method/path/params. If CAD, say which `.3mf`.
+        Large API or CAD changes: discuss here before a PR.
+    validations:
+      required: true
