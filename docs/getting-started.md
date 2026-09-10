@@ -71,18 +71,18 @@ also lists Bluetooth serial ports, which are not the board.
 
 ### 5. Wi‑Fi setup
 
-First boot (or after factory reset + power-cycle): join setup network `TinyEngineer-XXXX`, open `http://192.168.4.1/config`. A four-step wizard: (1) seat printed parts on the servo shafts at 90° then mark each joint’s safe min/max (factory reset keeps prior ranges; you can still change them here), (2) tap Red/Green/Blue on the onboard LED; change mapping only if colors look wrong (default **GRB**; factory reset keeps the mapping), (3) play the welcome clip through the speaker, (4) hostname and home Wi‑Fi (**2.4 GHz** only). OLED shows join-AP steps. Wi‑Fi is not editable from the normal Config page later — factory reset to change it.
+First boot (or after factory reset + power-cycle): join setup network `TinyEngineer-XXXX`, open `http://192.168.4.1/config`. A five-step wizard: (1) seat printed parts on the servo shafts at 90° then mark each joint’s safe min/max (factory reset keeps prior ranges; you can still change them here), (2) look at the OLED and tap Rotate 180° if text is upside down (factory reset keeps the rotation), (3) tap Red/Green/Blue on the onboard LED; change mapping only if colors look wrong (default **GRB**; factory reset keeps the mapping), (4) play the welcome clip through the speaker, (5) hostname and home Wi‑Fi (**2.4 GHz** only). OLED shows join-AP steps. Wi‑Fi is not editable from the normal Config page later — factory reset to change it.
 
 ### 6. Prove it
 
-Open `http://tiny-engineer.local/` (or the IP on the OLED) for the **web UI**: settings, hardware tests, animations. WiFi credentials, servo ranges, and RGB LED mapping stay setup-AP-only (`/config` on `http://192.168.4.1`).
+Open `http://tiny-engineer.local/` (or the IP on the OLED) for the **web UI**: settings, hardware tests, animations. WiFi credentials, servo ranges, RGB LED mapping, and screen rotation stay setup-AP-only (`/config` on `http://192.168.4.1`).
 
 ```bash
 curl http://tiny-engineer.local/health
 curl -X POST "http://tiny-engineer.local/anim?name=ring"
 ```
 
-If `.local` is slow or fails, use the OLED IP or `curl -4`. Prefer web UI for hardware tests before seating servos hard against stops. When WiFi is not configured, control APIs (`/anim`, `/test/*`) return **503**; `POST /setup/servo`, `POST /setup/led`, and `POST /setup/audio` stay available on the setup AP. Optional access token → `Authorization: Bearer …` on JSON APIs (`GET /auth` stays public) — see [api.md](api.md).
+If `.local` is slow or fails, use the OLED IP or `curl -4`. Prefer web UI for hardware tests before seating servos hard against stops. When WiFi is not configured, control APIs (`/anim`, `/test/*`) return **503**; `POST /setup/servo`, `POST /setup/led`, `POST /setup/audio`, and `POST /setup/oled` stay available on the setup AP. Optional access token → `Authorization: Bearer …` on JSON APIs (`GET /auth` stays public) — see [api.md](api.md).
 
 ### 7. Optional — Cursor hooks
 

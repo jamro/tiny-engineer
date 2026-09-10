@@ -18,6 +18,7 @@ bool saveSettings(
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
   const char* rgbOrder,
+  const bool* oledRotate180,
   bool* rebootRequired
 ) {
   if (rebootRequired != nullptr) {
@@ -36,7 +37,8 @@ bool saveSettings(
       wifiPassword == nullptr &&
       servoMins == nullptr &&
       servoMaxs == nullptr &&
-      rgbOrder == nullptr) {
+      rgbOrder == nullptr &&
+      oledRotate180 == nullptr) {
     return false;
   }
 
@@ -61,6 +63,7 @@ bool saveSettings(
   memcpy(nextServoMax, g_servoMax, SETTINGS_SERVO_COUNT);
   char nextRgbOrder[SETTINGS_RGB_ORDER_MAX_LEN + 1];
   setRgbOrderCache(nextRgbOrder, g_rgbOrder);
+  bool nextOledRotate180 = g_oledRotate180;
 
   if (sleepTimeoutMin != nullptr) {
     if (!settingsValidateSleepTimeout(*sleepTimeoutMin)) {
@@ -155,6 +158,10 @@ bool saveSettings(
     setRgbOrderCache(nextRgbOrder, rgbOrder);
   }
 
+  if (oledRotate180 != nullptr) {
+    nextOledRotate180 = *oledRotate180;
+  }
+
   if (!writeAllToNvs(
         nextSleep,
         nextHost,
@@ -168,7 +175,8 @@ bool saveSettings(
         nextWifiPassword,
         nextServoMin,
         nextServoMax,
-        nextRgbOrder
+        nextRgbOrder,
+        nextOledRotate180
       )) {
     return false;
   }
@@ -186,6 +194,7 @@ bool saveSettings(
   memcpy(g_servoMin, nextServoMin, SETTINGS_SERVO_COUNT);
   memcpy(g_servoMax, nextServoMax, SETTINGS_SERVO_COUNT);
   setRgbOrderCache(g_rgbOrder, nextRgbOrder);
+  g_oledRotate180 = nextOledRotate180;
 
   if (rebootRequired != nullptr &&
       strcmp(g_hostname, g_bootHostname) != 0) {

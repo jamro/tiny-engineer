@@ -2,7 +2,7 @@
 
 Persistent settings live in NVS (namespace `te`) under [`src/settings/`](../src/settings/). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
-Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token`, `wifi_ssid`, `wifi_password`, `sranges` (packed servo min/max blob), `rgb_ord` (WS2812 byte-order string). Follow the same pattern for a new one.
+Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token`, `wifi_ssid`, `wifi_password`, `sranges` (packed servo min/max blob), `rgb_ord` (WS2812 byte-order string), `oled_rot` (OLED 180° rotation bool). Follow the same pattern for a new one.
 
 ## Design choices
 
@@ -12,7 +12,7 @@ Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `
 | RAM | Cached in a module-static after `initSettings()`; callers use getters |
 | Update API | Nullable pointer args to `saveSettings(...)` — only non-null fields change |
 | HTTP | Query params on `POST /settings`; at least one param required |
-| Apply timing | Prefer immediate apply. If boot-only (like hostname), set `reboot_required` and document it. WiFi credentials are setup-AP-only and tested before save. Servo min/max (`servo_mins` / `servo_maxs`) and RGB LED mapping (`rgb_order`) are setup-AP-only and apply immediately |
+| Apply timing | Prefer immediate apply. If boot-only (like hostname), set `reboot_required` and document it. WiFi credentials are setup-AP-only and tested before save. Servo min/max (`servo_mins` / `servo_maxs`), RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are setup-AP-only and apply immediately |
 | Types | Prefer small integers / short strings; validate before any NVS write |
 
 ## Checklist
@@ -85,7 +85,7 @@ Flash only when you want to try it on hardware (`pio run -t upload`).
 
 - **Partial writes:** validate first; never write NVS then fail validation mid-way.
 - **JSON buffer:** `sendSettingsJson` uses a fixed `char` buffer — bump size when adding fields.
-- **Factory reset:** `factoryResetSettings()` in [`reset.cpp`](../src/settings/reset.cpp) clears NVS namespace `te` and writes defaults, including WiFi credentials. Servo min/max (`sranges`) and RGB LED mapping (`rgb_ord`) are written back unchanged. Exposed as `POST /settings/reset`. After reset, power-cycle into setup AP mode to configure WiFi again (WiFi is not editable on the normal Config page). Servo ranges and LED mapping can be retuned in that wizard.
+- **Factory reset:** `factoryResetSettings()` in [`reset.cpp`](../src/settings/reset.cpp) clears NVS namespace `te` and writes defaults, including WiFi credentials. Servo min/max (`sranges`), RGB LED mapping (`rgb_ord`), and OLED rotation (`oled_rot`) are written back unchanged. Exposed as `POST /settings/reset`. After reset, power-cycle into setup AP mode to configure WiFi again (WiFi is not editable on the normal Config page). Servo ranges, LED mapping, and screen rotation can be retuned in that wizard.
 - **Hostname-style settings:** freeze the boot value separately if live change cannot apply (see `settingsBootHostname()` / `reboot_required`).
 - **HTML string size:** the panel is a big string literal in `index_page.cpp`; keep controls compact.
 - **Doc drift:** HTML param tables must match `api.md` exactly.

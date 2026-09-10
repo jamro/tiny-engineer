@@ -19,7 +19,8 @@ void formatServoRangeJson(char* dest, size_t destSize) {
     destSize,
     "\"servo_mins\":[%u,%u,%u,%u,%u],"
     "\"servo_maxs\":[%u,%u,%u,%u,%u],"
-    "\"rgb_order\":\"%s\"",
+    "\"rgb_order\":\"%s\","
+    "\"oled_rotate_180\":%s",
     static_cast<unsigned>(settingsServoMin(0)),
     static_cast<unsigned>(settingsServoMin(1)),
     static_cast<unsigned>(settingsServoMin(2)),
@@ -30,7 +31,8 @@ void formatServoRangeJson(char* dest, size_t destSize) {
     static_cast<unsigned>(settingsServoMax(2)),
     static_cast<unsigned>(settingsServoMax(3)),
     static_cast<unsigned>(settingsServoMax(4)),
-    settingsRgbOrder()
+    settingsRgbOrder(),
+    settingsOledRotate180() ? "true" : "false"
   );
 }
 
@@ -70,9 +72,9 @@ void sendSettingsJson(
   bool rebootRequired,
   bool wifiConnectSuccess
 ) {
-  char servoJson[128];
+  char servoJson[176];
   formatServoRangeJson(servoJson, sizeof(servoJson));
-  char body[960];
+  char body[1024];
   const char* tokenSet =
     settingsAccessTokenSet() ? "true" : "false";
   const char* wifiConfigured =
@@ -209,14 +211,16 @@ void handleSettingsPost(WebServer& server) {
   const bool hasServoMins = server.hasArg("servo_mins");
   const bool hasServoMaxs = server.hasArg("servo_maxs");
   const bool hasRgbOrder = server.hasArg("rgb_order");
+  const bool hasOledRotate180 = server.hasArg("oled_rotate_180");
 
   if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasSerialLog &&
       !hasContTo && !hasLoading && !hasAccessToken && !hasWifiSsid &&
-      !hasWifiPassword && !hasServoMins && !hasServoMaxs && !hasRgbOrder) {
+      !hasWifiPassword && !hasServoMins && !hasServoMaxs && !hasRgbOrder &&
+      !hasOledRotate180) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, access_token, wifi_ssid, wifi_password, servo_mins, servo_maxs, or rgb_order\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, access_token, wifi_ssid, wifi_password, servo_mins, servo_maxs, rgb_order, or oled_rotate_180\"}"
     );
     return;
   }
@@ -247,6 +251,8 @@ void handleSettingsPost(WebServer& server) {
   const uint8_t* servoMaxsPtr = nullptr;
   String rgbOrderArg;
   const char* rgbOrderPtr = nullptr;
+  bool oledRotate180 = false;
+  const bool* oledRotate180Ptr = nullptr;
   bool wifiConnectSuccess = false;
 
   if (hasSleep) {
@@ -541,6 +547,34 @@ void handleSettingsPost(WebServer& server) {
     rgbOrderPtr = rgbOrderArg.c_str();
   }
 
+  if (hasOledRotate180) {
+    if (!wifiProvisioningMode()) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"oled setup only in AP mode\"}"
+      );
+      return;
+    }
+
+    const String oledArg = server.arg("oled_rotate_180");
+    char* end = nullptr;
+    const unsigned long parsed =
+      strtoul(oledArg.c_str(), &end, 10);
+
+    if (end == oledArg.c_str() || *end != '\0' || parsed > 1) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid oled_rotate_180\"}"
+      );
+      return;
+    }
+
+    oledRotate180 = parsed == 1;
+    oledRotate180Ptr = &oledRotate180;
+  }
+
   bool rebootRequired = false;
 
   if (!saveSettings(
@@ -557,6 +591,7 @@ void handleSettingsPost(WebServer& server) {
         servoMinsPtr,
         servoMaxsPtr,
         rgbOrderPtr,
+        oledRotate180Ptr,
         &rebootRequired
       )) {
     if (wifiConnectSuccess) {
@@ -572,6 +607,12 @@ void handleSettingsPost(WebServer& server) {
   }
 
   refreshMdnsHostname();
+
+  if (oledRotate180Ptr != nullptr) {
+    applyOledRotation();
+    restoreProvisioningOled();
+  }
+
   sendSettingsJson(server, rebootRequired, wifiConnectSuccess);
 
   if (wifiConnectSuccess) {

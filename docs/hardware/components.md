@@ -121,7 +121,7 @@ Speaker wiring is **not** drawn on `docs/wiring/Tiny Engineer.drawio`. Electrica
 | Address | **`0x3C`** (`OLED_ADDRESS` in firmware). Alternate 0x3D exists on some modules if the ADDR jumper is changed — not used here |
 | Resolution | 128×32 (`OLED_WIDTH` / `OLED_HEIGHT`) |
 | Important pins | As drawn: **VCC**, **GND**, **SDA**, **SCK** (that **SCK** pad is I2C SCL) |
-| Firmware notes | `SSD1306_SWITCHCAPVCC`; display rotated **180°** (`setRotation(2)`). Missing OLED is **non-fatal** in the bring-up test |
+| Firmware notes | `SSD1306_SWITCHCAPVCC`; rotation from `oled_rotate_180` (`setRotation(0)` or `2`). Missing OLED is **non-fatal** in the bring-up test |
 | Limits | 3.3 V logic. Do not hang this module on the servo +5V rail unless a specific 5 V-tolerant module is verified (**current wiring is 3V3**) |
 
 ## Adafruit 5993 USB-C breakout

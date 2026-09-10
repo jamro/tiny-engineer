@@ -42,3 +42,6 @@ void showServoTestFinished();
 void blankOled();
 void sleepOled();
 void wakeOled();
+void applyOledRotation();
+void showOledOrientationTest(bool rotate180);
+void restoreProvisioningOled();

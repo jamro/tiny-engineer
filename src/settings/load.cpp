@@ -18,6 +18,7 @@ void initSettings() {
   setWifiPasswordCache(g_wifiPassword, "");
   fillDefaultServoRanges(g_servoMin, g_servoMax);
   setRgbOrderCache(g_rgbOrder, SETTINGS_DEFAULT_RGB_ORDER);
+  g_oledRotate180 = SETTINGS_DEFAULT_OLED_ROTATE_180;
 
   if (!settingsNvsBeginRead()) {
     serialLogPrintln("Settings: NVS open failed; using defaults");
@@ -118,6 +119,11 @@ void initSettings() {
   } else {
     setRgbOrderCache(g_rgbOrder, SETTINGS_DEFAULT_RGB_ORDER);
   }
+
+  g_oledRotate180 = g_settingsPrefs.getBool(
+    kKeyOledRot,
+    SETTINGS_DEFAULT_OLED_ROTATE_180
+  );
 
   settingsNvsEnd();
 

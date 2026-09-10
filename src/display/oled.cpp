@@ -8,6 +8,7 @@
 #include "display/oled.h"
 #include "display/oled_internal.h"
 #include "network/wifi_connect.h"
+#include "settings/settings.h"
 
 Adafruit_SSD1306 display(
   OLED_WIDTH,
@@ -110,4 +111,32 @@ void wakeOled() {
   }
 
   display.ssd1306_command(SSD1306_DISPLAYON);
+}
+
+void applyOledRotation() {
+  if (!oledAvailable) {
+    return;
+  }
+
+  display.setRotation(settingsOledRotate180() ? 2 : 0);
+}
+
+void showOledOrientationTest(bool rotate180) {
+  if (!oledAvailable) {
+    return;
+  }
+
+  stopEyes();
+  wakeOled();
+  display.setRotation(rotate180 ? 2 : 0);
+  showOledText("THIS WAY UP");
+}
+
+void restoreProvisioningOled() {
+  if (!wifiProvisioningMode()) {
+    return;
+  }
+
+  applyOledRotation();
+  showProvisioningOled("Join this WiFi", wifiApSsid());
 }
