@@ -2,7 +2,7 @@
 
 [`3d_models/cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d) is the parametric Fusion source for the robot. Printed pockets, mounting tabs, and shaft clearance are driven by Fusion **user parameters**. Change those values and the assembly rebuilds for a different micro servo.
 
-Presets live in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json). **TinyEngineer Tools** writes them into the `.f3d`, then exports print meshes under `parts/{servo_id}/`.
+Presets live in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json). **TinyEngineer Tools** writes them into the `.f3d`, then exports print meshes under `parts/{servo_id}/3mf/` (and matching `stl/`).
 
 ```mermaid
 flowchart LR
@@ -15,7 +15,7 @@ flowchart LR
 
 ## Which servo
 
-Servo size sets the size of the **whole robot**. Desk, chair, body, and pockets all scale with the preset. Pick the servo first, then print the matching `parts/{servo_id}/` folder.
+Servo size sets the size of the **whole robot**. Desk, chair, body, and pockets all scale with the preset. Pick the servo first, then print the matching `parts/{servo_id}/3mf/` folder.
 
 Built-in presets in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json):
 
@@ -27,7 +27,7 @@ Built-in presets in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/ser
 
 A non-standard servo is fine: measure it, add a preset, run the configurator ([Add a new servo](#add-a-new-servo)). Print parts that match that `servo_id`.
 
-Print matching `parts/{servo_id}/`: [`sg90`](../../3d_models/parts/sg90/), [`fs0307`](../../3d_models/parts/fs0307/), [`hd1370a`](../../3d_models/parts/hd1370a/).
+Print matching `parts/{servo_id}/3mf/`: [`sg90`](../../3d_models/parts/sg90/3mf/), [`fs0307`](../../3d_models/parts/fs0307/3mf/), [`hd1370a`](../../3d_models/parts/hd1370a/3mf/).
 
 ## Servo parameters
 

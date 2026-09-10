@@ -40,7 +40,7 @@ Verified in [`include/pins.h`](../../include/pins.h) and [`include/servos.h`](..
 | --- | --- | --- |
 | `SERVO_STEP_MS` | 10 | Live update / interpolation step (ms) |
 | `SERVO_ANGLE_DEADBAND_DEG` | **0.32** | Stop threshold (~half PWM count) |
-| `SERVO_SPEED_DEG_S` | **140.0** | Smooth rate for `POST /test/servo` (`SERVO_MAX_SPEED_DEG_S`) |
+| `SERVO_MAX_SPEED_DEG_S` | **140.0** | Smooth rate for `POST /test/servo` |
 | `SERVO_BOOT_SPEED_DEG_S` | **35.0** | Boot centering and sleep-pose moves |
 
 ## Boot safety

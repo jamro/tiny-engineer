@@ -74,7 +74,7 @@ Two layers of limits:
 
 Always respect **safe ranges** for the assembled robot — [robot-movement.md](../robot-movement.md). `POST /test/movement` sweeps each joint inside its saved min/max; don't slam full electrical range into a built shell.
 
-**Tune after assembly:** if a hand hits the desk at 135°, lower `max` in firmware or reorient the horn — don't "just command less" in one script and forget.
+**Tune after assembly:** if a hand hits the desk at 135°, lower that joint’s max in the setup AP wizard (saved to NVS) or reorient the horn — don't "just command less" in one script and forget. Stock defaults live in `SERVO_SPECS`; assembled motion uses the saved min/max.
 
 ---
 

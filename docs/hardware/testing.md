@@ -99,14 +99,14 @@ curl -X POST http://tiny-engineer.local/test/movement
 # Onboard WS2812 R → G → B → white → off, then back to current animation LED
 curl -X POST http://tiny-engineer.local/test/led
 
-# One servo smooth move to angle (~40°/s; index 0–4, angle 0–180)
+# One servo smooth move to angle (~140°/s; index 0–4, angle 0–180)
 curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 ```
 
 | Method | Path | Body |
 | --- | --- | --- |
 | `GET` | `/` | HTML endpoint index |
-| `GET` | `/auth` | Auth status (`ok`, `required`) — always public |
+| `GET` | `/auth` | Auth status (`ok`, `required`, `wifi_configured`, `provisioning`) — always public |
 | `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `cpu_temp_c`, `wifi`, `oled`) |
 | `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token_set`, `wifi_configured`, `wifi_ssid`, `wifi_password_set`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`) |
 | `POST` | `/settings?...&wifi_ssid=&wifi_password=` | Update NVS settings; WiFi params setup-AP-only and tested before save; `reboot_required` if hostname changed |
@@ -115,6 +115,7 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | `POST` | `/settings?...&oled_rotate_180=` | OLED 180° rotation (`0`/`1`); setup-AP-only; default `0` |
 | `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges, RGB mapping, and screen rotation); power-cycle to reopen setup AP |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
+| `POST` | `/test/audio/bell` | `{"ok":true,"test":"bell"}` after `playBell()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |
 | `POST` | `/test/led` | `{"ok":true,"test":"led"}` after `runRgbTest()` |

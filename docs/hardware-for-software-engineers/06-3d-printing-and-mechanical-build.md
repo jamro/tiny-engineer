@@ -66,8 +66,8 @@ The models are **prepared with clearance** so printed parts and hardware (servos
 
 | File | What it is |
 | --- | --- |
-| [`cad/TinyEngineer.f3d`](../../cad/TinyEngineer.f3d) | **Parametric source** — full assembly in Autodesk Fusion |
-| [`3d_models/parts/*.3mf`](../../3d_models/parts/) | **Exported meshes** — what the printer eats |
+| [`cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d) | **Parametric source** — full assembly in Autodesk Fusion |
+| [`3d_models/parts/{servo_id}/3mf/*.3mf`](../../3d_models/parts/) | **Exported meshes** — what the printer eats |
 
 > **If you've written backend code…** `.f3d` is the repo. `.3mf` is the release binary. Don't edit `.3mf` as source — edit Fusion, re-export.
 
@@ -84,9 +84,10 @@ Parts use **2 mm** screws. Servo pockets follow the selected Fusion preset, not 
 ### Export workflow
 
 1. Open `TinyEngineer.f3d` in Fusion (free personal license exists)
-2. Edit the body you need
-3. Export that body to `.3mf` in `3d_models/parts/` (or your fork)
-4. Print and test fit
+2. Apply a servo preset, then export with **Tiny Engineer Parts Exporter** into `parts/{servo_id}/3mf/` (see [parametric design](../3d/parametric-design.md))
+3. Print and test fit
+
+Manual single-body export is fine for a one-off tweak; keep the file under that servo’s `3mf/` folder, not a flat `3d_models/parts/` dump.
 
 Alternatives (FreeCAD, Onshape) can work but project source is Fusion.
 
@@ -104,7 +105,7 @@ Full step-by-step SOP is still a doc gap — these principles keep you out of tr
 
 ### Range of motion before closing shell
 
-Command each joint through safe range ([robot-movement.md](../robot-movement.md)). Listen for buzzing (stall). Adjust horns or firmware limits before trapping servos in plastic.
+Command each joint through safe range ([robot-movement.md](../robot-movement.md)). Listen for buzzing (stall). Adjust horns or setup-AP min/max (NVS) before trapping servos in plastic.
 
 ### USB and service access
 
@@ -134,4 +135,4 @@ Electronics can ship slow. Start printing **structural parts** (chest, head, cha
 
 **Next:** [Power budgets and safety](07-power-budgets-and-safety.md)
 
-**Reference:** [3d_models/README.md](../../3d_models/README.md) · [cad/TinyEngineer.f3d](../../cad/TinyEngineer.f3d) · [parametric design](../3d/parametric-design.md) · [robot-movement.md](../robot-movement.md)
+**Reference:** [3d_models/README.md](../../3d_models/README.md) · [cad/TinyEngineer.f3d](../../3d_models/cad/TinyEngineer.f3d) · [parametric design](../3d/parametric-design.md) · [robot-movement.md](../robot-movement.md)

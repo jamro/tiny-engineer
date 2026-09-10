@@ -8,23 +8,26 @@ The full assembly — all components composed — lives in [`cad/TinyEngineer.f3
 
 ## Printables
 
-Individual parts are exported to [`parts/`](parts/) as `.3mf` files. Print **`parts/sg90/`**, **`parts/fs0307/`**, or **`parts/hd1370a/`** to match the servos you bought ([which servo](../docs/3d/parametric-design.md)). They are ready to print in an orientation that does not need supports. Print with **PLA** or **PETG**.
+Individual parts are exported under [`parts/{servo_id}/`](parts/). Print the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, or **`parts/hd1370a/3mf/`** to match the servos you bought ([which servo](../docs/3d/parametric-design.md)). They are ready to print in an orientation that does not need supports. Print with **PLA** or **PETG**. `stl/` next to `3mf/` is the same mesh in binary STL.
 
 Assembly uses a bunch of **2 mm diameter screws** — no glue. Easy to dismount and modify later. Exact screw lengths/counts and full assembly steps are **not documented yet**. Use the part table below, then electrical and bring-up docs.
 
 ## Parts
 
+Same filenames in each `parts/{servo_id}/3mf/` folder:
+
 | File | Role |
 | --- | --- |
 | `Head.3mf` | Head (pitch) |
 | `Neck.3mf` | Neck (yaw) |
-| `HandLeft.3mf` | Left hand |
-| `HandRight.3mf` | Right hand |
-| `Arm.3mf` | Arm (print twice) |
+| `ForearmLeft.3mf` | Left forearm / hand |
+| `ForearmRight.3mf` | Right forearm / hand |
+| `UpperArm.3mf` | Upper arm |
 | `Chest.3mf` | Chest / torso |
 | `Belly.3mf` | Belly |
 | `Chair.3mf` | Chair |
-| `Pillow.3mf` | Chair pillow |
+| `SeatLeft.3mf` | Left chair seat |
+| `SeatRight.3mf` | Right chair seat |
 | `Desk.3mf` | Desk structure |
 | `DeskTop.3mf` | Desk top surface |
 | `DeskPad.3mf` | Desk pad |
@@ -33,10 +36,12 @@ Assembly uses a bunch of **2 mm diameter screws** — no glue. Easy to dismount 
 | `Bell.3mf` | Service bell |
 | `LampBase.3mf` | Desk lamp base |
 | `LampCap.3mf` | Lamp cap |
-| `LampGlass.3mf` | Lamp glass |
+| `LampDiffuser.3mf` | Lamp diffuser |
 | `LampButton.3mf` | Lamp button |
 | `Mug.3mf` | Mug |
-| `MugCoffee.3mf` | Coffee fill |
+| `Coffee.3mf` | Coffee fill |
+| `Hat.3mf` | Hat |
+| `ServoSizingTester.3mf` | Servo pocket fit tester (print first when changing servo size) |
 | `AiEmblem.3mf` | AI emblem detail |
 
 ## Next steps

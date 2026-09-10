@@ -245,11 +245,7 @@ curl -X POST http://tiny-engineer.local/test/audio
 
 ### `POST /test/audio/bell`
 
-Plays `assets/bell.wav` (44100 Hz mono PCM) from LittleFS (`playBell()`). First flash or after changing `data/bell.wav`, upload the filesystem:
-
-```bash
-pio run -t uploadfs
-```
+Plays `/bell.wav` from LittleFS (`playBell()`). Git source is [`assets/bell.wav`](../assets/bell.wav) (44100 Hz mono PCM); `pio run` copies it into `data/` for the filesystem image. After changing the asset, upload with `pio run -t upload` or `pio run -t uploadfs`. Do not edit `data/` by hand — the next build overwrites it.
 
 ```bash
 curl -X POST http://tiny-engineer.local/test/audio/bell
@@ -412,7 +408,7 @@ Save with `POST /settings?oled_rotate_180=1` (setup AP only). The saved value ap
 
 ### `POST /test/servo`
 
-Smoothly move one servo to an angle at **~40°/s** (`SERVO_SPEED_DEG_S`) from its last commanded position. Query params required. Handler blocks until the move finishes.
+Smoothly move one servo to an angle at **~140°/s** (`SERVO_MAX_SPEED_DEG_S`) from its last commanded position. Query params required. Handler blocks until the move finishes.
 
 | Param | Type | Range |
 | --- | --- | --- |
@@ -544,6 +540,6 @@ Transitions take **1 s** with smooth fade in/out (pulse modes start immediately,
 
 Switching between animations that share the same color (e.g. `typing` → `reading`) does not restart a fade.
 
-Boot uses dim green `(0, 32, 0)` as a status indicator during init. After `ROBOT READY`, the LED fades to white if `welcome` runs (Wi-Fi OK) or off if idle. Fatal PCA9685 / I2S errors set solid dim red and hang — not animation-driven.
+Boot uses dim green `(0, 32, 0)` as a status indicator during init. After `ROBOT READY`, the LED fades to white if `welcome` runs (Wi-Fi OK) or off if idle. Fatal PCA9685 / I2S errors hang and blink the LED red (1 = PCA9685 missing, 2 = I2S failed) — not animation-driven. See [boot-failure blink codes](hardware/testing.md#boot-failure-blink-codes).
 
 `POST /test/led` runs a hardware colour cycle and then restores the current animation LED state.

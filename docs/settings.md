@@ -30,7 +30,7 @@ Public API: [`settings.h`](../src/settings/settings.h). RAM cache: [`internal.h`
 5. Extend `saveSettings(...)` in [`save.cpp`](../src/settings/save.cpp) with a nullable `const T* foo`:
    - Reject the whole save if validation fails.
    - Require at least one non-null arg among all settings.
-   - Write all persisted fields together (current pattern rewrites sleep/host/volume/welcome/continuous_timeout/loading/access_token each save).
+   - Write all persisted fields together (current pattern rewrites sleep/host/volume/welcome/serial_log/continuous_timeout/loading/access_token each save; wifi/servo/rgb/oled too).
 6. Log the new value on load and save via `logSettingsSnapshot` in [`cache.cpp`](../src/settings/cache.cpp) (for secrets like `access_token`, log set/unset only — never the raw value).
 
 ### 2. Consumers

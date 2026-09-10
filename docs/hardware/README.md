@@ -4,7 +4,7 @@ Canonical hardware reference for the Tiny Engineer robot.
 
 Firmware pin constants live in [`include/pins.h`](../../include/pins.h). Wiring topology lives in [`docs/wiring/Tiny Engineer.drawio.png`](../wiring/Tiny%20Engineer.drawio.png).
 
-Conflict order: firmware GPIO numbers → wiring PNG connections → this `docs/hardware/` set.
+Source of truth: firmware `include/pins.h`, then this `docs/hardware/` set and `docs/wiring/`.
 
 | Audience | Use this set for |
 | --- | --- |

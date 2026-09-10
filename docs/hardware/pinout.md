@@ -2,8 +2,6 @@
 
 Source of truth: [`include/pins.h`](../../include/pins.h). This file must match that header.
 
-Verified against firmware (2026-08-21). No discrepancy vs the tested assignment.
-
 ## Assigned ESP32-C3-Zero GPIO
 
 | Function | ESP32-C3-Zero GPIO | Constant | Goes to |

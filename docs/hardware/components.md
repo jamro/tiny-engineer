@@ -31,7 +31,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 | USB | Native USB on GPIO18/19 — reached via Adafruit 5993 D+/D− (onboard USB-C unused when assembled) |
 | Flash | 4 MB stacked flash on GPIO12–GPIO17 (those GPIOs are **not exposed**) |
 | Onboard RGB | WS2812 on **GPIO10** |
-| Firmware notes | Boot: dim green status. Animations: white (typing/reading/thinking/welcome/ring/wakeup), pulsing red (attention/error/dead), solid red (abort), off (idle/sleep). 1 s fade between non-pulse states. Fatal init errors: solid dim red + hang. See [`docs/api.md`](../../api.md#rgb-led) |
+| Firmware notes | Boot: dim green status. Animations: white (typing/reading/thinking/welcome/ring/wakeup), pulsing red (attention/error/dead), solid red (abort), off (idle/sleep). 1 s fade between non-pulse states. Fatal init errors: hang and blink red (1 = PCA9685, 2 = I2S). See [blink codes](testing.md#boot-failure-blink-codes) and [`docs/api.md`](../../api.md#rgb-led) |
 | BOOT | Button / strapping on **GPIO9** |
 | RESET | Separate RESET button (CHIP_EN), not a GPIO |
 | UART0 silkscreen | TX = GPIO21, RX = GPIO20 |
@@ -59,7 +59,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 
 ## Analog micro servos (qty 5)
 
-Five analog micro servos drive the joints (Head / Neck / L hand / R hand / Body — [robot-movement.md](../robot-movement.md)). Buy **five of one model**. Print the matching `parts/{servo_id}/` folder. Which size to pick: [parametric design](../3d/parametric-design.md).
+Five analog micro servos drive the joints (Head / Neck / L hand / R hand / Body — [robot-movement.md](../robot-movement.md)). Buy **five of one model**. Print the matching `parts/{servo_id}/3mf/` folder. Which size to pick: [parametric design](../3d/parametric-design.md).
 
 Shared for every preset:
 
@@ -86,7 +86,7 @@ Easiest to buy. Larger body → larger printed robot; electronics are easier to 
 | `servo_id` | `sg90` |
 | Size | Larger than FS0307 / HD-1370A — see [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) |
 
-Print [`3d_models/parts/sg90/`](../../3d_models/parts/sg90/).
+Print [`3d_models/parts/sg90/3mf/`](../../3d_models/parts/sg90/3mf/).
 
 ### Feetech FS0307
 
@@ -97,13 +97,13 @@ More compact. Use this if you want a smaller robot that looks tighter on the des
 | Exact model | Feetech FS0307 analog micro servo |
 | `servo_id` | `fs0307` |
 
-Print [`3d_models/parts/fs0307/`](../../3d_models/parts/fs0307/).
+Print [`3d_models/parts/fs0307/3mf/`](../../3d_models/parts/fs0307/3mf/).
 
 ### PowerHD HD-1370A (backward compatibility)
 
 Still supported. Not the pick for a new build.
 
-Print [`3d_models/parts/hd1370a/`](../../3d_models/parts/hd1370a/).
+Print [`3d_models/parts/hd1370a/3mf/`](../../3d_models/parts/hd1370a/3mf/).
 
 | Field | Value |
 | --- | --- |

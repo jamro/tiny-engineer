@@ -25,7 +25,7 @@ Gather electronics from [hardware/components.md](hardware/components.md). Minimu
 
 ### 2. Print and mechanical
 
-Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md).
+Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/{servo_id}/3mf/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md).
 
 Join printed parts with **2 mm diameter screws** (no glue; easy to dismount later). Exact screw lengths/counts and a full assembly SOP are **not documented yet** — use the parts table there as the inventory. After print:
 
