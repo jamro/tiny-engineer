@@ -18,6 +18,7 @@ char g_wifiPassword[SETTINGS_WIFI_PASSWORD_MAX_LEN + 1] = {};
 uint8_t g_servoMin[SETTINGS_SERVO_COUNT] = {};
 uint8_t g_servoMax[SETTINGS_SERVO_COUNT] = {};
 char g_rgbOrder[SETTINGS_RGB_ORDER_MAX_LEN + 1] = {};
+bool g_oledRotate180 = SETTINGS_DEFAULT_OLED_ROTATE_180;
 
 void setHostnameCache(char* dest, const char* src) {
   strncpy(dest, src, SETTINGS_HOSTNAME_MAX_LEN);
@@ -87,5 +88,7 @@ void logSettingsSnapshot(const char* prefix) {
 
   serialLogPrint(" rgb_order=");
   serialLogPrint(g_rgbOrder);
+  serialLogPrint(" oled_rotate_180=");
+  serialLogPrint(g_oledRotate180 ? "on" : "off");
   serialLogPrintln();
 }

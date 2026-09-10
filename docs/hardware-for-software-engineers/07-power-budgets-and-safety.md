@@ -13,7 +13,7 @@ Every load draws what it needs (not what the label says). **Current adds in para
 - ESP32 + Wi-Fi TX — tens to hundreds of mA peaks
 - OLED + PCA9685 logic — tens of mA
 - MAX98357A + speaker — peaks on loud WAV
-- **Five servos** — **~1.3–1.6 A** if several stall together (HD-1370A datasheet)
+- **Five servos** — **~1.3–1.6 A** if several stall together (PowerHD HD-1370A datasheet). **SG90** (recommended) is larger and typically stalls harder — still **5 V / ≥ 2 A**, with extra margin if several move during audio.
 
 A **1 A phone charger** is not enough. Recommendation: **5 V / ≥ 2 A**, with margin if servos move during audio.
 
@@ -23,14 +23,14 @@ A **1 A phone charger** is not enough. Recommendation: **5 V / ≥ 2 A**, with m
 
 A **stall** is when the motor tries to move but can't — horn against stop, binding linkage, desk collision.
 
-Per HD-1370A datasheet (approximate):
+Per PowerHD HD-1370A datasheet (approximate):
 
 | Condition | Per servo | × 5 servos |
 | --- | --- | --- |
 | Stall @ ~4.8 V | ~260 mA | **~1.3 A** |
 | Stall @ ~6.0 V | ~320 mA | **~1.6 A** |
 
-Robot rail is ~5 V — expect something in between if multiple servos stall at once.
+Robot rail is ~5 V — expect something in between if multiple HD-1370A servos stall at once. **SG90** (recommended) typically stalls harder; still use **5 V / ≥ 2 A**, with extra margin if several move during audio.
 
 That's **before** Wi-Fi, display, and audio peaks.
 

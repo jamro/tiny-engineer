@@ -93,7 +93,7 @@ Use [Tiny Engineer.drawio.png](../wiring/Tiny%20Engineer.drawio.png) as your map
 4. Add audio, OLED, remaining servos
 5. Install into printed parts
 
-**OLED naming trap:** the pad labeled **SCK** on many OLED modules is I2C **SCL**, not SPI clock. Easy to misread if you're used to SPI docs.
+**OLED naming trap:** this build uses the [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm), which labels the clock pad **SCL**. Many clone 0.91" boards print **SCK** on that same I2C clock pin — not SPI. The wiring PNG may still say **SCK**.
 
 ---
 

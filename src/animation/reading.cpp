@@ -28,23 +28,23 @@ uint32_t g_scrollIdleUntilMs = 0;
 void commandReadingHead() {
   if (g_headHigh) {
     const float upSpeed = 12.0f + 10.0f * randUnit();
-    servoAt(SERVO_HEAD).setTarget(anim::READING_HEAD_HIGH, upSpeed);
+    servoAt(SERVO_HEAD).setNormTarget(anim::READING_HEAD_HIGH, upSpeed);
   } else {
     const float downSpeed = 2.5f + 2.5f * randUnit();
-    servoAt(SERVO_HEAD).setTarget(anim::READING_HEAD_LOW, downSpeed);
+    servoAt(SERVO_HEAD).setNormTarget(anim::READING_HEAD_LOW, downSpeed);
   }
 }
 
 void commandReadingNeck() {
   const float speed = 8.0f + 8.0f * randUnit();
   if (g_neckAngleHigh) {
-    servoAt(SERVO_NECK).setTarget(
-      anim::READING_NECK_MID + anim::READING_NECK_SWAY_DEG,
+    servoAt(SERVO_NECK).setNormTarget(
+      anim::READING_NECK_MID + anim::READING_NECK_SWAY,
       speed
     );
   } else {
-    servoAt(SERVO_NECK).setTarget(
-      anim::READING_NECK_MID - anim::READING_NECK_SWAY_DEG,
+    servoAt(SERVO_NECK).setNormTarget(
+      anim::READING_NECK_MID - anim::READING_NECK_SWAY,
       speed
     );
   }
@@ -54,8 +54,8 @@ void commandScrollPress() {
   const float lift = 0.55f + 0.45f * randUnit();
   const float speedDegS =
     SERVO_MAX_SPEED_DEG_S * (0.85f + 0.15f * randUnit());
-  servoAt(SERVO_HAND_RIGHT).setTarget(
-    anim::TYPING_RIGHT_LOW + lift * anim::TYPING_HAND_BAND_DEG,
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
+    anim::TYPING_RIGHT_LOW + lift * anim::TYPING_HAND_BAND,
     speedDegS
   );
 }
@@ -63,7 +63,7 @@ void commandScrollPress() {
 void commandScrollRelease() {
   const float speedDegS =
     SERVO_MAX_SPEED_DEG_S * (0.55f + 0.20f * randUnit());
-  servoAt(SERVO_HAND_RIGHT).setTarget(anim::TYPING_RIGHT_LOW, speedDegS);
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(anim::TYPING_RIGHT_LOW, speedDegS);
 }
 
 void scheduleNextScrollBurst(uint32_t now) {

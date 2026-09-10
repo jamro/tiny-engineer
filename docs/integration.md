@@ -23,6 +23,11 @@ flowchart TB
     CursorHook --> Npx["npx tiny-engineer-cursor"]
     Npx --> Post
   end
+  subgraph antigravityPath [Antigravity]
+    AgHook[Antigravity hooks.json]
+    AgHook --> AgCli["tiny-engineer-antigravity"]
+    AgCli --> Post
+  end
   Post --> Robot[Tiny Engineer on Wi-Fi]
 ```
 
@@ -145,7 +150,7 @@ For [Google Antigravity](https://github.com/google/antigravity) (`antigravity-cl
 
 ### Setup
 
-Inside this firmware repository, [`.agents/hooks.json`](../.agents/hooks.json) is pre-configured.
+Inside this firmware repository, [`.agents/hooks.json`](../.agents/hooks.json) is pre-configured. Run the local bin: `node packages/tiny-engineer-antigravity/bin/tiny-engineer-antigravity.js`. Other machines can `npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer-antigravity` (same tarball pattern as Cursor).
 
 To run globally across all projects on your machine, configure `~/.gemini/config/hooks.json`:
 
@@ -196,12 +201,13 @@ To run globally across all projects on your machine, configure `~/.gemini/config
 
 - **Building for one IDE / custom agent** → REST. One `POST`, zero Node dependency.
 - **Using Cursor and want zero mapping code** → Cursor CLI + hooks.
-- **Both** are fine together: CLI is just a thin client of the same `/anim` API.
+- **Using Antigravity CLI** → Antigravity CLI + hooks.
+- **All three** are fine together: the CLIs are thin clients of the same `/anim` API.
 
-Prerequisites for either path: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer.local/health` (or the OLED IP) responds.
+Prerequisites for any path: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer.local/health` (or the OLED IP) responds.
 
 ---
 
 ## Optional extras
 
-Same `POST /anim` API; not part of the two paths above. On macOS you can run a small host helper that POSTs `sleep` / `wakeup` when the screen locks or unlocks: [`macos-lock-unlock.md`](macos-lock-unlock.md). The robot does not need it.
+Same `POST /anim` API; not part of the three paths above. On macOS you can run a small host helper that POSTs `sleep` / `wakeup` when the screen locks or unlocks: [`macos-lock-unlock.md`](macos-lock-unlock.md). The robot does not need it.

@@ -31,23 +31,23 @@ uint32_t g_swayPauseUntilMs = 0;
 
 void commandBodyNeckSway() {
   const float offset =
-    g_bodySwayPositive ? anim::TYPING_SWAY_DEG : -anim::TYPING_SWAY_DEG;
+    g_bodySwayPositive ? anim::TYPING_SWAY : -anim::TYPING_SWAY;
   const float speedDegS =
     12.0f + 18.0f * randUnit();
 
-  servoAt(SERVO_BODY).setTarget(
+  servoAt(SERVO_BODY).setNormTarget(
     anim::TYPING_BODY_MID + offset,
     speedDegS
   );
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::TYPING_NECK_MID - offset,
     speedDegS
   );
 
   serialLogPrint("[anim] typing sway body->");
-  serialLogPrint(anim::TYPING_BODY_MID + offset, 1);
+  serialLogPrint(servoNormToDeg(SERVO_BODY, anim::TYPING_BODY_MID + offset), 1);
   serialLogPrint(" neck->");
-  serialLogPrint(anim::TYPING_NECK_MID - offset, 1);
+  serialLogPrint(servoNormToDeg(SERVO_NECK, anim::TYPING_NECK_MID - offset), 1);
   serialLogPrint(" speed=");
   serialLogPrint(speedDegS, 1);
   serialLogPrint(" dir=");
@@ -76,13 +76,13 @@ void commandHandStroke() {
   if (g_typingMoveRight) {
     const float target = isPress
       ? anim::TYPING_RIGHT_LOW
-      : anim::TYPING_RIGHT_LOW + lift * anim::TYPING_HAND_BAND_DEG;
-    servoAt(SERVO_HAND_RIGHT).setTarget(target, speedDegS);
+      : anim::TYPING_RIGHT_LOW + lift * anim::TYPING_HAND_BAND;
+    servoAt(SERVO_HAND_RIGHT).setNormTarget(target, speedDegS);
   } else {
     const float target = isPress
       ? anim::TYPING_LEFT_HIGH
-      : anim::TYPING_LEFT_HIGH - lift * anim::TYPING_HAND_BAND_DEG;
-    servoAt(SERVO_HAND_LEFT).setTarget(target, speedDegS);
+      : anim::TYPING_LEFT_HIGH - lift * anim::TYPING_HAND_BAND;
+    servoAt(SERVO_HAND_LEFT).setNormTarget(target, speedDegS);
   }
 }
 
@@ -90,14 +90,14 @@ void commandHead() {
   if (g_headHigh) {
     const float upSpeed =
       35.0f + 25.0f * randUnit();
-    servoAt(SERVO_HEAD).setTarget(
+    servoAt(SERVO_HEAD).setNormTarget(
       anim::TYPING_HEAD_HIGH,
       upSpeed
     );
   } else {
     const float downSpeed =
       6.0f + 6.0f * randUnit();
-    servoAt(SERVO_HEAD).setTarget(
+    servoAt(SERVO_HEAD).setNormTarget(
       anim::TYPING_HEAD_LOW,
       downSpeed
     );

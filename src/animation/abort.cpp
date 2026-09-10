@@ -45,68 +45,68 @@ bool allAbortServosStopped() {
 }
 
 void commandResignedPose(float speedDegS) {
-  servoAt(SERVO_BODY).setTarget(
+  servoAt(SERVO_BODY).setNormTarget(
     anim::ABORT_BODY_DISMISSIVE,
     speedDegS
   );
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::ABORT_NECK_SIDE,
     speedDegS
   );
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::ABORT_HEAD_UP,
     speedDegS
   );
-  servoAt(SERVO_HAND_LEFT).setTarget(
+  servoAt(SERVO_HAND_LEFT).setNormTarget(
     anim::ABORT_HAND_LEFT_UP,
     speedDegS
   );
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::ABORT_HAND_RIGHT_UP,
     speedDegS
   );
 }
 
 void commandDidntWantBeat() {
-  servoAt(SERVO_HAND_LEFT).setTarget(
+  servoAt(SERVO_HAND_LEFT).setNormTarget(
     anim::ABORT_HAND_LEFT_SHRUG,
     ABORT_BEAT_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::ABORT_HAND_RIGHT_SHRUG,
     ABORT_BEAT_SPEED_DEG_S
   );
-  servoAt(SERVO_HEAD).setTarget(
-    anim::ABORT_HEAD_UP - 4.0f,
+  servoAt(SERVO_HEAD).setNormTarget(
+    anim::ABORT_HEAD_DIDNT_WANT,
     ABORT_BEAT_SPEED_DEG_S
   );
 }
 
 void commandFinishBeat() {
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::ABORT_NECK_OTHER_SIDE,
     ABORT_BEAT_SPEED_DEG_S
   );
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::ABORT_HEAD_DIP,
     ABORT_BEAT_SPEED_DEG_S
   );
 }
 
 void commandAnywayBeat() {
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::ABORT_NECK_SIDE,
     ABORT_BEAT_SPEED_DEG_S
   );
-  servoAt(SERVO_HEAD).setTarget(
-    anim::ABORT_HEAD_UP + 2.0f,
+  servoAt(SERVO_HEAD).setNormTarget(
+    anim::ABORT_HEAD_ANYWAY,
     ABORT_BEAT_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_LEFT).setTarget(
+  servoAt(SERVO_HAND_LEFT).setNormTarget(
     anim::ABORT_HAND_LEFT_UP,
     ABORT_BEAT_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::ABORT_HAND_RIGHT_UP,
     ABORT_BEAT_SPEED_DEG_S
   );
@@ -151,8 +151,8 @@ void beginReturnPose(uint32_t now) {
   g_abortReturnStartMs = now;
 
   anim::parkForTransition();
-  servoAt(SERVO_HEAD).setTarget(
-    servoMid(SERVO_SPECS[SERVO_HEAD]),
+  servoAt(SERVO_HEAD).setNormTarget(
+    0.0f,
     ABORT_RETURN_SPEED_DEG_S
   );
 }

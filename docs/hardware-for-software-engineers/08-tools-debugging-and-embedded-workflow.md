@@ -117,7 +117,7 @@ When two things changed, revert one. Hardware debugging punishes batch changes l
 | Mistake | Consequence |
 | --- | --- |
 | Swapped SDA/SCL | No I2C devices |
-| OLED SCK wired as SPI clock confusion | Same — it's SCL |
+| OLED clock labelled SCK on a clone (Waveshare says SCL) | Same pin — I2C SCL, not SPI |
 | Servos on 3.3 V | Brownout / dead LDO |
 | VCC/V+ jumpered on PCA9685 | Logic or servo damage |
 | SPK− to GND | Bad audio, possible amp damage |

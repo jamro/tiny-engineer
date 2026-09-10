@@ -26,8 +26,8 @@ bool factoryResetSettings(bool* rebootRequired) {
   setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
   setWifiSsidCache(g_wifiSsid, "");
   setWifiPasswordCache(g_wifiPassword, "");
-  // Keep g_servoMin / g_servoMax and g_rgbOrder; write them back after
-  // prefs.clear().
+  // Keep g_servoMin / g_servoMax, g_rgbOrder, and g_oledRotate180; write
+  // them back after prefs.clear().
 
   if (!settingsNvsBeginWrite()) {
     serialLogPrintln("Settings: factory reset NVS open failed");
@@ -48,7 +48,8 @@ bool factoryResetSettings(bool* rebootRequired) {
     g_wifiPassword,
     g_servoMin,
     g_servoMax,
-    g_rgbOrder
+    g_rgbOrder,
+    g_oledRotate180
   );
   settingsNvsEnd();
 

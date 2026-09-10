@@ -64,7 +64,7 @@ flowchart TB
   V33 --> PCA
   V33 --> OLED
   V5 --> AMP
-  PCA -->|V+ 5V PWM| SRV["5x HD-1370A servos"]
+  PCA -->|V+ 5V PWM| SRV["5 analog micro servos"]
 
   PCA --> SRV
 
@@ -119,7 +119,7 @@ flowchart TB
 
 1. Print structural parts ([3d_models](../../3d_models/README.md))
 2. Test-fit servos in pockets — don't force
-3. Adjust CAD if needed ([Fusion source](../../cad/TinyEngineer.f3d))
+3. Adjust CAD if needed ([Fusion source](../../3d_models/cad/TinyEngineer.f3d))
 
 ### Phase C — Mechanical integration
 
@@ -144,7 +144,7 @@ Check these off — order matters:
 | --- | --- | --- |
 | 1 | **Continuity sanity** | No short 5V–GND; GND common (meter, power off) |
 | 2 | **Serial boot** | `pio device monitor` shows boot log, dim green LED |
-| 3 | **PCA9685 detected** | Serial OK; missing = red LED hang |
+| 3 | **PCA9685 detected** | Serial OK; missing = 1 red blink, hang ([blink codes](../hardware/testing.md#boot-failure-blink-codes)) |
 | 4 | **One servo** | `/test/servo?index=0` moves head channel |
 | 5 | **All five** | Each joint in safe range, no stall buzz |
 | 6 | **Audio** | Sound on animation; if silent → `uploadfs` |

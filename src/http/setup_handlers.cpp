@@ -304,10 +304,68 @@ void handleSetupAudio(WebServer& server) {
   httpSendJson(server, 200, "{\"ok\":true,\"setup\":\"audio\"}");
 }
 
+void handleSetupOled(WebServer& server) {
+  if (!wifiProvisioningMode()) {
+    httpSendJson(
+      server,
+      400,
+      "{\"ok\":false,\"error\":\"setup oled only in AP mode\"}"
+    );
+    return;
+  }
+
+  if (!server.hasArg("rotate_180")) {
+    restoreProvisioningOled();
+    httpSendJson(
+      server,
+      200,
+      "{\"ok\":true,\"setup\":\"oled\",\"restored\":true}"
+    );
+    return;
+  }
+
+  const String rotArg = server.arg("rotate_180");
+
+  if (!isDigitsOnly(rotArg)) {
+    httpSendJson(
+      server,
+      400,
+      "{\"ok\":false,\"error\":\"invalid rotate_180\"}"
+    );
+    return;
+  }
+
+  const int parsed = rotArg.toInt();
+
+  if (parsed != 0 && parsed != 1) {
+    httpSendJson(
+      server,
+      400,
+      "{\"ok\":false,\"error\":\"invalid rotate_180\"}"
+    );
+    return;
+  }
+
+  const bool rotate180 = parsed == 1;
+  showOledOrientationTest(rotate180);
+
+  char body[72];
+
+  snprintf(
+    body,
+    sizeof(body),
+    "{\"ok\":true,\"setup\":\"oled\",\"rotate_180\":%s}",
+    rotate180 ? "true" : "false"
+  );
+
+  httpSendJson(server, 200, body);
+}
+
 }  // namespace
 
 bool isHttpSetupPath(const String& uri) {
-  return uri == "/setup/servo" || uri == "/setup/led" || uri == "/setup/audio";
+  return uri == "/setup/servo" || uri == "/setup/led" ||
+         uri == "/setup/audio" || uri == "/setup/oled";
 }
 
 void registerHttpSetupRoutes(WebServer& server) {
@@ -325,5 +383,10 @@ void registerHttpSetupRoutes(WebServer& server) {
     "/setup/audio",
     HTTP_POST,
     [&server]() { httpWithApiAuth(server, handleSetupAudio); }
+  );
+  server.on(
+    "/setup/oled",
+    HTTP_POST,
+    [&server]() { httpWithApiAuth(server, handleSetupOled); }
   );
 }

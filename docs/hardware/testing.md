@@ -9,7 +9,7 @@ Firmware is [`src/main.cpp`](../../src/main.cpp). Boot **inits** hardware and st
 - [`src/hardware/pca9685_servos.cpp`](../../src/hardware/pca9685_servos.cpp)
 - [`src/http/http_server.cpp`](../../src/http/http_server.cpp), [`src/http/test_handlers.cpp`](../../src/http/test_handlers.cpp)
 
-Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi credentials are saved in NVS and configured only in setup AP mode (first boot, or after factory reset + power-cycle). Servo min/max and RGB LED mapping (`rgb_order`) are also setup-AP-only; factory reset keeps them.
+Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi credentials are saved in NVS and configured only in setup AP mode (first boot, or after factory reset + power-cycle). Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are also setup-AP-only; factory reset keeps them.
 
 Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200). Physical board is **Waveshare ESP32-C3-Zero**; PlatformIO env name is `esp32-c3-devkitm-1`.
 
@@ -93,27 +93,29 @@ curl -X POST http://tiny-engineer.local/test/audio
 # OLED title / HELLO / X in a box
 curl -X POST http://tiny-engineer.local/test/screen
 
-# Servos 90 → 105 → 75 → 90 (channels 0–4)
+# Servos mid → +0.5 → −0.5 → mid of saved range (channels 0–4)
 curl -X POST http://tiny-engineer.local/test/movement
 
 # Onboard WS2812 R → G → B → white → off, then back to current animation LED
 curl -X POST http://tiny-engineer.local/test/led
 
-# One servo smooth move to angle (~40°/s; index 0–4, angle 0–180)
+# One servo smooth move to angle (~140°/s; index 0–4, angle 0–180)
 curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 ```
 
 | Method | Path | Body |
 | --- | --- | --- |
 | `GET` | `/` | HTML endpoint index |
-| `GET` | `/auth` | Auth status (`ok`, `required`) — always public |
+| `GET` | `/auth` | Auth status (`ok`, `required`, `wifi_configured`, `provisioning`) — always public |
 | `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `cpu_temp_c`, `wifi`, `oled`) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token_set`, `wifi_configured`, `wifi_ssid`, `wifi_password_set`, `servo_mins`, `servo_maxs`, `rgb_order`) |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token_set`, `wifi_configured`, `wifi_ssid`, `wifi_password_set`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`) |
 | `POST` | `/settings?...&wifi_ssid=&wifi_password=` | Update NVS settings; WiFi params setup-AP-only and tested before save; `reboot_required` if hostname changed |
 | `POST` | `/settings?...&servo_mins=&servo_maxs=` | Servo min/max comma lists; setup-AP-only |
 | `POST` | `/settings?...&rgb_order=` | WS2812 byte order (`RGB`/`RBG`/`GRB`/`GBR`/`BRG`/`BGR`); setup-AP-only; default `GRB` |
-| `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges and RGB mapping); power-cycle to reopen setup AP |
+| `POST` | `/settings?...&oled_rotate_180=` | OLED 180° rotation (`0`/`1`); setup-AP-only; default `0` |
+| `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges, RGB mapping, and screen rotation); power-cycle to reopen setup AP |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
+| `POST` | `/test/audio/bell` | `{"ok":true,"test":"bell"}` after `playBell()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |
 | `POST` | `/test/movement` | `{"ok":true,"test":"movement"}` after `runServoTest()` |
 | `POST` | `/test/led` | `{"ok":true,"test":"led"}` after `runRgbTest()` |
@@ -121,8 +123,9 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | `POST` | `/setup/servo?all=90` or `?index=&angle=` | Setup AP only; slow 0–180° move (`SERVO_CALIB_SPEED_DEG_S`) |
 | `POST` | `/setup/led?color=R` / `G` / `B` or `?byte=0` / `1` / `2` / `off` | Setup AP only; light logical RGB or one WS2812 wire byte, or release hold |
 | `POST` | `/setup/audio` | Setup AP only; play `welcome.wav` (`playWelcome()`) |
+| `POST` | `/setup/oled?rotate_180=0` / `1` | Setup AP only; preview OLED 180° rotation (`THIS WAY UP`); omit param to restore provisioning text |
 
-GET on a test path returns `405`. Bad `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, or `/settings` params return `400`. Missing/wrong Bearer when auth enabled returns `401`. Control APIs return `503` when WiFi credentials are not saved (`/setup/servo`, `/setup/led`, and `/setup/audio` stay available). Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
+GET on a test path returns `405`. Bad `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, or `/settings` params return `400`. Missing/wrong Bearer when auth enabled returns `401`. Control APIs return `503` when WiFi credentials are not saved (`/setup/servo`, `/setup/led`, `/setup/audio`, and `/setup/oled` stay available). Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
 
 HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisioning.
 
@@ -130,9 +133,9 @@ HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisio
 
 | Serial / OLED | Meaning | Check |
 | --- | --- | --- |
-| OLED `ERROR: OLED not found` then rest of boot runs | Nothing ACK’d at `0x3C` | OLED **VCC=3V3**, GND, SDA=GP0, **SCK**=GP1, common ground, address jumper still 0x3C |
+| OLED `ERROR: OLED not found` then rest of boot runs | Nothing ACK’d at `0x3C` | OLED **VCC=3V3**, GND, SDA=GP0, **SCL**=GP1, common ground, address jumper still 0x3C |
 | OLED found but `ERROR: OLED initialization failed` | ACK then `display.begin` failed | Wiring/power glitch, wrong size module, I2C noise |
-| OLED shows `Join this WiFi` / AP name, then `Then open` / `192.168.4.1` | Setup AP mode active | Connect to the shown AP, open `http://192.168.4.1/config`, finish the servo + LED + speaker + WiFi wizard |
+| OLED shows `Join this WiFi` / AP name, then `Then open` / `192.168.4.1` | Setup AP mode active | Connect to the shown AP, open `http://192.168.4.1/config`, finish the servo + screen + LED + speaker + WiFi wizard |
 | OLED `WiFi failed` then setup AP | Saved STA credentials failed | Join setup AP, open `http://192.168.4.1/config`, enter home WiFi again |
 | `ERROR: PCA9685 not found` + red RGB + **hang** | Nothing ACK’d at `0x40` | PCA9685 **VCC=3V3** (not V+), GND, SDA/SCL, I2C address pads, +5V not required for the ACK but needed later for motion |
 | `ERROR: I2S initialization failed` + red RGB + **hang** | `I2S.begin` failed | GPIO2/3/4 not shorted to 5V/GND; pin constants; USB CDC still alive so you can read the line |
@@ -144,7 +147,7 @@ OLED absence and Wi-Fi failure are **soft** fails. PCA9685 and I2S failures **ha
 
 ## Power during the servo test
 
-All five servos move together on `POST /test/movement`. A weak USB port often dies **here**. If the serial port drops exactly when that POST runs: treat as brownout, not a PWM bug. Boot only parks at 90°, which is much lighter.
+All five servos move together on `POST /test/movement`. A weak USB port often dies **here**. If the serial port drops exactly when that POST runs: treat as brownout, not a PWM bug. Boot parks at each joint’s calibrated mid, which is much lighter.
 
 ## What this test does not prove
 

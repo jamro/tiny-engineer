@@ -4,7 +4,7 @@
 
 | Item | Value |
 | --- | --- |
-| Model | PowerHD HD-1370A analog micro |
+| Model | Analog micro servo — **Tower Pro SG90 recommended** ([presets](../3d/parametric-design.md)) |
 | Count | 5 |
 | Driver | Adafruit PCA9685, I2C `0x40` |
 | Servo supply | PCA9685 **V+** ← drawing: USB **5V** → PCA9685 **5V** (same servo rail as **V+**; not **VCC**) |
@@ -38,12 +38,9 @@ Verified in [`include/pins.h`](../../include/pins.h) and [`include/servos.h`](..
 
 | Constant | Value | Role |
 | --- | --- | --- |
-| `SERVO_LOW` | **75.0** | Test lower angle |
-| `SERVO_CENTER` | **90.0** | Neutral / start / end |
-| `SERVO_HIGH` | **105.0** | Test upper angle |
 | `SERVO_STEP_MS` | 10 | Live update / interpolation step (ms) |
 | `SERVO_ANGLE_DEADBAND_DEG` | **0.32** | Stop threshold (~half PWM count) |
-| `SERVO_SPEED_DEG_S` | **140.0** | Smooth rate for `POST /test/servo` (`SERVO_MAX_SPEED_DEG_S`) |
+| `SERVO_MAX_SPEED_DEG_S` | **140.0** | Smooth rate for `POST /test/servo` |
 | `SERVO_BOOT_SPEED_DEG_S` | **35.0** | Boot centering and sleep-pose moves |
 
 ## Boot safety
@@ -63,21 +60,21 @@ Firmware uses two complementary control paths:
 
 | Mode | API | Use |
 | --- | --- | --- |
-| **Choreographed** | `setPosition()` + time easing (`anim::easedLerp`, `anim::EasedMove`) | Welcome raise/wiggle, thinking head/neck — direct PWM each frame, cubic ease-in-out |
-| **Discrete** | `setTarget()` + `update()` slew | Typing, reading, ring, transitions — rate-limited chase to a fixed angle |
+| **Choreographed** | `setNormPosition()` + time easing (`anim::easedLerp`, `anim::EasedMove`) | Welcome raise/wiggle, thinking head/neck — pose in −1..1, mapped to saved min/max each frame |
+| **Discrete** | `setNormTarget()` + `update()` slew | Typing, reading, ring, transitions — rate-limited chase to a mapped pose |
 
-Helpers live in [`src/animation/util.cpp`](../../src/animation/util.cpp). Blocking test moves (`moveTo`, `servoMoveAllSmooth`) also use cubic easing.
+Helpers live in [`src/animation/util.cpp`](../../src/animation/util.cpp). Blocking test moves (`moveTo`) also use cubic easing.
 
-`SERVO_MAX_SPEED_DEG_S` (140°/s) is ~28% of HD-1370A unloaded max (~500°/s @ 4.8 V) — smoother under load while staying responsive for hand taps.
+`SERVO_MAX_SPEED_DEG_S` (140°/s) is ~28% of PowerHD HD-1370A unloaded max (~500°/s @ 4.8 V) — smoother under load while staying responsive for hand taps. Other presets (SG90, FS0307) still use this firmware cap.
 
-Bring-up motion (`runServoTest`):
+Bring-up motion (`runServoTest`): each joint uses its **saved** min/max (`n` in −1..1):
 
-1. All channels → 90°
-2. Smooth 90° → 105° (1 s)
-3. Smooth 105° → 75° (2 s)
-4. Smooth 75° → 90° (1 s)
+1. All channels → mid (`n = 0`)
+2. Smooth mid → +0.5 (75% of span)
+3. Smooth +0.5 → −0.5 (25% of span)
+4. Smooth −0.5 → mid
 
-All five channels get the **same** angle. This is a wiring/power test, not a pose library.
+This is a wiring/power test, not a pose library.
 
 ## Three ranges (do not collapse them)
 
@@ -87,9 +84,9 @@ All five channels get the **same** angle. This is a wiring/power test, not a pos
 | 2 | Nominal manufacturer angle | Marketing / datasheet travel (0–180° **or** ~130° over full pulse — sources disagree) | Do not trust for installed mechanics |
 | 3 | Mechanical safe range | Per-joint min/max after horns and linkages | Stock defaults in `SERVO_SPECS` ([`include/servos.h`](../../include/servos.h)); saved to NVS in the setup AP wizard. See [robot-movement.md](../robot-movement.md) |
 
-Animations and poses command **range 3**, clipped inside range 1. Bench bring-up (`runServoTest`, `/test/servo`) may still use the electrical band.
+Animations author poses in **−1..1** (min / mid / max of range 3) and map through `servoNormToDeg`. `POST /test/servo` still takes electrical degrees and clamps to range 3. Setup AP `POST /setup/servo` uses range 1 (0–180°) to find limits.
 
-Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out the 5 V rail. Use the **75 / 90 / 105** test band on the bare bench; on the assembled robot stay inside the saved min/max (stock `SERVO_SPECS` until you calibrate in setup AP).
+Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out the 5 V rail. Stay inside the saved min/max (stock `SERVO_SPECS` until you calibrate in setup AP).
 
 ## Channel-to-mechanism mapping
 

@@ -86,3 +86,7 @@ float settingsServoMax(int index) {
 const char* settingsRgbOrder() {
   return g_rgbOrder;
 }
+
+bool settingsOledRotate180() {
+  return g_oledRotate180;
+}

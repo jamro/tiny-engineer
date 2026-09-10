@@ -19,11 +19,15 @@ public:
     float speedDegS = SERVO_MAX_SPEED_DEG_S
   );
   void setPosition(float angle);
+  void setNormTarget(
+    float n,
+    float speedDegS = SERVO_MAX_SPEED_DEG_S
+  );
+  void setNormPosition(float n);
   void stop();
   void update();
   bool isMoving() const;
 
-  friend void servoMoveAllSmooth(float toAngle);
   friend void servoMoveAllSmoothTo(
     const float targets[SERVO_COUNT],
     float speedDegS
@@ -49,7 +53,6 @@ void initServoOutputPin();
 void disableServoOutputs();
 void enableServoOutputs();
 void initServoPwmDriver();
-void servoMoveAllSmooth(float toAngle);
 void servoMoveAllSmoothTo(
   const float targets[SERVO_COUNT],
   float speedDegS = SERVO_BOOT_SPEED_DEG_S
@@ -59,3 +62,8 @@ void servoMoveAllToElectrical(
   float speedDegS = SERVO_CALIB_SPEED_DEG_S
 );
 void updateAllServos();
+float clampElectricalAngle(float angle);
+float clampServoAngle(int index, float angle);
+float servoRuntimeMid(int index);
+float servoNormToDeg(int index, float n);
+float servoDegToNorm(int index, float deg);

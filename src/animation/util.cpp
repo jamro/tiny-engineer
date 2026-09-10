@@ -130,30 +130,24 @@ void stopAnimServos() {
 }
 
 void parkTorso(float speedDegS) {
-  const float bodyMid = servoMid(SERVO_SPECS[SERVO_BODY]);
-  const float neckMid = servoMid(SERVO_SPECS[SERVO_NECK]);
-
   serialLogPrint("[anim] parkTorso body ");
   serialLogPrint(servoAt(SERVO_BODY).angle(), 1);
   serialLogPrint(" -> ");
-  serialLogPrint(bodyMid, 1);
+  serialLogPrint(servoNormToDeg(SERVO_BODY, 0.0f), 1);
   serialLogPrint(" neck ");
   serialLogPrint(servoAt(SERVO_NECK).angle(), 1);
   serialLogPrint(" -> ");
-  serialLogPrint(neckMid, 1);
+  serialLogPrint(servoNormToDeg(SERVO_NECK, 0.0f), 1);
   serialLogPrint(" speed=");
   serialLogPrintln(speedDegS, 1);
 
-  servoAt(SERVO_BODY).setTarget(bodyMid, speedDegS);
-  servoAt(SERVO_NECK).setTarget(neckMid, speedDegS);
+  servoAt(SERVO_BODY).setNormTarget(0.0f, speedDegS);
+  servoAt(SERVO_NECK).setNormTarget(0.0f, speedDegS);
 }
 
 void parkHands(float speedDegS) {
-  const float handRightRest = SERVO_SPECS[SERVO_HAND_RIGHT].min;
-  const float handLeftRest = SERVO_SPECS[SERVO_HAND_LEFT].max;
-
-  servoAt(SERVO_HAND_RIGHT).setTarget(handRightRest, speedDegS);
-  servoAt(SERVO_HAND_LEFT).setTarget(handLeftRest, speedDegS);
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(-1.0f, speedDegS);
+  servoAt(SERVO_HAND_LEFT).setNormTarget(1.0f, speedDegS);
 }
 
 void parkForTransition() {
@@ -174,23 +168,20 @@ void parkHandsAndBody() {
 
 void parkNonePose() {
   parkForTransition();
-  servoAt(SERVO_HEAD).setTarget(
-    servoMid(SERVO_SPECS[SERVO_HEAD]),
-    TRANSITION_TORSO_SPEED_DEG_S
-  );
+  servoAt(SERVO_HEAD).setNormTarget(0.0f, TRANSITION_TORSO_SPEED_DEG_S);
 }
 
 void parkSleepPose() {
   parkForTransition();
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     SLEEP_HEAD_DOWN,
     SERVO_BOOT_SPEED_DEG_S
   );
 }
 
-void snapHeadToRangeHigh(float highDeg) {
-  servoAt(SERVO_HEAD).setTarget(
-    highDeg,
+void snapHeadToRangeHigh(float highNorm) {
+  servoAt(SERVO_HEAD).setNormTarget(
+    highNorm,
     SERVO_MAX_SPEED_DEG_S * 0.85f
   );
 }

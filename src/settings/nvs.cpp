@@ -65,7 +65,8 @@ void putAll(
   const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
-  const char* rgbOrder
+  const char* rgbOrder,
+  bool oledRotate180
 ) {
   uint8_t servoBlob[kServoRangesLen];
   packServoRanges(servoBlob, servoMins, servoMaxs);
@@ -82,6 +83,7 @@ void putAll(
   g_settingsPrefs.putString(kKeyWifiPass, wifiPassword);
   g_settingsPrefs.putBytes(kKeyServoRanges, servoBlob, kServoRangesLen);
   g_settingsPrefs.putString(kKeyRgbOrder, rgbOrder);
+  g_settingsPrefs.putBool(kKeyOledRot, oledRotate180);
 }
 
 }  // namespace
@@ -99,7 +101,8 @@ bool writeAllToNvs(
   const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
-  const char* rgbOrder
+  const char* rgbOrder,
+  bool oledRotate180
 ) {
   if (!settingsNvsBeginWrite()) {
     serialLogPrintln("Settings: NVS write open failed");
@@ -119,7 +122,8 @@ bool writeAllToNvs(
     wifiPassword,
     servoMins,
     servoMaxs,
-    rgbOrder
+    rgbOrder,
+    oledRotate180
   );
   settingsNvsEnd();
   return true;
@@ -138,7 +142,8 @@ void settingsNvsPutAll(
   const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
-  const char* rgbOrder
+  const char* rgbOrder,
+  bool oledRotate180
 ) {
   putAll(
     sleepTimeoutMin,
@@ -153,6 +158,7 @@ void settingsNvsPutAll(
     wifiPassword,
     servoMins,
     servoMaxs,
-    rgbOrder
+    rgbOrder,
+    oledRotate180
   );
 }

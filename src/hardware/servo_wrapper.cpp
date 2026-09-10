@@ -57,7 +57,31 @@ float clampAngle(int index, float angle, bool electrical) {
 }
 
 float servoRuntimeMid(int index) {
-  return (settingsServoMin(index) + settingsServoMax(index)) * 0.5f;
+  return servoNormToDeg(index, 0.0f);
+}
+
+float servoNormToDeg(int index, float n) {
+  if (index < 0 || index >= SERVO_COUNT) {
+    return servoNormToDeg(n, 0.0f, 180.0f);
+  }
+
+  return servoNormToDeg(
+    n,
+    settingsServoMin(index),
+    settingsServoMax(index)
+  );
+}
+
+float servoDegToNorm(int index, float deg) {
+  if (index < 0 || index >= SERVO_COUNT) {
+    return servoDegToNorm(deg, 0.0f, 180.0f);
+  }
+
+  return servoDegToNorm(
+    deg,
+    settingsServoMin(index),
+    settingsServoMax(index)
+  );
 }
 
 void initServoOutputPin() {
@@ -130,6 +154,14 @@ void ServoWrapper::setPosition(float angle) {
   writeAngle(angle, false, false);
   target_ = angle_;
   lastUpdateMs_ = 0;
+}
+
+void ServoWrapper::setNormTarget(float n, float speedDegS) {
+  setTarget(servoNormToDeg(index_, n), speedDegS);
+}
+
+void ServoWrapper::setNormPosition(float n) {
+  setPosition(servoNormToDeg(index_, n));
 }
 
 void ServoWrapper::stop() {
@@ -461,14 +493,4 @@ void servoMoveAllToElectrical(
     g_servos[i].target_ = g_servos[i].angle_;
     g_servos[i].lastUpdateMs_ = 0;
   }
-}
-
-void servoMoveAllSmooth(float toAngle) {
-  float targets[SERVO_COUNT];
-
-  for (int i = 0; i < SERVO_COUNT; i++) {
-    targets[i] = toAngle;
-  }
-
-  servoMoveAllSmoothTo(targets, SERVO_MAX_SPEED_DEG_S);
 }

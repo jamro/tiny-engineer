@@ -27,6 +27,7 @@ constexpr size_t SETTINGS_SERVO_COUNT = 5;
 constexpr uint8_t SETTINGS_SERVO_ANGLE_MAX = 180;
 constexpr size_t SETTINGS_RGB_ORDER_MAX_LEN = 3;
 constexpr const char* SETTINGS_DEFAULT_RGB_ORDER = "GRB";
+constexpr bool SETTINGS_DEFAULT_OLED_ROTATE_180 = false;
 
 void initSettings();
 
@@ -47,6 +48,7 @@ bool settingsWifiPasswordSet();
 float settingsServoMin(int index);
 float settingsServoMax(int index);
 const char* settingsRgbOrder();
+bool settingsOledRotate180();
 
 // Hostname used at boot for Wi-Fi/mDNS (frozen after initSettings).
 const char* settingsBootHostname();
@@ -82,11 +84,13 @@ bool saveSettings(
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
   const char* rgbOrder,
+  const bool* oledRotate180,
   bool* rebootRequired
 );
 
 // Clears NVS namespace and restores settings to defaults except servo
-// min/max and RGB LED byte order, which stay as currently saved.
+// min/max, RGB LED byte order, and OLED 180° rotation, which stay as
+// currently saved.
 // *rebootRequired is set when boot hostname or loading differed from
 // defaults before reset.
 bool factoryResetSettings(bool* rebootRequired);
