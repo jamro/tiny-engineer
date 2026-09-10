@@ -1,4 +1,4 @@
-"""Export PRINT_LAYOUT children as separate 3MF and binary STL meshes."""
+"""Export PRINT_LAYOUT children as 3MF, binary STL, and STEP."""
 
 import os
 import traceback
@@ -14,7 +14,7 @@ ui = app.userInterface
 
 COMMAND_ID = 'TinyEngineerPartsExporter'
 COMMAND_NAME = 'Tiny Engineer Parts Exporter'
-COMMAND_DESCRIPTION = 'Export each PRINT_LAYOUT child as 3MF and binary STL'
+COMMAND_DESCRIPTION = 'Export each PRINT_LAYOUT child as 3MF, binary STL, and STEP'
 WORKSPACE_ID = 'FusionSolidEnvironment'
 PANEL_ID = 'SolidScriptsAddinsPanel'
 PRINT_LAYOUT_NAME = 'PRINT_LAYOUT'
@@ -183,9 +183,11 @@ def _export_dirs(folder, servo_id):
     servo_dir = os.path.join(folder, servo_id)
     stl_dir = os.path.join(servo_dir, 'stl')
     c3mf_dir = os.path.join(servo_dir, '3mf')
+    step_dir = os.path.join(servo_dir, 'step')
     os.makedirs(stl_dir, exist_ok=True)
     os.makedirs(c3mf_dir, exist_ok=True)
-    return servo_dir, stl_dir, c3mf_dir
+    os.makedirs(step_dir, exist_ok=True)
+    return servo_dir, stl_dir, c3mf_dir, step_dir
 
 
 def _export_meshes(export_mgr, geometry, stl_dir, c3mf_dir, base):
@@ -207,6 +209,43 @@ def _export_meshes(export_mgr, geometry, stl_dir, c3mf_dir, base):
         export_mgr.execute(c3mf)
     except Exception as exc:
         errors.append(f'{base}.3mf: {exc}')
+
+    return errors
+
+
+def _step_component(geometry):
+    component = adsk.fusion.Component.cast(geometry)
+    if component:
+        return component
+    occ = adsk.fusion.Occurrence.cast(geometry)
+    if occ:
+        return occ.component
+    return None
+
+
+def _export_step(export_mgr, geometry, step_dir, base):
+    errors = []
+    step_path = os.path.join(step_dir, f'{base}.step')
+
+    try:
+        # File → Export. createSTEPExportOptions(filename, geometry) rejects
+        # Occurrence (Save as Mesh accepts it) and fails silent. Create with
+        # filename, set .geometry to PRINT_LAYOUT; fall back to Component.
+        step = export_mgr.createSTEPExportOptions(step_path)
+        if not step:
+            return [f'{base}.step: createSTEPExportOptions failed']
+        step.geometry = geometry
+        if export_mgr.execute(step):
+            return errors
+
+        component = _step_component(geometry)
+        if not component:
+            return [f'{base}.step: ExportManager.execute failed']
+        step = export_mgr.createSTEPExportOptions(step_path, component)
+        if not step or not export_mgr.execute(step):
+            errors.append(f'{base}.step: ExportManager.execute failed')
+    except Exception as exc:
+        errors.append(f'{base}.step: {exc}')
 
     return errors
 
@@ -256,7 +295,7 @@ def _export_parts():
     layout_state = [(occ, occ.isLightBulbOn) for occ in layout_path]
 
     export_mgr = design.exportManager
-    servo_dir, stl_dir, c3mf_dir = _export_dirs(folder, servo_id)
+    servo_dir, stl_dir, c3mf_dir, step_dir = _export_dirs(folder, servo_id)
     _write_servo_readme(servo_dir, servo_name, servo_data)
     used_names = set()
     exported = 0
@@ -292,6 +331,9 @@ def _export_parts():
             _set_child_visible(children, occ)
             part_errors = _export_meshes(
                 export_mgr, geometry, stl_dir, c3mf_dir, base
+            )
+            part_errors.extend(
+                _export_step(export_mgr, geometry, step_dir, base)
             )
             if part_errors:
                 errors.extend(part_errors)

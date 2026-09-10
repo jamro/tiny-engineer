@@ -8,7 +8,7 @@ The full assembly — all components composed — lives in [`cad/TinyEngineer.f3
 
 ## Printables
 
-Individual parts are exported under [`parts/{servo_id}/`](parts/). Print the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, or **`parts/hd1370a/3mf/`** to match the servos you bought ([which servo](../docs/3d/parametric-design.md)). They are ready to print in an orientation that does not need supports. Print with **PLA** or **PETG**. `stl/` next to `3mf/` is the same mesh in binary STL.
+Individual parts are exported under [`parts/{servo_id}/`](parts/). Print the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, or **`parts/hd1370a/3mf/`** to match the servos you bought ([which servo](../docs/3d/parametric-design.md)). They are ready to print in an orientation that does not need supports. Print with **PLA** or **PETG**. `stl/` next to `3mf/` is the same mesh in binary STL. `step/` next to those is CAD interchange (BRep STEP), not a printable mesh.
 
 Assembly uses a bunch of **2 mm diameter screws** — no glue. Easy to dismount and modify later. Exact screw lengths/counts and full assembly steps are **not documented yet**. Use the part table below, then electrical and bring-up docs.
 

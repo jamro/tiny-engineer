@@ -2,7 +2,7 @@
 
 [`3d_models/cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d) is the parametric Fusion source for the robot. Printed pockets, mounting tabs, and shaft clearance are driven by Fusion **user parameters**. Change those values and the assembly rebuilds for a different micro servo.
 
-Presets live in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json). **TinyEngineer Tools** writes them into the `.f3d`, then exports print meshes under `parts/{servo_id}/3mf/` (and matching `stl/`).
+Presets live in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json). **TinyEngineer Tools** writes them into the `.f3d`, then exports print meshes under `parts/{servo_id}/3mf/` (and matching `stl/`) plus STEP CAD under `parts/{servo_id}/step/`.
 
 ```mermaid
 flowchart LR
@@ -79,7 +79,7 @@ Each preset in `servos.json` is a map of Fusion user-parameter names to expressi
 
 ## TinyEngineer Tools add-in
 
-**TinyEngineer Tools** is a Fusion add-in for [`cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d). It writes servo dimensions from [`TinyEngineerTools/servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) into Fusion user parameters, and exports each `PRINT_LAYOUT` child as a `.3mf` and binary `.stl` mesh (PRINT_LAYOUT with one child visible, so captured print pose stays).
+**TinyEngineer Tools** is a Fusion add-in for [`cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d). It writes servo dimensions from [`TinyEngineerTools/servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) into Fusion user parameters, and exports each `PRINT_LAYOUT` child as a `.3mf` and binary `.stl` mesh plus a `.step` CAD file (PRINT_LAYOUT with one child visible, so captured print pose stays). STL/3MF use Save as Mesh; STEP uses File → Export.
 
 Fusion must know about the add-in folder. Folder name, `TinyEngineerTools.py`, and `TinyEngineerTools.manifest` must stay the same.
 
@@ -115,6 +115,7 @@ The add-in finds the `PRINT_LAYOUT` component and exports each of its direct chi
 
 * `{servo_id}/3mf/{name}.3mf`
 * `{servo_id}/stl/{name}.stl` in binary STL format
+* `{servo_id}/step/{name}.step` as STEP CAD (File → Export, not Save as Mesh)
 * `{servo_id}/README.md` with that servo’s parameters from `servos.json`
 
 `servo_id` comes from the Fusion parameter set by Servo Configurator. Apply a servo before exporting.
