@@ -1,6 +1,6 @@
 # Fusion add-in
 
-**TinyEngineer Tools** writes servo dimensions from [`TinyEngineerTools/servos.json`](TinyEngineerTools/servos.json) into Fusion user parameters. Use it with [`cad/TinyEngineer.f3d`](../cad/TinyEngineer.f3d).
+**TinyEngineer Tools** is a Fusion add-in for [`cad/TinyEngineer.f3d`](../cad/TinyEngineer.f3d). It writes servo dimensions from [`TinyEngineerTools/servos.json`](TinyEngineerTools/servos.json) into Fusion user parameters, and exports each `PRINT_LAYOUT` child as a `.3mf` and binary `.stl` mesh (PRINT_LAYOUT with one child visible, so captured print pose stays).
 
 Fusion must know about the add-in folder. Folder name, `TinyEngineerTools.py`, and `TinyEngineerTools.manifest` must stay the same.
 
@@ -18,9 +18,26 @@ Fusion remembers the path. Code stays in git. Reload after edits (see below).
 6. Select **TinyEngineerTools** in the list and click **Run**.
 7. Optional: enable **Run on Startup** so Fusion starts it every launch.
 
-## Use the command
+## Use the commands
 
-1. Open [`cad/TinyEngineer.f3d`](../cad/TinyEngineer.f3d).
-2. Stay in the **Design** workspace.
-3. Go to **Utilities → Add-ins → TinyEngineer Servo Configurator**.
-4. Select a servo model and apply dimensions.
+Open [`cad/TinyEngineer.f3d`](../cad/TinyEngineer.f3d) and stay in the **Design** workspace. Both commands live under **Utilities → Add-ins**.
+
+### TinyEngineer Servo Configurator
+
+Select a servo model and apply dimensions, including `servo_id` (short lowercase id such as `sg90`).
+
+### Tiny Engineer Parts Exporter
+
+Choose an export folder.
+
+The add-in finds the `PRINT_LAYOUT` component and exports each of its direct child components separately. For each child, it temporarily hides the others, keeps that child visible in its saved print orientation, and exports the full PRINT_LAYOUT as:
+
+* `{servo_id}/3mf/{name}.3mf`
+* `{servo_id}/stl/{name}.stl` in binary STL format
+* `{servo_id}/README.md` with that servo’s parameters from `servos.json`
+
+`servo_id` comes from the Fusion parameter set by Servo Configurator. Apply a servo before exporting.
+
+In that way, each component is exported as a separate file, all keeping their captured print orientation.
+
+After all components are exported, the original visibility settings are restored. A progress dialog stays up during the run so Fusion can paint; Cancel stops after the current part.

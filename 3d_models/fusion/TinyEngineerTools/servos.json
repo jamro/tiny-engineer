@@ -1,5 +1,6 @@
 {
   "Feetech FS0307": {
+    "servo_id": "fs0307",
     "servo_body_width": "20 mm",
     "servo_body_height": "13 mm",
     "servo_mount_width": "3.8 mm",
@@ -16,6 +17,7 @@
     "servo_mount_hole_width_offset": "0 mm"
   },
   "Tower Pro SG90": {
+    "servo_id": "sg90",
     "servo_body_width": "22.7 mm",
     "servo_body_height": "17 mm",
     "servo_mount_width": "4.8 mm",

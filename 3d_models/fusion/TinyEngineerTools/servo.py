@@ -15,6 +15,7 @@ COMMAND_NAME = 'TinyEngineer Servo Configurator'
 COMMAND_DESCRIPTION = 'Select servo model and apply dimensions'
 WORKSPACE_ID = 'FusionSolidEnvironment'
 PANEL_ID = 'SolidScriptsAddinsPanel'
+SERVO_ID_PARAM = 'servo_id'
 
 _handlers = []
 
@@ -120,9 +121,36 @@ def _build_dialog(inputs, servos):
     _update_preview(inputs, servos)
 
 
+def _apply_servo_id(params, value):
+    existing = params.itemByName(SERVO_ID_PARAM)
+    if existing:
+        try:
+            existing.textValue = value
+            return
+        except Exception:
+            pass
+        try:
+            existing.expression = f"'{value}'"
+            return
+        except Exception:
+            existing.deleteMe()
+
+    params.add(
+        SERVO_ID_PARAM,
+        adsk.core.ValueInput.createByString(f"'{value}'"),
+        'Text',
+        'Selected servo id',
+    )
+
+
 def _apply_servo(design, servo_data):
     params = design.userParameters
-    missing = [name for name in servo_data if not params.itemByName(name)]
+    dimensions = {
+        name: value
+        for name, value in servo_data.items()
+        if name != SERVO_ID_PARAM
+    }
+    missing = [name for name in dimensions if not params.itemByName(name)]
     if missing:
         ui.messageBox(
             'The following Fusion parameters do not exist:\n\n'
@@ -130,7 +158,11 @@ def _apply_servo(design, servo_data):
         )
         return
 
-    for name, value in servo_data.items():
+    servo_id = servo_data.get(SERVO_ID_PARAM)
+    if servo_id:
+        _apply_servo_id(params, servo_id)
+
+    for name, value in dimensions.items():
         params.itemByName(name).expression = value
 
 
