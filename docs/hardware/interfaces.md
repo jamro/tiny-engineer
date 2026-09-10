@@ -9,7 +9,7 @@ Shared bus.
 | Signal | ESP32 GPIO | Diagram pad |
 | --- | --- | --- |
 | SDA | GPIO0 | GP0 → PCA9685 SDA, OLED SDA |
-| SCL | GPIO1 | GP1 → PCA9685 SCL, OLED **SCK** |
+| SCL | GPIO1 | GP1 → PCA9685 SCL, Waveshare OLED **SCL** |
 
 | Device | Address | Firmware behaviour if missing |
 | --- | --- | --- |

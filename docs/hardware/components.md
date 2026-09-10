@@ -15,7 +15,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 | PowerHD HD-1370A (backward compatibility) | https://www.chd.hk/Product_Detail.aspx?id=30 |
 | MAX98357A I2S class-D mono amplifier | https://www.aliexpress.us/item/3256805196806369.html |
 | 8 Ω / 1 W mono speaker | https://www.aliexpress.us/item/3256807341987395.html |
-| 0.91" 128×32 OLED (SSD1306, I2C) | https://www.raystar-optronics.com/oled-graphic-display-module/oled-i2c-ssd1306.html |
+| Waveshare 0.91inch OLED Module | https://www.waveshare.com/0.91inch-oled-module.htm |
 | Adafruit 5993 USB-C breakout | https://www.adafruit.com/product/5993 |
 
 ## Waveshare ESP32-C3-Zero
@@ -147,20 +147,20 @@ Print [`3d_models/parts/hd1370a/`](../../3d_models/parts/hd1370a/).
 
 Speaker wiring is **not** drawn on `docs/wiring/Tiny Engineer.drawio`. Electrical rule is still: speaker ↔ SPK+/SPK- only.
 
-## 0.91" 128×32 OLED (SSD1306, I2C)
+## Waveshare 0.91inch OLED Module (SSD1306, I2C)
 
 | Field | Value |
 | --- | --- |
-| Exact model | Generic 0.91" 128×32 SSD1306 I2C OLED |
+| Exact model | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SKU 14657). Driver SSD1306, 128×32, I2C |
 | Quantity | 1 |
 | Purpose | Status / test UI |
-| Operating voltage | Module **VCC** from ESP32 **3V3** (confirmed in [`docs/wiring`](../wiring/Tiny%20Engineer.drawio.png)) |
-| Interface | I2C on the shared bus |
+| Operating voltage | Module accepts **3.3 V / 5 V**. Robot **VCC** from ESP32 **3V3** (confirmed in [`docs/wiring`](../wiring/Tiny%20Engineer.drawio.png)) |
+| Interface | I2C on the shared bus. Pads **VCC**, **GND**, **SDA**, **SCL** |
 | Address | **`0x3C`** (`OLED_ADDRESS` in firmware). Alternate 0x3D exists on some modules if the ADDR jumper is changed — not used here |
 | Resolution | 128×32 (`OLED_WIDTH` / `OLED_HEIGHT`) |
-| Important pins | As drawn: **VCC**, **GND**, **SDA**, **SCK** (that **SCK** pad is I2C SCL) |
+| Important pins | **VCC**, **GND**, **SDA**, **SCL**. Clock pad on this board is **SCL**. The wiring PNG may still label that net **SCK** (generic clone silkscreen) — same I2C clock, ESP32 **GP1** |
 | Firmware notes | `SSD1306_SWITCHCAPVCC`; rotation from `oled_rotate_180` (`setRotation(0)` or `2`). Missing OLED is **non-fatal** in the bring-up test |
-| Limits | 3.3 V logic. Do not hang this module on the servo +5V rail unless a specific 5 V-tolerant module is verified (**current wiring is 3V3**) |
+| Limits | Robot wiring is **3V3**. Do not hang this module on the servo +5V rail |
 
 ## Adafruit 5993 USB-C breakout
 

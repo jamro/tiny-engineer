@@ -31,7 +31,7 @@ Both hit the same Tiny Engineer REST API (`/anim`). The ESP32-C3 runs that API, 
 | Bus | Hardware | Role |
 | --- | --- | --- |
 | I2C | PCA9685 → 5× servos | Head / neck, hands / body |
-| I2C | SSD1306 OLED | Status, face, info |
+| I2C | Waveshare 0.91inch OLED (SSD1306) | Status, face, info |
 | I2S | MAX98357A → speaker | Audio |
 
 Cursor is one, sample, client, not the architecture. Details: [Cursor hooks](docs/hooks.md) · [any integration](docs/integration.md) · [HTTP API](docs/api.md)
@@ -62,7 +62,7 @@ Major pieces (exact models and counts in the BOM):
 | Controller | Waveshare ESP32-C3-Zero | 1 |
 | Servo PWM | Adafruit PCA9685 | 1 |
 | Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 for a compact build; PowerHD HD-1370A still supported | 5 |
-| Display | 0.91" 128×32 SSD1306 OLED (I2C) | 1 |
+| Display | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 |
 | Audio | MAX98357A + 8 Ω / 1 W speaker | 1 + 1 |
 | USB / power | Adafruit 5993 USB-C breakout; **5 V / ≥2 A** supply | 1 |
 | Structure | 3D-printed parts | — |

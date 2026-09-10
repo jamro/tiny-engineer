@@ -132,7 +132,7 @@ HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisio
 
 | Serial / OLED | Meaning | Check |
 | --- | --- | --- |
-| OLED `ERROR: OLED not found` then rest of boot runs | Nothing ACK’d at `0x3C` | OLED **VCC=3V3**, GND, SDA=GP0, **SCK**=GP1, common ground, address jumper still 0x3C |
+| OLED `ERROR: OLED not found` then rest of boot runs | Nothing ACK’d at `0x3C` | OLED **VCC=3V3**, GND, SDA=GP0, **SCL**=GP1, common ground, address jumper still 0x3C |
 | OLED found but `ERROR: OLED initialization failed` | ACK then `display.begin` failed | Wiring/power glitch, wrong size module, I2C noise |
 | OLED shows `Join this WiFi` / AP name, then `Then open` / `192.168.4.1` | Setup AP mode active | Connect to the shown AP, open `http://192.168.4.1/config`, finish the servo + screen + LED + speaker + WiFi wizard |
 | OLED `WiFi failed` then setup AP | Saved STA credentials failed | Join setup AP, open `http://192.168.4.1/config`, enter home WiFi again |

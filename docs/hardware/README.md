@@ -53,7 +53,7 @@ flowchart TB
   ESP -->|"3V3"| PCA
   ESP -->|"3V3"| OLED
   ESP -->|"GP0 SDA / GP1 SCL"| PCA
-  ESP -->|"GP0 SDA / GP1 SCK"| OLED
+  ESP -->|"GP0 SDA / GP1 SCL"| OLED
   ESP -->|"GP2 BCLK / GP3 LRC / GP4 DIN"| MAXVIN
   PCA -->|"PWM"| SERVOS
 ```
@@ -81,7 +81,7 @@ Speaker **SPK+/SPK-** are not on the PNG. See [wiring.md](wiring.md#not-on-the-d
 | Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 compact; PowerHD HD-1370A still supported | 5 |
 | Audio amp | MAX98357A I2S class-D (mono) | 1 |
 | Speaker | 8 Ω / 1 W mono | 1 |
-| Display | 0.91" 128×32 OLED, SSD1306, I2C | 1 |
+| Display | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 |
 | Robot USB | Adafruit 5993 USB-C breakout (power + data) | 1 |
 
 Full inventory: [components.md](components.md).
@@ -90,7 +90,7 @@ Full inventory: [components.md](components.md).
 
 | Bus | ESP32 pins | Devices |
 | --- | --- | --- |
-| I2C | GP0/SDA, GP1/SCL (OLED pad **SCK**) | PCA9685 `0x40`, SSD1306 `0x3C` |
+| I2C | GP0/SDA, GP1/SCL (Waveshare OLED **SCL**) | PCA9685 `0x40`, SSD1306 `0x3C` |
 | I2S | GP2/BCLK, GP3/LRC, GP4/DIN | MAX98357A |
 | Servo PWM | *(none on ESP32)* | PCA9685 channels 0–4 @ 50 Hz |
 | USB | Adafruit 5993 (VBUS/GND + D+/D− → GP19/GP18) | Power, flash, serial CDC |

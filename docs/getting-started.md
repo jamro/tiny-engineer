@@ -19,7 +19,7 @@ Gather electronics from [hardware/components.md](hardware/components.md). Minimu
 - Waveshare ESP32-C3-Zero
 - Adafruit PCA9685 + 5× analog micro servos (**Tower Pro SG90** recommended; [other presets](3d/parametric-design.md))
 - MAX98357A + 8 Ω / 1 W speaker
-- 0.91" 128×32 SSD1306 OLED (I2C)
+- [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C)
 - Adafruit 5993 USB-C breakout (power + data)
 - **5 V / ≥2 A** USB supply (servos need headroom — [hardware/power.md](hardware/power.md))
 
@@ -36,7 +36,7 @@ Join printed parts with **2 mm diameter screws** (no glue; easy to dismount late
 
 Canonical connections: [hardware/wiring.md](hardware/wiring.md) and the diagram [wiring/Tiny Engineer.drawio.png](wiring/Tiny%20Engineer.drawio.png). Overview: [hardware/README.md](hardware/README.md).
 
-Before first power-up, run the assembly checks in wiring.md (common GND, PCA9685 **VCC** = 3.3 V vs **V+** = 5 V not shorted, OLED clock on **SCK**, speaker on **SPK+/SPK−** only). Prefer bench bring-up with a strong 5 V supply before seating everything in the printed shell.
+Before first power-up, run the assembly checks in wiring.md (common GND, PCA9685 **VCC** = 3.3 V vs **V+** = 5 V not shorted, OLED clock on **SCL**, speaker on **SPK+/SPK−** only). Prefer bench bring-up with a strong 5 V supply before seating everything in the printed shell.
 
 ### 4. Flash
 

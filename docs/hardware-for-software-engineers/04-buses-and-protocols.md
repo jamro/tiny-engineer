@@ -49,7 +49,7 @@ PCA9685 is load-bearing. OLED is nice-to-have for bring-up.
 
 **Traps:**
 - SDA/SCL swapped → nothing works
-- OLED pad labeled **SCK** is I2C **SCL**, not SPI clock
+- OLED pad labeled **SCL** on the [Waveshare 0.91inch module](https://www.waveshare.com/0.91inch-oled-module.htm) is I2C clock. Generic clones often print **SCK** on that same pin — not SPI.
 - "Device not found" *after* servos start moving → often **power sag**, not a bad bus. See [Ch. 07](07-power-budgets-and-safety.md)
 
 ---
@@ -122,7 +122,7 @@ Not USB-PD conversion: it does **not** turn 9/12/20 V into 5 V. Feed a normal 5 
 
 | | Pattern | This robot | Typical mistake |
 | --- | --- | --- | --- |
-| **I2C** | Request/response + addresses | PCA9685 + OLED (GP0, GP1) | Swapped SDA/SCL; OLED SCK ≠ SPI |
+| **I2C** | Request/response + addresses | PCA9685 + OLED (GP0, GP1) | Swapped SDA/SCL; OLED clock is SCL (clones may say SCK) |
 | **I2S** | Continuous PCM stream | Amp (GP2–GP4) | SPK− tied to GND |
 | **PWM** | HIGH pulse length = angle | PCA9685 → five servos | Powering servos from 3.3 V |
 | **USB** | Power + serial | 5993 → 5 V + flash | Charge-only cable; expecting PD |

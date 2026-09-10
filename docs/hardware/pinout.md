@@ -9,7 +9,7 @@ Verified against firmware (2026-08-21). No discrepancy vs the tested assignment.
 | Function | ESP32-C3-Zero GPIO | Constant | Goes to |
 | --- | --- | --- | --- |
 | I2C SDA | **GPIO0** (diagram **GP0**) | `I2C_SDA` | PCA9685 SDA, OLED SDA |
-| I2C SCL | **GPIO1** (diagram **GP1**) | `I2C_SCL` | PCA9685 SCL, OLED **SCK** |
+| I2C SCL | **GPIO1** (diagram **GP1**) | `I2C_SCL` | PCA9685 SCL, Waveshare OLED **SCL** |
 | I2S BCLK | **GPIO2** (diagram **GP2**) | `I2S_BCLK` | MAX98357A BCLK |
 | I2S LRCLK / WS | **GPIO3** (diagram **GP3**) | `I2S_LRC` | MAX98357A **LRC** |
 | I2S DATA OUT | **GPIO4** (diagram **GP4**) | `I2S_DIN` | MAX98357A DIN |
