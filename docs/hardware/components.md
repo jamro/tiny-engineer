@@ -142,5 +142,5 @@ Prefer a final 5 V supply of **at least ~2 A** with margin if several servos mov
 ## Mechanical / RF notes for firmware and CAD
 
 - Keep metal and dense plastic **off** the ESP32 ceramic antenna area.
-- Servo horns and end stops: start from `SERVO_SPECS` in [`include/servos.h`](../../include/servos.h); tune after installation if needed. Bench-only test band remains 75–105°.
+- Servo horns and end stops: start from `SERVO_SPECS` in [`include/servos.h`](../../include/servos.h); tune after installation if needed. Assembled motion stays inside the saved min/max.
 - GPIO18/19 are native USB via the 5993 data wires. Do not reassign them while using USB CDC for flash/serial.

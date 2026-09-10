@@ -34,7 +34,7 @@ bool allDeadServosStopped() {
 void commandCollapsePose() {
   anim::parkTorso(anim::DEAD_COLLAPSE_SPEED_DEG_S);
   anim::parkHands(anim::DEAD_COLLAPSE_SPEED_DEG_S);
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::DEAD_HEAD_DOWN,
     anim::DEAD_COLLAPSE_SPEED_DEG_S
   );

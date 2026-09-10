@@ -10,7 +10,9 @@ The robot sits in a chair beside a desk. A miniature laptop and a service bell s
 | 3 | **Right hand** | Hand up / down (inverted scale) | up | down | 35 – 125 |
 | 4 | **Body** | Whole torso left / right | right | left | 40 – 130 |
 
-Ranges match stock `SERVO_SPECS` in [`include/servos.h`](../include/servos.h). Those values are **defaults**. After setup AP calibration they are stored in NVS and clamp all later motion. Factory reset keeps the saved ranges. Retune them in the setup wizard when AP mode is open.
+Ranges match stock `SERVO_SPECS` in [`include/servos.h`](../include/servos.h). Those values are **defaults**. After setup AP calibration they are stored in NVS. Factory reset keeps the saved ranges. Retune them in the setup wizard when AP mode is open.
+
+Animations author poses in **−1..1** relative to each joint’s saved min/max (`−1` = min, `0` = mid, `+1` = max). Horn offset after assembly is absorbed by calibration; firmware maps those poses with `servoNormToDeg`. Right-hand rest is still electrical min (`−1`); left-hand rest is electrical max (`+1`).
 
 **Head** tilts the face toward or away from the laptop. **Neck** pans the head side to side. **Hands** lift and lower over the keyboard; the forearms have no elbow servo — the arm linkage is fixed, so only the hand joint moves. **Left** and **right** hand servos use opposite scales: on the left, higher angle is up; on the right, higher angle is down (rest pose for typing is left at `max`, right at `min`). **Body** rotates the whole upper body in the chair while the base stays put.
 

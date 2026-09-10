@@ -24,8 +24,8 @@ enum class SleepState {
 SleepState g_state = SleepState::Awake;
 uint32_t g_idleSinceMs = 0;
 
-void commandSleepHead(float deg) {
-  servoAt(SERVO_HEAD).setTarget(deg, SERVO_BOOT_SPEED_DEG_S);
+void commandSleepHead(float n) {
+  servoAt(SERVO_HEAD).setNormTarget(n, SERVO_BOOT_SPEED_DEG_S);
 }
 
 void wakeFromSleep(uint32_t now) {

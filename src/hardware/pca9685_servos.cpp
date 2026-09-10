@@ -65,11 +65,20 @@ void centerAllServos() {
   float targets[SERVO_COUNT];
 
   for (int servo = 0; servo < SERVO_COUNT; servo++) {
-    targets[servo] =
-      (settingsServoMin(servo) + settingsServoMax(servo)) * 0.5f;
+    targets[servo] = servoNormToDeg(servo, 0.0f);
   }
 
   servoMoveAllSmoothTo(targets);
+}
+
+void servoMoveAllNorm(float n) {
+  float targets[SERVO_COUNT];
+
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    targets[i] = servoNormToDeg(i, n);
+  }
+
+  servoMoveAllSmoothTo(targets, SERVO_MAX_SPEED_DEG_S);
 }
 
 void runServoTest() {
@@ -80,63 +89,47 @@ void runServoTest() {
   serialLogPrintln("SERVO TEST - HEAD/NECK/HANDS/BODY");
   serialLogPrintln("==========================");
 
-  serialLogPrintln(
-    "1. All servos -> 90 deg"
-  );
+  serialLogPrintln("1. All servos -> mid");
 
   showServoProgress(
     1,
     TOTAL_STEPS,
-    "ALL -> 90"
+    "ALL -> mid"
   );
 
-  servoMoveAllSmooth(
-    SERVO_CENTER
-  );
+  servoMoveAllNorm(0.0f);
 
   delay(1000);
 
-  serialLogPrintln(
-    "2. All servos: 90 -> 105 deg"
-  );
+  serialLogPrintln("2. All servos: mid -> +0.5");
 
   showServoProgress(
     2,
     TOTAL_STEPS,
-    "90 -> 105"
+    "mid -> +0.5"
   );
 
-  servoMoveAllSmooth(
-    SERVO_HIGH
-  );
+  servoMoveAllNorm(0.5f);
 
-  serialLogPrintln(
-    "3. All servos: 105 -> 75 deg"
-  );
+  serialLogPrintln("3. All servos: +0.5 -> -0.5");
 
   showServoProgress(
     3,
     TOTAL_STEPS,
-    "105 -> 75"
+    "+0.5 -> -0.5"
   );
 
-  servoMoveAllSmooth(
-    SERVO_LOW
-  );
+  servoMoveAllNorm(-0.5f);
 
-  serialLogPrintln(
-    "4. All servos: 75 -> 90 deg"
-  );
+  serialLogPrintln("4. All servos: -0.5 -> mid");
 
   showServoProgress(
     4,
     TOTAL_STEPS,
-    "75 -> 90"
+    "-0.5 -> mid"
   );
 
-  servoMoveAllSmooth(
-    SERVO_CENTER
-  );
+  servoMoveAllNorm(0.0f);
 
   showServoTestFinished();
 

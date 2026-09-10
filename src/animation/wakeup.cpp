@@ -17,7 +17,7 @@ namespace {
 constexpr uint32_t kOpenDurationMs = 2000;
 constexpr uint32_t kTotalDurationMs = 5500;
 constexpr uint32_t kSettleMs = 400;
-constexpr float kNeckWaveAmpDeg = 4.0f;
+constexpr float kNeckWaveAmp = 4.0f / 45.0f;
 constexpr float kWavePeriodMs = 2800.0f;
 constexpr float kServoSpeedDegS = SERVO_BOOT_SPEED_DEG_S;
 constexpr float kTwoPi = 6.28318530718f;
@@ -33,24 +33,20 @@ float headMid() {
 }
 
 float neckMid() {
-  return servoMid(SERVO_SPECS[SERVO_NECK]);
+  return 0.0f;
 }
 
-void applyHeadNeck(float headDeg, float neckDeg) {
-  servoAt(SERVO_HEAD).setTarget(headDeg, kServoSpeedDegS);
-  servoAt(SERVO_NECK).setTarget(neckDeg, kServoSpeedDegS);
+void applyHeadNeck(float headNorm, float neckNorm) {
+  servoAt(SERVO_HEAD).setNormTarget(headNorm, kServoSpeedDegS);
+  servoAt(SERVO_NECK).setNormTarget(neckNorm, kServoSpeedDegS);
 }
 
 void snapSleepPose() {
-  const float mid = neckMid();
-  const float handRightDown = SERVO_SPECS[SERVO_HAND_RIGHT].min;
-  const float handLeftDown = SERVO_SPECS[SERVO_HAND_LEFT].max;
-
-  servoAt(SERVO_HEAD).setPosition(anim::SLEEP_HEAD_DOWN);
-  servoAt(SERVO_NECK).setPosition(mid);
-  servoAt(SERVO_HAND_RIGHT).setPosition(handRightDown);
-  servoAt(SERVO_HAND_LEFT).setPosition(handLeftDown);
-  servoAt(SERVO_BODY).setPosition(servoMid(SERVO_SPECS[SERVO_BODY]));
+  servoAt(SERVO_HEAD).setNormPosition(anim::SLEEP_HEAD_DOWN);
+  servoAt(SERVO_NECK).setNormPosition(0.0f);
+  servoAt(SERVO_HAND_RIGHT).setNormPosition(-1.0f);
+  servoAt(SERVO_HAND_LEFT).setNormPosition(1.0f);
+  servoAt(SERVO_BODY).setNormPosition(0.0f);
 }
 
 void markFinished(uint32_t now) {
@@ -123,7 +119,7 @@ void updateWakeup(uint32_t nowMs) {
       static_cast<float>(elapsed) /
       static_cast<float>(kTotalDurationMs)
     );
-    const float headDeg = anim::lerp(
+    const float headNorm = anim::lerp(
       anim::SLEEP_HEAD_DOWN,
       headMid(),
       riseT
@@ -132,10 +128,10 @@ void updateWakeup(uint32_t nowMs) {
       static_cast<float>(elapsed) / kWavePeriodMs;
     const float wave = sinf(waveT * kTwoPi);
     const float waveFade = 1.0f - riseT;
-    const float neckDeg =
-      neckMid() + wave * kNeckWaveAmpDeg * waveFade;
+    const float neckNorm =
+      neckMid() + wave * kNeckWaveAmp * waveFade;
 
-    applyHeadNeck(headDeg, neckDeg);
+    applyHeadNeck(headNorm, neckNorm);
     updateAllServos();
   }
 }

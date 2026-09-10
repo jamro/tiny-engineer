@@ -37,23 +37,23 @@ bool g_handWaveHigh = false;
 uint8_t g_handWaveBurstLeft = 0;
 
 void commandPrepPose() {
-  servoAt(SERVO_BODY).setTarget(
+  servoAt(SERVO_BODY).setNormTarget(
     anim::ATTENTION_BODY_MID,
     ATTENTION_PREP_SPEED_DEG_S
   );
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::ATTENTION_NECK_MID,
     ATTENTION_PREP_SPEED_DEG_S
   );
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::ATTENTION_HEAD_READY,
     ATTENTION_PREP_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_LEFT).setTarget(
+  servoAt(SERVO_HAND_LEFT).setNormTarget(
     anim::ATTENTION_HAND_LEFT_PARKED,
     ATTENTION_PREP_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::ATTENTION_HAND_RIGHT_RAISED,
     ATTENTION_PREP_SPEED_DEG_S
   );
@@ -88,17 +88,17 @@ void commandWaitMove(uint32_t now) {
   }
 
   const float headOffset = g_waitNodHigh
-    ? anim::ATTENTION_WAIT_HEAD_NOD_DEG
-    : -anim::ATTENTION_WAIT_HEAD_NOD_DEG;
+    ? anim::ATTENTION_WAIT_HEAD_NOD
+    : -anim::ATTENTION_WAIT_HEAD_NOD;
   const float neckOffset = g_waitNeckRight
-    ? anim::ATTENTION_WAIT_NECK_TILT_DEG
-    : -anim::ATTENTION_WAIT_NECK_TILT_DEG;
+    ? anim::ATTENTION_WAIT_NECK_TILT
+    : -anim::ATTENTION_WAIT_NECK_TILT;
 
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::ATTENTION_HEAD_READY + headOffset,
     ATTENTION_WAIT_SPEED_DEG_S
   );
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::ATTENTION_NECK_MID + neckOffset,
     ATTENTION_WAIT_SPEED_DEG_S
   );
@@ -122,10 +122,10 @@ void commandHandWave(uint32_t now) {
   }
 
   const float handOffset = g_handWaveHigh
-    ? anim::ATTENTION_WAIT_HAND_WAVE_DEG
-    : -anim::ATTENTION_WAIT_HAND_WAVE_DEG * 0.45f;
+    ? anim::ATTENTION_WAIT_HAND_WAVE
+    : -anim::ATTENTION_WAIT_HAND_WAVE * 0.45f;
 
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::ATTENTION_HAND_RIGHT_RAISED + handOffset,
     ATTENTION_WAVE_SPEED_DEG_S
   );
@@ -152,14 +152,14 @@ void applyAttentionAudioPose(uint32_t audioElapsed, uint32_t now) {
   } else if (audioElapsed < ATTENTION_AUDIO_HUMAN_END_MS) {
     neckAngle = easedLerp(
       anim::ATTENTION_NECK_MID,
-      anim::ATTENTION_NECK_MID + anim::ATTENTION_HUMAN_NECK_GLANCE_DEG,
+      anim::ATTENTION_NECK_MID + anim::ATTENTION_HUMAN_NECK_GLANCE,
       g_attentionAudioStartMs + ATTENTION_AUDIO_PST_END_MS,
       ATTENTION_AUDIO_HUMAN_END_MS - ATTENTION_AUDIO_PST_END_MS,
       now
     );
     headAngle = easedLerp(
       anim::ATTENTION_HEAD_READY,
-      anim::ATTENTION_HEAD_READY + anim::ATTENTION_HUMAN_HEAD_NOD_DEG,
+      anim::ATTENTION_HEAD_READY + anim::ATTENTION_HUMAN_HEAD_NOD,
       g_attentionAudioStartMs + ATTENTION_AUDIO_PST_END_MS,
       ATTENTION_AUDIO_HUMAN_END_MS - ATTENTION_AUDIO_PST_END_MS,
       now
@@ -167,15 +167,15 @@ void applyAttentionAudioPose(uint32_t audioElapsed, uint32_t now) {
     handAngle = anim::ATTENTION_HAND_RIGHT_RAISED;
   } else if (audioElapsed < ATTENTION_AUDIO_END_MS) {
     neckAngle = easedLerp(
-      anim::ATTENTION_NECK_MID + anim::ATTENTION_HUMAN_NECK_GLANCE_DEG,
-      anim::ATTENTION_NECK_MID - anim::ATTENTION_LOOK_NECK_GLANCE_DEG,
+      anim::ATTENTION_NECK_MID + anim::ATTENTION_HUMAN_NECK_GLANCE,
+      anim::ATTENTION_NECK_MID - anim::ATTENTION_LOOK_NECK_GLANCE,
       g_attentionAudioStartMs + ATTENTION_AUDIO_HUMAN_END_MS,
       ATTENTION_AUDIO_END_MS - ATTENTION_AUDIO_HUMAN_END_MS,
       now
     );
     headAngle = easedLerp(
-      anim::ATTENTION_HEAD_READY + anim::ATTENTION_HUMAN_HEAD_NOD_DEG,
-      anim::ATTENTION_HEAD_READY - anim::ATTENTION_LOOK_HEAD_NOD_DEG,
+      anim::ATTENTION_HEAD_READY + anim::ATTENTION_HUMAN_HEAD_NOD,
+      anim::ATTENTION_HEAD_READY - anim::ATTENTION_LOOK_HEAD_NOD,
       g_attentionAudioStartMs + ATTENTION_AUDIO_HUMAN_END_MS,
       ATTENTION_AUDIO_END_MS - ATTENTION_AUDIO_HUMAN_END_MS,
       now
@@ -188,14 +188,14 @@ void applyAttentionAudioPose(uint32_t audioElapsed, uint32_t now) {
       now
     );
   } else {
-    neckAngle = anim::ATTENTION_NECK_MID - anim::ATTENTION_LOOK_NECK_GLANCE_DEG;
-    headAngle = anim::ATTENTION_HEAD_READY - anim::ATTENTION_LOOK_HEAD_NOD_DEG;
+    neckAngle = anim::ATTENTION_NECK_MID - anim::ATTENTION_LOOK_NECK_GLANCE;
+    headAngle = anim::ATTENTION_HEAD_READY - anim::ATTENTION_LOOK_HEAD_NOD;
     handAngle = anim::ATTENTION_HAND_POINT;
   }
 
-  servoAt(SERVO_NECK).setPosition(neckAngle);
-  servoAt(SERVO_HEAD).setPosition(headAngle);
-  servoAt(SERVO_HAND_RIGHT).setPosition(handAngle);
+  servoAt(SERVO_NECK).setNormPosition(neckAngle);
+  servoAt(SERVO_HEAD).setNormPosition(headAngle);
+  servoAt(SERVO_HAND_RIGHT).setNormPosition(handAngle);
 }
 
 void enterAwaitInput(uint32_t now) {
@@ -207,7 +207,7 @@ void enterAwaitInput(uint32_t now) {
   g_handWaveBurstLeft = 0;
   scheduleNextWaitMove(now);
   scheduleNextHandWave(now);
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::ATTENTION_HAND_RIGHT_RAISED,
     ATTENTION_WAVE_SPEED_DEG_S
   );

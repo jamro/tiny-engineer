@@ -275,7 +275,7 @@ curl -X POST http://tiny-engineer.local/test/screen
 
 ### `POST /test/movement`
 
-All five servos: 90° → 105° → 75° → 90° (`runServoTest()`). Needs a strong 5 V supply — see [power.md](hardware/power.md).
+All five servos: per-joint mid → +0.5 → −0.5 → mid of the saved min/max (`runServoTest()`). Needs a strong 5 V supply — see [power.md](hardware/power.md).
 
 ```bash
 curl -X POST http://tiny-engineer.local/test/movement

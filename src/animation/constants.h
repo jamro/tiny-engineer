@@ -2,138 +2,96 @@
 
 #include <cstdint>
 
-#include "hardware/servo_wrapper.h"
-#include "servos.h"
-
 namespace anim {
 
-constexpr float TYPING_HAND_BAND_DEG = 15.0f;
-constexpr float TYPING_HEAD_BAND_DEG = 10.0f;
-constexpr float TYPING_SWAY_DEG = 5.0f;
-constexpr float READING_HEAD_BAND_DEG = 10.0f;
-constexpr float READING_NECK_SWAY_DEG = 10.0f;
+// Pose units are -1..1 (saved min / mid / max). Speeds stay deg/s.
+
+constexpr float TYPING_HAND_BAND = 1.0f / 3.0f;
+constexpr float TYPING_HEAD_BAND = 2.0f / 7.0f;
+constexpr float TYPING_SWAY = 1.0f / 9.0f;
+constexpr float READING_HEAD_BAND = 2.0f / 7.0f;
+constexpr float READING_NECK_SWAY = 2.0f / 9.0f;
 
 constexpr float TRANSITION_TORSO_SPEED_DEG_S = 25.0f;
 constexpr float TRANSITION_HAND_SPEED_DEG_S = 90.0f;
 
-constexpr float TYPING_RIGHT_LOW =
-  SERVO_SPECS[SERVO_HAND_RIGHT].min;
-constexpr float TYPING_RIGHT_HIGH =
-  SERVO_SPECS[SERVO_HAND_RIGHT].min + TYPING_HAND_BAND_DEG;
-constexpr float TYPING_LEFT_LOW =
-  SERVO_SPECS[SERVO_HAND_LEFT].max - TYPING_HAND_BAND_DEG;
-constexpr float TYPING_LEFT_HIGH =
-  SERVO_SPECS[SERVO_HAND_LEFT].max;
+constexpr float TYPING_RIGHT_LOW = -1.0f;
+constexpr float TYPING_RIGHT_HIGH = TYPING_RIGHT_LOW + TYPING_HAND_BAND;
+constexpr float TYPING_LEFT_HIGH = 1.0f;
+constexpr float TYPING_LEFT_LOW = TYPING_LEFT_HIGH - TYPING_HAND_BAND;
 
-constexpr float TYPING_HEAD_LOW =
-  SERVO_SPECS[SERVO_HEAD].min;
-constexpr float TYPING_HEAD_HIGH =
-  SERVO_SPECS[SERVO_HEAD].min + TYPING_HEAD_BAND_DEG;
+constexpr float TYPING_HEAD_LOW = -1.0f;
+constexpr float TYPING_HEAD_HIGH = TYPING_HEAD_LOW + TYPING_HEAD_BAND;
 
-constexpr float TYPING_BODY_MID =
-  servoMid(SERVO_SPECS[SERVO_BODY]);
-constexpr float TYPING_NECK_MID =
-  servoMid(SERVO_SPECS[SERVO_NECK]);
+constexpr float TYPING_BODY_MID = 0.0f;
+constexpr float TYPING_NECK_MID = 0.0f;
 
-constexpr float READING_HEAD_LOW =
-  SERVO_SPECS[SERVO_HEAD].min;
-constexpr float READING_HEAD_HIGH =
-  SERVO_SPECS[SERVO_HEAD].min + READING_HEAD_BAND_DEG;
-constexpr float READING_NECK_MID =
-  servoMid(SERVO_SPECS[SERVO_NECK]);
+constexpr float READING_HEAD_LOW = -1.0f;
+constexpr float READING_HEAD_HIGH = READING_HEAD_LOW + READING_HEAD_BAND;
+constexpr float READING_NECK_MID = 0.0f;
 
-constexpr float RING_HEAD_START =
-  servoMid(SERVO_SPECS[SERVO_HEAD]) + 10.0f;
-constexpr float RING_BODY_START = SERVO_SPECS[SERVO_BODY].min;
-constexpr float RING_RIGHT_START = SERVO_SPECS[SERVO_HAND_RIGHT].max;
-constexpr float RING_LEFT_START =
-  SERVO_SPECS[SERVO_HAND_LEFT].max - 10.0f;
-constexpr float RING_NECK_START =
-  servoMid(SERVO_SPECS[SERVO_NECK]);
-constexpr float RING_RIGHT_STRIKE =
-  SERVO_SPECS[SERVO_HAND_RIGHT].min + 5.0f;
-constexpr float RING_RIGHT_BOUNCE =
-  SERVO_SPECS[SERVO_HAND_RIGHT].min + 20.0f;
-constexpr float RING_HEAD_STRIKE = SERVO_SPECS[SERVO_HEAD].min;
+constexpr float RING_HEAD_START = 2.0f / 7.0f;
+constexpr float RING_BODY_START = -1.0f;
+constexpr float RING_RIGHT_START = 1.0f;
+constexpr float RING_LEFT_START = 7.0f / 9.0f;
+constexpr float RING_NECK_START = 0.0f;
+constexpr float RING_RIGHT_STRIKE = -8.0f / 9.0f;
+constexpr float RING_RIGHT_BOUNCE = -5.0f / 9.0f;
+constexpr float RING_HEAD_STRIKE = -1.0f;
 
-constexpr float WELCOME_HEAD_UP =
-  servoMid(SERVO_SPECS[SERVO_HEAD]) + 10.0f;
-constexpr float WELCOME_HEAD_MID =
-  servoMid(SERVO_SPECS[SERVO_HEAD]);
-constexpr float WELCOME_HAND_REST =
-  SERVO_SPECS[SERVO_HAND_RIGHT].min;
-constexpr float WELCOME_HAND_RAISED =
-  SERVO_SPECS[SERVO_HAND_RIGHT].max;
-constexpr float WELCOME_HAND_WIGGLE_DEG = 8.0f;
+constexpr float WELCOME_HEAD_UP = 2.0f / 7.0f;
+constexpr float WELCOME_HEAD_MID = 0.0f;
+constexpr float WELCOME_HAND_REST = -1.0f;
+constexpr float WELCOME_HAND_RAISED = 1.0f;
+constexpr float WELCOME_HAND_WIGGLE = 8.0f / 45.0f;
+constexpr float WELCOME_HEAD_NOD = 3.0f / 35.0f;
 
-constexpr float ATTENTION_BODY_MID =
-  servoMid(SERVO_SPECS[SERVO_BODY]);
-constexpr float ATTENTION_NECK_MID =
-  servoMid(SERVO_SPECS[SERVO_NECK]);
-constexpr float ATTENTION_HEAD_READY =
-  servoMid(SERVO_SPECS[SERVO_HEAD]) + 6.0f;
-constexpr float ATTENTION_HAND_LEFT_PARKED =
-  SERVO_SPECS[SERVO_HAND_LEFT].max;
-constexpr float ATTENTION_HAND_RIGHT_REST =
-  SERVO_SPECS[SERVO_HAND_RIGHT].min;
-constexpr float ATTENTION_HAND_RIGHT_RAISED =
-  SERVO_SPECS[SERVO_HAND_RIGHT].min + 48.0f;
-constexpr float ATTENTION_HAND_POINT =
-  SERVO_SPECS[SERVO_HAND_RIGHT].min + 60.0f;
-constexpr float ATTENTION_HUMAN_NECK_GLANCE_DEG = 4.0f;
-constexpr float ATTENTION_HUMAN_HEAD_NOD_DEG = 2.0f;
-constexpr float ATTENTION_LOOK_NECK_GLANCE_DEG = 6.0f;
-constexpr float ATTENTION_LOOK_HEAD_NOD_DEG = 2.0f;
-constexpr float ATTENTION_WAIT_HEAD_NOD_DEG = 3.0f;
-constexpr float ATTENTION_WAIT_NECK_TILT_DEG = 4.0f;
-constexpr float ATTENTION_WAIT_HAND_WAVE_DEG = 7.0f;
+constexpr float ATTENTION_BODY_MID = 0.0f;
+constexpr float ATTENTION_NECK_MID = 0.0f;
+constexpr float ATTENTION_HEAD_READY = 6.0f / 35.0f;
+constexpr float ATTENTION_HAND_LEFT_PARKED = 1.0f;
+constexpr float ATTENTION_HAND_RIGHT_REST = -1.0f;
+constexpr float ATTENTION_HAND_RIGHT_RAISED = 1.0f / 15.0f;
+constexpr float ATTENTION_HAND_POINT = 1.0f / 3.0f;
+constexpr float ATTENTION_HUMAN_NECK_GLANCE = 4.0f / 45.0f;
+constexpr float ATTENTION_HUMAN_HEAD_NOD = 2.0f / 35.0f;
+constexpr float ATTENTION_LOOK_NECK_GLANCE = 2.0f / 15.0f;
+constexpr float ATTENTION_LOOK_HEAD_NOD = 2.0f / 35.0f;
+constexpr float ATTENTION_WAIT_HEAD_NOD = 3.0f / 35.0f;
+constexpr float ATTENTION_WAIT_NECK_TILT = 4.0f / 45.0f;
+constexpr float ATTENTION_WAIT_HAND_WAVE = 7.0f / 45.0f;
 
 // Attention/error wait after audio before auto-finish to none.
 constexpr uint32_t NON_CONTINUOUS_HOLD_MS = 60UL * 1000UL;
 
-constexpr float ERROR_BODY_TASK_SIDE =
-  servoMid(SERVO_SPECS[SERVO_BODY]) - 8.0f;
-constexpr float ERROR_NECK_TASK_SIDE =
-  servoMid(SERVO_SPECS[SERVO_NECK]) - 10.0f;
-constexpr float ERROR_HEAD_CONCERNED =
-  servoMid(SERVO_SPECS[SERVO_HEAD]) - 12.0f;
-constexpr float ERROR_HAND_RIGHT_PRESENT =
-  SERVO_SPECS[SERVO_HAND_RIGHT].min + 58.0f;
-constexpr float ERROR_HAND_LEFT_TASK_POINT =
-  SERVO_SPECS[SERVO_HAND_LEFT].max - 22.0f;
-constexpr float ERROR_HELP_NECK_GLANCE_DEG = 10.0f;
-constexpr float ERROR_AWAY_NECK_GLANCE_DEG = 4.0f;
-constexpr float ERROR_HELP_HEAD_GLANCE_DEG = 3.0f;
-constexpr float ERROR_WORRY_HEAD_NOD_DEG = 2.0f;
+constexpr float ERROR_BODY_TASK_SIDE = -8.0f / 45.0f;
+constexpr float ERROR_NECK_TASK_SIDE = -2.0f / 9.0f;
+constexpr float ERROR_HEAD_CONCERNED = -12.0f / 35.0f;
+constexpr float ERROR_HAND_RIGHT_PRESENT = 13.0f / 45.0f;
+constexpr float ERROR_HAND_LEFT_TASK_POINT = 23.0f / 45.0f;
+constexpr float ERROR_HELP_NECK_GLANCE = 2.0f / 9.0f;
+constexpr float ERROR_AWAY_NECK_GLANCE = 4.0f / 45.0f;
+constexpr float ERROR_HELP_HEAD_GLANCE = 3.0f / 35.0f;
+constexpr float ERROR_WORRY_HEAD_NOD = 2.0f / 35.0f;
 
-constexpr float ABORT_BODY_DISMISSIVE =
-  servoMid(SERVO_SPECS[SERVO_BODY]) - 5.0f;
-constexpr float ABORT_NECK_SIDE =
-  servoMid(SERVO_SPECS[SERVO_NECK]) + 14.0f;
-constexpr float ABORT_NECK_OTHER_SIDE =
-  servoMid(SERVO_SPECS[SERVO_NECK]) - 6.0f;
-constexpr float ABORT_HEAD_UP =
-  servoMid(SERVO_SPECS[SERVO_HEAD]) + 16.0f;
-constexpr float ABORT_HEAD_DIP =
-  servoMid(SERVO_SPECS[SERVO_HEAD]) + 5.0f;
+constexpr float ABORT_BODY_DISMISSIVE = -1.0f / 9.0f;
+constexpr float ABORT_NECK_SIDE = 14.0f / 45.0f;
+constexpr float ABORT_NECK_OTHER_SIDE = -2.0f / 15.0f;
+constexpr float ABORT_HEAD_UP = 16.0f / 35.0f;
+constexpr float ABORT_HEAD_DIP = 1.0f / 7.0f;
+constexpr float ABORT_HEAD_DIDNT_WANT = 12.0f / 35.0f;
+constexpr float ABORT_HEAD_ANYWAY = 18.0f / 35.0f;
 
 // Idle sleep / boot sleep-inertia: chin down, then rise to mid on wake.
-constexpr float SLEEP_HEAD_DOWN_OFFSET_DEG = -20.0f;
-constexpr float SLEEP_HEAD_DOWN =
-  servoMid(SERVO_SPECS[SERVO_HEAD]) + SLEEP_HEAD_DOWN_OFFSET_DEG;
-constexpr float SLEEP_HEAD_AWAKE =
-  servoMid(SERVO_SPECS[SERVO_HEAD]);
-constexpr float ABORT_HAND_RIGHT_UP =
-  SERVO_SPECS[SERVO_HAND_RIGHT].max;
-constexpr float ABORT_HAND_RIGHT_SHRUG =
-  SERVO_SPECS[SERVO_HAND_RIGHT].max - 10.0f;
-constexpr float ABORT_HAND_LEFT_UP =
-  SERVO_SPECS[SERVO_HAND_LEFT].max - 55.0f;
-constexpr float ABORT_HAND_LEFT_SHRUG =
-  SERVO_SPECS[SERVO_HAND_LEFT].max - 43.0f;
+constexpr float SLEEP_HEAD_DOWN = -4.0f / 7.0f;
+constexpr float SLEEP_HEAD_AWAKE = 0.0f;
+constexpr float ABORT_HAND_RIGHT_UP = 1.0f;
+constexpr float ABORT_HAND_RIGHT_SHRUG = 7.0f / 9.0f;
+constexpr float ABORT_HAND_LEFT_UP = -2.0f / 9.0f;
+constexpr float ABORT_HAND_LEFT_SHRUG = 2.0f / 45.0f;
 
 // Power-loss collapse: chin fully down, hands parked.
-constexpr float DEAD_HEAD_DOWN = SERVO_SPECS[SERVO_HEAD].min;
+constexpr float DEAD_HEAD_DOWN = -1.0f;
 constexpr float DEAD_COLLAPSE_SPEED_DEG_S = 48.0f;
 
 }  // namespace anim

@@ -26,7 +26,7 @@ bool handRaiseComplete(uint32_t elapsed) {
 
 void parkWelcomeIdlePose() {
   anim::parkForTransition();
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::WELCOME_HEAD_MID,
     anim::TRANSITION_TORSO_SPEED_DEG_S
   );
@@ -48,8 +48,8 @@ void applyRaisePose(uint32_t now) {
     now
   );
 
-  servoAt(SERVO_HAND_RIGHT).setPosition(handAngle);
-  servoAt(SERVO_HEAD).setPosition(headAngle);
+  servoAt(SERVO_HAND_RIGHT).setNormPosition(handAngle);
+  servoAt(SERVO_HEAD).setNormPosition(headAngle);
 }
 
 void applyAudioPose(uint32_t audioElapsed, uint32_t now) {
@@ -88,18 +88,18 @@ void applyAudioPose(uint32_t audioElapsed, uint32_t now) {
     const float wiggle =
       sinf(
         questionElapsed / questionDuration * 2.0f * PI * 2.0f
-      ) * anim::WELCOME_HAND_WIGGLE_DEG;
+      ) * anim::WELCOME_HAND_WIGGLE;
     handAngle = anim::WELCOME_HAND_RAISED + wiggle;
 
     const float nod =
       sinf(
         questionElapsed / questionDuration * 2.0f * PI
-      ) * 3.0f;
+      ) * anim::WELCOME_HEAD_NOD;
     headAngle = anim::WELCOME_HEAD_UP + nod;
   }
 
-  servoAt(SERVO_HAND_RIGHT).setPosition(handAngle);
-  servoAt(SERVO_HEAD).setPosition(headAngle);
+  servoAt(SERVO_HAND_RIGHT).setNormPosition(handAngle);
+  servoAt(SERVO_HEAD).setNormPosition(headAngle);
 }
 
 void updateWelcomeParkServos() {

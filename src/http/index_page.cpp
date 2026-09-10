@@ -354,7 +354,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <div class="servo-slider-bg"><div id="servo-safe-band" class="servo-safe-band"></div></div>
 <input type="range" id="servo-slider" min="0" max="180" value="90">
 </div>
-<div class="servo-scale"><span>0&deg;</span><span>90&deg;</span><span>180&deg;</span></div>
+<div class="servo-scale"><span id="servo-scale-min">0&deg;</span><span id="servo-scale-mid">90&deg;</span><span id="servo-scale-max">180&deg;</span></div>
 </div>
 <input type="number" id="servo-angle" min="0" max="180" value="90">
 </div>
@@ -396,7 +396,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <div id="setup-phase-ranges" hidden>
 <div class="config-section">
 <h3>Find safe ranges</h3>
-<p class="setup-copy">Move one joint at a time with the buttons. Stop before cables pull taut or parts collide. The bar is a guide only. Stock limits are pre-filled; other joints park at 90&deg; when you switch tabs.</p>
+<p class="setup-copy">Move one joint at a time with the buttons. Stop before cables pull taut or parts collide. The bar is a guide only. Stock limits are pre-filled. Switching tabs leaves the other joints where they are.</p>
 <div class="joint-tabs" id="setup-joint-tabs">
 <button type="button" class="btn active" data-joint="0">Head</button>
 <button type="button" class="btn" data-joint="1">Neck</button>
@@ -623,6 +623,7 @@ var setupStepIndex=0;
 var setupServoPhase="horns";
 var setupCalibJoint=0;
 var setupCalibDeg=90;
+var setupCalibDegs=[90,90,90,90,90];
 var setupCalibRanges=[[60,130],[40,130],[45,135],[35,125],[40,130]];
 var setupRgbOrder="GRB";
 var setupOledRotate180=false;
@@ -698,7 +699,7 @@ function enterApp(){
     }else{
       showPage(location.pathname);
     }
-    updateServoHint();
+    loadSettings();
   });
 }
 function syncSetupUi(done){
@@ -823,6 +824,7 @@ function resetSetupWizard(){
   setupServoPhase="horns";
   setupCalibJoint=0;
   setupCalibDeg=90;
+  setupCalibDegs=[90,90,90,90,90];
   setupCalibRanges=cloneRanges(SERVO_RANGES);
   applyRgbOrder(setupRgbOrder);
   setupLedRemapOpen=false;
@@ -879,6 +881,7 @@ function setSetupCalibAngle(v){
   if(n<0)n=0;
   if(n>180)n=180;
   setupCalibDeg=n;
+  setupCalibDegs[setupCalibJoint]=n;
   document.getElementById("setup-calib-angle").textContent=String(n);
   document.getElementById("setup-calib-marker").style.left=(n/180*100)+"%";
 }
@@ -936,11 +939,8 @@ function setupPostServo(query){
 }
 function selectCalibJoint(idx){
   setupCalibJoint=idx;
-  setSetupCalibAngle(90);
+  setSetupCalibAngle(setupCalibDegs[idx]);
   updateCalibUi();
-  setupPostServo("all=90").then(function(){
-    setSetupCalibAngle(90);
-  });
 }
 function showPage(path){
   if(!uiUnlocked)return;
@@ -952,7 +952,7 @@ function showPage(path){
     a.classList.toggle("active",a.getAttribute("data-nav")===path||(path==="/"&&a.getAttribute("data-nav")==="/"));
   });
   if(id==="view-animations") refreshAnim();
-  if(id==="view-config") loadSettings();
+  if(id==="view-config"||id==="view-servo") loadSettings();
   if(id==="view-home") startHealthPolling();
   else stopHealthPolling();
 }
@@ -1018,6 +1018,26 @@ function currentServoRange(){
   var idx=parseInt(document.getElementById("servo-index").value,10);
   return SERVO_RANGES[idx]||SERVO_RANGES[0];
 }
+function currentServoMid(){
+  var r=currentServoRange();
+  return (r[0]+r[1])/2;
+}
+function bindServoInputs(){
+  var r=currentServoRange();
+  var slider=document.getElementById("servo-slider");
+  var num=document.getElementById("servo-angle");
+  slider.min=r[0];
+  slider.max=r[1];
+  num.min=r[0];
+  num.max=r[1];
+  var v=parseFloat(num.value);
+  if(isNaN(v)||v<r[0]||v>r[1])v=currentServoMid();
+  slider.value=v;
+  num.value=v;
+  document.getElementById("servo-scale-min").textContent=r[0]+"\u00b0";
+  document.getElementById("servo-scale-mid").textContent=Math.round(currentServoMid())+"\u00b0";
+  document.getElementById("servo-scale-max").textContent=r[1]+"\u00b0";
+}
 function updateServoRangeHint(){
   var r=currentServoRange();
   var angle=parseFloat(document.getElementById("servo-angle").value);
@@ -1032,10 +1052,10 @@ function updateServoRangeHint(){
   }
 }
 function updateServoHint(){
-  var r=currentServoRange();
+  bindServoInputs();
   var band=document.getElementById("servo-safe-band");
-  band.style.left=(r[0]/180*100)+"%";
-  band.style.width=((r[1]-r[0])/180*100)+"%";
+  band.style.left="0%";
+  band.style.width="100%";
   updateServoRangeHint();
 }
 function setServoAngle(v){
@@ -1070,7 +1090,7 @@ document.getElementById("servo-angle").addEventListener("input",function(){
 });
 document.getElementById("servo-index").addEventListener("change",updateServoHint);
 document.getElementById("servo-center").addEventListener("click",function(){
-  setServoAngle(90);
+  setServoAngle(currentServoMid());
   moveServo();
 });
 document.getElementById("servo-form").addEventListener("submit",function(e){
@@ -1189,7 +1209,12 @@ function loadSettings(){
 }
 document.getElementById("setup-move-90").addEventListener("click",function(){
   if(busy)return;
-  setupPostServo("all=90");
+  setupPostServo("all=90").then(function(res){
+    if(res.ok&&res.data.ok!==false){
+      setupCalibDegs=[90,90,90,90,90];
+      setupCalibDeg=90;
+    }
+  });
 });
 document.getElementById("setup-horns-done").addEventListener("click",function(){
   setupServoPhase="ranges";

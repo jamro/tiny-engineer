@@ -4,7 +4,7 @@ Host checks. Neither flashes the board. GitHub Actions on `main` and PRs runs th
 
 ## Firmware
 
-Unity on the host. Compiles `src/settings/validate.cpp` only.
+Unity on the host. Compiles `src/settings/validate.cpp` plus header-only helpers such as [`include/servos.h`](../include/servos.h).
 
 ```bash
 pio test -e native

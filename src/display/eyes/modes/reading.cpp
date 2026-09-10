@@ -31,15 +31,15 @@ float clampUnit(float value) {
 }
 
 int16_t gazeXFromNeck() {
-  const float neck = servoAt(SERVO_NECK).angle();
+  const float neck = servoDegToNorm(SERVO_NECK, servoAt(SERVO_NECK).angle());
   const float norm = clampUnit(
-    (neck - anim::READING_NECK_MID) / anim::READING_NECK_SWAY_DEG
+    (neck - anim::READING_NECK_MID) / anim::READING_NECK_SWAY
   );
   return (int16_t)(norm * READ_NECK_GAZE_PX);
 }
 
 int16_t gazeYFromHead() {
-  const float head = servoAt(SERVO_HEAD).angle();
+  const float head = servoDegToNorm(SERVO_HEAD, servoAt(SERVO_HEAD).angle());
   const float span = anim::READING_HEAD_HIGH - anim::READING_HEAD_LOW;
   if (span <= 0.0f) {
     return 2;

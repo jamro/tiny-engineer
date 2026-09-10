@@ -72,7 +72,7 @@ Two layers of limits:
 | **Mechanical** | Horn hits shell, linkage binds, servo stalls | Your assembly |
 | **Safe software** | Clamped angles per joint | `SERVO_SPECS` in firmware |
 
-Always respect **safe ranges** for the assembled robot — [robot-movement.md](../robot-movement.md). Bench-only wider sweeps (75–105°) exist for testing; don't slam full electrical range into a built shell.
+Always respect **safe ranges** for the assembled robot — [robot-movement.md](../robot-movement.md). `POST /test/movement` sweeps each joint inside its saved min/max; don't slam full electrical range into a built shell.
 
 **Tune after assembly:** if a hand hits the desk at 135°, lower `max` in firmware or reorient the horn — don't "just command less" in one script and forget.
 

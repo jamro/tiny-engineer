@@ -93,7 +93,7 @@ curl -X POST http://tiny-engineer.local/test/audio
 # OLED title / HELLO / X in a box
 curl -X POST http://tiny-engineer.local/test/screen
 
-# Servos 90 → 105 → 75 → 90 (channels 0–4)
+# Servos mid → +0.5 → −0.5 → mid of saved range (channels 0–4)
 curl -X POST http://tiny-engineer.local/test/movement
 
 # Onboard WS2812 R → G → B → white → off, then back to current animation LED
@@ -146,7 +146,7 @@ OLED absence and Wi-Fi failure are **soft** fails. PCA9685 and I2S failures **ha
 
 ## Power during the servo test
 
-All five servos move together on `POST /test/movement`. A weak USB port often dies **here**. If the serial port drops exactly when that POST runs: treat as brownout, not a PWM bug. Boot only parks at 90°, which is much lighter.
+All five servos move together on `POST /test/movement`. A weak USB port often dies **here**. If the serial port drops exactly when that POST runs: treat as brownout, not a PWM bug. Boot parks at each joint’s calibrated mid, which is much lighter.
 
 ## What this test does not prove
 
