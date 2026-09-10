@@ -4,7 +4,7 @@
 
 | Item | Value |
 | --- | --- |
-| Model | PowerHD HD-1370A analog micro |
+| Model | Analog micro servo — **Tower Pro SG90 recommended** ([presets](../3d/parametric-design.md)) |
 | Count | 5 |
 | Driver | Adafruit PCA9685, I2C `0x40` |
 | Servo supply | PCA9685 **V+** ← drawing: USB **5V** → PCA9685 **5V** (same servo rail as **V+**; not **VCC**) |
@@ -65,7 +65,7 @@ Firmware uses two complementary control paths:
 
 Helpers live in [`src/animation/util.cpp`](../../src/animation/util.cpp). Blocking test moves (`moveTo`) also use cubic easing.
 
-`SERVO_MAX_SPEED_DEG_S` (140°/s) is ~28% of HD-1370A unloaded max (~500°/s @ 4.8 V) — smoother under load while staying responsive for hand taps.
+`SERVO_MAX_SPEED_DEG_S` (140°/s) is ~28% of PowerHD HD-1370A unloaded max (~500°/s @ 4.8 V) — smoother under load while staying responsive for hand taps. Other presets (SG90, FS0307) still use this firmware cap.
 
 Bring-up motion (`runServoTest`): each joint uses its **saved** min/max (`n` in −1..1):
 

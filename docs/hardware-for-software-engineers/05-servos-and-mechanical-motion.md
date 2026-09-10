@@ -6,7 +6,7 @@
 
 ## What a hobby servo is
 
-A **position servo** (specifically the **PowerHD HD-1370A** micro servos in this build) contains:
+A **position servo** (hobby analog micro servos in this build — [which servo](../3d/parametric-design.md)) contains:
 
 - Motor
 - Gear train
@@ -15,7 +15,7 @@ A **position servo** (specifically the **PowerHD HD-1370A** micro servos in this
 
 You command an **angle** (via pulse width). The servo tries to reach it and **holds** there — even against light load.
 
-**Not** continuous rotation — it stops at mechanical limits (~130° usable on these units, marketed sometimes as 180°).
+**Not** continuous rotation — it stops at mechanical limits (~130° usable on some units such as PowerHD HD-1370A, marketed sometimes as 180°).
 
 **Three wires:**
 | Wire | Role |
@@ -98,7 +98,7 @@ flowchart LR
   FW["Firmware angle clamp"]
   I2C["I2C to PCA9685 0x40"]
   PWM["50 Hz PWM ch 0-4"]
-  SRV["HD-1370A servos"]
+  SRV["analog micro servos"]
   HTTP --> FW --> I2C --> PWM --> SRV
 ```
 

@@ -138,7 +138,7 @@ Still part of the selected hardware; do not invent extra ESP32 GPIO for them.
 | Item | Rule |
 | --- | --- |
 | Speaker | Terminals → MAX98357A **SPK+** and **SPK-** only |
-| 4 extra HD-1370A | Same 3-wire pattern as the drawn servo, on PCA9685 PWM 0–4 |
+| 4 extra analog micro servos | Same 3-wire pattern as the drawn servo, on PCA9685 PWM 0–4 |
 | Adafruit 5993 D+/D− | Wire to ESP32 **GP19** / **GP18** for flash and CDC (single-USB design) |
 | MAX98357A GAIN / SD | Not wired; leave breakout defaults |
 

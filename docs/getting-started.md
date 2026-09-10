@@ -17,7 +17,7 @@ In PlatformIO, `board = esp32-c3-devkitm-1` is a **build target name**, not a di
 Gather electronics from [hardware/components.md](hardware/components.md). Minimum set:
 
 - Waveshare ESP32-C3-Zero
-- Adafruit PCA9685 + 5× PowerHD HD-1370A (or equivalent micro servos)
+- Adafruit PCA9685 + 5× analog micro servos (**Tower Pro SG90** recommended; [other presets](3d/parametric-design.md))
 - MAX98357A + 8 Ω / 1 W speaker
 - 0.91" 128×32 SSD1306 OLED (I2C)
 - Adafruit 5993 USB-C breakout (power + data)
@@ -25,7 +25,7 @@ Gather electronics from [hardware/components.md](hardware/components.md). Minimu
 
 ### 2. Print and mechanical
 
-Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware).
+Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md).
 
 Join printed parts with **2 mm diameter screws** (no glue; easy to dismount later). Exact screw lengths/counts and a full assembly SOP are **not documented yet** — use the parts table there as the inventory. After print:
 

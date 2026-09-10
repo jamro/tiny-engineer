@@ -78,7 +78,7 @@ Speaker **SPK+/SPK-** are not on the PNG. See [wiring.md](wiring.md#not-on-the-d
 | --- | --- | --- |
 | Controller | Waveshare ESP32-C3-Zero | 1 |
 | Servo PWM | Adafruit PCA9685 16-channel driver | 1 |
-| Actuators | PowerHD HD-1370A analog micro servo | 5 |
+| Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 compact; PowerHD HD-1370A still supported | 5 |
 | Audio amp | MAX98357A I2S class-D (mono) | 1 |
 | Speaker | 8 Ω / 1 W mono | 1 |
 | Display | 0.91" 128×32 OLED, SSD1306, I2C | 1 |

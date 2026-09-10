@@ -1,6 +1,6 @@
 # Hardware inventory
 
-Selected hardware only. Do not substitute parts from this list without updating this file, [pinout.md](pinout.md), and [wiring.md](wiring.md).
+Selected hardware only. Do not substitute electronics from this list without updating this file, [pinout.md](pinout.md), and [wiring.md](wiring.md). Servo *model* may be any preset in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) if the printed parts match — [parametric design](../3d/parametric-design.md).
 
 Constants cited below match [`include/pins.h`](../../include/pins.h).
 
@@ -10,7 +10,9 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 | --- | --- |
 | Waveshare ESP32-C3-Zero | https://docs.waveshare.com/ESP32-C3-Zero |
 | Adafruit PCA9685 16-channel PWM servo driver | https://www.adafruit.com/product/815 |
-| PowerHD HD-1370A | https://www.chd.hk/Product_Detail.aspx?id=30 |
+| Tower Pro SG90 (or equivalent) | Widely available hobby servo — no single canonical SKU |
+| Feetech FS0307 | See vendor listing for FS0307 analog micro |
+| PowerHD HD-1370A (backward compatibility) | https://www.chd.hk/Product_Detail.aspx?id=30 |
 | MAX98357A I2S class-D mono amplifier | https://www.aliexpress.us/item/3256805196806369.html |
 | 8 Ω / 1 W mono speaker | https://www.aliexpress.us/item/3256807341987395.html |
 | 0.91" 128×32 OLED (SSD1306, I2C) | https://www.raystar-optronics.com/oled-graphic-display-module/oled-i2c-ssd1306.html |
@@ -55,28 +57,64 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 | Limits | **V+** and **VCC** must stay separate. Do not jumper servo power onto logic VCC on this robot |
 | Firmware note | Detection at `0x40` is a **hard fail** in the bring-up test |
 
-## PowerHD HD-1370A
+## Analog micro servos (qty 5)
+
+Five analog micro servos drive the joints (Head / Neck / L hand / R hand / Body — [robot-movement.md](../robot-movement.md)). Buy **five of one model**. Print the matching `parts/{servo_id}/` folder. Which size to pick: [parametric design](../3d/parametric-design.md).
+
+Shared for every preset:
 
 | Field | Value |
 | --- | --- |
-| Exact model | PowerHD HD-1370A analog micro servo |
-| Quantity | 5 |
-| Purpose | Robot joints (Head / Neck / L hand / R hand / Body — [robot-movement.md](../robot-movement.md)) |
-| Operating voltage | 4.8–6.0 V (robot: **+5V** via PCA9685 **V+**) |
+| Quantity | 5 (one model) |
+| Operating voltage | Robot: **+5V** via PCA9685 **V+** |
 | Interface | Analog PWM, ~50 Hz. Signal is 3.3 V from PCA9685 — acceptable for this servo class |
-| Pulse | Neutral ~1500 µs. Declared range ~**800–2200 µs** (`SERVO_MIN_US` / `SERVO_MAX_US`) |
-| Current (datasheet stall) | ~260 mA @ 4.8 V, ~320 mA @ 6.0 V |
-| No-load current | ~110 mA @ 4.8 V, ~120 mA @ 6.0 V |
-| Idle current | ~4 mA @ 4.8 V, ~5 mA @ 6.0 V |
-| Torque / speed | 0.4 kg·cm / 0.12 s/60° @ 4.8 V; 0.6 kg·cm / 0.10 s/60° @ 6.0 V |
-| Size / mass | ~20.2 × 8.5 × 17.6 mm, ~3.7 g |
+| Pulse | Neutral ~1500 µs. Firmware window **800–2200 µs** (`SERVO_MIN_US` / `SERVO_MAX_US`) |
 | Important pins | SIG, +5V, GND (JR-style 3-wire) |
-| Limits | Manufacturer sheet also lists **~130°** travel over 800–2200 µs, while many retailers say 0–180°. Treat 0–180° as **nominal**, not a mechanical guarantee. |
 
 > [!WARNING]
 > Never power the servos from the ESP32 3.3 V regulator.
 
 Firmware uses **per-servo safe ranges** in [`include/servos.h`](../../include/servos.h) (`SERVO_SPECS`). Tune after assembly if needed. Do not command full 0–180° / 800–2200 µs on the assembled robot. See [servos.md](servos.md).
+
+### Tower Pro SG90 (recommended)
+
+Easiest to buy. Larger body → larger printed robot; electronics are easier to fit in the desk.
+
+| Field | Value |
+| --- | --- |
+| Exact model | Tower Pro SG90 analog micro (or equivalent 9 g class) |
+| `servo_id` | `sg90` |
+| Size | Larger than FS0307 / HD-1370A — see [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) |
+
+Print [`3d_models/parts/sg90/`](../../3d_models/parts/sg90/).
+
+### Feetech FS0307
+
+More compact. Use this if you want a smaller robot that looks tighter on the desk.
+
+| Field | Value |
+| --- | --- |
+| Exact model | Feetech FS0307 analog micro servo |
+| `servo_id` | `fs0307` |
+
+Print [`3d_models/parts/fs0307/`](../../3d_models/parts/fs0307/).
+
+### PowerHD HD-1370A (backward compatibility)
+
+Still supported. Not the pick for a new build.
+
+Print [`3d_models/parts/hd1370a/`](../../3d_models/parts/hd1370a/).
+
+| Field | Value |
+| --- | --- |
+| Exact model | PowerHD HD-1370A analog micro servo |
+| `servo_id` | `hd1370a` |
+| Current (datasheet stall) | ~260 mA @ 4.8 V, ~320 mA @ 6.0 V |
+| No-load current | ~110 mA @ 4.8 V, ~120 mA @ 6.0 V |
+| Idle current | ~4 mA @ 4.8 V, ~5 mA @ 6.0 V |
+| Torque / speed | 0.4 kg·cm / 0.12 s/60° @ 4.8 V; 0.6 kg·cm / 0.10 s/60° @ 6.0 V |
+| Size / mass | ~20.2 × 8.5 × 17.6 mm, ~3.7 g |
+| Limits | Manufacturer sheet also lists **~130°** travel over 800–2200 µs, while many retailers say 0–180°. Treat 0–180° as **nominal**, not a mechanical guarantee. |
 
 ## MAX98357A I2S class-D mono amplifier
 
@@ -137,7 +175,7 @@ Speaker wiring is **not** drawn on `docs/wiring/Tiny Engineer.drawio`. Electrica
 | Important pins | Drawing may show USB **5V** / **GND** only; also wire **D+/D−** to native USB |
 | Limits | **Not** a USB-PD voltage converter. It does not step 9 V/12 V/20 V down to 5 V. Prefer a **5 V / ≥2 A** host — see [power.md](power.md) |
 
-Prefer a final 5 V supply of **at least ~2 A** with margin if several servos move while audio plays.
+Prefer a final 5 V supply of **at least ~2 A** with margin if several servos move while audio plays. SG90 (recommended) typically stalls harder than HD-1370A — see [power.md](power.md).
 
 ## Mechanical / RF notes for firmware and CAD
 

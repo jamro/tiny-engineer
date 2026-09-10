@@ -4,11 +4,11 @@ Printable parts and source CAD for the Tiny Engineer desk robot.
 
 ## Source CAD (edit / resize)
 
-The full assembly — all components composed — lives in [`cad/TinyEngineer.f3d`](cad/TinyEngineer.f3d) (Autodesk Fusion). Open that file to adjust the model or adapt it to different hardware sizing (e.g. different servos).
+The full assembly — all components composed — lives in [`cad/TinyEngineer.f3d`](cad/TinyEngineer.f3d) (Autodesk Fusion). Open that file to adjust the model or adapt it to different hardware sizing (e.g. different servos). Parametric servo sizes and the Fusion add-in: [docs/3d/parametric-design.md](../docs/3d/parametric-design.md).
 
 ## Printables
 
-Individual parts are exported to [`parts/`](parts/) as `.3mf` files. They are ready to print in an orientation that does not need supports. Print with **PLA** or **PETG**.
+Individual parts are exported to [`parts/`](parts/) as `.3mf` files. Print **`parts/sg90/`**, **`parts/fs0307/`**, or **`parts/hd1370a/`** to match the servos you bought ([which servo](../docs/3d/parametric-design.md)). They are ready to print in an orientation that does not need supports. Print with **PLA** or **PETG**.
 
 Assembly uses a bunch of **2 mm diameter screws** — no glue. Easy to dismount and modify later. Exact screw lengths/counts and full assembly steps are **not documented yet**. Use the part table below, then electrical and bring-up docs.
 

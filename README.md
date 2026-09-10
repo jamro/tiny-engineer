@@ -43,7 +43,7 @@ End-to-end path (details live in the linked docs):
 New to hardware? Start with **[From Code to Circuits](docs/hardware-for-software-engineers/README.md)** — hardware and electronics for software engineers; Tiny Engineer is the worked example.
 
 1. **Get the electronics** — [hardware inventory](docs/hardware/components.md)
-2. **3D print the parts** — [printables](3d_models/README.md)
+2. **3D print the parts** — [printables](3d_models/README.md). Different servo size: [parametric CAD](docs/3d/parametric-design.md)
 3. **Assemble the mechanics** — fit the five servos — [3D models](3d_models/README.md), [servo axes](docs/robot-movement.md)
 4. **Wire the electronics** — [wiring](docs/hardware/wiring.md), [hardware overview](docs/hardware/README.md)
 5. **Flash the ESP32 firmware** — [getting started → Flash](docs/getting-started.md#4-flash)
@@ -61,13 +61,13 @@ Major pieces (exact models and counts in the BOM):
 | --- | --- | --- |
 | Controller | Waveshare ESP32-C3-Zero | 1 |
 | Servo PWM | Adafruit PCA9685 | 1 |
-| Actuators | PowerHD HD-1370A micro servos | 5 |
+| Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 for a compact build; PowerHD HD-1370A still supported | 5 |
 | Display | 0.91" 128×32 SSD1306 OLED (I2C) | 1 |
 | Audio | MAX98357A + 8 Ω / 1 W speaker | 1 + 1 |
 | USB / power | Adafruit 5993 USB-C breakout; **5 V / ≥2 A** supply | 1 |
 | Structure | 3D-printed parts | — |
 
-Complete inventory and limits: [docs/hardware/components.md](docs/hardware/components.md).
+Complete inventory and limits: [docs/hardware/components.md](docs/hardware/components.md). Which servo to buy and which parts to print: [docs/3d/parametric-design.md](docs/3d/parametric-design.md).
 
 ## Quick start
 
@@ -113,6 +113,7 @@ Cursor projects can map agent events to poses via hooks — [docs/hooks.md](docs
 | Parts / BOM | [docs/hardware/components.md](docs/hardware/components.md) |
 | Wiring / power | [docs/hardware/README.md](docs/hardware/README.md) |
 | Printable parts | [3d_models/README.md](3d_models/README.md) |
+| Resize CAD for another servo | [docs/3d/parametric-design.md](docs/3d/parametric-design.md) |
 | Servo axes / safe ranges | [docs/robot-movement.md](docs/robot-movement.md) |
 | HTTP API | [docs/api.md](docs/api.md) |
 | Settings | [docs/settings.md](docs/settings.md) |

@@ -64,7 +64,7 @@ flowchart TB
   V33 --> PCA
   V33 --> OLED
   V5 --> AMP
-  PCA -->|V+ 5V PWM| SRV["5x HD-1370A servos"]
+  PCA -->|V+ 5V PWM| SRV["5 analog micro servos"]
 
   PCA --> SRV
 

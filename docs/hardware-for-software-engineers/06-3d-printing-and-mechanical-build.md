@@ -74,12 +74,12 @@ The models are **prepared with clearance** so printed parts and hardware (servos
 ### When to open Fusion
 
 - Servo pocket too tight/loose after first print
-- Different micro servo dimensions (not just HD-1370A)
+- Different micro servo dimensions (use a [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) preset, or add one)
 - Cable routing channel for your wiring harness
 - Antenna keep-out adjustment
 - Desk/chair scale for your desk
 
-Parts are designed around **HD-1370A** dimensions and **2 mm** screws. Swapping servos usually means CAD edits, not just firmware.
+Parts use **2 mm** screws. Servo pockets follow the selected Fusion preset, not one fixed body size. Swapping servos means picking a preset (or adding one) and reprinting — not just firmware. Servo user parameters, the Fusion add-in (configurator + exporter), and how to add a preset: [parametric design](../3d/parametric-design.md).
 
 ### Export workflow
 
@@ -134,4 +134,4 @@ Electronics can ship slow. Start printing **structural parts** (chest, head, cha
 
 **Next:** [Power budgets and safety](07-power-budgets-and-safety.md)
 
-**Reference:** [3d_models/README.md](../../3d_models/README.md) · [cad/TinyEngineer.f3d](../../cad/TinyEngineer.f3d) · [robot-movement.md](../robot-movement.md)
+**Reference:** [3d_models/README.md](../../3d_models/README.md) · [cad/TinyEngineer.f3d](../../cad/TinyEngineer.f3d) · [parametric design](../3d/parametric-design.md) · [robot-movement.md](../robot-movement.md)

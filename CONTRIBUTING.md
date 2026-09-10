@@ -56,7 +56,7 @@ npm test --prefix packages/tiny-engineer-antigravity
 
 ## Bench safety
 
-- Supply **5 V / ≥ 2 A**. Five HD-1370A stalls are ~1.3–1.6 A before Wi-Fi and audio ([docs/hardware/power.md](docs/hardware/power.md)).
+- Supply **5 V / ≥ 2 A**. Five PowerHD HD-1370A stalls are ~1.3–1.6 A before Wi-Fi and audio; SG90 (recommended) typically stalls harder ([docs/hardware/power.md](docs/hardware/power.md)).
 - Never power servos from the ESP32 3.3 V LDO.
 - PCA9685 **VCC** = 3.3 V logic; **V+** = 5 V servo rail. Do not short them.
 - Leave the C3-Zero ceramic antenna clear of metal and dense plastic.

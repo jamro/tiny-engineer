@@ -10,6 +10,7 @@ Pick a path. Depth lives in the linked pages.
 | **Flash / configure** only | [getting-started.md](getting-started.md)#4-flash |
 | **Wire / power detail** | [getting-started.md](getting-started.md)#3-wire-and-power → [hardware/README.md](hardware/README.md) |
 | **Print / parts inventory** | [getting-started.md](getting-started.md)#2-print-and-mechanical → [../3d_models/README.md](../3d_models/README.md) |
+| **Adapt CAD to a different servo** | [3d/parametric-design.md](3d/parametric-design.md) |
 | **HTTP API / settings** | [api.md](api.md); add a setting: [settings.md](settings.md) |
 | **Any IDE / scripts** | [integration.md](integration.md) |
 | **Firmware / package tests** | [testing.md](testing.md) |

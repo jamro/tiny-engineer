@@ -99,7 +99,7 @@ flowchart LR
   FW["Firmware angle clamp"]
   I2C["I2C to PCA9685 0x40"]
   PWM["50 Hz PWM ch 0-4"]
-  SRV["HD-1370A servos"]
+  SRV["analog micro servos"]
   HTTP --> FW --> I2C --> PWM --> SRV
 ```
 
