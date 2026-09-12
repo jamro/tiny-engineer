@@ -4,10 +4,11 @@ A small distribution PCB that sits under the ESP32-C3-Zero where it mounts throu
 the desk's ESP slot, fanning its I2C/I2S/power pins out to the PCA9685, OLED,
 MAX98357A amp, and servo power — instead of point-to-point wiring.
 
-Not upstream — this is specific to fitting a real printed desk part, kept here for
-reference alongside the firmware it wires to. See `docs/hardware/README.md` for the
-canonical net map (5V/3.3V domains, GP0-GP4 assignments); this board implements
-that map in copper.
+Sized against the stock desk model's ESP mounting slot, so it should fit any
+build using the default desk parts — re-check the numbers below first if
+you've customized that geometry. See `docs/hardware/README.md` for the
+canonical net map (5V/3.3V domains, GP0-GP4 assignments); this board
+implements that map in copper.
 
 ## Files
 
