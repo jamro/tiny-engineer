@@ -19,6 +19,33 @@ implements that map in copper.
   (JLCPCB, PCBWay, OSHPark, PCBWave, etc.)
 - `carrier.kicad_pcb` — KiCad 10 board source
 - `carrier-board-render.png` — top-copper preview
+- `BOM.csv` / `CPL.csv` — assembly files, **J_ESP only** (see below)
+
+## Assembly: only J_ESP is a populated part
+
+`J_PWR`, `J_SERVO`, `J_I2C_OLED`, `J_I2C_PCA`, and `J_I2S` are bare
+through-holes for direct wire connections, not connector footprints to
+populate — `BOM.csv`/`CPL.csv` deliberately list nothing for them.
+
+`J_ESP` is the one real part: **Kinghelm KH-2.54FH-1X9P-H3.5** (LCSC/JLCPCB
+`C55778388`), a 2.54mm 1×9 THT female header. The board's `J_ESP` footprint
+is a single 2×9 pad group, but physically needs **two** of these strips (one
+per row) — there's no 2×9 part. `BOM.csv` notes the ×2 quantity against the
+one `J_ESP` designator rather than implying a single 2×9 unit exists.
+
+`CPL.csv`'s one `J_ESP` row is the combined 2×9 footprint's bounding-box
+center (13.00, 9.27mm in the board's own coordinates), extracted directly
+from `carrier.kicad_pcb`'s pad positions — `kicad-cli pcb export pos` reports
+(0,0) for every footprint here (this board has no `.kicad_sch`, and every
+footprint was written with its own placement at `(at 0 0)` with pads given
+in absolute coordinates instead), so positions were pulled straight from the
+pad data and Y was negated to match kicad-cli's own X/Y sign convention
+(confirmed empirically: patched a known coordinate into a scratch copy and
+diffed kicad-cli's export against it, rather than assuming the sign). For
+hand-placing the two physical strips: row A centers at (13.00, 1.65), row B
+at (13.00, 16.89) — both real values (`row_y_a`/`row_y_b` in the generator),
+not estimates; the single CPL row just can't split into two without
+inventing a second designator that doesn't exist in the board file.
 
 ## Why this shape
 

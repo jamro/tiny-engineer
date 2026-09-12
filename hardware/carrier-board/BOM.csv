@@ -1,0 +1,2 @@
+Comment,Designator,Footprint,JLCPCB Part#
+"Kinghelm KH-2.54FH-1X9P-H3.5, 2.54mm 1x9 THT female header -- qty 2 per board (2x 1x9 strips form the ESP32-C3-Zero's 2x9 socket; the board has one J_ESP footprint, populated by two physical parts)",J_ESP,PinHeader_1x09_P2.54mm_Vertical,C55778388
