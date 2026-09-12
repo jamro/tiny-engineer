@@ -15,7 +15,7 @@ implements that map in copper.
 
 ## Files
 
-- `carrier-fab-v2.zip` — Gerbers + Excellon drill, upload directly to a fab
+- `carrier-fab-v3.zip` — Gerbers + Excellon drill, upload directly to a fab
   (JLCPCB, PCBWay, OSHPark, PCBWave, etc.)
 - `carrier.kicad_pcb` — KiCad 10 board source
 - `carrier-board-render.png` — top-copper preview
@@ -31,10 +31,11 @@ front is open. That forced the layout:
 - Back 18.5mm: 2×9 female socket for the ESP32-C3-Zero (2.54mm pitch,
   15.24mm row spacing — Waveshare's documented spec for the Zero board family,
   confirmed within 0.04mm of a direct caliper measurement).
-- Front zone: `J_PWR`, `J_SERVO` (5V direct to PCA9685 V+, bypassing the ESP's
-  own 3.3V regulator), `J_I2C_OLED`, `J_I2C_PCA` (separate connectors, bus
-  shared via on-board copper — no external splitter cable), `J_I2S` (own
-  on-board 5V feed for the amp).
+- Front zone: `J_PWR` (now 4-pin — 5V/GND plus the external USB D+/D-, see
+  below), `J_SERVO` (5V direct to PCA9685 V+, bypassing the ESP's own 3.3V
+  regulator), `J_I2C_OLED`, `J_I2C_PCA` (separate connectors, bus shared via
+  on-board copper — no external splitter cable), `J_I2S` (own on-board 5V
+  feed for the amp).
 - Everything routes fully on-board; nothing needs an off-board jumper.
 
 ## Pinout (verified against physical board silkscreen)
@@ -42,8 +43,28 @@ front is open. That forced the layout:
 ESP32-C3-Zero, row nearest USB-C, top-to-bottom:
 `5V, GND, 3V3, GPIO0(SDA), GPIO1(SCL), GPIO2(BCLK), GPIO3(LRCLK), GPIO4(DIN), GPIO5`
 
-The other row (`GPIO21,20,19,18,10,9,8,7,6`) is unused by this design — its
-socket pads are mechanical/GND support only.
+The other row (`GPIO21,20,19,18,10,9,8,7,6`) is mechanical/GND support only
+**except GP19 and GP18**, which are real signal pads — see USB below.
+
+## USB pass-through (external jack, not the C3-Zero's own USB-C)
+
+Per `docs/hardware/interfaces.md`: the robot's single external USB-C (Adafruit
+5993) carries both power and the ESP32's native USB D+/D- lines, so flashing
+and serial CDC work through the panel-mount jack once the desk is sealed —
+the C3-Zero's own onboard USB-C is left unused. No ESD or series-resistor
+circuitry is specified for this link; it's a direct connection.
+
+| `J_PWR` pin | Net | Goes to |
+| --- | --- | --- |
+| 1 | GND | common ground |
+| 2 | D+ | ESP32 **GPIO19** (row B pad, native USB DP) |
+| 3 | D− | ESP32 **GPIO18** (row B pad, native USB DM) |
+| 4 | 5V | ESP32 5V rail, PCA9685 V+ (via `J_SERVO`), MAX98357A |
+
+D+/D- route dead straight from their row-B pads down to `J_PWR` — no jogging,
+since `J_PWR`'s pin spacing was deliberately placed on the same 2.54mm grid
+as the ESP footprint itself (offset from `J_I2C_OLED`/`J_I2C_PCA`'s grid by
+half a pitch), so the two lines never cross OLED/PCA's pads on the way past.
 
 ## Fab notes
 
