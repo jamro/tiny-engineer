@@ -4,10 +4,13 @@ A small distribution PCB that sits under the ESP32-C3-Zero where it mounts throu
 the desk's ESP slot, fanning its I2C/I2S/power pins out to the PCA9685, OLED,
 MAX98357A amp, and servo power — instead of point-to-point wiring.
 
-Sized against the stock desk model's ESP mounting slot, so it should fit any
-build using the default desk parts — re-check the numbers below first if
-you've customized that geometry. See `docs/hardware/README.md` for the
-canonical net map (5V/3.3V domains, GP0-GP4 assignments); this board
+Sized against the desk generated with the **PowerHD HD-1370A** servo preset
+(`servos.json`) — the SG90 and FS0307 presets produce different desk
+dimensions per the parametric design docs, and this board's fit has **not**
+been verified against either of them. Re-check the ESP slot dimensions in
+your own exported desk model before relying on this outline if you're on a
+different preset. See `docs/hardware/README.md` for the canonical net map
+(5V/3.3V domains, GP0-GP4 assignments); this board
 implements that map in copper.
 
 ## Files
