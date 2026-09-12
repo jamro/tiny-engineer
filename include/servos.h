@@ -31,13 +31,35 @@ constexpr float servoMid(const ServoSpec& spec) {
   return (spec.min + spec.max) * 0.5f;
 }
 
-// Shared angles for /test/movement (not per-servo limits)
-constexpr float SERVO_LOW    = 75.0f;
-constexpr float SERVO_CENTER = 90.0f;
-constexpr float SERVO_HIGH   = 105.0f;
+// Pose space: -1 = saved min, 0 = mid, +1 = saved max.
+inline float servoSaturateNorm(float n) {
+  if (n < -1.0f) {
+    return -1.0f;
+  }
+  if (n > 1.0f) {
+    return 1.0f;
+  }
+  return n;
+}
+
+inline float servoNormToDeg(float n, float savedMin, float savedMax) {
+  n = servoSaturateNorm(n);
+  return (savedMin + savedMax) * 0.5f + n * (savedMax - savedMin) * 0.5f;
+}
+
+inline float servoDegToNorm(float deg, float savedMin, float savedMax) {
+  const float span = savedMax - savedMin;
+  if (span <= 0.0f) {
+    return 0.0f;
+  }
+  return servoSaturateNorm(2.0f * (deg - savedMin) / span - 1.0f);
+}
 
 // Max commanded slew rate for all smooth moves
 constexpr float SERVO_MAX_SPEED_DEG_S = 140.0f;
+
+// Setup-wizard calibration moves (horn 90° and per-joint sweeps)
+constexpr float SERVO_CALIB_SPEED_DEG_S = 25.0f;
 
 // ~half a PCA9685 count at 800-2200 us over 0-180 deg
 constexpr float SERVO_ANGLE_DEADBAND_DEG = 0.32f;

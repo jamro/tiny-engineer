@@ -4,12 +4,13 @@ Tiny Engineer is a Wi-Fi desk robot. Drive it from any tool that can make HTTP r
 
 Robot must be on the same network. Base URL: `http://tiny-engineer.local` (or the IP shown on the OLED). Full HTTP reference: [`api.md`](api.md).
 
-Two integration paths:
+Three integration paths:
 
 | Path | Best for | How |
 |---|---|---|
 | **REST API** | Any AI IDE, script, CI, custom agent | `POST /anim?name=…` |
 | **Cursor CLI** | Cursor project hooks | `npx` → `tiny-engineer-cursor` |
+| **Antigravity CLI** | Antigravity CLI lifecycle hooks | `tiny-engineer-antigravity` |
 
 ```mermaid
 flowchart TB
@@ -21,6 +22,11 @@ flowchart TB
     CursorHook[Cursor hooks.json]
     CursorHook --> Npx["npx tiny-engineer-cursor"]
     Npx --> Post
+  end
+  subgraph antigravityPath [Antigravity]
+    AgHook[Antigravity hooks.json]
+    AgHook --> AgCli["tiny-engineer-antigravity"]
+    AgCli --> Post
   end
   Post --> Robot[Tiny Engineer on Wi-Fi]
 ```
@@ -130,10 +136,78 @@ node packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js
 
 ---
 
+## 3. Antigravity CLI dedicated script
+
+For [Google Antigravity](https://github.com/google/antigravity) (`antigravity-cli`): a lightweight Node CLI receives Antigravity lifecycle hook payloads on stdin, maps the agent lifecycle / tool calls to animations, and responds with the expected hook decision JSON while posting `/anim`.
+
+### Event Mapping
+- **`PreInvocation`** (Model thinking) → `thinking`
+- **`PreToolUse`** (Reading tools: `view_file`, `grep_search`, `find_by_name`, `list_dir`, etc.) → `reading`
+- **`PreToolUse`** (Writing tools: `write_to_file`, `replace_file_content`, `run_command`) → `typing`
+- **`PostToolUse`** (Tool error) → `attention`
+- **`Stop`** (`model_stop` / completion) → `ring` (rings the physical desk bell!)
+- **`Stop`** (`error` / `aborted`) → `error` / `abort`
+
+### Setup
+
+Inside this firmware repository, [`.agents/hooks.json`](../.agents/hooks.json) is pre-configured. Run the local bin: `node packages/tiny-engineer-antigravity/bin/tiny-engineer-antigravity.js`. Other machines can `npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer-antigravity` (same tarball pattern as Cursor).
+
+To run globally across all projects on your machine, configure `~/.gemini/config/hooks.json`:
+
+```json
+{
+  "tiny-engineer": {
+    "PreInvocation": [
+      {
+        "command": "tiny-engineer-antigravity PreInvocation",
+        "timeout": 3
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "command": "tiny-engineer-antigravity PreToolUse",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "command": "tiny-engineer-antigravity PostToolUse",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "command": "tiny-engineer-antigravity Stop",
+        "timeout": 3
+      }
+    ]
+  }
+}
+```
+
+---
+
 ## Which to choose?
 
 - **Building for one IDE / custom agent** → REST. One `POST`, zero Node dependency.
 - **Using Cursor and want zero mapping code** → Cursor CLI + hooks.
-- **Both** are fine together: CLI is just a thin client of the same `/anim` API.
+- **Using Antigravity CLI** → Antigravity CLI + hooks.
+- **All three** are fine together: the CLIs are thin clients of the same `/anim` API.
 
-Prerequisites for either path: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer.local/health` (or the OLED IP) responds.
+Prerequisites for any path: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer.local/health` (or the OLED IP) responds.
+
+---
+
+## Optional extras
+
+Same `POST /anim` API; not part of the three paths above. On macOS you can run a small host helper that POSTs `sleep` / `wakeup` when the screen locks or unlocks: [`macos-lock-unlock.md`](macos-lock-unlock.md). The robot does not need it.

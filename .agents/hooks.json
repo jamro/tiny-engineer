@@ -1,0 +1,38 @@
+{
+  "tiny-engineer": {
+    "PreInvocation": [
+      {
+        "command": "tiny-engineer-antigravity PreInvocation",
+        "timeout": 3
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "command": "tiny-engineer-antigravity PreToolUse",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "command": "tiny-engineer-antigravity PostToolUse",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "command": "tiny-engineer-antigravity Stop",
+        "timeout": 3
+      }
+    ]
+  }
+}

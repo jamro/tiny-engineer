@@ -21,9 +21,12 @@ using anim::stopAnimServos;
 
 namespace {
 
-constexpr float THINK_NECK_MID =
-  servoMid(SERVO_SPECS[SERVO_NECK]);
-constexpr float THINK_JITTER_DEG = 3.5f;
+constexpr float THINK_HEAD_JITTER = 3.5f / 35.0f;
+constexpr float THINK_NECK_JITTER = 3.5f / 45.0f;
+constexpr float THINK_HEAD_MICRO = 1.5f / 35.0f;
+constexpr float THINK_HEAD_MICRO_SPAN = 3.5f / 35.0f;
+constexpr float THINK_NECK_MICRO = 1.5f / 45.0f;
+constexpr float THINK_NECK_MICRO_SPAN = 3.5f / 45.0f;
 constexpr uint32_t THINK_MIN_POSE_CHANGE_MS = 2200;
 
 enum class ThinkPhase {
@@ -34,8 +37,8 @@ enum class ThinkPhase {
 };
 
 struct ThinkPose {
-  float headDeg;
-  float neckDeg;
+  float headNorm;
+  float neckNorm;
 };
 
 ThinkPhase g_thinkPhase = ThinkPhase::TransitionPark;
@@ -49,35 +52,27 @@ bool g_thinkDidMicro = false;
 uint8_t g_thinkMicroChain = 0;
 
 constexpr ThinkPose THINK_POSES[] = {
-  {125.0f, THINK_NECK_MID},
-  {122.0f, THINK_NECK_MID - 8.0f},
-  {120.0f, THINK_NECK_MID + 8.0f},
-  {128.0f, THINK_NECK_MID - 5.0f},
-  {127.0f, THINK_NECK_MID + 6.0f},
-  {123.0f, THINK_NECK_MID - 10.0f},
-  {121.0f, THINK_NECK_MID + 10.0f},
+  {6.0f / 7.0f, 0.0f},
+  {27.0f / 35.0f, -8.0f / 45.0f},
+  {5.0f / 7.0f, 8.0f / 45.0f},
+  {33.0f / 35.0f, -1.0f / 9.0f},
+  {32.0f / 35.0f, 2.0f / 15.0f},
+  {4.0f / 7.0f, -2.0f / 9.0f},
+  {26.0f / 35.0f, 2.0f / 9.0f},
 };
 constexpr uint8_t THINK_POSE_COUNT =
   sizeof(THINK_POSES) / sizeof(THINK_POSES[0]);
 
-float clampThinkHead(float deg) {
-  return constrain(
-    deg,
-    SERVO_SPECS[SERVO_HEAD].min,
-    SERVO_SPECS[SERVO_HEAD].max
-  );
+float clampThinkNorm(float n) {
+  return servoSaturateNorm(n);
 }
 
-float clampThinkNeck(float deg) {
-  return constrain(
-    deg,
-    SERVO_SPECS[SERVO_NECK].min,
-    SERVO_SPECS[SERVO_NECK].max
-  );
+float jitterHead() {
+  return (randUnit() * 2.0f - 1.0f) * THINK_HEAD_JITTER;
 }
 
-float jitterDeg() {
-  return (randUnit() * 2.0f - 1.0f) * THINK_JITTER_DEG;
+float jitterNeck() {
+  return (randUnit() * 2.0f - 1.0f) * THINK_NECK_JITTER;
 }
 
 uint32_t jitterPauseMs(uint32_t baseMs) {
@@ -88,8 +83,8 @@ uint32_t jitterPauseMs(uint32_t baseMs) {
 ThinkPose perturbedPose(uint8_t index) {
   const ThinkPose& base = THINK_POSES[index % THINK_POSE_COUNT];
   ThinkPose pose;
-  pose.headDeg = clampThinkHead(base.headDeg + jitterDeg());
-  pose.neckDeg = clampThinkNeck(base.neckDeg + jitterDeg());
+  pose.headNorm = clampThinkNorm(base.headNorm + jitterHead());
+  pose.neckNorm = clampThinkNorm(base.neckNorm + jitterNeck());
   return pose;
 }
 
@@ -99,8 +94,8 @@ uint8_t pickNextThinkPoseIndex() {
   }
 
   if (randChance(58)) {
-    const float curHead = servoAt(SERVO_HEAD).angle();
-    const float curNeck = servoAt(SERVO_NECK).angle();
+    const float curHead = servoDegToNorm(SERVO_HEAD, servoAt(SERVO_HEAD).angle());
+    const float curNeck = servoDegToNorm(SERVO_NECK, servoAt(SERVO_NECK).angle());
     uint8_t bestIdx = g_thinkPoseIndex;
     float bestDist = 999.0f;
     uint8_t secondIdx = g_thinkPoseIndex;
@@ -112,8 +107,8 @@ uint8_t pickNextThinkPoseIndex() {
       }
       const ThinkPose& pose = THINK_POSES[i];
       const float dist = hypotf(
-        pose.headDeg - curHead,
-        pose.neckDeg - curNeck
+        pose.headNorm - curHead,
+        pose.neckNorm - curNeck
       );
       if (dist < bestDist) {
         secondDist = bestDist;
@@ -151,7 +146,7 @@ void beginThinkAxisMove(
 
 void tickThinkAxisMoves(uint32_t now) {
   if (g_thinkHeadMove.active) {
-    servoAt(SERVO_HEAD).setPosition(
+    servoAt(SERVO_HEAD).setNormPosition(
       easedMoveValue(g_thinkHeadMove, now)
     );
     if (easedMoveDone(g_thinkHeadMove, now)) {
@@ -159,7 +154,7 @@ void tickThinkAxisMoves(uint32_t now) {
     }
   }
   if (g_thinkNeckMove.active) {
-    servoAt(SERVO_NECK).setPosition(
+    servoAt(SERVO_NECK).setNormPosition(
       easedMoveValue(g_thinkNeckMove, now)
     );
     if (easedMoveDone(g_thinkNeckMove, now)) {
@@ -168,9 +163,9 @@ void tickThinkAxisMoves(uint32_t now) {
   }
 }
 
-uint32_t primaryDurationMs(float deltaDeg) {
+uint32_t primaryDurationMs(float deltaNorm) {
   const uint32_t base = randRangeMs(480, 950);
-  const float scale = 0.65f + 0.55f * (deltaDeg / 20.0f);
+  const float scale = 0.65f + 0.55f * (deltaNorm / 0.57f);
   return (uint32_t)(base * constrain(scale, 0.65f, 1.2f));
 }
 
@@ -179,10 +174,10 @@ uint32_t microDurationMs() {
 }
 
 void startThinkPrimaryMove(uint32_t now, const ThinkPose& pose) {
-  const float headFrom = servoAt(SERVO_HEAD).angle();
-  const float neckFrom = servoAt(SERVO_NECK).angle();
-  const float headTo = pose.headDeg;
-  const float neckTo = pose.neckDeg;
+  const float headFrom = servoDegToNorm(SERVO_HEAD, servoAt(SERVO_HEAD).angle());
+  const float neckFrom = servoDegToNorm(SERVO_NECK, servoAt(SERVO_NECK).angle());
+  const float headTo = pose.headNorm;
+  const float neckTo = pose.neckNorm;
 
   const uint32_t headDur =
     primaryDurationMs(fabsf(headTo - headFrom));
@@ -217,15 +212,15 @@ void startThinkPrimaryMove(uint32_t now, const ThinkPose& pose) {
   g_thinkDidMicro = false;
 
   serialLogPrint("[anim] think primary head ");
-  serialLogPrint(headFrom, 1);
+  serialLogPrint(servoNormToDeg(SERVO_HEAD, headFrom), 1);
   serialLogPrint("->");
-  serialLogPrint(headTo, 1);
+  serialLogPrint(servoNormToDeg(SERVO_HEAD, headTo), 1);
   serialLogPrint(" (");
   serialLogPrint(headDur);
   serialLogPrint("ms) neck ");
-  serialLogPrint(neckFrom, 1);
+  serialLogPrint(servoNormToDeg(SERVO_NECK, neckFrom), 1);
   serialLogPrint("->");
-  serialLogPrint(neckTo, 1);
+  serialLogPrint(servoNormToDeg(SERVO_NECK, neckTo), 1);
   serialLogPrint(" (");
   serialLogPrint(neckDur);
   serialLogPrint("ms) headFirst=");
@@ -250,9 +245,8 @@ void enterThinkPause(uint32_t now, bool afterMicro) {
 }
 
 void beginThinkMicroMove(uint32_t now) {
-  const float headFrom = servoAt(SERVO_HEAD).angle();
-  const float neckFrom = servoAt(SERVO_NECK).angle();
-  const float microDeg = 1.5f + 3.5f * randUnit();
+  const float headFrom = servoDegToNorm(SERVO_HEAD, servoAt(SERVO_HEAD).angle());
+  const float neckFrom = servoDegToNorm(SERVO_NECK, servoAt(SERVO_NECK).angle());
   const uint32_t dur = microDurationMs();
 
   g_thinkHeadMove.active = false;
@@ -261,20 +255,22 @@ void beginThinkMicroMove(uint32_t now) {
   const uint8_t mode = (uint8_t)(esp_random() % 3u);
   if (mode == 0 || mode == 2) {
     const float sign = randChance(50) ? 1.0f : -1.0f;
+    const float micro = THINK_HEAD_MICRO + THINK_HEAD_MICRO_SPAN * randUnit();
     beginThinkAxisMove(
       g_thinkHeadMove,
       headFrom,
-      clampThinkHead(headFrom + sign * microDeg),
+      clampThinkNorm(headFrom + sign * micro),
       now,
       dur
     );
   }
   if (mode == 1 || mode == 2) {
     const float sign = randChance(50) ? 1.0f : -1.0f;
+    const float micro = THINK_NECK_MICRO + THINK_NECK_MICRO_SPAN * randUnit();
     beginThinkAxisMove(
       g_thinkNeckMove,
       neckFrom,
-      clampThinkNeck(neckFrom + sign * microDeg),
+      clampThinkNorm(neckFrom + sign * micro),
       now + (mode == 2 ? randRangeMs(50, 150) : 0),
       dur
     );

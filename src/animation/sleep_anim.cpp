@@ -16,7 +16,8 @@ bool headAtSleepPose() {
   }
 
   const float err =
-    servoAt(SERVO_HEAD).angle() - anim::SLEEP_HEAD_DOWN;
+    servoAt(SERVO_HEAD).angle() -
+    servoNormToDeg(SERVO_HEAD, anim::SLEEP_HEAD_DOWN);
   return err > -1.5f && err < 1.5f;
 }
 

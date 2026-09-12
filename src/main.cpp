@@ -14,7 +14,7 @@
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
 #include "http/http_server.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "serial_log.h"
 #include "sleep.h"
 #include "boot/boot_loading.h"
@@ -108,11 +108,7 @@ void setup() {
       "Init failed"
     );
 
-    setRgb(64, 0, 0);
-
-    while (true) {
-      delay(1000);
-    }
+    haltWithRgbCode(RGB_CODE_I2S);
   }
 
   serialLogPrintln("I2S OK");

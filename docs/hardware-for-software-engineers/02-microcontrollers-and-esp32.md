@@ -114,7 +114,7 @@ The C3-Zero has a USB-C port on the board, but **when the robot is assembled**, 
 
 ### The RGB LED is your boot log
 
-Before Wi-Fi works, the LED tells you state: dim green while booting, solid red if init failed (e.g. PCA9685 missing). It's the hardware equivalent of a health-check endpoint you can see without serial.
+Before Wi-Fi works, the LED tells you state: dim green while booting; a fatal init failure hangs and blinks red (1 = PCA9685 missing, 2 = I2S failed). It's the hardware equivalent of a health-check endpoint you can see without serial. Blink table: [hardware/testing.md](../hardware/testing.md#boot-failure-blink-codes).
 
 ### Ceramic antenna — don't bury it
 

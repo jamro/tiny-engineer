@@ -6,6 +6,7 @@
 #include "display/oled.h"
 #include "display/oled_internal.h"
 #include "serial_log.h"
+#include "settings/settings.h"
 
 bool i2cDeviceConnected(uint8_t address) {
   Wire.beginTransmission(address);
@@ -33,8 +34,7 @@ void initOled() {
     return;
   }
 
-  // Rotate OLED by 180 degrees
-  display.setRotation(2);
+  display.setRotation(settingsOledRotate180() ? 2 : 0);
 
   display.clearDisplay();
   display.display();

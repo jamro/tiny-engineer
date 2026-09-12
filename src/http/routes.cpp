@@ -9,6 +9,7 @@
 #include "http/json.h"
 #include "http/server_context.h"
 #include "http/settings_handlers.h"
+#include "http/setup_handlers.h"
 #include "http/test_handlers.h"
 #include "network/wifi_connect.h"
 
@@ -44,7 +45,8 @@ void handleNotFound() {
     return;
   }
 
-  if (isHttpTestPath(server.uri()) || isSettingsOrAnimPath(server.uri())) {
+  if (isHttpTestPath(server.uri()) || isHttpSetupPath(server.uri()) ||
+      isSettingsOrAnimPath(server.uri())) {
     httpSendJson(
       server,
       405,
@@ -91,5 +93,6 @@ void registerHttpRoutes() {
     httpWithApiAuth(httpServer(), handleSettingsReset);
   });
   registerHttpTestRoutes(server);
+  registerHttpSetupRoutes(server);
   server.onNotFound(handleNotFound);
 }

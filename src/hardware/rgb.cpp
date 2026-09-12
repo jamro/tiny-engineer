@@ -6,12 +6,21 @@
 #include "pins.h"
 #include "hardware/rgb.h"
 #include "serial_log.h"
+#include "settings/settings.h"
+
+#include <cstring>
 
 namespace {
 
 constexpr uint8_t RGB_ANIM_WHITE = 255;
 constexpr uint8_t RGB_ANIM_RED = 255;
 constexpr uint32_t RGB_TRANSITION_MS = 1000;
+
+// Boot-failure blink codes. The gap is 10x the pause between blinks within a
+// train, so the cycle boundary stays unmistakable as more codes are added: even
+// a long count reads as one group followed by an obvious silence.
+constexpr uint32_t RGB_CODE_BLINK_MS = 300;
+constexpr uint32_t RGB_CODE_GAP_MS = 3000;
 
 constexpr uint8_t RGB_PULSE_MIN = 26;   // ~10% of 255
 constexpr uint8_t RGB_PULSE_MAX = 255;  // 100%
@@ -34,6 +43,7 @@ bool g_transitionActive = false;
 bool g_twoPhaseTransition = false;
 bool g_pulseActive = false;
 uint32_t g_pulseStartMs = 0;
+bool g_setupLedHold = false;
 
 uint8_t lerpChannel(uint8_t from, uint8_t to, float t) {
   return static_cast<uint8_t>(from + (to - from) * t);
@@ -51,9 +61,44 @@ bool sameColor(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2, uint8
   return r1 == r2 && g1 == g2 && b1 == b2;
 }
 
+rgb_led_color_order_t ledColorOrderFromName(const char* order) {
+  if (order == nullptr) {
+    return LED_COLOR_ORDER_GRB;
+  }
+
+  if (strcmp(order, "RGB") == 0) {
+    return LED_COLOR_ORDER_RGB;
+  }
+
+  if (strcmp(order, "RBG") == 0) {
+    return LED_COLOR_ORDER_RBG;
+  }
+
+  if (strcmp(order, "GRB") == 0) {
+    return LED_COLOR_ORDER_GRB;
+  }
+
+  if (strcmp(order, "GBR") == 0) {
+    return LED_COLOR_ORDER_GBR;
+  }
+
+  if (strcmp(order, "BRG") == 0) {
+    return LED_COLOR_ORDER_BRG;
+  }
+
+  if (strcmp(order, "BGR") == 0) {
+    return LED_COLOR_ORDER_BGR;
+  }
+
+  return LED_COLOR_ORDER_GRB;
+}
+
+rgb_led_color_order_t ledColorOrderFromSettings() {
+  return ledColorOrderFromName(settingsRgbOrder());
+}
+
 void writeRgb(uint8_t r, uint8_t g, uint8_t b) {
-  // Waveshare ESP32-C3-Zero onboard WS2812 uses GRB byte order.
-  rgbLedWriteOrdered(RGB_LED_PIN, LED_COLOR_ORDER_GRB, r, g, b);
+  rgbLedWriteOrdered(RGB_LED_PIN, ledColorOrderFromSettings(), r, g, b);
   g_currentR = r;
   g_currentG = g;
   g_currentB = b;
@@ -181,6 +226,35 @@ void setRgb(uint8_t r, uint8_t g, uint8_t b) {
   g_pulseActive = false;
 }
 
+void rgbSetupHoldWireByte(uint8_t byteIndex) {
+  g_setupLedHold = true;
+
+  const uint8_t r = byteIndex == 0 ? 255 : 0;
+  const uint8_t g = byteIndex == 1 ? 255 : 0;
+  const uint8_t b = byteIndex == 2 ? 255 : 0;
+  rgbLedWriteOrdered(RGB_LED_PIN, LED_COLOR_ORDER_RGB, r, g, b);
+}
+
+void rgbSetupHoldLogical(uint8_t r, uint8_t g, uint8_t b, const char* order) {
+  g_setupLedHold = true;
+
+  const char* use = settingsRgbOrder();
+
+  if (order != nullptr && settingsValidateRgbOrder(order)) {
+    use = order;
+  }
+
+  rgbLedWriteOrdered(RGB_LED_PIN, ledColorOrderFromName(use), r, g, b);
+}
+
+void rgbSetupRelease() {
+  g_setupLedHold = false;
+
+  if (wifiProvisioningMode()) {
+    setRgb(0, 0, RGB_PROVISIONING_B);
+  }
+}
+
 void setRgbForAnimation(AnimationId id, uint32_t nowMs) {
   if (isPulseAnimation(id)) {
     if (g_pulseActive) {
@@ -232,6 +306,11 @@ void updateRgb(uint32_t nowMs) {
   static bool wasProvisioning = false;
 
   if (wifiProvisioningMode()) {
+    if (g_setupLedHold) {
+      wasProvisioning = true;
+      return;
+    }
+
     if (g_currentR != 0 || g_currentG != 0 || g_currentB != RGB_PROVISIONING_B) {
       setRgb(0, 0, RGB_PROVISIONING_B);
     }
@@ -250,6 +329,19 @@ void updateRgb(uint32_t nowMs) {
   }
 
   applyTransition(nowMs);
+}
+
+void haltWithRgbCode(uint8_t blinks) {
+  while (true) {
+    for (uint8_t i = 0; i < blinks; i++) {
+      setRgb(64, 0, 0);
+      delay(RGB_CODE_BLINK_MS);
+      setRgb(0, 0, 0);
+      delay(RGB_CODE_BLINK_MS);
+    }
+
+    delay(RGB_CODE_GAP_MS);
+  }
 }
 
 void runRgbTest() {

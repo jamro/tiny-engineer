@@ -17,15 +17,15 @@ In PlatformIO, `board = esp32-c3-devkitm-1` is a **build target name**, not a di
 Gather electronics from [hardware/components.md](hardware/components.md). Minimum set:
 
 - Waveshare ESP32-C3-Zero
-- Adafruit PCA9685 + 5× PowerHD HD-1370A (or equivalent micro servos)
+- Adafruit PCA9685 + 5× analog micro servos (**Tower Pro SG90** recommended; [other presets](3d/parametric-design.md))
 - MAX98357A + 8 Ω / 1 W speaker
-- 0.91" 128×32 SSD1306 OLED (I2C)
+- [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C)
 - Adafruit 5993 USB-C breakout (power + data)
 - **5 V / ≥2 A** USB supply (servos need headroom — [hardware/power.md](hardware/power.md))
 
 ### 2. Print and mechanical
 
-Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware).
+Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/{servo_id}/3mf/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md). Print [`ServoSizingTester`](../3d_models/README.md#print-first) first and confirm a real servo fits before queuing the rest of the set.
 
 Join printed parts with **2 mm diameter screws** (no glue; easy to dismount later). Exact screw lengths/counts and a full assembly SOP are **not documented yet** — use the parts table there as the inventory. After print:
 
@@ -36,7 +36,7 @@ Join printed parts with **2 mm diameter screws** (no glue; easy to dismount late
 
 Canonical connections: [hardware/wiring.md](hardware/wiring.md) and the diagram [wiring/Tiny Engineer.drawio.png](wiring/Tiny%20Engineer.drawio.png). Overview: [hardware/README.md](hardware/README.md).
 
-Before first power-up, run the assembly checks in wiring.md (common GND, PCA9685 **VCC** = 3.3 V vs **V+** = 5 V not shorted, OLED clock on **SCK**, speaker on **SPK+/SPK−** only). Prefer bench bring-up with a strong 5 V supply before seating everything in the printed shell.
+Before first power-up, run the assembly checks in wiring.md (common GND, PCA9685 **VCC** = 3.3 V vs **V+** = 5 V not shorted, OLED clock on **SCL**, speaker on **SPK+/SPK−** only). Prefer bench bring-up with a strong 5 V supply before seating everything in the printed shell.
 
 ### 4. Flash
 
@@ -58,24 +58,31 @@ Several serial ports:
 
 ```bash
 pio device list
-pio run -t upload --upload-port /dev/cu.usbserial-XXXX
-pio device monitor --port /dev/cu.usbserial-XXXX
+pio run -t upload --upload-port <PORT>
+pio device monitor --port <PORT>
 ```
+
+`<PORT>` is the name `pio device list` prints for the board, and it is
+platform-specific: `COM4` on Windows, `/dev/cu.usbmodemXXXX` or
+`/dev/cu.usbserial-XXXX` on macOS, `/dev/ttyACM0` or `/dev/ttyUSB0` on Linux.
+Pick the entry whose hardware ID shows Espressif's `VID:PID=303A:1001` (the
+ESP32-C3's native USB) or your board's USB-serial bridge — `pio device list`
+also lists Bluetooth serial ports, which are not the board.
 
 ### 5. Wi‑Fi setup
 
-First boot (or after factory reset + power-cycle): join setup network `TinyEngineer-XXXX`, open `http://192.168.4.1/config`, enter home Wi‑Fi (**2.4 GHz** only). OLED shows setup steps. Wi‑Fi is not editable from the normal Config page later — factory reset to change it.
+First boot (or after factory reset + power-cycle): join setup network `TinyEngineer-XXXX`, open `http://192.168.4.1/config`. A five-step wizard: (1) seat printed parts on the servo shafts at 90° then mark each joint’s safe min/max (factory reset keeps prior ranges; you can still change them here), (2) look at the OLED and tap Rotate 180° if text is upside down (factory reset keeps the rotation), (3) tap Red/Green/Blue on the onboard LED; change mapping only if colors look wrong (default **GRB**; factory reset keeps the mapping), (4) play the welcome clip through the speaker, (5) hostname and home Wi‑Fi (**2.4 GHz** only). OLED shows join-AP steps. Wi‑Fi is not editable from the normal Config page later — factory reset to change it.
 
 ### 6. Prove it
 
-Open `http://tiny-engineer.local/` (or the IP on the OLED) for the **web UI**: settings, hardware tests, animations. WiFi credentials stay setup-AP-only (`/config` on `http://192.168.4.1`).
+Open `http://tiny-engineer.local/` (or the IP on the OLED) for the **web UI**: settings, hardware tests, animations. WiFi credentials, servo ranges, RGB LED mapping, and screen rotation stay setup-AP-only (`/config` on `http://192.168.4.1`).
 
 ```bash
 curl http://tiny-engineer.local/health
 curl -X POST "http://tiny-engineer.local/anim?name=ring"
 ```
 
-If `.local` is slow or fails, use the OLED IP or `curl -4`. Prefer web UI for hardware tests before seating servos hard against stops. When WiFi is not configured, control APIs (`/anim`, `/test/*`) return **503**. Optional access token → `Authorization: Bearer …` on JSON APIs (`GET /auth` stays public) — see [api.md](api.md).
+If `.local` is slow or fails, use the OLED IP or `curl -4`. Prefer web UI for hardware tests before seating servos hard against stops. When WiFi is not configured, control APIs (`/anim`, `/test/*`) return **503**; `POST /setup/servo`, `POST /setup/led`, `POST /setup/audio`, and `POST /setup/oled` stay available on the setup AP. Optional access token → `Authorization: Bearer …` on JSON APIs (`GET /auth` stays public) — see [api.md](api.md).
 
 ### 7. Optional — Cursor hooks
 
@@ -88,7 +95,7 @@ Robot on the same LAN → [hooks.md](hooks.md). Any IDE / scripts → [integrati
 | Which wires / voltages? | [hardware/wiring.md](hardware/wiring.md), [hardware/pinout.md](hardware/pinout.md) |
 | What to print? | [3d_models/README.md](../3d_models/README.md) |
 | `.local` slow or fails | OLED IP; `curl -4 http://…` |
-| OLED shows join AP / `192.168.4.1` | Wi‑Fi not saved or STA failed — finish setup AP config |
+| OLED shows join AP / `192.168.4.1` | Wi‑Fi not saved or STA failed — finish the setup AP wizard |
 | Welcome / ring silent (servos move) | LittleFS missing WAVs — `pio run -t uploadfs` |
 | Hooks never move the robot | Node 18+, hook `timeout` ≥ 30, HTTPS tarball `npx` — see [hooks.md](hooks.md) |
 | Servos twitch / board resets on motion | Power budget — [hardware/power.md](hardware/power.md) |

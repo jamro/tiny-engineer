@@ -1,0 +1,62 @@
+name: Hardware / build
+description: Wiring, power, print, assembly, I2C, servos binding or brownout.
+title: "fix: "
+labels: [hardware]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Power and pin facts live in [docs/hardware/](https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/README.md).
+        Do not power servos from the ESP32 3.3 V LDO. PCA9685 **VCC** = 3.3 V logic; **V+** = 5 V servo rail.
+  - type: input
+    id: supply
+    attributes:
+      label: Supply
+      description: Voltage and current rating. Target is **5 V / ≥ 2 A**. Five HD-1370A stalls are ~1.3–1.6 A before Wi-Fi and audio.
+      placeholder: "5 V / 2 A USB-C PSU"
+    validations:
+      required: true
+  - type: input
+    id: part
+    attributes:
+      label: Part file (if print/CAD)
+      description: Filename under `3d_models/parts/`, e.g. `DeskPad.3mf`.
+    validations:
+      required: false
+  - type: dropdown
+    id: pca
+    attributes:
+      label: PCA9685 VCC vs V+
+      options:
+        - VCC from ESP32 3V3, V+ from 5 V servo rail (expected)
+        - Not sure / need to check
+        - Wired differently (describe below)
+    validations:
+      required: true
+  - type: dropdown
+    id: symptom
+    attributes:
+      label: Symptom class
+      options:
+        - Won't boot / red blink on WS2812
+        - I2C device missing (PCA9685 0x40 or OLED 0x3C)
+        - Servos jitter, brownout, or USB disconnect when they move
+        - Mechanical binding / horn against a stop
+        - Antenna / Wi-Fi range (ceramic antenna covered?)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: photos
+    attributes:
+      label: Photos
+      description: Wiring at the PCA9685 (VCC vs V+), supply, and the failing joint or print. Drag images into the comment.
+    validations:
+      required: false
+  - type: textarea
+    id: report
+    attributes:
+      label: What happened
+      description: Assembly stage, what you expected, what you got.
+    validations:
+      required: true

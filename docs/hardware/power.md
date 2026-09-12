@@ -19,14 +19,16 @@ Waveshare documents the C3-Zero LDO as ME6217C33M5G (hundreds of mA class). That
 
 ## Servo current (worst case)
 
-Datasheet stall currents for HD-1370A:
+Datasheet stall currents for PowerHD HD-1370A:
 
 | Voltage | Per servo stall | × 5 servos |
 | --- | --- | --- |
 | 4.8 V | ~260 mA | **≈ 1.3 A** |
 | 6.0 V | ~320 mA | **≈ 1.6 A** |
 
-Robot rail is nominally **5 V**, so expect something between those two if several servos stall or start together.
+Robot rail is nominally **5 V**, so expect something between those two if several HD-1370A servos stall or start together.
+
+**Tower Pro SG90** (recommended) is larger and typically stalls harder. Same **5 V / ≥ 2 A** floor; give more margin if several SG90s move while audio plays. Do not treat the HD-1370A milliamp table as an SG90 budget.
 
 This **excludes**:
 
@@ -40,7 +42,7 @@ This **excludes**:
 
 Adafruit 5993 CC resistors ask the upstream port for **5 V / up to ~1.5 A**. Whether 1.5 A actually arrives depends on the charger/port.
 
-Five servos at stall (~1.3 A @ 4.8 V) plus the rest of the robot leaves **little safety margin** on a 1.5 A USB source.
+Five HD-1370A servos at stall (~1.3 A @ 4.8 V) plus the rest of the robot leaves **little safety margin** on a 1.5 A USB source. SG90 stall is typically higher still.
 
 Recommendation:
 

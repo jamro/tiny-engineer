@@ -9,11 +9,11 @@ Shared bus.
 | Signal | ESP32 GPIO | Diagram pad |
 | --- | --- | --- |
 | SDA | GPIO0 | GP0 → PCA9685 SDA, OLED SDA |
-| SCL | GPIO1 | GP1 → PCA9685 SCL, OLED **SCK** |
+| SCL | GPIO1 | GP1 → PCA9685 SCL, Waveshare OLED **SCL** |
 
 | Device | Address | Firmware behaviour if missing |
 | --- | --- | --- |
-| PCA9685 | **`0x40`** | Hard fail: red RGB, hang |
+| PCA9685 | **`0x40`** | Hard fail: hang, 1 red blink (see [blink codes](testing.md#boot-failure-blink-codes)) |
 | SSD1306 OLED | **`0x3C`** | Soft fail: tests continue without display |
 
 Bus start: `Wire.begin(I2C_SDA, I2C_SCL)` with no explicit frequency → Arduino-ESP32 default (typically **100 kHz**). Not set in this repo.

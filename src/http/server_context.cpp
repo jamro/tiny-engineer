@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-#include "settings.h"
+#include "settings/settings.h"
 
 namespace {
 

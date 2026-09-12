@@ -21,7 +21,7 @@ Diagram colour: **red** = 5 V, **blue** = GND, thin wires = signals.
 | PCA9685 **5V** | Servo-power *input* from USB 5V |
 | PCA9685 **V+** | Servo-power *output* to servo 5V |
 | PCA9685 **VCC** | Logic **3V3** |
-| OLED **SCK** | I2C **SCL** |
+| OLED **SCL** | I2C **SCL** (Waveshare silkscreen; PNG may say **SCK**) |
 | MAX98357A **Vin** | Amp **+5V** (**VIN**) |
 | MAX98357A **LRC** | **WS/LRC** |
 
@@ -45,7 +45,7 @@ On Adafruit PCA9685, header/terminal **V+** is normally the same servo rail as t
 | ESP32-C3-Zero | GP0 | PCA9685 | SDA | I2C data |
 | ESP32-C3-Zero | GP0 | OLED | SDA | I2C data (shared) |
 | ESP32-C3-Zero | GP1 | PCA9685 | SCL | I2C clock |
-| ESP32-C3-Zero | GP1 | OLED | SCK | I2C clock (shared; module silkscreen SCK) |
+| ESP32-C3-Zero | GP1 | OLED | SCL | I2C clock (shared; Waveshare silkscreen **SCL**; PNG may say **SCK**) |
 | ESP32-C3-Zero | GP2 | MAX98357A | BCLK | I2S bit clock |
 | ESP32-C3-Zero | GP3 | MAX98357A | LRC | I2S word select |
 | ESP32-C3-Zero | GP4 | MAX98357A | DIN | I2S data |
@@ -95,7 +95,7 @@ USB block in the drawing is the Adafruit **5993** — robot **power** (VBUS/GND)
 Shared bus:
 
 - ESP32 **GP0** → PCA9685 **SDA** and OLED **SDA**
-- ESP32 **GP1** → PCA9685 **SCL** and OLED **SCK**
+- ESP32 **GP1** → PCA9685 **SCL** and OLED **SCL**
 
 Addresses (firmware, not on the drawing): PCA9685 `0x40`, OLED `0x3C`. See [interfaces.md](interfaces.md).
 
@@ -138,7 +138,7 @@ Still part of the selected hardware; do not invent extra ESP32 GPIO for them.
 | Item | Rule |
 | --- | --- |
 | Speaker | Terminals → MAX98357A **SPK+** and **SPK-** only |
-| 4 extra HD-1370A | Same 3-wire pattern as the drawn servo, on PCA9685 PWM 0–4 |
+| 4 extra analog micro servos | Same 3-wire pattern as the drawn servo, on PCA9685 PWM 0–4 |
 | Adafruit 5993 D+/D− | Wire to ESP32 **GP19** / **GP18** for flash and CDC (single-USB design) |
 | MAX98357A GAIN / SD | Not wired; leave breakout defaults |
 
@@ -158,6 +158,6 @@ See [interfaces.md](interfaces.md), [power.md](power.md).
 
 1. Every **GND** in the PNG is one net (USB, ESP32, PCA9685 both sides, OLED, MAX98357A, servo).
 2. PCA9685 **VCC** ≈ 3.3 V, PCA9685 **5V** / **V+** ≈ 5 V, those two nets **not** shorted.
-3. OLED clock wire lands on the pad labelled **SCK**.
+3. OLED clock wire lands on Waveshare **SCL** (PNG may still say **SCK**).
 4. I2S is GP2/GP3/GP4 → BCLK/LRC/DIN, not swapped with I2C.
 5. Speaker (if fitted) is only SPK+/SPK-, which are **not** in the PNG.

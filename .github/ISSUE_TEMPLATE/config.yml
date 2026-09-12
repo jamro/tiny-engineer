@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Build, flash, and Wi-Fi
+    url: https://github.com/jamro/tiny-engineer/blob/main/docs/getting-started.md
+    about: Parts → print → wire → flash → first animation. Use this before opening a "it won't boot" issue.
+  - name: HTTP API
+    url: https://github.com/jamro/tiny-engineer/blob/main/docs/api.md
+    about: Routes, /anim names, optional Bearer token.
+  - name: Hardware bring-up
+    url: https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/testing.md
+    about: Boot sequence, WS2812 blink codes (1 = PCA9685, 2 = I2S), REST test routes.

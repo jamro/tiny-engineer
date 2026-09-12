@@ -7,7 +7,7 @@
 #include "audio/wav_stream.h"
 #include "pins.h"
 #include "display/oled.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "audio/audio.h"
 #include "serial_log.h"
 

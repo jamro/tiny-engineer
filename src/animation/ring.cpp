@@ -31,68 +31,68 @@ enum class RingPhase {
 RingPhase g_ringPhase = RingPhase::ReachStart;
 
 void commandStartPose() {
-  servoAt(SERVO_BODY).setTarget(
+  servoAt(SERVO_BODY).setNormTarget(
     anim::RING_BODY_START,
     RING_START_SPEED_DEG_S
   );
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::RING_NECK_START,
     RING_START_SPEED_DEG_S
   );
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::RING_HEAD_START,
     RING_START_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_LEFT).setTarget(
+  servoAt(SERVO_HAND_LEFT).setNormTarget(
     anim::RING_LEFT_START,
     RING_START_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::RING_RIGHT_START,
     RING_START_SPEED_DEG_S
   );
 }
 
 void commandStrike() {
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::RING_RIGHT_STRIKE,
     RING_STRIKE_SPEED_DEG_S
   );
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::RING_HEAD_STRIKE,
     RING_HEAD_STRIKE_SPEED_DEG_S
   );
 }
 
 void commandBounce() {
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::RING_RIGHT_BOUNCE,
     RING_BOUNCE_SPEED_DEG_S
   );
 }
 
 void commandReturnCenter() {
-  servoAt(SERVO_BODY).setTarget(
-    servoMid(SERVO_SPECS[SERVO_BODY]),
+  servoAt(SERVO_BODY).setNormTarget(
+    0.0f,
     RING_RETURN_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_RIGHT).setTarget(
-    SERVO_SPECS[SERVO_HAND_RIGHT].min,
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
+    -1.0f,
     RING_RETURN_SPEED_DEG_S
   );
-  servoAt(SERVO_HEAD).setTarget(
-    servoMid(SERVO_SPECS[SERVO_HEAD]),
+  servoAt(SERVO_HEAD).setNormTarget(
+    0.0f,
     RING_RETURN_SPEED_DEG_S
   );
-  servoAt(SERVO_NECK).setTarget(
-    servoMid(SERVO_SPECS[SERVO_NECK]),
+  servoAt(SERVO_NECK).setNormTarget(
+    0.0f,
     RING_RETURN_SPEED_DEG_S
   );
 }
 
 void commandReturnLeftHand() {
-  servoAt(SERVO_HAND_LEFT).setTarget(
-    SERVO_SPECS[SERVO_HAND_LEFT].max,
+  servoAt(SERVO_HAND_LEFT).setNormTarget(
+    1.0f,
     RING_RETURN_SPEED_DEG_S
   );
 }

@@ -38,23 +38,23 @@ bool g_holdNodLow = false;
 ErrorLook g_currentLook = ErrorLook::Task;
 
 void commandObstaclePose() {
-  servoAt(SERVO_BODY).setTarget(
+  servoAt(SERVO_BODY).setNormTarget(
     anim::ERROR_BODY_TASK_SIDE,
     ERROR_PREP_SPEED_DEG_S
   );
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::ERROR_NECK_TASK_SIDE,
     ERROR_PREP_SPEED_DEG_S
   );
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::ERROR_HEAD_CONCERNED,
     ERROR_PREP_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_LEFT).setTarget(
+  servoAt(SERVO_HAND_LEFT).setNormTarget(
     anim::ERROR_HAND_LEFT_TASK_POINT,
     ERROR_PREP_SPEED_DEG_S
   );
-  servoAt(SERVO_HAND_RIGHT).setTarget(
+  servoAt(SERVO_HAND_RIGHT).setNormTarget(
     anim::ERROR_HAND_RIGHT_PRESENT,
     ERROR_PREP_SPEED_DEG_S
   );
@@ -94,28 +94,28 @@ void commandNervousLook(uint32_t now) {
 
   float neckOffset = 0.0f;
   float headOffset = g_holdNodLow
-    ? -anim::ERROR_WORRY_HEAD_NOD_DEG
-    : anim::ERROR_WORRY_HEAD_NOD_DEG;
+    ? -anim::ERROR_WORRY_HEAD_NOD
+    : anim::ERROR_WORRY_HEAD_NOD;
 
   switch (g_currentLook) {
     case ErrorLook::Task:
       neckOffset = 0.0f;
-      headOffset -= anim::ERROR_HELP_HEAD_GLANCE_DEG;
+      headOffset -= anim::ERROR_HELP_HEAD_GLANCE;
       break;
     case ErrorLook::Human:
-      neckOffset = anim::ERROR_HELP_NECK_GLANCE_DEG;
-      headOffset += anim::ERROR_HELP_HEAD_GLANCE_DEG;
+      neckOffset = anim::ERROR_HELP_NECK_GLANCE;
+      headOffset += anim::ERROR_HELP_HEAD_GLANCE;
       break;
     case ErrorLook::Away:
-      neckOffset = -anim::ERROR_AWAY_NECK_GLANCE_DEG;
+      neckOffset = -anim::ERROR_AWAY_NECK_GLANCE;
       break;
   }
 
-  servoAt(SERVO_HEAD).setTarget(
+  servoAt(SERVO_HEAD).setNormTarget(
     anim::ERROR_HEAD_CONCERNED + headOffset,
     ERROR_GLANCE_SPEED_DEG_S
   );
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::ERROR_NECK_TASK_SIDE + neckOffset,
     ERROR_GLANCE_SPEED_DEG_S
   );

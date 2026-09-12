@@ -13,15 +13,11 @@
 #include "hardware/servo_wrapper.h"
 #include "pins.h"
 #include "servos.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 namespace {
 
 constexpr uint32_t kFrameMs = 16;
-
-float neckMid() {
-  return servoMid(SERVO_SPECS[SERVO_NECK]);
-}
 
 }  // namespace
 
@@ -55,20 +51,16 @@ bool bootSleepInertiaUsesServos() {
 }
 
 void bootSnapSleepPose() {
-  const float mid = neckMid();
-  const float handRightDown = SERVO_SPECS[SERVO_HAND_RIGHT].min;
-  const float handLeftDown = SERVO_SPECS[SERVO_HAND_LEFT].max;
-
   float targets[SERVO_COUNT];
 
   for (int servo = 0; servo < SERVO_COUNT; servo++) {
-    targets[servo] = servoMid(SERVO_SPECS[servo]);
+    targets[servo] = servoNormToDeg(servo, 0.0f);
   }
 
-  targets[SERVO_HEAD] = anim::SLEEP_HEAD_DOWN;
-  targets[SERVO_NECK] = mid;
-  targets[SERVO_HAND_RIGHT] = handRightDown;
-  targets[SERVO_HAND_LEFT] = handLeftDown;
+  targets[SERVO_HEAD] = servoNormToDeg(SERVO_HEAD, anim::SLEEP_HEAD_DOWN);
+  targets[SERVO_NECK] = servoNormToDeg(SERVO_NECK, 0.0f);
+  targets[SERVO_HAND_RIGHT] = servoNormToDeg(SERVO_HAND_RIGHT, -1.0f);
+  targets[SERVO_HAND_LEFT] = servoNormToDeg(SERVO_HAND_LEFT, 1.0f);
 
   servoMoveAllSmoothTo(targets);
 }

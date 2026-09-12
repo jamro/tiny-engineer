@@ -1,0 +1,70 @@
+name: Firmware bug
+description: Board boots wrong, HTTP fails, animation or settings misbehave.
+title: "fix(firmware): "
+labels: [firmware]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Physical board is a **Waveshare ESP32-C3-Zero**. PlatformIO `board = esp32-c3-devkitm-1` is the build target name, not a different module.
+        Vulnerabilities: [SECURITY.md](https://github.com/jamro/tiny-engineer/blob/main/SECURITY.md) — do not file those here.
+  - type: input
+    id: pio
+    attributes:
+      label: PlatformIO / firmware
+      description: `pio --version` and roughly how you flashed (`pio run -t upload` from repo root?).
+    validations:
+      required: true
+  - type: dropdown
+    id: board
+    attributes:
+      label: Board
+      options:
+        - Waveshare ESP32-C3-Zero (expected)
+        - Other ESP32-C3 (say which in the report)
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: blink
+    attributes:
+      label: WS2812 boot blink (fatal init)
+      description: Red flashes before the long gap. 1 = PCA9685 missing at I2C 0x40. 2 = MAX98357A / I2S init failed.
+      options:
+        - None / boots to green then animation LED
+        - 1 blink (PCA9685)
+        - 2 blinks (I2S)
+        - Other / solid red
+        - No LED / didn't look
+    validations:
+      required: true
+  - type: input
+    id: reach
+    attributes:
+      label: How you reach the robot
+      description: OLED IP, `http://tiny-engineer.local/`, or setup AP `TinyEngineer-XXXX` at `http://192.168.4.1/`.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Repro
+      description: Commands you ran. Prefer `GET /health` and a `POST /anim` curl.
+      placeholder: |
+        curl -4 -sS http://tiny-engineer.local/health
+        curl -X POST "http://tiny-engineer.local/anim?name=ring"
+    validations:
+      required: true
+  - type: textarea
+    id: serial
+    attributes:
+      label: Serial (115200)
+      description: Banner should include `TINY ENGINEER`. Paste from boot through the failure. Redact Wi-Fi passwords and `access_token`.
+    validations:
+      required: false
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+    validations:
+      required: true

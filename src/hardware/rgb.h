@@ -4,7 +4,20 @@
 
 #include "animation.h"
 
+// Boot-failure blink codes: how many red flashes before the long gap.
+constexpr uint8_t RGB_CODE_PCA9685 = 1;
+constexpr uint8_t RGB_CODE_I2S = 2;
+
 void setRgb(uint8_t r, uint8_t g, uint8_t b);
+
+// Setup AP wizard: light one WS2812 wire byte (order-independent) and skip
+// provisioning dim-blue until released.
+void rgbSetupHoldWireByte(uint8_t byteIndex);
+void rgbSetupHoldLogical(uint8_t r, uint8_t g, uint8_t b, const char* order);
+void rgbSetupRelease();
+
+// Blinks red `blinks` times, pauses, and repeats forever. Never returns.
+[[noreturn]] void haltWithRgbCode(uint8_t blinks);
 void setRgbForAnimation(AnimationId id, uint32_t nowMs);
 void updateRgb(uint32_t nowMs);
 void runRgbTest();

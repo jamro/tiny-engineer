@@ -24,29 +24,30 @@ bool g_lastStrokeWasPress = false;
 bool g_headHigh = true;
 bool g_bodySwayPositive = true;
 bool g_swayFrozen = false;
+bool g_loggedSwaySplit = false;
 uint32_t g_handPauseUntilMs = 0;
 uint32_t g_headPauseUntilMs = 0;
 uint32_t g_swayPauseUntilMs = 0;
 
 void commandBodyNeckSway() {
   const float offset =
-    g_bodySwayPositive ? anim::TYPING_SWAY_DEG : -anim::TYPING_SWAY_DEG;
+    g_bodySwayPositive ? anim::TYPING_SWAY : -anim::TYPING_SWAY;
   const float speedDegS =
     12.0f + 18.0f * randUnit();
 
-  servoAt(SERVO_BODY).setTarget(
+  servoAt(SERVO_BODY).setNormTarget(
     anim::TYPING_BODY_MID + offset,
     speedDegS
   );
-  servoAt(SERVO_NECK).setTarget(
+  servoAt(SERVO_NECK).setNormTarget(
     anim::TYPING_NECK_MID - offset,
     speedDegS
   );
 
   serialLogPrint("[anim] typing sway body->");
-  serialLogPrint(anim::TYPING_BODY_MID + offset, 1);
+  serialLogPrint(servoNormToDeg(SERVO_BODY, anim::TYPING_BODY_MID + offset), 1);
   serialLogPrint(" neck->");
-  serialLogPrint(anim::TYPING_NECK_MID - offset, 1);
+  serialLogPrint(servoNormToDeg(SERVO_NECK, anim::TYPING_NECK_MID - offset), 1);
   serialLogPrint(" speed=");
   serialLogPrint(speedDegS, 1);
   serialLogPrint(" dir=");
@@ -75,13 +76,13 @@ void commandHandStroke() {
   if (g_typingMoveRight) {
     const float target = isPress
       ? anim::TYPING_RIGHT_LOW
-      : anim::TYPING_RIGHT_LOW + lift * anim::TYPING_HAND_BAND_DEG;
-    servoAt(SERVO_HAND_RIGHT).setTarget(target, speedDegS);
+      : anim::TYPING_RIGHT_LOW + lift * anim::TYPING_HAND_BAND;
+    servoAt(SERVO_HAND_RIGHT).setNormTarget(target, speedDegS);
   } else {
     const float target = isPress
       ? anim::TYPING_LEFT_HIGH
-      : anim::TYPING_LEFT_HIGH - lift * anim::TYPING_HAND_BAND_DEG;
-    servoAt(SERVO_HAND_LEFT).setTarget(target, speedDegS);
+      : anim::TYPING_LEFT_HIGH - lift * anim::TYPING_HAND_BAND;
+    servoAt(SERVO_HAND_LEFT).setNormTarget(target, speedDegS);
   }
 }
 
@@ -89,14 +90,14 @@ void commandHead() {
   if (g_headHigh) {
     const float upSpeed =
       35.0f + 25.0f * randUnit();
-    servoAt(SERVO_HEAD).setTarget(
+    servoAt(SERVO_HEAD).setNormTarget(
       anim::TYPING_HEAD_HIGH,
       upSpeed
     );
   } else {
     const float downSpeed =
       6.0f + 6.0f * randUnit();
-    servoAt(SERVO_HEAD).setTarget(
+    servoAt(SERVO_HEAD).setNormTarget(
       anim::TYPING_HEAD_LOW,
       downSpeed
     );
@@ -132,11 +133,21 @@ void beginNextHeadMove() {
 
 void advanceSwayStep() {
   g_bodySwayPositive = !g_bodySwayPositive;
-  g_swayPauseUntilMs = millis() + randRangeMs(40, 160);
+  const uint32_t pauseMs = randRangeMs(40, 160);
+  g_swayPauseUntilMs = millis() + pauseMs;
+  g_loggedSwaySplit = false;
+
+  serialLogPrint("[anim] typing sway done body=");
+  serialLogPrint(servoAt(SERVO_BODY).angle(), 1);
+  serialLogPrint(" neck=");
+  serialLogPrint(servoAt(SERVO_NECK).angle(), 1);
+  serialLogPrint(" pauseMs=");
+  serialLogPrintln(pauseMs);
 }
 
 void beginNextSway() {
   g_swayPauseUntilMs = 0;
+  g_loggedSwaySplit = false;
   commandBodyNeckSway();
 }
 
@@ -150,6 +161,7 @@ void startTyping() {
   g_lastStrokeWasPress = false;
   g_bodySwayPositive = randChance(50);
   g_swayFrozen = false;
+  g_loggedSwaySplit = false;
   g_handPauseUntilMs = 0;
   g_swayPauseUntilMs = 0;
   g_headHigh = true;
@@ -207,6 +219,14 @@ void updateTyping(uint32_t now) {
       }
     } else if (!body.isMoving() && !neck.isMoving()) {
       advanceSwayStep();
+    } else if (!g_loggedSwaySplit) {
+      if (!body.isMoving() && neck.isMoving()) {
+        g_loggedSwaySplit = true;
+        serialLogPrintln("[anim] typing sway body still, neck moving");
+      } else if (body.isMoving() && !neck.isMoving()) {
+        g_loggedSwaySplit = true;
+        serialLogPrintln("[anim] typing sway neck still, body moving");
+      }
     }
   }
 }

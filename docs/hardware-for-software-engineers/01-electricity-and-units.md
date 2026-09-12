@@ -182,7 +182,7 @@ The PCA9685 has **VCC** (3.3 V logic) and **V+** (5 V servo power). They must st
 
 ### Never power servos from 3.3 V
 
-Five HD-1370A servos at stall draw on the order of **1.3–1.6 A**. The ESP32's LDO is rated for hundreds of mA of *logic*. Plug servos into 3.3 V and you get brownout, reset, or a dead regulator. Servos get 5 V via PCA9685 **V+**; the signal wire is 3.3 V PWM from the driver — that's fine.
+Five PowerHD HD-1370A servos at stall draw on the order of **1.3–1.6 A**. **SG90** (recommended) is larger and typically stalls harder. The ESP32's LDO is rated for hundreds of mA of *logic*. Plug servos into 3.3 V and you get brownout, reset, or a dead regulator. Servos get 5 V via PCA9685 **V+**; the signal wire is 3.3 V PWM from the driver — that's fine.
 
 ### Common GND
 

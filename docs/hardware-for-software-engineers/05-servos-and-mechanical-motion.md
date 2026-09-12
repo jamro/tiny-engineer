@@ -6,7 +6,7 @@
 
 ## What a hobby servo is
 
-A **position servo** (specifically the **PowerHD HD-1370A** micro servos in this build) contains:
+A **position servo** (hobby analog micro servos in this build — [which servo](../3d/parametric-design.md)) contains:
 
 - Motor
 - Gear train
@@ -15,7 +15,7 @@ A **position servo** (specifically the **PowerHD HD-1370A** micro servos in this
 
 You command an **angle** (via pulse width). The servo tries to reach it and **holds** there — even against light load.
 
-**Not** continuous rotation — it stops at mechanical limits (~130° usable on these units, marketed sometimes as 180°).
+**Not** continuous rotation — it stops at mechanical limits (~130° usable on some units such as PowerHD HD-1370A, marketed sometimes as 180°).
 
 **Three wires:**
 | Wire | Role |
@@ -72,9 +72,9 @@ Two layers of limits:
 | **Mechanical** | Horn hits shell, linkage binds, servo stalls | Your assembly |
 | **Safe software** | Clamped angles per joint | `SERVO_SPECS` in firmware |
 
-Always respect **safe ranges** for the assembled robot — [robot-movement.md](../robot-movement.md). Bench-only wider sweeps (75–105°) exist for testing; don't slam full electrical range into a built shell.
+Always respect **safe ranges** for the assembled robot — [robot-movement.md](../robot-movement.md). `POST /test/movement` sweeps each joint inside its saved min/max; don't slam full electrical range into a built shell.
 
-**Tune after assembly:** if a hand hits the desk at 135°, lower `max` in firmware or reorient the horn — don't "just command less" in one script and forget.
+**Tune after assembly:** if a hand hits the desk at 135°, lower that joint’s max in the setup AP wizard (saved to NVS) or reorient the horn — don't "just command less" in one script and forget. Stock defaults live in `SERVO_SPECS`; assembled motion uses the saved min/max.
 
 ---
 
@@ -98,7 +98,7 @@ flowchart LR
   FW["Firmware angle clamp"]
   I2C["I2C to PCA9685 0x40"]
   PWM["50 Hz PWM ch 0-4"]
-  SRV["HD-1370A servos"]
+  SRV["analog micro servos"]
   HTTP --> FW --> I2C --> PWM --> SRV
 ```
 

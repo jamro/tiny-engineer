@@ -1,0 +1,15 @@
+{
+  "name": "@tiny-engineer/antigravity",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Antigravity CLI lifecycle hook helper for Tiny Engineer robot animations",
+  "main": "src/cli.js",
+  "bin": {
+    "tiny-engineer-antigravity": "./bin/tiny-engineer-antigravity.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["antigravity", "antigravity-cli", "robot", "tiny-engineer"],
+  "license": "MIT"
+}
