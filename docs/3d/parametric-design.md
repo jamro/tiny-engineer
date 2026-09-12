@@ -129,6 +129,6 @@ After all components are exported, the original visibility settings are restored
 1. Measure a real unit (prefer calipers over datasheet marketing sizes).
 2. Copy an existing object in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json); keep the same keys; set a unique `servo_id`.
 3. Reload the add-in, run Servo Configurator, confirm Fusion parameters update.
-4. Print `ServoSizingTester` first, then export.
+4. Print [`ServoSizingTester`](../../3d_models/README.md#print-first) first, then export.
 
 The configurator refuses unknown Fusion parameter names. Do not invent keys that are not already user parameters in the `.f3d`.

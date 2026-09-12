@@ -162,8 +162,17 @@ def _apply_servo(design, servo_data):
     if servo_id:
         _apply_servo_id(params, servo_id)
 
+    to_set = []
+    values = []
     for name, value in dimensions.items():
-        params.itemByName(name).expression = value
+        to_set.append(params.itemByName(name))
+        values.append(adsk.core.ValueInput.createByString(value))
+
+    if not design.modifyParameters(to_set, values):
+        ui.messageBox('Failed to set servo parameters.')
+        return
+
+    design.computeAll()
 
 
 def _error(title):

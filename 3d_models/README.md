@@ -10,6 +10,10 @@ The full assembly — all components composed — lives in [`cad/TinyEngineer.f3
 
 Individual parts are exported under [`parts/{servo_id}/`](parts/). Print the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, or **`parts/hd1370a/3mf/`** to match the servos you bought ([which servo](../docs/3d/parametric-design.md)). They are ready to print in an orientation that does not need supports. Print with **PLA** or **PETG**. `stl/` next to `3mf/` is the same mesh in binary STL. `step/` next to those is CAD interchange (BRep STEP), not a printable mesh.
 
+### Print first
+
+Print `ServoSizingTester.3mf` from that folder **before** the rest of the set. Seat a real servo — do not force it. The body should slide, tabs sit, holes line up, and the shaft should have clearance. Fit OK → print the other parts. Tight or loose → sand/ream, or adjust CAD ([parametric design](../docs/3d/parametric-design.md)). Do not print the full robot until the tester fits.
+
 Assembly uses a bunch of **2 mm diameter screws** — no glue. Easy to dismount and modify later. Exact screw lengths/counts and full assembly steps are **not documented yet**. Use the part table below, then electrical and bring-up docs.
 
 ## Parts
@@ -41,7 +45,7 @@ Same filenames in each `parts/{servo_id}/3mf/` folder:
 | `Mug.3mf` | Mug |
 | `Coffee.3mf` | Coffee fill |
 | `Hat.3mf` | Hat |
-| `ServoSizingTester.3mf` | Servo pocket fit tester (print first when changing servo size) |
+| `ServoSizingTester.3mf` | Servo pocket fit tester |
 | `AiEmblem.3mf` | AI emblem detail |
 
 ## Next steps
