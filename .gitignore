@@ -3,6 +3,9 @@
 # Cursor hook event log
 cursor_events.log
 
+# Claude Code hook event log
+.claude/tiny-engineer-hooks.log
+
 # Local secrets (Cursor CLI auth token, etc.)
 .env
 
