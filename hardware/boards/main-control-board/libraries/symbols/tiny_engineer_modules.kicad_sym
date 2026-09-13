@@ -790,7 +790,7 @@
 		)
 		(embedded_fonts no)
 	)
-	(symbol "Waceshare_OLED_09_Module"
+	(symbol "Waveshare_OLED_09_Module"
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -849,7 +849,7 @@
 				)
 			)
 		)
-		(symbol "Waceshare_OLED_09_Module_1_1"
+		(symbol "Waveshare_OLED_09_Module_1_1"
 			(rectangle
 				(start -17.78 5.08)
 				(end 17.78 -5.08)
