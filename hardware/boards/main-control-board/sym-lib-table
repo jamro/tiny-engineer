@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "TinyEngineerModules") (type "KiCad") (uri "${KIPRJMOD}/libraries/symbols/tiny_engineer_modules.kicad_sym") (options "") (descr ""))
+)
