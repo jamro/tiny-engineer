@@ -48,12 +48,12 @@ Verified in [`include/pins.h`](../../include/pins.h) and [`include/servos.h`](..
 
 On every boot (and after each flash reset):
 
-1. **OE** — `PCA9685_OE_WIRED` is true on main-control-board: GP5 disables PCA9685 outputs before I2C init.
+1. **OE** — `PCA9685_OE_WIRED` is false until a tested GP5→OE board exists; firmware skips the OE pin.
 2. **Early init** — PCA9685 is probed and configured immediately after `Wire.begin`, before OLED, settings, or Wi-Fi.
-3. **Neutral park** — all channels receive mid-pulse PWM while OE is still disabled (if wired), then outputs enable.
+3. **Neutral park** — all channels receive mid-pulse PWM (OE enable is skipped while unwired).
 4. **Smooth boot moves** — `centerAllServos()` and sleep-inertia pose use `servoMoveAllSmoothTo()` at `SERVO_BOOT_SPEED_DEG_S` (35°/s), not instant snaps.
 
-GP5 → PCA9685 **OE** is wired on main-control-board (`PCA9685_OE_WIRED = true` in [`include/pins.h`](../../include/pins.h)). OE is **active LOW** on the Adafruit breakout.
+GP5 → PCA9685 **OE** is planned, not implemented (`PCA9685_OE_WIRED = false` in [`include/pins.h`](../../include/pins.h)). OE is **active LOW** on the Adafruit breakout when that net exists.
 
 ## Idle and sleep PWM release
 
