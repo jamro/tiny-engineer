@@ -19,7 +19,7 @@ Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200)
 | --- | --- |
 | Built-in WS2812 | Green ready (GPIO10) |
 | I2C init | `Wire.begin` on GPIO0/GPIO1 |
-| PCA9685 | Probe `0x40` early; park neutral; optional OE on GP5 |
+| PCA9685 | Probe `0x40` early; park neutral; OE on GP5 (`PCA9685_OE_WIRED`) |
 | OLED | Probe `0x3C`, init (optional) |
 | Wi-Fi | STA connect from saved NVS credentials, or setup AP `TinyEngineer-XXXX` when unset/failed; mDNS `{hostname}.local` after STA connect |
 | MAX98357A / I2S | `I2S.begin` 44.1 kHz 16-bit stereo |

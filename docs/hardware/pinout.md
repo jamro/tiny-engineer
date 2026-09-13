@@ -11,7 +11,7 @@ Source of truth: [`include/pins.h`](../../include/pins.h). This file must match 
 | I2S BCLK | **GPIO2** (diagram **GP2**) | `I2S_BCLK` | MAX98357A BCLK |
 | I2S LRCLK / WS | **GPIO3** (diagram **GP3**) | `I2S_LRC` | MAX98357A **LRC** |
 | I2S DATA OUT | **GPIO4** (diagram **GP4**) | `I2S_DIN` | MAX98357A DIN |
-| PCA9685 OE (optional) | **GPIO5** (diagram **GP5**) | `PCA9685_OE_PIN` | PCA9685 **OE** when `PCA9685_OE_WIRED` |
+| PCA9685 OE | **GPIO5** (diagram **GP5**) | `PCA9685_OE_PIN` | PCA9685 **OE** (`PCA9685_OE_WIRED`) |
 | Built-in WS2812 RGB | **GPIO10** | `RGB_LED_PIN` | onboard LED only |
 
 Logic level: **3.3 V**.
@@ -30,7 +30,6 @@ Logic level: **3.3 V**.
 
 | GPIO | Status | Notes |
 | --- | --- | --- |
-| GPIO5 | **Optional** | PCA9685 **OE** when wired; set `PCA9685_OE_WIRED = true` in `pins.h` |
 | GPIO6 | Free | Unused |
 | GPIO7 | Free | Unused |
 | GPIO8 | Free | Unused |
@@ -60,7 +59,7 @@ Power pads (not GPIO): **5V**, **GND**, **3V3**.
 | `OLED_WIDTH` / `OLED_HEIGHT` | 128 / 32 | Display |
 | `SERVO_MIN_US` / `SERVO_MAX_US` | 800 / 2200 | Electrical PWM span |
 | `SERVO_BOOT_SPEED_DEG_S` | 35 | Boot centering / sleep-pose rate (deg/s) |
-| `PCA9685_OE_WIRED` | `false` | Set `true` after wiring GP5 → PCA9685 OE |
+| `PCA9685_OE_WIRED` | `true` | GP5 → PCA9685 OE on main-control-board |
 
 ## Pin allocation rules
 
