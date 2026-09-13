@@ -16,7 +16,9 @@ MAX98357A amp, and servo power — instead of point-to-point wiring.
   outline if you're on a different preset. See `docs/hardware/interfaces.md`
   for the canonical net map (5V/3.3V domains, GP0-GP4 assignments); this
   board implements that map in copper.
-- **Built:** in production at JLCPCB, not yet tested
+- **Built:** in production at JLCPCB, not yet tested — **the batch on order
+  (`carrier-fab-v3_Y3`) has a known defect, fixed in this revision but not in
+  that physical batch: see "Known issue in the current JLCPCB batch" below**
 
 ## Files
 
@@ -108,9 +110,34 @@ since `J_PWR`'s pin spacing was deliberately placed on the same 2.54mm grid
 as the ESP footprint itself (offset from `J_I2C_OLED`/`J_I2C_PCA`'s grid by
 half a pitch), so the two lines never cross OLED/PCA's pads on the way past.
 
+## Known issue in the current JLCPCB batch
+
+The order placed as `carrier-fab-v3_Y3` (replace-file upload, 2026-09-12) has
+**7 undersized holes on `J_ESP2`**: pins 10,11,12,13,14,17,18 (the mechanical,
+no-net pins of that row) were drilled at 0.6mm/1.0mm pad instead of
+0.9mm/1.4mm like every other pin on the board. Confirmed directly against
+JLC's own production drill file (`yg/carrier.drl`, KiCad 10.0.6, dated
+2026-09-12) and their internal engineering-department drill data (`ok/drl`)
+— both show the same 7-position split. `J_ESP2` is one physical 9-pin
+Kinghelm header; every position has a real pin whether or not a net is
+routed to it, so the undersized holes likely won't accept the header without
+clipping or damaging those 7 pins. **This revision fixes the source; it does
+not change boards already fabricating.** Check the physical boards against
+this when they arrive.
+
 ## Fab notes
 
-- 0 DRC errors, 0 unconnected nets (KiCad 10).
+- 0 DRC errors, 0 unconnected nets, 12 silkscreen-clearance/library-path
+  warnings (KiCad 10.0.5, official `kicad/kicad` Docker image — reproducible
+  identically across repeated fresh zone refills).
+- GND zone (B.Cu) outline is inset 0.3mm from the board edge, not 1mm as in
+  earlier revisions — the 1mm inset put pads near the top edge (e.g. `J_ESP1`
+  pin 2, GND) close enough to the zone's own boundary that a fresh zone
+  refill could fail to route a thermal-relief connection to them, especially
+  after the `J_ESP2` drill fix changed nearby pad geometry. 0.3mm is
+  comfortably inside JLCPCB's ~0.2–0.3mm copper-to-edge floor. Verified:
+  fresh `kicad-cli pcb drc --refill-zones` reports 0 unconnected items,
+  repeatably, including under a double-refill.
 - Tightest feature: 0.15mm copper (GND pour minimum thickness). Comfortably
   inside JLCPCB's 0.127mm floor; sits exactly at PCBWave's 0.15mm floor (their
   recommended safe minimum is 0.20mm) — check their DFM report before ordering
