@@ -19,17 +19,18 @@ Format: `type(scope): summary`
 | `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | MAJOR |
 | `docs`, `style`, `test`, `chore`, `ci`, `refactor` (unless breaking) | no bump |
 
-Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `cursor`, `antigravity`, `cad`, `docs`, `scripts`, `ci`.
+Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `cursor`, `antigravity`, `cad`, `pcb`, `docs`, `scripts`, `ci`.
 
 **Breaking here:** removed/renamed HTTP route or query param; NVS key rename that drops settings; pinout change; default servo range change that invalidates calibration; hook CLI flag or event rename. Use `!` on the type **and** a `BREAKING CHANGE:` footer.
 
-CAD-only `feat(cad)` / `fix(cad)` versions the hardware design, not npm packages.
+CAD-only `feat(cad)` / `fix(cad)` and PCB-only `feat(pcb)` / `fix(pcb)` version the hardware design, not npm packages.
 
 Examples:
 
 ```
 feat(anim): add dead pose
 fix(cad): add screw hole to desk pad
+feat(pcb): add controller board
 feat(http)!: drop query alias on /anim
 
 BREAKING CHANGE: POST /anim no longer accepts the old `n` alias; use `name`.

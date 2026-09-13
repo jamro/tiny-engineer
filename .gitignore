@@ -64,3 +64,14 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# KiCad (hardware/ only — do not ignore xml/csv globally)
+hardware/**/.history/
+hardware/**/*-backups/
+hardware/**/_autosave-*
+hardware/**/*.kicad_prl
+hardware/**/fp-info-cache
+hardware/**/~*.lck
+hardware/**/#auto_saved_files#
+hardware/**/*.kicad_pcb-bak
+hardware/**/*.kicad_sch-bak

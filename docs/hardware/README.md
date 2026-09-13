@@ -117,7 +117,7 @@ Details: [power.md](power.md).
 | [interfaces.md](interfaces.md) | I2C / I2S / PWM / USB |
 | [testing.md](testing.md) | Bring-up sequence, failures, what to check |
 
-Existing schematic sketch (not a substitute for the tables here): [`docs/wiring/Tiny Engineer.drawio`](../wiring/Tiny%20Engineer.drawio) / [PNG](../wiring/Tiny%20Engineer.drawio.png).
+Existing schematic sketch (not a substitute for the tables here): [`docs/wiring/Tiny Engineer.drawio`](../wiring/Tiny%20Engineer.drawio) / [PNG](../wiring/Tiny%20Engineer.drawio.png). KiCad PCB sources (when added) live in [`hardware/boards/`](../../hardware/README.md); contribution rules: [`docs/pcb.md`](../pcb.md). Until a board is merged, the wiring tables here remain the electrical source of truth.
 
 ## Source-of-truth order
 

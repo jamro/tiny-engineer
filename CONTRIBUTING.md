@@ -10,6 +10,7 @@ This is a desk robot: firmware on an ESP32-C3, 3D-printed mechanics, and HTTP cl
 - Integrations: Cursor hooks, Antigravity CLI, or any REST client ([docs/integration.md](docs/integration.md))
 - Docs, wiring, BOM corrections
 - CAD / printables (`3d_models/`)
+- KiCad PCB boards (`hardware/boards/` — [docs/pcb.md](docs/pcb.md))
 - Photos of a working build or a failure (brownout, binding, blink codes)
 
 ## Legal
@@ -20,8 +21,9 @@ Opening a PR licenses your change under the license of the files you touch. No C
 | --- | --- |
 | Firmware, packages, scripts, docs | [MIT](LICENSE) — see [LICENSING.md](LICENSING.md) |
 | `3d_models/cad/`, `3d_models/parts/` | [CERN-OHL-S-2.0](3d_models/LICENSE) |
+| `hardware/boards/` | [CERN-OHL-S-2.0](hardware/LICENSE) |
 
-If you modify the hardware designs and distribute Products based on them, CERN-OHL-S-2.0 requires you to make the Complete Source available under the same license. Keep [3d_models/NOTICE](3d_models/NOTICE) Source Location accurate for the revision you ship.
+If you modify the hardware designs and distribute Products based on them, CERN-OHL-S-2.0 requires you to make the Complete Source available under the same license. Keep [3d_models/NOTICE](3d_models/NOTICE) and [hardware/NOTICE](hardware/NOTICE) Source Location accurate for the revision you ship.
 
 The **Tiny Engineer** name, logo, and [`3d_models/parts/AiEmblem.3mf`](3d_models/parts/AiEmblem.3mf) are **not** licensed. Factual “based on Tiny Engineer” is fine. Do not imply an official product. Details: [TRADEMARK.md](TRADEMARK.md).
 
@@ -52,6 +54,8 @@ npm test --prefix packages/tiny-engineer-antigravity
 
 **CAD.** Edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change.
 
+**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
+
 **Motion.** Animations use −1..1 poses mapped to the saved min/max in [docs/robot-movement.md](docs/robot-movement.md). Stock defaults live in [`include/servos.h`](include/servos.h). Do not widen NVS servo clamps without testing on a real robot. Setup AP `POST /setup/servo` can use 0–180° to find limits; assembled motion must not.
 
 ## Bench safety
@@ -78,17 +82,18 @@ Format: `type(scope): summary`
 | `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | MAJOR |
 | `docs`, `style`, `test`, `chore`, `ci`, `refactor` (unless breaking) | no bump |
 
-Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `cursor`, `antigravity`, `cad`, `docs`, `scripts`, `ci`.
+Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `cursor`, `antigravity`, `cad`, `pcb`, `docs`, `scripts`, `ci`.
 
 **Breaking in this repo** means: removed or renamed HTTP route or query param; NVS key rename that drops existing settings; pinout change; default servo range change that invalidates calibration; hook CLI flag or event rename. Call it out with `!` on the type and a `BREAKING CHANGE:` footer.
 
-CAD-only `feat(cad)` / `fix(cad)` versions the hardware design, not the npm packages.
+CAD-only `feat(cad)` / `fix(cad)` and PCB-only `feat(pcb)` / `fix(pcb)` version the hardware design, not the npm packages.
 
 Examples:
 
 ```
 feat(anim): add dead pose
 fix(cad): add screw hole to desk pad
+feat(pcb): add controller board
 feat(http)!: drop query alias on /anim
 
 BREAKING CHANGE: POST /anim no longer accepts the old `n` alias; use `name`.

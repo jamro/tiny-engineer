@@ -18,22 +18,27 @@ The following are licensed under the [MIT License](LICENSE):
 
 ## Hardware designs — CERN-OHL-S-2.0
 
-Mechanical CAD source and printable manufacturing outputs are licensed under the [CERN Open Hardware Licence Version 2 — Strongly Reciprocal (CERN-OHL-S-2.0)](3d_models/LICENSE):
+Mechanical CAD, printable manufacturing outputs, and PCB sources are licensed under the [CERN Open Hardware Licence Version 2 — Strongly Reciprocal (CERN-OHL-S-2.0)](3d_models/LICENSE):
 
 | Path | Contents |
 | --- | --- |
 | `3d_models/cad/` | Source CAD (`.f3d`) |
 | `3d_models/parts/` | Printable part exports (`.3mf`) |
+| `hardware/boards/` | KiCad PCB projects |
 
-Commercial use of these hardware designs is allowed. If you modify and distribute Products based on these designs, the reciprocal provisions of CERN-OHL-S-2.0 require that you make the corresponding Complete Source available under the same license. See [3d_models/LICENSE](3d_models/LICENSE) and [3d_models/NOTICE](3d_models/NOTICE) for copyright, warranty disclaimer, and Source Location details.
+Commercial use of these hardware designs is allowed. If you modify and distribute Products based on these designs, the reciprocal provisions of CERN-OHL-S-2.0 require that you make the corresponding Complete Source available under the same license. See [3d_models/LICENSE](3d_models/LICENSE), [3d_models/NOTICE](3d_models/NOTICE), [hardware/LICENSE](hardware/LICENSE), and [hardware/NOTICE](hardware/NOTICE) for copyright, warranty disclaimer, and Source Location details.
 
-Documentation in `3d_models/README.md` is software documentation and remains under the MIT License.
+Documentation in `3d_models/README.md` and `hardware/README.md` is software documentation and remains under the MIT License.
 
 ### Source Location
 
-Canonical hardware design source:
+Canonical mechanical design source:
 
 `https://github.com/jamro/tiny-engineer/tree/main/3d_models`
+
+Canonical PCB design source:
+
+`https://github.com/jamro/tiny-engineer/tree/main/hardware`
 
 When distributing a specific revision, link to the corresponding tagged release or commit (for example, `https://github.com/jamro/tiny-engineer/tree/v0.1.0/3d_models`).
 

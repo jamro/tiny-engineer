@@ -20,3 +20,12 @@ SPDX-License-Identifier = "MIT"
 [[annotations]]
 path = "3d_models/LICENSE"
 SPDX-License-Identifier = "CERN-OHL-S-2.0"
+
+[[annotations]]
+path = "hardware/boards/**"
+SPDX-FileCopyrightText = "2026 Krzysztof Jamroz"
+SPDX-License-Identifier = "CERN-OHL-S-2.0"
+
+[[annotations]]
+path = "hardware/LICENSE"
+SPDX-License-Identifier = "CERN-OHL-S-2.0"
