@@ -1,0 +1,14 @@
+(version 1)
+
+(rule "5V min width"
+  (constraint track_width (min 1.5mm))
+  (condition "A.NetClass == 'Power5V'"))
+
+(rule "5V via min"
+  (constraint via_diameter (min 0.8mm))
+  (constraint hole_size (min 0.4mm))
+  (condition "A.NetClass == 'Power5V' && A.Type == 'Via'"))
+
+(rule "3V3 min width"
+  (constraint track_width (min 0.4mm))
+  (condition "A.NetClass == 'Power3V3'"))
