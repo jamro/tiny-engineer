@@ -63,7 +63,7 @@ ESP32 GPIO is not wired to servo SIG lines.
 | --- | --- | --- |
 | OE | GPIO5 / GP5 | **Active LOW** — outputs enabled. Firmware drives **HIGH** during PCA9685 init, then **LOW** after neutral PWM is written |
 
-Wired on main-control-board (`PCA9685_OE_WIRED = true` in [`include/pins.h`](../../include/pins.h)). Blocks invalid PWM during boot and flash resets.
+Not wired (`PCA9685_OE_WIRED = false` in [`include/pins.h`](../../include/pins.h)). Firmware keeps OE helpers behind that flag. Blocks invalid PWM during boot and flash resets when the net exists.
 
 ## USB
 
