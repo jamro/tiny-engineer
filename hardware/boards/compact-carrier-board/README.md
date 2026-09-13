@@ -21,6 +21,8 @@ MAX98357A amp, and servo power — instead of point-to-point wiring.
 ## Files
 
 - `compact-carrier-board.kicad_pcb` — KiCad 10 board source
+- `compact-carrier-board.kicad_pro` — KiCad 10 project file (no `.kicad_sch`
+  — this board has no schematic, laid out directly from footprints)
 - `carrier-board-render.png` — top-copper preview
 
 Gerbers, drill, BOM, and CPL are generated outputs, not source — regenerate
