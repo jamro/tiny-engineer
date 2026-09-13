@@ -1,31 +1,37 @@
-# ESP32 carrier board (desk-mounted build)
+# compact-carrier-board
 
-A small distribution PCB that sits under the ESP32-C3-Zero where it mounts through
+Small distribution PCB that sits under the ESP32-C3-Zero where it mounts through
 the desk's ESP slot, fanning its I2C/I2S/power pins out to the PCA9685, OLED,
 MAX98357A amp, and servo power — instead of point-to-point wiring.
 
-Sized against the desk generated with the **PowerHD HD-1370A** servo preset
-(`servos.json`) — the SG90 and FS0307 presets produce different desk
-dimensions per the parametric design docs, and this board's fit has **not**
-been verified against either of them. Re-check the ESP slot dimensions in
-your own exported desk model before relying on this outline if you're on a
-different preset. See `docs/hardware/README.md` for the canonical net map
-(5V/3.3V domains, GP0-GP4 assignments); this board
-implements that map in copper.
+- **Status:** in review
+- **KiCad:** 10
+- **Interfaces:** ESP32-C3-Zero 2×9 socket, `J_PWR` (5V/GND + external USB
+  D+/D-), `J_SERVO`, `J_I2C_OLED`, `J_I2C_PCA`, `J_I2S`
+- **Assumptions:** sized against the desk generated with the **PowerHD
+  HD-1370A** servo preset (`servos.json`) — the SG90 and FS0307 presets
+  produce different desk dimensions per the parametric design docs, and this
+  board's fit has **not** been verified against either of them. Re-check the
+  ESP slot dimensions in your own exported desk model before relying on this
+  outline if you're on a different preset. See `docs/hardware/README.md` for
+  the canonical net map (5V/3.3V domains, GP0-GP4 assignments); this board
+  implements that map in copper.
+- **Built:** in production at JLCPCB, not yet tested
 
 ## Files
 
-- `carrier-fab-v3.zip` — Gerbers + Excellon drill, upload directly to a fab
-  (JLCPCB, PCBWay, OSHPark, PCBWave, etc.)
 - `carrier.kicad_pcb` — KiCad 10 board source
 - `carrier-board-render.png` — top-copper preview
-- `BOM.csv` / `CPL.csv` — assembly files, **`J_ESP1`/`J_ESP2` only** (see below)
+
+Gerbers, drill, BOM, and CPL are generated outputs, not source — regenerate
+them from `carrier.kicad_pcb` when ordering rather than relying on a
+committed copy.
 
 ## Assembly: only the ESP header strips are populated parts
 
 `J_PWR`, `J_SERVO`, `J_I2C_OLED`, `J_I2C_PCA`, and `J_I2S` are bare
 through-holes for direct wire connections, not connector footprints to
-populate — `BOM.csv`/`CPL.csv` deliberately list nothing for them.
+populate — a generated BOM/CPL should list nothing for them.
 
 `J_ESP1`/`J_ESP2` are the one real part: **Kinghelm KH-2.54FH-1X9P-H3.5**
 (LCSC/JLCPCB `C55778388`), a 2.54mm 1×9 THT female header. There's no 2×9 part
@@ -36,21 +42,22 @@ USB-C: 5V/GND/3V3/GPIO0-5) and **`J_ESP2`** (the other row), each a real
 9-pad object with its own designator — not one 2×9 footprint with a
 quantity hint in prose. JLCPCB's assembly tooling (and most BOM tooling)
 determines quantity by counting designators, not by parsing Comment text, so
-`BOM.csv` lists both on one row as `"J_ESP1,J_ESP2"` (identical part, JLC's
-own convention for grouping identical components) — that reads as qty 2
-unambiguously.
+a generated BOM should list both on one row as `"J_ESP1,J_ESP2"` (identical
+part, JLC's own convention for grouping identical components) — that reads
+as qty 2 unambiguously.
 
-`CPL.csv` has one row per designator, `J_ESP1` and `J_ESP2`, each at its own
-row's real center — (13.00, 1.65) and (13.00, 16.89) in the board's own
-coordinates (`row_y_a`/`row_y_b` in the generator), extracted directly from
-`carrier.kicad_pcb`'s actual pad positions, not estimated. `kicad-cli pcb
-export pos` reports (0,0) for every footprint on this board regardless (this
-board has no `.kicad_sch`, and every footprint was written with its own
-placement at `(at 0 0)` with pads given in absolute coordinates instead), so
-positions were pulled straight from the pad data; Y was then negated to
-match kicad-cli's own sign convention, confirmed empirically by patching a
-known coordinate into a scratch copy and diffing kicad-cli's export against
-it rather than assuming the sign.
+A generated CPL needs one row per designator, `J_ESP1` and `J_ESP2`, each at
+its own row's real center — (13.00, 1.65) and (13.00, 16.89) in the board's
+own coordinates (`row_y_a`/`row_y_b` if regenerating with the same script
+used originally), taken from `carrier.kicad_pcb`'s actual pad positions, not
+estimated. `kicad-cli pcb export pos` reports (0,0) for every footprint on
+this board regardless (this board has no `.kicad_sch`, and every footprint
+was written with its own placement at `(at 0 0)` with pads given in absolute
+coordinates instead), so positions must be pulled straight from the pad data;
+Y needs negating to match kicad-cli's own sign convention if hand-deriving
+this again — confirmed empirically by patching a known coordinate into a
+scratch copy and diffing kicad-cli's export against it rather than assuming
+the sign.
 
 ## Why this shape
 
