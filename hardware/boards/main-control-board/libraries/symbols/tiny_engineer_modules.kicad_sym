@@ -18,8 +18,8 @@
 				)
 			)
 		)
-		(property "Value" ""
-			(at 0 0 0)
+		(property "Value" "Adafruit PCA9685"
+			(at -1.778 0 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -73,14 +73,6 @@
 					(type background)
 				)
 			)
-			(text "Adafruit PCA9685"
-				(at -3.556 0.254 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
 			(pin power_in line
 				(at 0 -10.16 90)
 				(length 2.54)
@@ -117,7 +109,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin input line
 				(at 15.24 1.27 180)
 				(length 2.54)
 				(name "SCL"
@@ -199,7 +191,7 @@
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at 0 0 0)
+			(at -0.254 2.286 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -209,7 +201,7 @@
 			)
 		)
 		(property "Value" "ESP32-C3-ZERO"
-			(at 0.508 -3.302 0)
+			(at 0.254 -1.016 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -230,7 +222,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.waveshare.com/wiki/ESP32-C3-Zero"
-			(at 0 0 0)
+			(at 30.734 -19.304 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -240,8 +232,8 @@
 				)
 			)
 		)
-		(property "Description" "Waveshare ESP32-C3-Zero module header, pads numbered anticlockwise from USB. Pad 1=5V, 2=GND, 3=3V3, 4-14=GP0-GP10, 15=USB_DM (GPIO18), 16=USB_DP (GPIO19), 17=RX (GPIO20), 18=TX (GPIO21). Not the ESP32-C3 QFN package pinout."
-			(at 0 0 0)
+		(property "Description" "Waveshare ESP32-C3-Zero module header, pads numbered anticlockwise from USB"
+			(at 46.736 -16.002 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -606,7 +598,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "MAX98357A"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -669,7 +661,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin input line
 				(at -13.97 5.08 0)
 				(length 2.54)
 				(name "LRC"
@@ -687,7 +679,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin input line
 				(at -13.97 2.54 0)
 				(length 2.54)
 				(name "BCLK"
@@ -705,7 +697,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin input line
 				(at -13.97 0 0)
 				(length 2.54)
 				(name "DIN"
@@ -723,7 +715,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin input line
 				(at -13.97 -2.54 0)
 				(length 2.54)
 				(name "GAIN"
@@ -741,7 +733,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin input line
 				(at -13.97 -5.08 0)
 				(length 2.54)
 				(name "SD"
@@ -814,7 +806,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Waveshare 0.91 OLED"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -931,7 +923,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin input line
 				(at 20.32 -1.27 180)
 				(length 2.54)
 				(name "SCL"
