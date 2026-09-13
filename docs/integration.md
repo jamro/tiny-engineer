@@ -1,16 +1,17 @@
 # Integrating Tiny Engineer
 
-Tiny Engineer is a Wi-Fi desk robot. Drive it from any tool that can make HTTP requests, or use the Cursor-specific helper that maps agent hook events to poses.
+Tiny Engineer is a Wi-Fi desk robot. Drive it from any tool that can make HTTP requests, or use one of the dedicated helpers that map agent hook events to poses.
 
 Robot must be on the same network. Base URL: `http://tiny-engineer.local` (or the IP shown on the OLED). Full HTTP reference: [`api.md`](api.md).
 
-Three integration paths:
+Four integration paths:
 
 | Path | Best for | How |
 |---|---|---|
 | **REST API** | Any AI IDE, script, CI, custom agent | `POST /anim?name=…` |
 | **Cursor CLI** | Cursor project hooks | `npx` → `tiny-engineer-cursor` |
 | **Antigravity CLI** | Antigravity CLI lifecycle hooks | `tiny-engineer-antigravity` |
+| **Claude Code hooks** | Claude Code project hooks | `.claude/hooks/pose.sh` |
 
 ```mermaid
 flowchart TB
@@ -27,6 +28,11 @@ flowchart TB
     AgHook[Antigravity hooks.json]
     AgHook --> AgCli["tiny-engineer-antigravity"]
     AgCli --> Post
+  end
+  subgraph claudeCodePath [Claude Code]
+    CcHook[Claude Code settings.json]
+    CcHook --> CcScript["pose.sh"]
+    CcScript --> Post
   end
   Post --> Robot[Tiny Engineer on Wi-Fi]
 ```
@@ -197,12 +203,48 @@ To run globally across all projects on your machine, configure `~/.gemini/config
 
 ---
 
+## 4. Claude Code hooks
+
+For [Claude Code](https://claude.com/claude-code): a small bash script driven by [Claude Code's own hook system](https://docs.claude.com/en/docs/claude-code/hooks) — no Node dependency, no CLI to install. Claude Code hooks already carry an event name and, for `PreToolUse`, a `matcher` on the tool name, so the event-to-pose mapping is just static config in `settings.json` — the script itself has no logic to pick an animation, it's told exactly which one to play.
+
+### Event Mapping
+
+| Hook event | Matcher | Pose |
+|---|---|---|
+| `SessionStart` | — | `welcome` |
+| `UserPromptSubmit` | — | `reading` |
+| `PreToolUse` | `Read` / `Grep` / `Glob` | `reading` |
+| `PreToolUse` | `Bash` / `Edit` / `Write` | `typing` |
+| `PreCompact` | — | `thinking` |
+| `Notification` | — | `attention` |
+| `Stop` | — | `ring` (rings the physical desk bell!) |
+
+### Setup
+
+Inside this repo, [`.claude/settings.json`](../.claude/settings.json) and [`.claude/hooks/pose.sh`](../.claude/hooks/pose.sh) are pre-configured — open the repo in Claude Code and the hooks fire automatically. To use in any other project, copy both files into that project's `.claude/` directory.
+
+- Override the robot's address with `TINY_ENGINEER_URL` (default `http://tiny-engineer.local`).
+- Auth: if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the environment. The script sends `Authorization: Bearer …`. No token → no header (auth disabled on device).
+- Every call is detached and backgrounded with a short timeout, and the script always exits `0` — a hook must never stall or fail the agent session, robot online or not.
+- Events are appended to `.claude/tiny-engineer-hooks.log` (gitignored) for local debugging.
+
+Smoke test (robot should ring):
+
+```bash
+echo '{}' | bash .claude/hooks/pose.sh ring test
+```
+
+If a hook never fires, confirm Claude Code loaded the project's `.claude/settings.json` (check `/hooks` inside a session) and that `pose.sh` kept its executable bit — a checkout that strips it (e.g. Windows without `core.filemode`) needs `git update-index --chmod=+x .claude/hooks/pose.sh` once.
+
+---
+
 ## Which to choose?
 
 - **Building for one IDE / custom agent** → REST. One `POST`, zero Node dependency.
 - **Using Cursor and want zero mapping code** → Cursor CLI + hooks.
 - **Using Antigravity CLI** → Antigravity CLI + hooks.
-- **All three** are fine together: the CLIs are thin clients of the same `/anim` API.
+- **Using Claude Code** → the bundled `pose.sh` + `settings.json`. No Node dependency either — it's the simplest of the four to read and modify.
+- **All four** are fine together: every path is a thin client of the same `/anim` API.
 
 Prerequisites for any path: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer.local/health` (or the OLED IP) responds.
 

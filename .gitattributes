@@ -1,0 +1,5 @@
+# Shell scripts must check out with LF line endings. A CRLF checkout (e.g.
+# core.autocrlf=true on Windows) makes bash fail on the trailing \r, and
+# because hook scripts are expected to exit 0 unconditionally, that failure
+# is silent -- it just looks like the robot never poses.
+*.sh text eol=lf
