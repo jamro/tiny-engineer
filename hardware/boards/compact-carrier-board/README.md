@@ -130,14 +130,17 @@ this when they arrive.
 - 0 DRC errors, 0 unconnected nets, 12 silkscreen-clearance/library-path
   warnings (KiCad 10.0.5, official `kicad/kicad` Docker image — reproducible
   identically across repeated fresh zone refills).
-- GND zone (B.Cu) outline is inset 0.3mm from the board edge, not 1mm as in
+- GND zone (B.Cu) outline is inset 0.5mm from the board edge, not 1mm as in
   earlier revisions — the 1mm inset put pads near the top edge (e.g. `J_ESP1`
   pin 2, GND) close enough to the zone's own boundary that a fresh zone
   refill could fail to route a thermal-relief connection to them, especially
-  after the `J_ESP2` drill fix changed nearby pad geometry. 0.3mm is
-  comfortably inside JLCPCB's ~0.2–0.3mm copper-to-edge floor. Verified:
-  fresh `kicad-cli pcb drc --refill-zones` reports 0 unconnected items,
-  repeatably, including under a double-refill.
+  after the `J_ESP2` drill fix changed nearby pad geometry. Swept the inset
+  from 1.0mm down to 0.3mm in 8 steps against the drill-fixed board, each
+  with a fresh `kicad-cli pcb drc --refill-zones`: 1.0mm and 0.8mm both
+  reproducibly fail with 1 unconnected pad; every value from 0.6mm down to
+  0.3mm passes with 0. 0.5mm sits in the middle of that verified-safe range
+  — well clear of the failure boundary and with real margin above JLCPCB's
+  ~0.2–0.3mm copper-to-edge floor.
 - Tightest feature: 0.15mm copper (GND pour minimum thickness). Comfortably
   inside JLCPCB's 0.127mm floor; sits exactly at PCBWave's 0.15mm floor (their
   recommended safe minimum is 0.20mm) — check their DFM report before ordering
