@@ -15,3 +15,16 @@
 - [ ] Servo ranges not widened without a real robot
 - [ ] Hardware tested: robot / bench / N/A
 - [ ] No `.env`, tokens, or Wi-Fi passwords in logs or screenshots
+
+## PCB (if this PR changes a board)
+
+Full list: [docs/pcb.md](../docs/pcb.md#checklist)
+
+- [ ] Board in `hardware/boards/<name>/`; directory matches KiCad project name; KiCad 10
+- [ ] Custom libs/3D in the board directory; project-relative paths (`${KIPRJMOD}`); no absolute local paths
+- [ ] Source only — no backups, autosave, `*.kicad_prl`, `fp-info-cache`, Gerbers, drill, PDF, BOM, or PnP
+- [ ] ERC and DRC reviewed; no unexplained suppressions
+- [ ] Board `README.md` updated (purpose, status, interfaces, assumptions, built/tested)
+- [ ] New path annotated CERN-OHL-S-2.0 in `REUSE.toml`
+- [ ] PR states: schematic changed? layout changed? symbols/footprints changed?
+- [ ] Physical status: KiCad review only / manufactured / manufactured and tested
