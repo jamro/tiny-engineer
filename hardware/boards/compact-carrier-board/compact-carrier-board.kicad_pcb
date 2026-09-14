@@ -86,7 +86,7 @@
 		(uuid "00f35c3b-1d3b-49b1-83b3-528f4b5a8326")
 		(at 13 1.65)
 		(property "Reference" "J_ESP1"
-			(at -11.16 -1 0)
+			(at -10.466666 -1 0)
 			(layer "F.SilkS")
 			(uuid "645db12c-9084-42e4-8d93-f785e71c7981")
 			(effects
@@ -230,7 +230,7 @@
 		(uuid "02bab699-d536-4f1b-a4bc-33a7c9393519")
 		(at 7.92 30)
 		(property "Reference" "J_I2C_PCA"
-			(at -5.01 -2 0)
+			(at -4.491429 -2 0)
 			(layer "F.SilkS")
 			(uuid "181638da-4053-4d37-93ed-2f2453f104f8")
 			(effects
@@ -317,7 +317,7 @@
 		(uuid "2d5e32c0-494a-4ba6-b3ea-366d67009cd6")
 		(at 7.92 24)
 		(property "Reference" "J_I2C_OLED"
-			(at -5.01 -2 0)
+			(at -4.129524 -2 0)
 			(layer "F.SilkS")
 			(uuid "1d461778-e48d-4eaa-900d-6641cdbb8440")
 			(effects
@@ -587,7 +587,7 @@
 		(uuid "e4eab69d-915b-4016-9895-2ad91432c873")
 		(at 13 16.89)
 		(property "Reference" "J_ESP2"
-			(at -11.16 2.2 0)
+			(at -10.466666 2.2 0)
 			(layer "F.SilkS")
 			(uuid "a31ad772-cb8b-4c47-9dad-4bde818da8c3")
 			(effects

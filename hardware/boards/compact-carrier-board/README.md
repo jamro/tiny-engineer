@@ -127,9 +127,14 @@ this when they arrive.
 
 ## Fab notes
 
-- 0 DRC errors, 0 unconnected nets, 12 silkscreen-clearance/library-path
-  warnings (KiCad 10.0.5, official `kicad/kicad` Docker image — reproducible
+- 0 DRC errors, 0 unconnected nets, 8 library-path/silk-over-copper warnings
+  (KiCad 10.0.5, official `kicad/kicad` Docker image — reproducible
   identically across repeated fresh zone refills).
+- 4 reference designators (`J_ESP1`, `J_ESP2`, `J_I2C_OLED`, `J_I2C_PCA`)
+  were printing 0.2–0.6mm past the board's left edge — visually confirmed,
+  not just a DRC technicality. Each footprint's own text bounding box (not
+  an estimate) was used to shift the label right just enough to sit at a
+  0.3mm margin from the edge; the render below reflects the fix.
 - GND zone (B.Cu) outline is inset 0.5mm from the board edge, not 1mm as in
   earlier revisions — the 1mm inset put pads near the top edge (e.g. `J_ESP1`
   pin 2, GND) close enough to the zone's own boundary that a fresh zone
