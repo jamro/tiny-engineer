@@ -1,0 +1,174 @@
+# compact-carrier-board
+
+Small distribution PCB that sits under the ESP32-C3-Zero where it mounts through
+the desk's ESP slot, fanning its I2C/I2S/power pins out to the PCA9685, OLED,
+MAX98357A amp, and servo power — instead of point-to-point wiring.
+
+- **Status:** in review
+- **KiCad:** 10
+- **Interfaces:** ESP32-C3-Zero 2×9 socket, `J_PWR` (5V/GND + external USB
+  D+/D-), `J_SERVO`, `J_I2C_OLED`, `J_I2C_PCA`, `J_I2S`
+- **Assumptions:** sized against the desk generated with the **PowerHD
+  HD-1370A** servo preset (`servos.json`) — the SG90 and FS0307 presets
+  produce different desk dimensions per the parametric design docs, and this
+  board's fit has **not** been verified against either of them. Re-check the
+  ESP slot dimensions in your own exported desk model before relying on this
+  outline if you're on a different preset. See `docs/hardware/interfaces.md`
+  for the canonical net map (5V/3.3V domains, GP0-GP4 assignments); this
+  board implements that map in copper.
+- **Built:** in production at JLCPCB, not yet tested — **the batch on order
+  (`carrier-fab-v3_Y3`) has a known defect, fixed in this revision but not in
+  that physical batch: see "Known issue in the current JLCPCB batch" below**
+
+## Files
+
+- `compact-carrier-board.kicad_pcb` — KiCad 10 board source
+- `compact-carrier-board.kicad_pro` — KiCad 10 project file (no `.kicad_sch`
+  — this board has no schematic, laid out directly from footprints)
+- `carrier-board-render.png` — top-copper preview
+
+Gerbers, drill, BOM, and CPL are generated outputs, not source — regenerate
+them from `compact-carrier-board.kicad_pcb` when ordering rather than
+relying on a committed copy. `J_ESP1`/`J_ESP2` carry real `Value`/`LCSC`
+fields and each footprint has a real origin at its own center, so
+`kicad-cli pcb export pos` produces correct positions directly (verified:
+`(13.00, -1.65)` / `(13.00, -16.89)`) — no manual patching. `J_PWR`,
+`J_SERVO`, `J_I2C_OLED`, `J_I2C_PCA`, and `J_I2S` are flagged
+`exclude_from_bom`/`exclude_from_pos_files` so they never appear in either
+export. There's no `.kicad_sch`, so `kicad-cli` has no BOM-export
+subcommand for this board (that's a schematic-only feature) — a BOM script
+or fab-tool plugin reading the `.kicad_pcb`'s footprint properties directly
+now gets correct `Value`/`LCSC` without hand-derivation.
+
+## Assembly: only the ESP header strips are populated parts
+
+`J_PWR`, `J_SERVO`, `J_I2C_OLED`, `J_I2C_PCA`, and `J_I2S` are bare
+through-holes for direct wire connections, not connector footprints to
+populate — excluded from BOM/CPL at the footprint level (see above).
+
+`J_ESP1`/`J_ESP2` are the one real part: **Kinghelm KH-2.54FH-1X9P-H3.5**
+(LCSC/JLCPCB `C55778388`), a 2.54mm 1×9 THT female header. There's no 2×9 part
+— the
+ESP32-C3-Zero's socket needs **two** of these strips, one per row. The board
+models this as two separate footprint objects, **`J_ESP1`** (row nearest
+USB-C: 5V/GND/3V3/GPIO0-5) and **`J_ESP2`** (the other row), each a real
+9-pad object with its own designator — not one 2×9 footprint with a
+quantity hint in prose. JLCPCB's assembly tooling (and most BOM tooling)
+determines quantity by counting designators, not by parsing Comment text, so
+a generated BOM lists both on one row as `"J_ESP1,J_ESP2"` (identical part,
+JLC's own convention for grouping identical components) — that reads as qty
+2 unambiguously.
+
+A generated CPL has one row per designator, `J_ESP1` and `J_ESP2`, each at
+its own row's real center — (13.00, 1.65) and (13.00, 16.89) in the board's
+own coordinates — read directly by `kicad-cli pcb export pos` from each
+footprint's own origin, no hand-derivation needed.
+
+## Why this shape
+
+Measured directly from an exported desk part (not estimated): the ESP mounting
+slot is 25.0 × 18.5mm, and three of its four sides sit only 3.0–3.6mm from
+full-height enclosure walls — too tight for any connector housing. Only the
+front is open. That forced the layout:
+
+- **26 × 44mm**, 2-layer.
+- Back 18.5mm: 2×9 female socket for the ESP32-C3-Zero (2.54mm pitch,
+  15.24mm row spacing — Waveshare's documented spec for the Zero board family,
+  confirmed within 0.04mm of a direct caliper measurement).
+- Front zone: `J_PWR` (now 4-pin — 5V/GND plus the external USB D+/D-, see
+  below), `J_SERVO` (5V direct to PCA9685 V+, bypassing the ESP's own 3.3V
+  regulator), `J_I2C_OLED`, `J_I2C_PCA` (separate connectors, bus shared via
+  on-board copper — no external splitter cable), `J_I2S` (own on-board 5V
+  feed for the amp).
+- Everything routes fully on-board; nothing needs an off-board jumper.
+
+## Pinout (verified against physical board silkscreen)
+
+ESP32-C3-Zero, row nearest USB-C, top-to-bottom:
+`5V, GND, 3V3, GPIO0(SDA), GPIO1(SCL), GPIO2(BCLK), GPIO3(LRCLK), GPIO4(DIN), GPIO5`
+
+The other row (`GPIO21,20,19,18,10,9,8,7,6`) is mechanical/GND support only
+**except GP19 and GP18**, which are real signal pads — see USB below.
+
+## USB pass-through (external jack, not the C3-Zero's own USB-C)
+
+Per `docs/hardware/interfaces.md`: the robot's single external USB-C (Adafruit
+5993) carries both power and the ESP32's native USB D+/D- lines, so flashing
+and serial CDC work through the panel-mount jack once the desk is sealed —
+the C3-Zero's own onboard USB-C is left unused. No ESD or series-resistor
+circuitry is specified for this link; it's a direct connection.
+
+| `J_PWR` pin | Net | Goes to |
+| --- | --- | --- |
+| 1 | GND | common ground |
+| 2 | D+ | ESP32 **GPIO19** (row B pad, native USB DP) |
+| 3 | D− | ESP32 **GPIO18** (row B pad, native USB DM) |
+| 4 | 5V | ESP32 5V rail, PCA9685 V+ (via `J_SERVO`), MAX98357A |
+
+D+/D- route dead straight from their row-B pads down to `J_PWR` — no jogging,
+since `J_PWR`'s pin spacing was deliberately placed on the same 2.54mm grid
+as the ESP footprint itself (offset from `J_I2C_OLED`/`J_I2C_PCA`'s grid by
+half a pitch), so the two lines never cross OLED/PCA's pads on the way past.
+
+## Known issue in the current JLCPCB batch
+
+The order placed as `carrier-fab-v3_Y3` (replace-file upload, 2026-09-12) has
+**7 undersized holes on `J_ESP2`**: pins 10,11,12,13,14,17,18 (the mechanical,
+no-net pins of that row) were drilled at 0.6mm/1.0mm pad instead of
+0.9mm/1.4mm like every other pin on the board. Confirmed directly against
+JLC's own production drill file (`yg/carrier.drl`, KiCad 10.0.6, dated
+2026-09-12) and their internal engineering-department drill data (`ok/drl`)
+— both show the same 7-position split. `J_ESP2` is one physical 9-pin
+Kinghelm header; every position has a real pin whether or not a net is
+routed to it, so the undersized holes likely won't accept the header without
+clipping or damaging those 7 pins. **This revision fixes the source; it does
+not change boards already fabricating.** Check the physical boards against
+this when they arrive.
+
+## Fab notes
+
+- 0 DRC errors, 0 unconnected nets, 8 library-path/silk-over-copper warnings
+  (KiCad 10.0.5, official `kicad/kicad` Docker image — reproducible
+  identically across repeated fresh zone refills).
+- 4 reference designators (`J_ESP1`, `J_ESP2`, `J_I2C_OLED`, `J_I2C_PCA`)
+  were printing 0.2–0.6mm past the board's left edge — visually confirmed,
+  not just a DRC technicality. Each footprint's own text bounding box (not
+  an estimate) was used to shift the label right just enough to sit at a
+  0.3mm margin from the edge; the render below reflects the fix.
+- GND zone (B.Cu) outline is inset 0.5mm from the board edge, not 1mm as in
+  earlier revisions — the 1mm inset put pads near the top edge (e.g. `J_ESP1`
+  pin 2, GND) close enough to the zone's own boundary that a fresh zone
+  refill could fail to route a thermal-relief connection to them, especially
+  after the `J_ESP2` drill fix changed nearby pad geometry. Swept the inset
+  from 1.0mm down to 0.3mm in 8 steps against the drill-fixed board, each
+  with a fresh `kicad-cli pcb drc --refill-zones`: 1.0mm and 0.8mm both
+  reproducibly fail with 1 unconnected pad; every value from 0.6mm down to
+  0.3mm passes with 0. 0.5mm sits in the middle of that verified-safe range
+  — well clear of the failure boundary and with real margin above JLCPCB's
+  ~0.2–0.3mm copper-to-edge floor.
+- Tightest feature: 0.15mm copper (GND pour minimum thickness). Comfortably
+  inside JLCPCB's 0.127mm floor; sits exactly at PCBWave's 0.15mm floor (their
+  recommended safe minimum is 0.20mm) — check their DFM report before ordering
+  if using PCBWave.
+- Connectors are plain 2.54mm through-hole pads (pin headers + jumpers), not
+  JST — real JST-PH footprint dimensions weren't verified at design time.
+- 5V trace sized per IPC-2221 (2A, 1oz copper, 10°C rise → ≈0.78mm minimum).
+  Previously most of the net was left at KiCad's 0.6mm default instead of
+  this target — corrected to 1.0mm for 74.9mm of its 83.9mm total length.
+  The remaining 9mm sits at 0.6mm in two short, unavoidable pinch points
+  (4mm and 5mm) where the trace squeezes past `J_ESP2`'s mechanical pad
+  row (1.27-1.34mm pad-to-pad spacing doesn't clear a 1.0mm trace at
+  JLCPCB's 0.2mm clearance floor); verified via `kicad-cli pcb drc`, 0
+  violations. Both pinch points sit downstream of a branch point that
+  already routes the highest-current load (`J_SERVO`) on its own
+  independent, unpinched trace, so worst-case current through either
+  pinch is bounded by the ESP32 module and `J_I2S` amp combined
+  (~1.0-1.1A by datasheet figures) against the pinch's own ~1.65A/10°C
+  capacity — real margin, not a bare pass.
+  Widening the traces required refilling the GND zone; the refill must
+  be done via KiCad itself (GUI Fill All Zones + save, or the
+  `pcbnew.ZONE_FILLER` Python API) and re-verified with `kicad-cli pcb
+  drc` run *without* `--refill-zones` — that flag only recomputes the
+  fill in-memory for the check, it does not persist to the file, so a
+  stale on-disk fill can pass DRC while still being wrong in the
+  Gerbers. This bit us once already in this revision's history.

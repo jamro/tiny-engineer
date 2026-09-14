@@ -29,3 +29,8 @@ SPDX-License-Identifier = "CERN-OHL-S-2.0"
 [[annotations]]
 path = "hardware/LICENSE"
 SPDX-License-Identifier = "CERN-OHL-S-2.0"
+
+[[annotations]]
+path = "hardware/boards/compact-carrier-board/**"
+SPDX-FileCopyrightText = "2026 Jon Truland"
+SPDX-License-Identifier = "CERN-OHL-S-2.0"
