@@ -4,7 +4,7 @@ Baseline for contributing KiCad PCB designs. Goal: boards that are easy to under
 
 Before opening a PR, run the [checklist](#checklist).
 
-Workflow and automated validation are still evolving. A reference board and CI pipeline are in progress and will be used to validate these rules.
+Workflow and automated validation: CI runs ERC, DRC, and `expected-nets.yml` via `python3 scripts/check_pcb.py` (see [testing.md](testing.md)).
 
 KiCad sources live in [`hardware/boards/`](../hardware/README.md). Robot electrical reference (pinout, wiring, BOM) stays in [`docs/hardware/`](hardware/README.md). Firmware drivers stay in `src/hardware/`.
 
@@ -108,27 +108,33 @@ Before submitting or updating a hardware pull request:
 
 The project should not introduce unexplained ERC or DRC errors.
 
-Automated ERC and DRC via GitHub Actions is planned and is being tested on a reference board. It is not required yet.
+Run the same checks CI uses (KiCad 10, stdlib Python — no pip packages):
+
+```bash
+python3 scripts/check_pcb.py
+```
+
+Errors fail; warnings do not. Reports go to a temp dir, or pass `--report-dir artifacts/pcb`. CI runs this on every push/PR ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
 
 ## expected-nets.yml
 
 Committed checklist of **critical** net → pin memberships for human/AI review. Not a full netlist dump.
 
 - **Path:** `hardware/boards/<board-name>/expected-nets.yml`
-- **Check:** `kicad-cli sch export netlist`, then compare to this file. No `kicad-cli` → say so and skip connectivity claims ([AGENTS.md](../AGENTS.md)).
+- **Check:** `python3 scripts/check_pcb.py` (exports netlist via `kicad-cli` and compares). Manual: `kicad-cli sch export netlist`, then compare to this file. No `kicad-cli` → say so and skip connectivity claims ([AGENTS.md](../AGENTS.md)).
 - **Do not** infer nets from `.kicad_sch` / `.kicad_pcb` coordinates or geometry.
 - **Update** when you intentionally change listed nets or pins. Keep the list to power and important buses (I2C, I2S, USB, …), not every net.
 
-Minimal shape (pin tokens = KiCad netlist `RefDes.PinName`):
+Minimal shape (pin tokens = KiCad netlist `RefDes.PinNum:PinName` — pin number plus symbol pin name, so duplicate names like multiple `GND` pins stay distinct):
 
 ```yaml
 nets:
   "+5V":
-    - ESP1.5V
-    - PCA1.V+
+    - ESP1.1:5V
+    - PCA1.6:V+
   GND:
-    - ESP1.GND
-    - PCA1.GND
+    - ESP1.2:GND
+    - PCA1.1:GND
 ```
 
 Required for new or updated boards when claiming connectivity in a PR.
@@ -211,8 +217,7 @@ Use this before opening or updating a PCB pull request. Details are in the secti
 
 **Quality and docs**
 
-- [ ] ERC run; violations reviewed
-- [ ] DRC run; violations reviewed
+- [ ] ERC / DRC / expected-nets: `python3 scripts/check_pcb.py` passes (or GUI ERC+DRC reviewed and nets checked if no `kicad-cli`)
 - [ ] No suppressions used only to make checks pass; any intentional exception has a reason
 - [ ] `expected-nets.yml` present and matches current netlist for listed nets
 - [ ] Board `README.md` covers purpose, status, interfaces, assumptions, and whether this revision was manufactured and tested
@@ -233,10 +238,8 @@ Existing in-progress PRs: align where reasonably possible. Do not redesign solel
 
 The requirements above are the current contribution baseline.
 
-Not standardized yet (to be evaluated on the reference board):
+Not standardized yet:
 
-- automated KiCad ERC and DRC in GitHub Actions
-- exact multi-board CI structure
 - manufacturing jobsets
 - automated manufacturing artifacts
 - release and prerelease manufacturing packages
@@ -244,6 +247,6 @@ Not standardized yet (to be evaluated on the reference board):
 - automated PCB renders or visual diffs
 - manufacturer-specific output configurations
 
-Once the reference implementation is validated, this page will be updated. Stable parts of the workflow may become required for new hardware contributions.
+ERC, DRC, and `expected-nets.yml` checks run in CI via `python3 scripts/check_pcb.py`.
 
 Keep the workflow reproducible and safe. Avoid complexity until it solves a real problem.

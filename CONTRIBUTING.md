@@ -40,9 +40,10 @@ pio run
 pio test -e native
 npm test --prefix packages/tiny-engineer-cursor
 npm test --prefix packages/tiny-engineer-antigravity
+python3 scripts/check_pcb.py
 ```
 
-`pio test -e native` is not `pio run -e native`. Details: [docs/testing.md](docs/testing.md). Flash locally with `pio run -t upload` when you have a board. Physical module is a **Waveshare ESP32-C3-Zero**; PlatformIO `board = esp32-c3-devkitm-1` is the build target name.
+`pio test -e native` is not `pio run -e native`. PCB checks need KiCad 10 (`python3 scripts/check_pcb.py`). Details: [docs/testing.md](docs/testing.md). Flash locally with `pio run -t upload` when you have a board. Physical module is a **Waveshare ESP32-C3-Zero**; PlatformIO `board = esp32-c3-devkitm-1` is the build target name.
 
 ## By change type
 
@@ -56,7 +57,7 @@ npm test --prefix packages/tiny-engineer-antigravity
 
 **CAD.** Edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change.
 
-**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Keep [`expected-nets.yml`](docs/pcb.md#expected-netsyml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
+**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Run `python3 scripts/check_pcb.py` before opening a PCB PR. Keep [`expected-nets.yml`](docs/pcb.md#expected-netsyml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
 
 **Motion.** Animations use −1..1 poses mapped to the saved min/max in [docs/robot-movement.md](docs/robot-movement.md). Stock defaults live in [`include/servos.h`](include/servos.h). Do not widen NVS servo clamps without testing on a real robot. Setup AP `POST /setup/servo` can use 0–180° to find limits; assembled motion must not.
 
