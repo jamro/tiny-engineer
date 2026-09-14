@@ -82,7 +82,9 @@ Format: `type(scope): summary`
 | `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | MAJOR |
 | `docs`, `style`, `test`, `chore`, `ci`, `refactor` (unless breaking) | no bump |
 
-Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `cursor`, `antigravity`, `cad`, `pcb`, `docs`, `scripts`, `ci`.
+Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `pcb`, `docs`, `scripts`, `ci`.
+
+`integrations` is anything under `packages/` (Cursor, Antigravity, Claude Code, later agent CLIs). Do not add a new scope per package.
 
 **Breaking in this repo** means: removed or renamed HTTP route or query param; NVS key rename that drops existing settings; pinout change; default servo range change that invalidates calibration; hook CLI flag or event rename. Call it out with `!` on the type and a `BREAKING CHANGE:` footer.
 
@@ -92,6 +94,7 @@ Examples:
 
 ```
 feat(anim): add dead pose
+feat(integrations): add Claude Code hooks CLI
 fix(cad): add screw hole to desk pad
 feat(pcb): add controller board
 feat(http)!: drop query alias on /anim
