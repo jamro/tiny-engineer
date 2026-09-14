@@ -232,7 +232,7 @@ Inside this firmware repository, [`.claude/settings.json`](../.claude/settings.j
 
 - Every hook is `"async": true`, so Claude Code runs it in the background — an offline robot never stalls a tool call on the 2s HTTP timeout.
 - Robot address: `TINY_ENGINEER_URL` or `--url http://192.168.x.x` (default `http://tiny-engineer.local`).
-- Auth: if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env` file. The CLI sends `Authorization: Bearer …`. No token → no header (auth disabled on device).
+- Auth: if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env` file. The CLI sends `Authorization: Bearer …`. No token → no header (auth disabled on device). When the token comes from the process env, a `TINY_ENGINEER_URL` in the project `.env` is ignored, so a project can't redirect your token; set the URL in the env or with `--url`.
 - The CLI never writes to stdout in hook mode — Claude Code adds `SessionStart` / `UserPromptSubmit` hook stdout to the model's context.
 - If a hook never fires, run `/hooks` inside Claude Code to confirm the project settings loaded.
 

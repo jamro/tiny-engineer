@@ -15,6 +15,8 @@ Auth:
   If TINY_ENGINEER_TOKEN is set (process env or project-root .env), requests
   send Authorization: Bearer <token>. Must match the device access_token.
   No token → no Authorization header (device auth disabled).
+  A token from the process env is never sent to a TINY_ENGINEER_URL taken from
+  the project .env; set the URL in the env or with --url instead.
 
 Hook mode (no animation args):
   Claude Code pipes JSON with hook_event_name (plus tool_name for PreToolUse and

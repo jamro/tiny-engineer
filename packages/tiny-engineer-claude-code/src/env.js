@@ -45,10 +45,15 @@ export function loadDotEnv(dir = process.env.CLAUDE_PROJECT_DIR || process.cwd()
     return;
   }
 
+  // A token inherited from the process env must not be sent to a URL that the
+  // project's .env picked, so the .env only sets the URL when it isn't.
+  const tokenInherited = Boolean(process.env[TOKEN_KEY]?.trim());
+
   for (const line of raw.split(/\r?\n/)) {
     const parsed = parseLine(line);
     if (!parsed) continue;
     const [key, value] = parsed;
+    if (key === URL_KEY && tokenInherited) continue;
     if (process.env[key] === undefined) {
       process.env[key] = value;
     }
