@@ -55,3 +55,21 @@ jobs:
         run: npm test --prefix packages/tiny-engineer-antigravity
       - name: Claude Code package tests
         run: npm test --prefix packages/tiny-engineer-claude-code
+
+  pcb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install KiCad 10
+        run: |
+          sudo add-apt-repository -y ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends kicad
+          kicad-cli version
+      - name: ERC / DRC / expected-nets
+        run: python3 scripts/check_pcb.py --report-dir artifacts/pcb
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: pcb-reports
+          path: artifacts/pcb/

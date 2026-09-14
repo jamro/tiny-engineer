@@ -1,6 +1,6 @@
 # Tests
 
-Host checks. These commands do not flash the board. GitHub Actions on `main` and PRs runs these same commands. On-device hardware: [hardware/testing.md](hardware/testing.md).
+Host checks. These commands do not flash the board. GitHub Actions on `main` and PRs runs these same commands (firmware, packages, and PCB). On-device hardware: [hardware/testing.md](hardware/testing.md).
 
 ## Firmware
 
@@ -34,3 +34,13 @@ npm test --prefix packages/tiny-engineer-cursor
 npm test --prefix packages/tiny-engineer-antigravity
 npm test --prefix packages/tiny-engineer-claude-code
 ```
+
+## PCB
+
+KiCad 10 (`kicad-cli`). Stdlib Python only — no pip packages. ERC (errors), DRC (errors + schematic parity), and `expected-nets.yml` for every board under `hardware/boards/`.
+
+```bash
+python3 scripts/check_pcb.py
+```
+
+Optional: `python3 scripts/check_pcb.py main-control-board --report-dir artifacts/pcb`. Details: [pcb.md](pcb.md). On-device hardware: [hardware/testing.md](hardware/testing.md).
