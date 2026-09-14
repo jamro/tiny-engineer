@@ -47,3 +47,5 @@ jobs:
         run: npm test --prefix packages/tiny-engineer-cursor
       - name: Antigravity package tests
         run: npm test --prefix packages/tiny-engineer-antigravity
+      - name: Claude Code package tests
+        run: npm test --prefix packages/tiny-engineer-claude-code

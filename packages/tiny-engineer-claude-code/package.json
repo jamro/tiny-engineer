@@ -1,0 +1,22 @@
+{
+  "name": "@tiny-engineer/claude-code",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Claude Code hooks CLI that drives Tiny Engineer robot animations over HTTP",
+  "main": "src/cli.js",
+  "bin": {
+    "tiny-engineer-claude-code": "./bin/tiny-engineer-claude-code.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["claude-code", "robot", "tiny-engineer"],
+  "license": "MIT"
+}
