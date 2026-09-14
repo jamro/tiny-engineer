@@ -4,7 +4,11 @@ KiCad PCB projects for Tiny Engineer.
 
 Boards live under `boards/<board-name>/`. Prefer the same name for the directory and the KiCad project.
 
-Contribution rules, KiCad version, what to commit, ERC/DRC, and PR expectations: [docs/pcb.md](../docs/pcb.md). Pre-PR checklist: [docs/pcb.md#checklist](../docs/pcb.md#checklist). Critical net checklist: [docs/pcb.md#expected-netsyml](../docs/pcb.md#expected-netsyml).
+| Board | Role |
+| --- | --- |
+| [`main-control-board`](boards/main-control-board/) | Draft interconnect / carrier (header sockets for existing modules) |
+
+Contribution rules, KiCad version, what to commit, ERC/DRC, and PR expectations: [docs/pcb.md](../docs/pcb.md). Pre-PR checklist: [docs/pcb.md#checklist](../docs/pcb.md#checklist). Critical net checklist: [docs/pcb.md#expected-netsyml](../docs/pcb.md#expected-netsyml). Local/CI checks: `python3 scripts/check_pcb.py` (KiCad 10) — [docs/testing.md](../docs/testing.md).
 
 This tree is KiCad source only. Robot electrical reference (pinout, wiring, BOM) is [`docs/hardware/`](../docs/hardware/README.md). Firmware drivers are `src/hardware/`.
 
