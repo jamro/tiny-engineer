@@ -8,7 +8,7 @@ Boards live under `boards/<board-name>/`. Prefer the same name for the directory
 | --- | --- |
 | [`main-control-board`](boards/main-control-board/) | Draft interconnect / carrier (header sockets for existing modules) |
 
-Contribution rules, KiCad version, what to commit, ERC/DRC, and PR expectations: [docs/pcb.md](../docs/pcb.md). Pre-PR checklist: [docs/pcb.md#checklist](../docs/pcb.md#checklist).
+Contribution rules, KiCad version, what to commit, ERC/DRC, and PR expectations: [docs/pcb.md](../docs/pcb.md). Pre-PR checklist: [docs/pcb.md#checklist](../docs/pcb.md#checklist). Critical net checklist: [docs/pcb.md#expected-netsyml](../docs/pcb.md#expected-netsyml).
 
 This tree is KiCad source only. Robot electrical reference (pinout, wiring, BOM) is [`docs/hardware/`](../docs/hardware/README.md). Firmware drivers are `src/hardware/`.
 
