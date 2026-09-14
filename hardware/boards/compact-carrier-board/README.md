@@ -152,5 +152,23 @@ this when they arrive.
   if using PCBWave.
 - Connectors are plain 2.54mm through-hole pads (pin headers + jumpers), not
   JST — real JST-PH footprint dimensions weren't verified at design time.
-- 5V trace sized per IPC-2221 (2A, 1oz copper, 10°C rise → ≈0.78mm minimum;
-  routed at 1.0mm, 0.6mm only through one short pinch point).
+- 5V trace sized per IPC-2221 (2A, 1oz copper, 10°C rise → ≈0.78mm minimum).
+  Previously most of the net was left at KiCad's 0.6mm default instead of
+  this target — corrected to 1.0mm for 74.9mm of its 83.9mm total length.
+  The remaining 9mm sits at 0.6mm in two short, unavoidable pinch points
+  (4mm and 5mm) where the trace squeezes past `J_ESP2`'s mechanical pad
+  row (1.27-1.34mm pad-to-pad spacing doesn't clear a 1.0mm trace at
+  JLCPCB's 0.2mm clearance floor); verified via `kicad-cli pcb drc`, 0
+  violations. Both pinch points sit downstream of a branch point that
+  already routes the highest-current load (`J_SERVO`) on its own
+  independent, unpinched trace, so worst-case current through either
+  pinch is bounded by the ESP32 module and `J_I2S` amp combined
+  (~1.0-1.1A by datasheet figures) against the pinch's own ~1.65A/10°C
+  capacity — real margin, not a bare pass.
+  Widening the traces required refilling the GND zone; the refill must
+  be done via KiCad itself (GUI Fill All Zones + save, or the
+  `pcbnew.ZONE_FILLER` Python API) and re-verified with `kicad-cli pcb
+  drc` run *without* `--refill-zones` — that flag only recomputes the
+  fill in-memory for the check, it does not persist to the file, so a
+  stale on-disk fill can pass DRC while still being wrong in the
+  Gerbers. This bit us once already in this revision's history.
