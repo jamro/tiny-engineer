@@ -1,0 +1,9 @@
+{
+  "name": "TinyEngineerExpressions",
+  "version": "0.1.0",
+  "description": "Portable 128x32 monochrome robot expression frames with caller-owned animation timing.",
+  "keywords": ["oled", "expressions", "animation", "robot"],
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*"
+}
