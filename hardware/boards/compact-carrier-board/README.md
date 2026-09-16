@@ -168,29 +168,36 @@ PCA9685 / OLED / amp swap sides.
 
 - `kicad-cli pcb drc --severity-all` (KiCad 10.0.6, run *without*
   `--refill-zones` so it judges the on-disk fill) reports **0 violations and
-  0 unconnected items** after the row swap, the re-route and the silk
-  additions. Schematic parity is not checked and cannot be — there is no
-  `.kicad_sch` for this board, and `--schematic-parity` answers "Schematic
-  parity tests require a fully annotated schematic".
-- Silk now names every socket pin: `GP21`-`GP6` along the outer row and
-  `5V, GND, 3V3, GP0`-`GP5` along the inner row, plus a `USB` arrow pointing
-  at the 5V-bus edge. 18 labels + arrow at 1.0mm height / 0.15mm stroke
-  (JLCPCB's standard-font minimum), checked geometrically rather than by
-  DRC — this project sets `min_silk_clearance` to 0, so DRC would not have
-  caught an overlap: 0 silk-to-silk overlaps, 0.621mm minimum silk-to-pad,
-  0.300mm minimum silk-to-edge. Before this the board carried nothing but
-  seven reference designators, which is why a mirrored pad map was invisible
-  both in the render and on the bare board.
-- ⚠️ Pre-existing, not fixed here: those seven reference designators are
-  0.8mm high with a 0.12mm stroke, under JLCPCB's standard-font minimum of
-  1.0mm / 0.15mm. They pass DRC only because the project sets
-  `min_text_thickness` to 0.08. Enlarging them means repositioning as well —
-  three sit exactly 0.300mm off the left edge, so a bigger box would overhang.
-- ⚠️ Pre-existing, not fixed here: the GND pour sits 0.2005mm from every
-  foreign copper edge, exactly JLCPCB's 0.2mm floor with nothing left for
-  etch tolerance, because both the zone's local clearance and the Default
-  netclass clearance are 0.2mm. The nearest track-based constraint is
-  0.42mm, so raising both to 0.25mm and refilling would cost no geometry.
+  0 unconnected items** — and that statement now means something. The
+  project's DRC floors used to be `min_clearance` 0.0, `min_silk_clearance`
+  0.0, `min_text_height` 0.8 and `min_text_thickness` 0.08, so DRC could not
+  have failed on clearance, silk overlap or undersized text however bad they
+  got. They are now 0.2 / 0.15 / 1.0 / 0.15, matching JLCPCB's floors and
+  its standard-font minimum. Schematic parity is not checked and cannot be —
+  there is no `.kicad_sch` for this board, and `--schematic-parity` answers
+  "Schematic parity tests require a fully annotated schematic".
+- **Every pad on the board is named on silk.** The socket rows carry
+  `GP21`-`GP6` (outer) and `5V, GND, 3V3, GP0`-`GP5` (inner) with a `USB`
+  arrow pointing at the 5V-bus edge; each wire-end connector carries its own
+  pin names (`3V3/SDA/SCL/GND` on both I2C headers, `5V/BCLK/LRC/DIN/GND` on
+  `J_I2S`, `GND/D+/D-/5V` on `J_PWR`, `5V/GND` on `J_SERVO`). 48 silk items,
+  all 1.0mm height / 0.15mm stroke. Placement is checked geometrically, not
+  by DRC — 0 silk-to-silk overlaps, 0.421mm minimum silk-to-pad, 0.383mm
+  minimum silk-to-edge. Before this the board carried nothing but seven
+  reference designators, which is why a mirrored pad map was invisible both
+  in the render and on the bare board.
+- The seven reference designators were 0.8mm high with a 0.12mm stroke,
+  under JLCPCB's standard-font minimum and passing DRC only because
+  `min_text_thickness` was 0.08. All seven are now 1.0mm / 0.15mm.
+  `J_I2C_PCA`, `J_PWR` and `J_SERVO` moved to clear the new pin-name bands,
+  and every label is re-checked against the 0.30mm edge margin — three of
+  them sit at exactly that margin, so the larger text boxes were nudged back
+  inside rather than allowed to overhang.
+- GND pour clearance raised 0.20 → 0.25mm — the zone's local clearance and
+  the Default netclass together — and refilled. At 0.20 the fill sat at
+  exactly JLCPCB's floor with nothing left for their etch tolerance; the
+  nearest track-based constraint is 0.42mm, so the extra 0.05mm costs no
+  geometry.
 - 4 reference designators (`J_ESP1`, `J_ESP2`, `J_I2C_OLED`, `J_I2C_PCA`)
   were printing 0.2–0.6mm past the board's left edge — visually confirmed,
   not just a DRC technicality. Each footprint's own text bounding box (not
