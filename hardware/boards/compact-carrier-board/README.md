@@ -29,7 +29,8 @@ MAX98357A amp, and servo power — instead of point-to-point wiring.
 - `compact-carrier-board.kicad_pcb` — KiCad 10 board source
 - `compact-carrier-board.kicad_pro` — KiCad 10 project file (no `.kicad_sch`
   — this board has no schematic, laid out directly from footprints)
-- `carrier-board-render.png` — top-copper preview
+- `carrier-board-render.png` — 3D top render, regenerated with
+  `kicad-cli pcb render --side top` after the row swap and silk additions
 
 Gerbers, drill, BOM, and CPL are generated outputs, not source — regenerate
 them from `compact-carrier-board.kicad_pcb` when ordering rather than
@@ -136,6 +137,10 @@ that is 16mm longer than before the swap, which is electrically unremarkable
 at full-speed 12 Mbps.
 
 ## Mirrored socket map (boards in transit)
+
+That artwork is preserved as its own board, [`compact-carrier-board-pinside`](../compact-carrier-board-pinside/README.md),
+so the build the in-transit batch needs stays orderable and documented rather than
+living only in this section's prose.
 
 **The shipped boards (`carrier-fab-v3-replacement_Y5`) have the two socket
 rows the wrong way round.** Their pad map is the C3-Zero seen from its *pin
