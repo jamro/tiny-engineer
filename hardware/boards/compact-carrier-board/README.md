@@ -16,9 +16,13 @@ MAX98357A amp, and servo power — instead of point-to-point wiring.
   outline if you're on a different preset. See `docs/hardware/interfaces.md`
   for the canonical net map (5V/3.3V domains, GP0-GP4 assignments); this
   board implements that map in copper.
-- **Built:** in production at JLCPCB, not yet tested — **the batch on order
-  (`carrier-fab-v3_Y3`) has a known defect, fixed in this revision but not in
-  that physical batch: see "Known issue in the current JLCPCB batch" below**
+- **Built:** the `carrier-fab-v3-replacement_Y5` upload was produced and
+  shipped by JLCPCB (not yet received). That batch carries the **mirrored
+  socket map this revision fixes** — see "Mirrored socket map (boards in
+  transit)" below for the assembly workaround. Its drilling is fine: the Y5
+  drill export is a single 0.9mm tool over all 37 holes and JLC's own CAM
+  layer a single aperture, so the 7-undersized-hole defect of the earlier
+  `_Y3` upload never reached a physical board.
 
 ## Files
 
@@ -32,7 +36,7 @@ them from `compact-carrier-board.kicad_pcb` when ordering rather than
 relying on a committed copy. `J_ESP1`/`J_ESP2` carry real `Value`/`LCSC`
 fields and each footprint has a real origin at its own center, so
 `kicad-cli pcb export pos` produces correct positions directly (verified:
-`(13.00, -1.65)` / `(13.00, -16.89)`) — no manual patching. `J_PWR`,
+`(13.00, -16.89)` / `(13.00, -1.65)`) — no manual patching. `J_PWR`,
 `J_SERVO`, `J_I2C_OLED`, `J_I2C_PCA`, and `J_I2S` are flagged
 `exclude_from_bom`/`exclude_from_pos_files` so they never appear in either
 export. There's no `.kicad_sch`, so `kicad-cli` has no BOM-export
@@ -50,8 +54,9 @@ populate — excluded from BOM/CPL at the footprint level (see above).
 (LCSC/JLCPCB `C55778388`), a 2.54mm 1×9 THT female header. There's no 2×9 part
 — the
 ESP32-C3-Zero's socket needs **two** of these strips, one per row. The board
-models this as two separate footprint objects, **`J_ESP1`** (row nearest
-USB-C: 5V/GND/3V3/GPIO0-5) and **`J_ESP2`** (the other row), each a real
+models this as two separate footprint objects, **`J_ESP1`** (the inner row,
+nearer the wire end: 5V/GND/3V3/GPIO0-5) and **`J_ESP2`** (the outer row,
+nearest the slot edge: GPIO21-GPIO6), each a real
 9-pad object with its own designator — not one 2×9 footprint with a
 quantity hint in prose. JLCPCB's assembly tooling (and most BOM tooling)
 determines quantity by counting designators, not by parsing Comment text, so
@@ -60,7 +65,7 @@ JLC's own convention for grouping identical components) — that reads as qty
 2 unambiguously.
 
 A generated CPL has one row per designator, `J_ESP1` and `J_ESP2`, each at
-its own row's real center — (13.00, 1.65) and (13.00, 16.89) in the board's
+its own row's real center — (13.00, 16.89) and (13.00, 1.65) in the board's
 own coordinates — read directly by `kicad-cli pcb export pos` from each
 footprint's own origin, no hand-derivation needed.
 
@@ -82,13 +87,28 @@ front is open. That forced the layout:
   feed for the amp).
 - Everything routes fully on-board; nothing needs an off-board jumper.
 
-## Pinout (verified against physical board silkscreen)
+## Pinout (rows stated in the frame that decides them)
 
-ESP32-C3-Zero, row nearest USB-C, top-to-bottom:
-`5V, GND, 3V3, GPIO0(SDA), GPIO1(SCL), GPIO2(BCLK), GPIO3(LRCLK), GPIO4(DIN), GPIO5`
+Row placement is the part that is easy to get backwards, so name the rule:
+**the pad map, seen from the face the module plugs into, has to be the
+module's component-side view.** A pin-side view is the correct drawing only
+for a socket on the *opposite* face — that inversion is exactly what went
+wrong in the shipped batch (below).
 
-The other row (`GPIO21,20,19,18,10,9,8,7,6`) is mechanical/GND support only
-**except GP19 and GP18**, which are real signal pads — see USB below.
+Hold the C3-Zero component side up with its USB-C over this board's 5V-bus
+edge (the long edge the 5V trace hugs). Then:
+
+- **Outer row** — `J_ESP2`, nearest the slot edge (y=14.15):
+  `GPIO21, GPIO20, GPIO19, GPIO18, GPIO10, GPIO9, GPIO8, GPIO7, GPIO6`.
+  Mechanical/no-net support **except GP19 and GP18**, the native USB pair —
+  see USB below.
+- **Inner row** — `J_ESP1`, nearer the wire end (y=29.39):
+  `5V, GND, 3V3, GPIO0(SDA), GPIO1(SCL), GPIO2(BCLK), GPIO3(LRCLK), GPIO4(DIN), GPIO5`
+
+Pins 1 and 18 land at the 5V-bus edge in both rows, and that is what fixes
+the module's USB-C to that edge. Traversing 1 to 18 reads counter-clockwise
+from above, matching Waveshare's own pinout art (1-9 down the left column,
+10-18 up the right, USB-C at the top).
 
 ## USB pass-through (external jack, not the C3-Zero's own USB-C)
 
@@ -101,35 +121,71 @@ circuitry is specified for this link; it's a direct connection.
 | `J_PWR` pin | Net | Goes to |
 | --- | --- | --- |
 | 1 | GND | common ground |
-| 2 | D+ | ESP32 **GPIO19** (row B pad, native USB DP) |
-| 3 | D− | ESP32 **GPIO18** (row B pad, native USB DM) |
+| 2 | D+ | ESP32 **GPIO19** (outer-row pad, native USB DP) |
+| 3 | D− | ESP32 **GPIO18** (outer-row pad, native USB DM) |
 | 4 | 5V | ESP32 5V rail, PCA9685 V+ (via `J_SERVO`), MAX98357A |
 
-D+/D- route dead straight from their row-B pads down to `J_PWR` — no jogging,
-since `J_PWR`'s pin spacing was deliberately placed on the same 2.54mm grid
-as the ESP footprint itself (offset from `J_I2C_OLED`/`J_I2C_PCA`'s grid by
-half a pitch), so the two lines never cross OLED/PCA's pads on the way past.
+D+/D- run down the same 2.54mm grid columns as their own pads (x=20.42 and
+22.96), which sits half a pitch off `J_I2C_OLED`/`J_I2C_PCA`'s grid, so they
+never cross those connectors' pads on the way past. Since the row swap they
+also pass the inner row, where the 3V3 and SDA holes occupy those two
+columns, so each line takes one short lateral jog into the adjacent lane
+(1.27mm off-axis, 0.42mm to the nearest pad edge) and returns — still F.Cu,
+no vias. Each line measures 36.088mm and the two are exactly length-matched;
+that is 16mm longer than before the swap, which is electrically unremarkable
+at full-speed 12 Mbps.
 
-## Known issue in the current JLCPCB batch
+## Mirrored socket map (boards in transit)
 
-The order placed as `carrier-fab-v3_Y3` (replace-file upload, 2026-09-12) has
-**7 undersized holes on `J_ESP2`**: pins 10,11,12,13,14,17,18 (the mechanical,
-no-net pins of that row) were drilled at 0.6mm/1.0mm pad instead of
-0.9mm/1.4mm like every other pin on the board. Confirmed directly against
-JLC's own production drill file (`yg/carrier.drl`, KiCad 10.0.6, dated
-2026-09-12) and their internal engineering-department drill data (`ok/drl`)
-— both show the same 7-position split. `J_ESP2` is one physical 9-pin
-Kinghelm header; every position has a real pin whether or not a net is
-routed to it, so the undersized holes likely won't accept the header without
-clipping or damaging those 7 pins. **This revision fixes the source; it does
-not change boards already fabricating.** Check the physical boards against
-this when they arrive.
+**The shipped boards (`carrier-fab-v3-replacement_Y5`) have the two socket
+rows the wrong way round.** Their pad map is the C3-Zero seen from its *pin
+side*, which is the correct drawing only for a socket on the opposite face;
+as fabricated, a component-side-up module does not mate.
+
+Caught by handedness, which no rotation can change: on the module
+(component side, USB-C up) pins 1-9 run DOWN the left column and 10-18 UP
+the right, so 1 to 18 is counter-clockwise; on those boards `J_ESP1` 1 to 9
+runs left-to-right along the outer row and `J_ESP2` 10 to 18 right-to-left
+along the inner row, i.e. clockwise.
+
+**This revision fixes the source** — rows swapped in copper, nothing moved
+mechanically. **For the boards in transit, fix it at assembly:** solder both
+female strips to the **pour face** (B.Cu) and run that face up. From the
+pour face you see the mirror of the F.Cu artwork, which is the
+component-side map, so the module mates. What that build costs: the module's
+own USB-C ends up over the long edge facing the opposite wall from this
+revision's intent (unused either way — the Adafruit 5993 jack carries power
+and CDC), the silkscreen ends up underneath so mark pin 1 before assembly,
+and the wire-end connector positions mirror left-right, so the runs to the
+PCA9685 / OLED / amp swap sides.
 
 ## Fab notes
 
-- 0 DRC errors, 0 unconnected nets, 8 library-path/silk-over-copper warnings
-  (KiCad 10.0.5, official `kicad/kicad` Docker image — reproducible
-  identically across repeated fresh zone refills).
+- `kicad-cli pcb drc --severity-all` (KiCad 10.0.6, run *without*
+  `--refill-zones` so it judges the on-disk fill) reports **0 violations and
+  0 unconnected items** after the row swap, the re-route and the silk
+  additions. Schematic parity is not checked and cannot be — there is no
+  `.kicad_sch` for this board, and `--schematic-parity` answers "Schematic
+  parity tests require a fully annotated schematic".
+- Silk now names every socket pin: `GP21`-`GP6` along the outer row and
+  `5V, GND, 3V3, GP0`-`GP5` along the inner row, plus a `USB` arrow pointing
+  at the 5V-bus edge. 18 labels + arrow at 1.0mm height / 0.15mm stroke
+  (JLCPCB's standard-font minimum), checked geometrically rather than by
+  DRC — this project sets `min_silk_clearance` to 0, so DRC would not have
+  caught an overlap: 0 silk-to-silk overlaps, 0.621mm minimum silk-to-pad,
+  0.300mm minimum silk-to-edge. Before this the board carried nothing but
+  seven reference designators, which is why a mirrored pad map was invisible
+  both in the render and on the bare board.
+- ⚠️ Pre-existing, not fixed here: those seven reference designators are
+  0.8mm high with a 0.12mm stroke, under JLCPCB's standard-font minimum of
+  1.0mm / 0.15mm. They pass DRC only because the project sets
+  `min_text_thickness` to 0.08. Enlarging them means repositioning as well —
+  three sit exactly 0.300mm off the left edge, so a bigger box would overhang.
+- ⚠️ Pre-existing, not fixed here: the GND pour sits 0.2005mm from every
+  foreign copper edge, exactly JLCPCB's 0.2mm floor with nothing left for
+  etch tolerance, because both the zone's local clearance and the Default
+  netclass clearance are 0.2mm. The nearest track-based constraint is
+  0.42mm, so raising both to 0.25mm and refilling would cost no geometry.
 - 4 reference designators (`J_ESP1`, `J_ESP2`, `J_I2C_OLED`, `J_I2C_PCA`)
   were printing 0.2–0.6mm past the board's left edge — visually confirmed,
   not just a DRC technicality. Each footprint's own text bounding box (not
@@ -153,22 +209,14 @@ this when they arrive.
 - Connectors are plain 2.54mm through-hole pads (pin headers + jumpers), not
   JST — real JST-PH footprint dimensions weren't verified at design time.
 - 5V trace sized per IPC-2221 (2A, 1oz copper, 10°C rise → ≈0.78mm minimum).
-  Previously most of the net was left at KiCad's 0.6mm default instead of
-  this target — corrected to 1.0mm for 74.9mm of its 83.9mm total length.
-  The remaining 9mm sits at 0.6mm in two short, unavoidable pinch points
-  (4mm and 5mm) where the trace squeezes past `J_ESP2`'s mechanical pad
-  row (1.27-1.34mm pad-to-pad spacing doesn't clear a 1.0mm trace at
-  JLCPCB's 0.2mm clearance floor); verified via `kicad-cli pcb drc`, 0
-  violations. Both pinch points sit downstream of a branch point that
-  already routes the highest-current load (`J_SERVO`) on its own
-  independent, unpinched trace, so worst-case current through either
-  pinch is bounded by the ESP32 module and `J_I2S` amp combined
-  (~1.0-1.1A by datasheet figures) against the pinch's own ~1.65A/10°C
-  capacity — real margin, not a bare pass.
-  Widening the traces required refilling the GND zone; the refill must
-  be done via KiCad itself (GUI Fill All Zones + save, or the
-  `pcbnew.ZONE_FILLER` Python API) and re-verified with `kicad-cli pcb
-  drc` run *without* `--refill-zones` — that flag only recomputes the
-  fill in-memory for the check, it does not persist to the file, so a
-  stale on-disk fill can pass DRC while still being wrong in the
-  Gerbers. This bit us once already in this revision's history.
+  The whole net is now 1.0mm over its 44.9mm length, with **no pinch points
+  left**: the row swap moved the 5V pad off the outer row onto the inner one,
+  15.24mm closer to its loads, which removed the squeeze past the mechanical
+  pad row that previously forced two short 0.6mm sections.
+  Any track change requires refilling the GND zone, and the refill must be
+  done via KiCad itself (GUI Fill All Zones + save, or the
+  `pcbnew.ZONE_FILLER` Python API) and re-verified with `kicad-cli pcb drc`
+  run *without* `--refill-zones` — that flag only recomputes the fill
+  in-memory for the check, it does not persist to the file, so a stale
+  on-disk fill can pass DRC while still being wrong in the Gerbers. This bit
+  us once already in this revision's history.
