@@ -31,6 +31,8 @@ New hardware paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE
 
 ## Setup and checks
 
+Coding agents: read [AGENTS.md](AGENTS.md) first (tool-agnostic project brief).
+
 PlatformIO from the repo root. Node 18+ for packages. GitHub Actions on `main` and PRs runs the same commands ([.github/workflows/ci.yml](.github/workflows/ci.yml)). Host only — CI never flashes.
 
 ```bash
@@ -54,7 +56,7 @@ npm test --prefix packages/tiny-engineer-antigravity
 
 **CAD.** Edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change.
 
-**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
+**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Keep [`expected-nets.yml`](docs/pcb.md#expected-netsyml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
 
 **Motion.** Animations use −1..1 poses mapped to the saved min/max in [docs/robot-movement.md](docs/robot-movement.md). Stock defaults live in [`include/servos.h`](include/servos.h). Do not widen NVS servo clamps without testing on a real robot. Setup AP `POST /setup/servo` can use 0–180° to find limits; assembled motion must not.
 
@@ -82,7 +84,9 @@ Format: `type(scope): summary`
 | `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | MAJOR |
 | `docs`, `style`, `test`, `chore`, `ci`, `refactor` (unless breaking) | no bump |
 
-Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `cursor`, `antigravity`, `cad`, `pcb`, `docs`, `scripts`, `ci`.
+Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `pcb`, `docs`, `scripts`, `ci`.
+
+`integrations` is anything under `packages/` (Cursor, Antigravity, Claude Code, later agent CLIs). Do not add a new scope per package.
 
 **Breaking in this repo** means: removed or renamed HTTP route or query param; NVS key rename that drops existing settings; pinout change; default servo range change that invalidates calibration; hook CLI flag or event rename. Call it out with `!` on the type and a `BREAKING CHANGE:` footer.
 
@@ -92,6 +96,7 @@ Examples:
 
 ```
 feat(anim): add dead pose
+feat(integrations): add Claude Code hooks CLI
 fix(cad): add screw hole to desk pad
 feat(pcb): add controller board
 feat(http)!: drop query alias on /anim

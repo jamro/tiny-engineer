@@ -27,6 +27,7 @@ hardware/
       controller.kicad_pro
       controller.kicad_sch
       controller.kicad_pcb
+      expected-nets.yml
       README.md
       libraries/
         symbols/
@@ -78,6 +79,7 @@ Commit the source files required to edit and reproduce the design, including whe
 - `sym-lib-table`
 - `fp-lib-table`
 - board documentation (`README.md`)
+- `expected-nets.yml` (critical net memberships for review — see [below](#expected-netsyml))
 
 Do not commit temporary, local, backup, or generated files such as:
 
@@ -107,6 +109,29 @@ Before submitting or updating a hardware pull request:
 The project should not introduce unexplained ERC or DRC errors.
 
 Automated ERC and DRC via GitHub Actions is planned and is being tested on a reference board. It is not required yet.
+
+## expected-nets.yml
+
+Committed checklist of **critical** net → pin memberships for human/AI review. Not a full netlist dump.
+
+- **Path:** `hardware/boards/<board-name>/expected-nets.yml`
+- **Check:** `kicad-cli sch export netlist`, then compare to this file. No `kicad-cli` → say so and skip connectivity claims ([AGENTS.md](../AGENTS.md)).
+- **Do not** infer nets from `.kicad_sch` / `.kicad_pcb` coordinates or geometry.
+- **Update** when you intentionally change listed nets or pins. Keep the list to power and important buses (I2C, I2S, USB, …), not every net.
+
+Minimal shape (pin tokens = KiCad netlist `RefDes.PinName`):
+
+```yaml
+nets:
+  "+5V":
+    - ESP1.5V
+    - PCA1.V+
+  GND:
+    - ESP1.GND
+    - PCA1.GND
+```
+
+Required for new or updated boards when claiming connectivity in a PR.
 
 ## Board README
 
@@ -143,6 +168,7 @@ The pull request should state:
 - what changed and why
 - whether the schematic, PCB layout, and/or symbols or footprints changed
 - whether ERC and DRC were reviewed
+- whether `expected-nets.yml` was updated
 - whether the board has been physically tested
 
 A design that passed ERC and DRC is not automatically physically validated. Say clearly whether it was only reviewed in KiCad or actually manufactured and tested.
@@ -179,7 +205,7 @@ Use this before opening or updating a PCB pull request. Details are in the secti
 
 - [ ] Project opens after a clean clone (no files from a local KiCad install)
 - [ ] Paths are project-relative (`${KIPRJMOD}`); no absolute `C:\Users\…`, `/Users/…`, or `/home/…`
-- [ ] Source committed: `.kicad_pro`, `.kicad_sch`, `.kicad_pcb`, plus `.kicad_dru`, lib tables, and custom libs when used
+- [ ] Source committed: `.kicad_pro`, `.kicad_sch`, `.kicad_pcb`, `expected-nets.yml`, plus `.kicad_dru`, lib tables, and custom libs when used
 - [ ] No `.history/`, `*-backups/`, `_autosave-*`, `*.kicad_prl`, `fp-info-cache`, or lock files
 - [ ] No generated Gerbers, drill files, PDFs, BOM, or pick-and-place outputs
 
@@ -188,6 +214,7 @@ Use this before opening or updating a PCB pull request. Details are in the secti
 - [ ] ERC run; violations reviewed
 - [ ] DRC run; violations reviewed
 - [ ] No suppressions used only to make checks pass; any intentional exception has a reason
+- [ ] `expected-nets.yml` present and matches current netlist for listed nets
 - [ ] Board `README.md` covers purpose, status, interfaces, assumptions, and whether this revision was manufactured and tested
 - [ ] New board path has a matching `[[annotations]]` block in `REUSE.toml` (CERN-OHL-S-2.0)
 
@@ -197,6 +224,7 @@ Use this before opening or updating a PCB pull request. Details are in the secti
 - [ ] PR states what changed and why
 - [ ] PR states whether schematic, PCB layout, and/or symbols or footprints changed
 - [ ] PR states ERC/DRC result
+- [ ] PR states whether `expected-nets.yml` was updated
 - [ ] PR states physical status: KiCad review only / manufactured / manufactured and tested
 
 Existing in-progress PRs: align where reasonably possible. Do not redesign solely to satisfy this list.
