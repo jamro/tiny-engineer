@@ -49,7 +49,6 @@ On Adafruit PCA9685, header/terminal **V+** is normally the same servo rail as t
 | ESP32-C3-Zero | GP2 | MAX98357A | BCLK | I2S bit clock |
 | ESP32-C3-Zero | GP3 | MAX98357A | LRC | I2S word select |
 | ESP32-C3-Zero | GP4 | MAX98357A | DIN | I2S data |
-| ESP32-C3-Zero | GP5 | PCA9685 | OE | Optional output enable (see [interfaces.md](interfaces.md)) |
 | PCA9685 | PWM | Servo | SIG | Servo PWM |
 | PCA9685 | V+ | Servo | 5V | Servo power |
 | PCA9685 | GND (servo side) | Servo | GND | Servo ground |
@@ -125,11 +124,11 @@ Firmware drives **channels 0–4** (`SERVO_CHANNELS`). The drawing does not numb
 
 ESP32-C3-Zero, unused in the PNG:
 
-**GP6, GP7, GP8, GP9, GP10, GP20, GP21**
+**GP5, GP6, GP7, GP8, GP9, GP10, GP20, GP21**
 
-GP5 = optional PCA9685 OE (not in PNG). GP9 = BOOT, GP10 = onboard WS2812. GP18/GP19 = native USB — wire from 5993 D−/D+ even if the base PNG omits them. See [pinout.md](pinout.md).
+GP5 is reserved for PCA9685 OE (`PCA9685_OE_PIN`) but that net is **pending**: schematic and PCB do not implement or validate GP5→OE yet (`PCA9685_OE_WIRED = false`). GP9 = BOOT, GP10 = onboard WS2812. GP18/GP19 = native USB — wire from 5993 D−/D+ even if the base PNG omits them. See [pinout.md](pinout.md).
 
-PCA9685 **OE** optional on GP5 — not drawn on base PNG. MAX98357A **GAIN** / **SD** not wired (breakout defaults). **SPK+** / **SPK-** not drawn.
+PCA9685 **OE** is not wired on this board. MAX98357A **GAIN** / **SD** not wired (breakout defaults). **SPK+** / **SPK-** not drawn.
 
 ## Not on the drawing
 

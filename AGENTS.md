@@ -27,9 +27,10 @@ pio run
 pio test -e native
 npm test --prefix packages/tiny-engineer-cursor
 npm test --prefix packages/tiny-engineer-antigravity
+python3 scripts/check_pcb.py
 ```
 
-`pio test -e native` is not `pio run -e native`. Details: [docs/testing.md](docs/testing.md).
+`pio test -e native` is not `pio run -e native`. PCB checks need KiCad 10 (`python3 scripts/check_pcb.py`). Details: [docs/testing.md](docs/testing.md).
 
 Do **not** flash (`pio run -t upload`) unless the user asks.
 
@@ -66,7 +67,7 @@ Breaking rules, SemVer mapping, and examples: [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Settings** — layer checklist in [docs/settings.md](docs/settings.md). Never log raw `access_token`.
 - **Integrations** — add/extend package tests; prefer short timeouts and ignore network errors so a missing robot does not stall the agent.
 - **CAD** — edit `.f3d` **and** export affected `3mf`. CERN-OHL-S. Do not swap `AiEmblem.3mf` as branding.
-- **PCB** — [docs/pcb.md](docs/pcb.md) checklist + KiCad review rules below. New board paths need `REUSE.toml`. CERN-OHL-S.
+- **PCB** — [docs/pcb.md](docs/pcb.md) checklist + KiCad review rules below. Run `python3 scripts/check_pcb.py` (KiCad 10). New board paths need `REUSE.toml`. CERN-OHL-S.
 - **Motion** — poses −1..1 mapped to saved min/max; see [docs/robot-movement.md](docs/robot-movement.md). Do not widen NVS servo clamps without testing on a real robot.
 - **Secrets** — no `.env`, tokens, or Wi-Fi passwords in logs or screenshots.
 

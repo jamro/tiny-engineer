@@ -1,0 +1,47 @@
+# Critical net → pin memberships for review.
+# Tokens = KiCad netlist RefDes.PinNum:PinName (pin number + symbol pin name).
+# Compare with: kicad-cli sch export netlist
+# See docs/pcb.md#expected-netsyml
+
+nets:
+  "+5V":
+    - ESP1.1:5V
+    - MAX1.7:Vin
+    - PCA1.6:V+
+    - USB1.3:Pin_3
+  "+3.3V":
+    - ESP1.3:3V3
+    - OLED1.1:VCC
+    - PCA1.5:VCC
+  GND:
+    - ESP1.2:GND
+    - MAX1.6:GND
+    - OLED1.2:GND
+    - PCA1.1:GND
+    - USB1.4:Pin_4
+  "/I2C_SDA":
+    - ESP1.4:GP0
+    - OLED1.3:SDA
+    - PCA1.4:SDA
+  "/I2C_SCL":
+    - ESP1.5:GP1
+    - OLED1.4:SCL
+    - PCA1.3:SCL
+  "/I2S_BCLK":
+    - ESP1.6:GP2
+    - MAX1.2:BCLK
+  "/I2S_LRC":
+    - ESP1.7:GP3
+    - MAX1.1:LRC
+  "/I2S_DIN":
+    - ESP1.8:GP4
+    - MAX1.3:DIN
+  "Net-(ESP1-GP5)":
+    - ESP1.9:GP5
+    - PCA1.2:OE
+  "/USB_D+":
+    - ESP1.16:USB_DP
+    - USB1.1:Pin_1
+  "/USB_D-":
+    - ESP1.15:USB_DM
+    - USB1.2:Pin_2

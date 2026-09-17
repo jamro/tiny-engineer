@@ -18,7 +18,7 @@ constexpr int I2S_DIN  = 4;  // GP4
 // Built-in WS2812 RGB
 constexpr int RGB_LED_PIN = 10;
 
-// PCA9685 output enable (active LOW). Optional: wire OE → GP5.
+// PCA9685 output enable (active LOW). GP5 → OE pending; schematic/PCB do not implement that net.
 constexpr bool PCA9685_OE_WIRED = false;
 constexpr int PCA9685_OE_PIN = 5;
 
