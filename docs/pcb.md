@@ -217,7 +217,7 @@ Use this before opening or updating a PCB pull request. Details are in the secti
 
 **Quality and docs**
 
-- [ ] ERC / DRC / expected-nets: `python3 scripts/check_pcb.py` passes (or GUI ERC+DRC reviewed and nets checked if no `kicad-cli`)
+- [ ] ERC / DRC / expected-nets: `python3 scripts/check_pcb.py` passes (or GUI ERC+DRC reviewed if no `kicad-cli`; do not claim connectivity or net checks without `kicad-cli`)
 - [ ] No suppressions used only to make checks pass; any intentional exception has a reason
 - [ ] `expected-nets.yml` present and matches current netlist for listed nets
 - [ ] Board `README.md` covers purpose, status, interfaces, assumptions, and whether this revision was manufactured and tested
