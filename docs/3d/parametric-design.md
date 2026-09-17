@@ -1,6 +1,6 @@
 # Parametric design (different servo sizes)
 
-[`3d_models/cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d) is the parametric Fusion source for the robot. Printed pockets, mounting tabs, and shaft clearance are driven by Fusion **user parameters**. Change those values and the assembly rebuilds for a different micro servo.
+[`3d_models/cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d) is the parametric Fusion source for the robot. Printed pockets, mounting tabs, shaft clearance, and M2 screw pilots are driven by Fusion **user parameters**. Change those values and the assembly rebuilds for a different micro servo or a tighter/looser screw fit.
 
 Presets live in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json). **TinyEngineer Tools** writes them into the `.f3d`, then exports print meshes under `parts/{servo_id}/3mf/` (and matching `stl/`) plus STEP CAD under `parts/{servo_id}/step/`.
 
@@ -77,6 +77,41 @@ Each preset in `servos.json` is a map of Fusion user-parameter names to expressi
 | --- | --- |
 | `servo_id` | Short lowercase folder id (`hd1370a`, `fs0307`, `sg90`). The configurator writes it; the exporter uses it. |
 
+## M2 screw holes
+
+Assembly uses **M2 screws** that thread directly into the printed PLA/PETG (no heat-set inserts). Pilot-hole size is a Fusion **user parameter**, not a servo preset:
+
+| Parameter | Meaning |
+| --- | --- |
+| `screw_thread_diameter` | Modeled diameter of M2 self-tapping pilot holes in the printed parts. |
+
+Related (usually leave alone): `screw_head_diameter`, `screw_head_height` — countersink / head clearance for the same fasteners.
+
+`screw_thread_diameter` is **not** in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json). Change it in Fusion (**Modify → Change Parameters**), then run **Tiny Engineer Parts Exporter** again.
+
+### Why dial it in
+
+Print tolerances vary by printer, material, and slicer. FDM holes often print smaller than modeled, so the CAD default is slightly oversized relative to an M2 major diameter (~2.0 mm). On some printers the hole still comes out large enough that the screw **slides through** instead of cutting a thread — mounting gets loose.
+
+### Use `ScrewSizingTest` first
+
+1. Print [`ScrewSizingTest.3mf`](../../3d_models/README.md#print-first) from your `parts/{servo_id}/3mf/` folder (quick, small).
+2. Each hole is labeled with its diameter (about **2.00–2.40 mm** in **0.05 mm** steps).
+3. Drive an M2 screw into each hole. Prefer the **tightest** hole that still lets the screw cut a clean thread (firm bite, not free-spinning, not so tight you strip the plastic).
+4. Set `screw_thread_diameter` to that labeled value and re-export before printing the full set.
+
+Print [`ServoSizingTester`](../../3d_models/README.md#print-first) in the same “print first” pass for servo pocket fit.
+
+### Recommended / tested values
+
+| Value | When |
+| --- | --- |
+| **2.2 mm** | CAD default and shipped `parts/*/3mf/` exports. Tested path on a **Creality Ender 3 V3 SE**, PLA, ~0.16 mm layer height ([printing notes](../hardware-for-software-engineers/06-3d-printing-and-mechanical-build.md)). |
+| Smaller (e.g. 2.05–2.15 mm) | Screws feel loose / slide through on your printer — pick from `ScrewSizingTest`. |
+| Larger (e.g. 2.25–2.35 mm) | Pilot too tight to start a thread without cracking — pick from `ScrewSizingTest`. |
+
+Always trust **your** `ScrewSizingTest` result over the table if they disagree.
+
 ## TinyEngineer Tools add-in
 
 **TinyEngineer Tools** is a Fusion add-in for [`cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d). It writes servo dimensions from [`TinyEngineerTools/servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) into Fusion user parameters, and exports each `PRINT_LAYOUT` child as a `.3mf` and binary `.stl` mesh plus a `.step` CAD file (PRINT_LAYOUT with one child visible, so captured print pose stays). STL/3MF use Save as Mesh; STEP uses File → Export.
@@ -129,6 +164,6 @@ After all components are exported, the original visibility settings are restored
 1. Measure a real unit (prefer calipers over datasheet marketing sizes).
 2. Copy an existing object in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json); keep the same keys; set a unique `servo_id`.
 3. Reload the add-in, run Servo Configurator, confirm Fusion parameters update.
-4. Print [`ServoSizingTester`](../../3d_models/README.md#print-first) first, then export.
+4. Print [`ServoSizingTester`](../../3d_models/README.md#print-first) and [`ScrewSizingTest`](../../3d_models/README.md#print-first) first (servo pocket + M2 pilot), then export.
 
 The configurator refuses unknown Fusion parameter names. Do not invent keys that are not already user parameters in the `.f3d`.

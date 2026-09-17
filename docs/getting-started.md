@@ -25,9 +25,9 @@ Gather electronics from [hardware/components.md](hardware/components.md). Minimu
 
 ### 2. Print and mechanical
 
-Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/{servo_id}/3mf/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md). Print [`ServoSizingTester`](../3d_models/README.md#print-first) first and confirm a real servo fits before queuing the rest of the set.
+Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/{servo_id}/3mf/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md). Print [`ServoSizingTester`](../3d_models/README.md#print-first) and [`ScrewSizingTest`](../3d_models/README.md#print-first) first — confirm a real servo fits and pick an M2 pilot-hole diameter before queuing the rest of the set ([M2 screw holes](3d/parametric-design.md#m2-screw-holes)).
 
-Join printed parts with **2 mm diameter screws** (no glue; easy to dismount later). Exact screw lengths/counts and a full assembly SOP are **not documented yet** — use the parts table there as the inventory. After print:
+Join printed parts with **M2 screws** that thread directly into the plastic (no glue, no inserts; easy to dismount later). Exact screw lengths/counts and a full assembly SOP are **not documented yet** — use the parts table there as the inventory. After print:
 
 - Fit the five servos (head, neck, left/right hand, body) — axes and safe ranges: [robot-movement.md](robot-movement.md)
 - Leave the ESP32 ceramic antenna clear of metal / dense plastic ([hardware/components.md](hardware/components.md))

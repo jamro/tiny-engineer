@@ -56,7 +56,9 @@ The models are **prepared with clearance** so printed parts and hardware (servos
 
 > **If you've written backend code…** Printed holes are like JSON numbers — `2.0` isn't exactly 2.0 after float serialization. These files already budget slack; a badly calibrated printer can still eat it.
 
-**Screws:** assembly uses **2 mm diameter** screws, no glue. Exact lengths/counts aren't fully documented yet — use the [parts table](../../3d_models/README.md) as inventory and test fit as you go.
+**Screws:** assembly uses **M2** screws that thread directly into the printed plastic — no glue, no heat-set inserts. Exact lengths/counts aren't fully documented yet — use the [parts table](../../3d_models/README.md) as inventory and test fit as you go.
+
+**If M2 screws feel loose (slide instead of cutting a thread):** print tolerances ate the pilot. Print [`ScrewSizingTest.3mf`](../../3d_models/README.md#print-first) first (alongside [`ServoSizingTester`](../../3d_models/README.md#print-first)), pick the labeled hole that bites firmly, set Fusion `screw_thread_diameter` to that diameter, and re-export. CAD default / shipped parts use **2.2 mm**. Full write-up: [M2 screw holes](../3d/parametric-design.md#m2-screw-holes).
 
 ---
 
@@ -79,13 +81,14 @@ The models are **prepared with clearance** so printed parts and hardware (servos
 - Antenna keep-out adjustment
 - Desk/chair scale for your desk
 
-Parts use **2 mm** screws. Servo pockets follow the selected Fusion preset, not one fixed body size. Swapping servos means picking a preset (or adding one) and reprinting — not just firmware. Servo user parameters, the Fusion add-in (configurator + exporter), and how to add a preset: [parametric design](../3d/parametric-design.md).
+Parts use **M2** screws (`screw_thread_diameter` pilot). Servo pockets follow the selected Fusion preset, not one fixed body size. Swapping servos means picking a preset (or adding one) and reprinting — not just firmware. Servo user parameters, screw pilots, the Fusion add-in (configurator + exporter), and how to add a preset: [parametric design](../3d/parametric-design.md).
 
 ### Export workflow
 
 1. Open `TinyEngineer.f3d` in Fusion (free personal license exists)
-2. Apply a servo preset, then export with **Tiny Engineer Parts Exporter** into `parts/{servo_id}/3mf/` (see [parametric design](../3d/parametric-design.md))
-3. Print and test fit
+2. Apply a servo preset; set `screw_thread_diameter` from your [`ScrewSizingTest`](../../3d_models/README.md#print-first) if needed
+3. Export with **Tiny Engineer Parts Exporter** into `parts/{servo_id}/3mf/` (see [parametric design](../3d/parametric-design.md))
+4. Print testers first, then the rest, and test fit
 
 Manual single-body export is fine for a one-off tweak; keep the file under that servo’s `3mf/` folder, not a flat `3d_models/parts/` dump.
 
