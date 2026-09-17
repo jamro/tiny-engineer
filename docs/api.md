@@ -110,6 +110,7 @@ curl http://tiny-engineer.local/settings
   "serial_log": false,
   "continuous_timeout": 5,
   "loading": "progress",
+  "eyes_style": "classic",
   "access_token_set": false,
   "wifi_configured": true,
   "wifi_ssid": "MyNetwork",
@@ -130,6 +131,7 @@ curl http://tiny-engineer.local/settings
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
+| `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes) or `kaomoji` (animated faces). Default **`classic`**. Applies **immediately**. Classic eye sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes) |
 | `access_token_set` | `true` when a non-empty access token is stored (secret itself is never returned) |
 | `wifi_configured` | `true` when a WiFi SSID is saved |
 | `wifi_ssid` | Saved network name (password is never returned) |
@@ -141,7 +143,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. `hostname` may be sent with those WiFi params (same validation as Config); it is saved before the STA connect so mDNS uses the chosen name immediately. Outside setup AP → **400** `wifi setup only in AP mode`. Servo ranges (`servo_mins` + `servo_maxs`) are also **setup AP only**; they apply immediately to motion clamps. Outside setup AP → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) is **setup AP only** and applies immediately to the onboard LED. Outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation (`oled_rotate_180`) is **setup AP only** and applies immediately to the display. Outside setup AP → **400** `oled setup only in AP mode`. Requires Bearer when auth is enabled.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. `hostname` may be sent with those WiFi params (same validation as Config); it is saved before the STA connect so mDNS uses the chosen name immediately. Outside setup AP → **400** `wifi setup only in AP mode`. Servo ranges (`servo_mins` + `servo_maxs`) are also **setup AP only**; they apply immediately to motion clamps. Outside setup AP → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) is **setup AP only** and applies immediately to the onboard LED. Outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation (`oled_rotate_180`) is **setup AP only** and applies immediately to the display. Outside setup AP → **400** `oled setup only in AP mode`. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
@@ -151,6 +153,7 @@ curl -X POST "http://tiny-engineer.local/settings?welcome=0"
 curl -X POST "http://tiny-engineer.local/settings?serial_log=1"
 curl -X POST "http://tiny-engineer.local/settings?continuous_timeout=10"
 curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
+curl -X POST "http://tiny-engineer.local/settings?eyes_style=kaomoji"
 curl -X POST "http://tiny-engineer.local/settings?access_token=secret"
 curl -X POST "http://tiny-engineer.local/settings?access_token="
 curl -X POST "http://192.168.4.1/settings?wifi_ssid=MyNetwork&wifi_password=secret&hostname=desk-bot"
@@ -170,6 +173,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
   "serial_log": false,
   "continuous_timeout": 5,
   "loading": "progress",
+  "eyes_style": "classic",
   "access_token_set": true,
   "wifi_configured": true,
   "wifi_ssid": "MyNetwork",
@@ -194,6 +198,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
 | `serial_log` | integer | `0` or `1` (USB serial debug logging) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
+| `eyes_style` | string | `classic` or `kaomoji` |
 | `access_token` | string | 0–64 printable ASCII; empty string clears the token and disables auth |
 | `wifi_ssid` | string | 1–32 chars; setup AP only; must be sent with `wifi_password` |
 | `wifi_password` | string | 0–63 chars; setup AP only; empty allowed for open networks; tested before save |
@@ -224,6 +229,7 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "serial_log": false,
   "continuous_timeout": 5,
   "loading": "progress",
+  "eyes_style": "classic",
   "access_token_set": false,
   "reboot_required": true
 }
@@ -478,6 +484,8 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 { "ok": true, "animation": "typing" }
 ```
 
+Eye detail below for `eyes_style=classic` (default). With `eyes_style=kaomoji`, faces follow [Kaomoji eyes](#kaomoji-eyes) instead of procedural blinks, glances, flicker, or X eyes. Servo/audio behavior is the same for both styles.
+
 | `name` | Behavior |
 | --- | --- |
 | `none` | Head/neck/body → mid; hands down (right `min`, left `max` — inverted scales), then hold |
@@ -486,12 +494,30 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 | `thinking` | **Continuous.** Hands/body park as in `none`. Head (pitch) and neck (yaw) ease from the current pose into thinking poses (up + slight left/right). Move → pause → optional micro-adjust (sometimes chained) → pause; nearby pose drift with occasional larger shifts after ~2.2 s, more often over time. Axes stagger start/duration; no periodic sway. Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
 | `ring` | **One-shot** service-bell gesture; does not loop. Wind-up (body `min`, neck mid, head mid+10°, both hands `max`) → fast right-hand strike to `min+5°` with head to `min` → plays `bell.wav` once on strike (LittleFS; same `uploadfs` requirement as `/test/audio/bell`) → slower bounce to `min+20°` → return to `none` pose and stop. After completion, `GET /anim` reports `none`. |
 | `welcome` | **One-shot** hello gesture synced to `welcome.wav` (~2.7 s). Right hand raises during "Hello, human.", holds through the pause, wiggles during "What are we building today?", then lowers. Head nods to mid+10° and returns. Plays automatically after successful Wi-Fi connect at boot; also via API. Requires `welcome.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, `GET /anim` reports `none`. |
-| `attention` | Friendly input-request gesture synced to `attention.wav` (~3.0 s, "pst... human.... you might want to take a look"). Moves into a calm prompt pose first (centered body/neck, head slightly up, right hand raised partway), waits until all servos stop, then plays audio with phased eye cues and light neck/head/hand motion during playback (whisper hold → lean toward user → glance/point on "take a look"). After audio ends (or if audio fails to start), holds a gentle waiting loop for **1 minute** (soft head/neck drifts plus occasional slight right-hand waves), then returns to `none`. Requires `attention.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
+| `attention` | Friendly input-request gesture synced to `attention.wav` (~3.0 s, "pst... human.... you might want to take a look"). Moves into a calm prompt pose first (centered body/neck, head slightly up, right hand raised partway), waits until all servos stop, then plays audio with light neck/head/hand motion during playback (whisper hold → lean toward user → glance/point on "take a look"). **Classic eyes:** phased blink/look cues during audio. After audio ends (or if audio fails to start), holds a gentle waiting loop for **1 minute** (soft head/neck drifts plus occasional slight right-hand waves), then returns to `none`. Requires `attention.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
 | `error` | Critical task-obstacle gesture synced to `error.wav` (~2.2 s, "Uh-oh. Human, we have a problem."). Moves into an obstacle-presenting pose first (body/neck angled toward the task, head concerned/down, right hand presenting the blocker, left hand indicating task area), waits until the pose settles, then plays audio with small nervous head/neck glances during playback. After audio ends (or if audio fails to start), holds a subtle blocked loop for **1 minute**, then returns to `none`. Requires `error.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
-| `abort` | **One-shot** resigned abort gesture synced to `abort.wav` (~2.5 s, "Fine. I didn't want to finish it anyway."). Raises both hands, lifts the head, and twists the neck sideways before audio starts. During playback it shrugs, dips the head, and adds a dismissive side twist with matching eye glances/squints. Requires `abort.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, returns to `none` pose and `GET /anim` reports `none`. |
-| `dead` | **Hold.** Out-of-power: same obstacle pose + `error.wav` as `error` ("Uh-oh. Human, we have a problem."), but eyes use a failing-display flicker (irregular heights + brief blank pulses, denser near the end) instead of the error nervous scan. When the line ends (or audio fails), eyes squeeze nearly shut (~300 ms) while head/hands collapse, hold shut briefly (~200 ms), then snap to **X X**. Stays in that pose with X eyes and pulsing red until another animation is requested. Does not auto-return to `none`. Requires `error.wav` on LittleFS. |
-| `wakeup` | **One-shot** sleep-inertia wake (~5.5 s + settle), same sequence as boot `loading=sleep_inertia`. Eyes open over 2 s (cubic ease) from closed, two blinks at 2.4 s and 3.8 s, head rises from chin-down with a fading neck wave. Always moves head/neck/hands (API path). After completion, `GET /anim` reports `none`. Does not play welcome audio — use `welcome` for that. |
-| `sleep` | **One-shot** enter sleep: eye close + head lowers to chin-down (`SLEEP_HEAD_DOWN`, same pose `wakeup` starts from), then blank OLED and `DISPLAYOFF`. Same path as the idle `sleep_timeout`. Holds `sleep` until the head settles; then `GET /anim` reports `none` while the device stays asleep until another non-`sleep`/`none` animation wakes it. |
+| `abort` | **One-shot** resigned abort gesture synced to `abort.wav` (~2.5 s, "Fine. I didn't want to finish it anyway."). Raises both hands, lifts the head, and twists the neck sideways before audio starts. During playback it shrugs, dips the head, and adds a dismissive side twist. **Classic eyes:** matching glances/squints. Requires `abort.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, returns to `none` pose and `GET /anim` reports `none`. |
+| `dead` | **Hold.** Out-of-power: same obstacle pose + `error.wav` as `error` ("Uh-oh. Human, we have a problem."). **Classic eyes:** failing-display flicker (irregular heights + brief blank pulses, denser near the end); when the line ends (or audio fails), eyes squeeze nearly shut (~300 ms) while head/hands collapse, hold shut briefly (~200 ms), then snap to **X X**; stays with X eyes and pulsing red until another animation is requested. **Kaomoji:** Sad face (no X). Does not auto-return to `none`. Requires `error.wav` on LittleFS. |
+| `wakeup` | **One-shot** sleep-inertia wake (~5.5 s + settle), same sequence as boot `loading=sleep_inertia`. **Classic eyes:** open over 2 s (cubic ease) from closed, two blinks at 2.4 s and 3.8 s. Head rises from chin-down with a fading neck wave. Always moves head/neck/hands (API path). After completion, `GET /anim` reports `none`. Does not play welcome audio — use `welcome` for that. |
+| `sleep` | **One-shot** enter sleep: head lowers to chin-down (`SLEEP_HEAD_DOWN`, same pose `wakeup` starts from), then blank OLED and `DISPLAYOFF`. **Classic eyes:** lid close before blank. **Kaomoji:** Sleep face during the close window, then blank. Same path as the idle `sleep_timeout`. Holds `sleep` until the head settles; then `GET /anim` reports `none` while the device stays asleep until another non-`sleep`/`none` animation wakes it. |
+
+#### Kaomoji eyes
+
+When `eyes_style=kaomoji`, the OLED shows looping faces from the expression library (3 s / 30 frames). Mapping:
+
+| Animation / phase | Face |
+| --- | --- |
+| `none` (idle) | Idle |
+| `typing`, `thinking` | Thinking |
+| `reading`, `attention` | Curious |
+| `ring` | Surprise |
+| `welcome` | Happy |
+| `error` | Angry |
+| `abort` | Panic |
+| `wakeup` | Sleepy |
+| `sleep` / sleep-close | Sleep |
+| sleep-open | Idle |
+| `dead` | Sad |
 
 Wrong params return **400**:
 

@@ -2,7 +2,7 @@
 
 Sixteen animated, kaomoji-inspired faces for a **128 × 32 monochrome OLED**. The C++ library renders a frame into caller-owned memory; the application decides when and where to show it.
 
-This is an optional display library. It does not replace Tiny Engineer's existing eye modes or map expressions to HTTP commands, AI events, or robot poses. It does not access I²C, initialize a display, change its rotation, or issue servo commands.
+This is an optional display library used by the robot when Config `eyes_style=kaomoji`. It does not replace Tiny Engineer's classic eye modes by itself. The application decides which style is active and when to show a frame. It does not access I²C, initialize a display, change its rotation, or issue servo commands.
 
 ## Faces
 
@@ -58,7 +58,7 @@ if (faces::render(selectedExpression, elapsedMs, frame, sizeof(frame))) {
 }
 ```
 
-The application still owns display initialization, clearing, brightness, orientation, and sleep behavior. When integrating into the robot firmware, use the existing display owner and saved rotation setting. Avoid two renderers updating the same display concurrently. Selecting this library must be an explicit application decision, so the existing eye-mode and motion behavior can remain the default.
+The application still owns display initialization, clearing, brightness, orientation, and sleep behavior. On the robot firmware, choose this look with Config / `eyes_style=kaomoji` (default remains `classic`). Avoid two style renderers updating the same display concurrently.
 
 ## Standalone OLED demo
 

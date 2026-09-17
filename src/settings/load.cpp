@@ -13,6 +13,7 @@ void initSettings() {
   g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
   g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
+  setEyesStyleCache(g_eyesStyle, SETTINGS_DEFAULT_EYES_STYLE);
   setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
   setWifiSsidCache(g_wifiSsid, "");
   setWifiPasswordCache(g_wifiPassword, "");
@@ -70,6 +71,15 @@ void initSettings() {
     setLoadingCache(g_loading, loading.c_str());
   } else {
     setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
+  }
+
+  String eyesStyle =
+    g_settingsPrefs.getString(kKeyEyesStyle, SETTINGS_DEFAULT_EYES_STYLE);
+
+  if (settingsValidateEyesStyle(eyesStyle.c_str())) {
+    setEyesStyleCache(g_eyesStyle, eyesStyle.c_str());
+  } else {
+    setEyesStyleCache(g_eyesStyle, SETTINGS_DEFAULT_EYES_STYLE);
   }
 
   String accessTok =

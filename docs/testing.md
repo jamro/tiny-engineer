@@ -14,7 +14,7 @@ pio test -e native
 
 ## OLED expressions
 
-The optional [expression library](../lib/TinyEngineerExpressions/README.md) has deterministic asset checks and native renderer tests. These checks require Node 18+ and PlatformIO; they do not access hardware.
+The optional [expression library](../lib/TinyEngineerExpressions/README.md) has deterministic asset checks and native renderer tests. These checks require Node 18+ and PlatformIO; they do not access hardware. On the robot, enable those faces with Config / `eyes_style=kaomoji` (default remains `classic`).
 
 ```bash
 node scripts/expressions/generate.js --check

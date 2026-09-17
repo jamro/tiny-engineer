@@ -12,6 +12,7 @@ extern bool g_welcome;
 extern bool g_serialLog;
 extern uint32_t g_continuousTimeoutMin;
 extern char g_loading[SETTINGS_LOADING_MAX_LEN + 1];
+extern char g_eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1];
 extern char g_accessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1];
 extern char g_wifiSsid[SETTINGS_WIFI_SSID_MAX_LEN + 1];
 extern char g_wifiPassword[SETTINGS_WIFI_PASSWORD_MAX_LEN + 1];
@@ -22,6 +23,7 @@ extern bool g_oledRotate180;
 
 void setHostnameCache(char* dest, const char* src);
 void setLoadingCache(char* dest, const char* src);
+void setEyesStyleCache(char* dest, const char* src);
 void setAccessTokenCache(char* dest, const char* src);
 void setWifiSsidCache(char* dest, const char* src);
 void setWifiPasswordCache(char* dest, const char* src);

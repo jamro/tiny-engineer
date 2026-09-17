@@ -10,12 +10,14 @@ constexpr bool SETTINGS_DEFAULT_WELCOME = true;
 constexpr bool SETTINGS_DEFAULT_SERIAL_LOG = false;
 constexpr uint32_t SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN = 5;
 constexpr const char* SETTINGS_DEFAULT_LOADING = "progress";
+constexpr const char* SETTINGS_DEFAULT_EYES_STYLE = "classic";
 constexpr const char* SETTINGS_DEFAULT_ACCESS_TOKEN = "";
 
 constexpr uint32_t SETTINGS_SLEEP_TIMEOUT_MIN_MIN = 1;
 constexpr uint32_t SETTINGS_SLEEP_TIMEOUT_MAX_MIN = 1440;
 constexpr size_t SETTINGS_HOSTNAME_MAX_LEN = 31;
 constexpr size_t SETTINGS_LOADING_MAX_LEN = 15;
+constexpr size_t SETTINGS_EYES_STYLE_MAX_LEN = 15;
 constexpr size_t SETTINGS_ACCESS_TOKEN_MAX_LEN = 64;
 constexpr size_t SETTINGS_WIFI_SSID_MAX_LEN = 32;
 constexpr size_t SETTINGS_WIFI_PASSWORD_MAX_LEN = 63;
@@ -39,6 +41,7 @@ bool settingsWelcomeEnabled();
 bool settingsSerialLogEnabled();
 uint32_t settingsContinuousTimeoutMin();
 const char* settingsLoading();
+const char* settingsEyesStyle();
 const char* settingsAccessToken();
 bool settingsAccessTokenSet();
 const char* settingsWifiSsid();
@@ -58,6 +61,7 @@ bool settingsValidateHostname(const char* hostname);
 bool settingsValidateVolume(uint8_t volume);
 bool settingsValidateContinuousTimeout(uint32_t continuousTimeoutMin);
 bool settingsValidateLoading(const char* loading);
+bool settingsValidateEyesStyle(const char* eyesStyle);
 bool settingsValidateAccessToken(const char* accessToken);
 bool settingsValidateWifiSsid(const char* wifiSsid);
 bool settingsValidateWifiPassword(const char* wifiPassword);
@@ -78,6 +82,7 @@ bool saveSettings(
   const bool* serialLog,
   const uint32_t* continuousTimeoutMin,
   const char* loading,
+  const char* eyesStyle,
   const char* accessToken,
   const char* wifiSsid,
   const char* wifiPassword,

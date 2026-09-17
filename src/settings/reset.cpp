@@ -23,6 +23,7 @@ bool factoryResetSettings(bool* rebootRequired) {
   g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
   g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
+  setEyesStyleCache(g_eyesStyle, SETTINGS_DEFAULT_EYES_STYLE);
   setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
   setWifiSsidCache(g_wifiSsid, "");
   setWifiPasswordCache(g_wifiPassword, "");
@@ -43,6 +44,7 @@ bool factoryResetSettings(bool* rebootRequired) {
     g_serialLog,
     g_continuousTimeoutMin,
     g_loading,
+    g_eyesStyle,
     g_accessToken,
     g_wifiSsid,
     g_wifiPassword,

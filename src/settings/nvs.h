@@ -13,6 +13,7 @@ constexpr const char* kKeyWelcome = "welcome";
 constexpr const char* kKeySerialLog = "serial_log";
 constexpr const char* kKeyContTo = "cont_to";
 constexpr const char* kKeyLoading = "loading";
+constexpr const char* kKeyEyesStyle = "eyes_sty";
 constexpr const char* kKeyAccessTok = "access_tok";
 constexpr const char* kKeyWifiSsid = "wifi_ssid";
 constexpr const char* kKeyWifiPass = "wifi_pass";
@@ -48,6 +49,7 @@ void settingsNvsPutAll(
   bool serialLog,
   uint32_t continuousTimeoutMin,
   const char* loading,
+  const char* eyesStyle,
   const char* accessToken,
   const char* wifiSsid,
   const char* wifiPassword,
@@ -65,6 +67,7 @@ bool writeAllToNvs(
   bool serialLog,
   uint32_t continuousTimeoutMin,
   const char* loading,
+  const char* eyesStyle,
   const char* accessToken,
   const char* wifiSsid,
   const char* wifiPassword,
