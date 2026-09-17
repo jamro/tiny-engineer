@@ -11,7 +11,7 @@ You don't need an oscilloscope to do useful hardware. You need patience, a multi
 | **Multimeter** | DC voltage, continuity beep |
 | **USB cable (data)** | Charge-only cables cause "upload failed" existential crisis |
 | **5 V / ≥ 2 A supply** | Known-good power |
-| **Screwdrivers** | 2 mm screws, horn screws |
+| **Screwdrivers** | M2 screws, horn screws |
 | **Soldering iron** (optional) | If your wiring isn't all Dupont |
 | **Zip ties / tape** | Strain relief |
 

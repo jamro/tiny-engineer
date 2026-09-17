@@ -12,9 +12,12 @@ Individual parts are exported under [`parts/{servo_id}/`](parts/). Print the **`
 
 ### Print first
 
-Print `ServoSizingTester.3mf` from that folder **before** the rest of the set. Seat a real servo — do not force it. The body should slide, tabs sit, holes line up, and the shaft should have clearance. Fit OK → print the other parts. Tight or loose → sand/ream, or adjust CAD ([parametric design](../docs/3d/parametric-design.md)). Do not print the full robot until the tester fits.
+Print these two small testers from that folder **before** the rest of the set. Do not print the full robot until both fit.
 
-Assembly uses a bunch of **2 mm diameter screws** — no glue. Easy to dismount and modify later. Exact screw lengths/counts and full assembly steps are **not documented yet**. Use the part table below, then electrical and bring-up docs.
+1. **`ServoSizingTester.3mf`** — seat a real servo; do not force it. The body should slide, tabs sit, holes line up, and the shaft should have clearance. Tight or loose → sand/ream, or adjust servo CAD params ([parametric design](../docs/3d/parametric-design.md)).
+2. **`ScrewSizingTest.3mf`** — M2 screw pilot-hole tolerance. Each hole is marked with its diameter. Drive an M2 screw into each hole and pick the tightest size that still cuts a thread (does not spin freely / slide through). Set Fusion user parameter `screw_thread_diameter` to that marked value, then re-export before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
+
+Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Exact screw lengths/counts and full assembly steps are **not documented yet**. Use the part table below, then electrical and bring-up docs.
 
 ## Parts
 
@@ -46,6 +49,7 @@ Same filenames in each `parts/{servo_id}/3mf/` folder:
 | `Coffee.3mf` | Coffee fill |
 | `Hat.3mf` | Hat |
 | `ServoSizingTester.3mf` | Servo pocket fit tester |
+| `ScrewSizingTest.3mf` | M2 screw pilot-hole diameter tester |
 | `AiEmblem.3mf` | AI emblem detail |
 
 ## Next steps
