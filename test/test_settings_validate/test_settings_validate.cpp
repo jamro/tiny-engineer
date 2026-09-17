@@ -49,6 +49,13 @@ void test_loading() {
   TEST_ASSERT_FALSE(settingsValidateLoading(nullptr));
 }
 
+void test_eyes_style() {
+  TEST_ASSERT_TRUE(settingsValidateEyesStyle("classic"));
+  TEST_ASSERT_TRUE(settingsValidateEyesStyle("kaomoji"));
+  TEST_ASSERT_FALSE(settingsValidateEyesStyle("other"));
+  TEST_ASSERT_FALSE(settingsValidateEyesStyle(nullptr));
+}
+
 void test_access_token() {
   char token64[65];
   char token65[66];
@@ -131,6 +138,7 @@ int main() {
   RUN_TEST(test_continuous_timeout);
   RUN_TEST(test_volume);
   RUN_TEST(test_loading);
+  RUN_TEST(test_eyes_style);
   RUN_TEST(test_access_token);
   RUN_TEST(test_wifi_ssid);
   RUN_TEST(test_wifi_password);

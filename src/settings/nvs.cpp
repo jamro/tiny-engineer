@@ -60,6 +60,7 @@ void putAll(
   bool serialLog,
   uint32_t continuousTimeoutMin,
   const char* loading,
+  const char* eyesStyle,
   const char* accessToken,
   const char* wifiSsid,
   const char* wifiPassword,
@@ -78,6 +79,7 @@ void putAll(
   g_settingsPrefs.putBool(kKeySerialLog, serialLog);
   g_settingsPrefs.putUInt(kKeyContTo, continuousTimeoutMin);
   g_settingsPrefs.putString(kKeyLoading, loading);
+  g_settingsPrefs.putString(kKeyEyesStyle, eyesStyle);
   g_settingsPrefs.putString(kKeyAccessTok, accessToken);
   g_settingsPrefs.putString(kKeyWifiSsid, wifiSsid);
   g_settingsPrefs.putString(kKeyWifiPass, wifiPassword);
@@ -96,6 +98,7 @@ bool writeAllToNvs(
   bool serialLog,
   uint32_t continuousTimeoutMin,
   const char* loading,
+  const char* eyesStyle,
   const char* accessToken,
   const char* wifiSsid,
   const char* wifiPassword,
@@ -117,6 +120,7 @@ bool writeAllToNvs(
     serialLog,
     continuousTimeoutMin,
     loading,
+    eyesStyle,
     accessToken,
     wifiSsid,
     wifiPassword,
@@ -137,6 +141,7 @@ void settingsNvsPutAll(
   bool serialLog,
   uint32_t continuousTimeoutMin,
   const char* loading,
+  const char* eyesStyle,
   const char* accessToken,
   const char* wifiSsid,
   const char* wifiPassword,
@@ -153,6 +158,7 @@ void settingsNvsPutAll(
     serialLog,
     continuousTimeoutMin,
     loading,
+    eyesStyle,
     accessToken,
     wifiSsid,
     wifiPassword,

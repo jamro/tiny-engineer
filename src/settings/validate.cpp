@@ -2,6 +2,8 @@
 
 #include <cstring>
 
+#include "display/eyes/styles/eye_style.h"
+
 bool settingsValidateSleepTimeout(uint32_t sleepTimeoutMin) {
   return sleepTimeoutMin >= SETTINGS_SLEEP_TIMEOUT_MIN_MIN &&
          sleepTimeoutMin <= SETTINGS_SLEEP_TIMEOUT_MAX_MIN;
@@ -54,6 +56,10 @@ bool settingsValidateLoading(const char* loading) {
 
   return strcmp(loading, "progress") == 0 ||
          strcmp(loading, "sleep_inertia") == 0;
+}
+
+bool settingsValidateEyesStyle(const char* eyesStyle) {
+  return isRegisteredEyeStyleId(eyesStyle);
 }
 
 bool settingsValidateAccessToken(const char* accessToken) {

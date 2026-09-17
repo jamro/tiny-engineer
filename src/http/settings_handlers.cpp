@@ -74,7 +74,7 @@ void sendSettingsJson(
 ) {
   char servoJson[176];
   formatServoRangeJson(servoJson, sizeof(servoJson));
-  char body[1024];
+  char body[1100];
   const char* tokenSet =
     settingsAccessTokenSet() ? "true" : "false";
   const char* wifiConfigured =
@@ -95,6 +95,7 @@ void sendSettingsJson(
       "\"serial_log\":%s,"
       "\"continuous_timeout\":%lu,"
       "\"loading\":\"%s\","
+      "\"eyes_style\":\"%s\","
       "\"access_token_set\":%s,"
       "\"wifi_configured\":%s,"
       "\"wifi_ssid\":\"%s\","
@@ -112,6 +113,7 @@ void sendSettingsJson(
       settingsSerialLogEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
       settingsLoading(),
+      settingsEyesStyle(),
       tokenSet,
       wifiConfigured,
       settingsWifiSsid(),
@@ -134,6 +136,7 @@ void sendSettingsJson(
       "\"serial_log\":%s,"
       "\"continuous_timeout\":%lu,"
       "\"loading\":\"%s\","
+      "\"eyes_style\":\"%s\","
       "\"access_token_set\":%s,"
       "\"wifi_configured\":%s,"
       "\"wifi_ssid\":\"%s\","
@@ -148,6 +151,7 @@ void sendSettingsJson(
       settingsSerialLogEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
       settingsLoading(),
+      settingsEyesStyle(),
       tokenSet,
       wifiConfigured,
       settingsWifiSsid(),
@@ -167,6 +171,7 @@ void sendSettingsJson(
       "\"serial_log\":%s,"
       "\"continuous_timeout\":%lu,"
       "\"loading\":\"%s\","
+      "\"eyes_style\":\"%s\","
       "\"access_token_set\":%s,"
       "\"wifi_configured\":%s,"
       "\"wifi_ssid\":\"%s\","
@@ -180,6 +185,7 @@ void sendSettingsJson(
       settingsSerialLogEnabled() ? "true" : "false",
       (unsigned long)settingsContinuousTimeoutMin(),
       settingsLoading(),
+      settingsEyesStyle(),
       tokenSet,
       wifiConfigured,
       settingsWifiSsid(),
@@ -205,6 +211,7 @@ void handleSettingsPost(WebServer& server) {
   const bool hasSerialLog = server.hasArg("serial_log");
   const bool hasContTo = server.hasArg("continuous_timeout");
   const bool hasLoading = server.hasArg("loading");
+  const bool hasEyesStyle = server.hasArg("eyes_style");
   const bool hasAccessToken = server.hasArg("access_token");
   const bool hasWifiSsid = server.hasArg("wifi_ssid");
   const bool hasWifiPassword = server.hasArg("wifi_password");
@@ -214,13 +221,13 @@ void handleSettingsPost(WebServer& server) {
   const bool hasOledRotate180 = server.hasArg("oled_rotate_180");
 
   if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasSerialLog &&
-      !hasContTo && !hasLoading && !hasAccessToken && !hasWifiSsid &&
-      !hasWifiPassword && !hasServoMins && !hasServoMaxs && !hasRgbOrder &&
-      !hasOledRotate180) {
+      !hasContTo && !hasLoading && !hasEyesStyle && !hasAccessToken &&
+      !hasWifiSsid && !hasWifiPassword && !hasServoMins && !hasServoMaxs &&
+      !hasRgbOrder && !hasOledRotate180) {
     httpSendJson(
       server,
       400,
-      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, access_token, wifi_ssid, wifi_password, servo_mins, servo_maxs, rgb_order, or oled_rotate_180\"}"
+      "{\"ok\":false,\"error\":\"missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, eyes_style, access_token, wifi_ssid, wifi_password, servo_mins, servo_maxs, rgb_order, or oled_rotate_180\"}"
     );
     return;
   }
@@ -239,6 +246,8 @@ void handleSettingsPost(WebServer& server) {
   const uint32_t* contToPtr = nullptr;
   String loadingArg;
   const char* loadingPtr = nullptr;
+  String eyesStyleArg;
+  const char* eyesStylePtr = nullptr;
   String accessTokenArg;
   const char* accessTokenPtr = nullptr;
   String wifiSsidArg;
@@ -403,6 +412,20 @@ void handleSettingsPost(WebServer& server) {
         server,
         400,
         "{\"ok\":false,\"error\":\"invalid loading\"}"
+      );
+      return;
+    }
+  }
+
+  if (hasEyesStyle) {
+    eyesStyleArg = server.arg("eyes_style");
+    eyesStylePtr = eyesStyleArg.c_str();
+
+    if (!settingsValidateEyesStyle(eyesStylePtr)) {
+      httpSendJson(
+        server,
+        400,
+        "{\"ok\":false,\"error\":\"invalid eyes_style\"}"
       );
       return;
     }
@@ -585,6 +608,7 @@ void handleSettingsPost(WebServer& server) {
         serialLogPtr,
         contToPtr,
         loadingPtr,
+        eyesStylePtr,
         accessTokenPtr,
         wifiSsidPtr,
         wifiPasswordPtr,

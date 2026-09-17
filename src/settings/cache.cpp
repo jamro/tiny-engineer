@@ -12,6 +12,7 @@ bool g_welcome = SETTINGS_DEFAULT_WELCOME;
 bool g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
 uint32_t g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
 char g_loading[SETTINGS_LOADING_MAX_LEN + 1] = {};
+char g_eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1] = {};
 char g_accessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1] = {};
 char g_wifiSsid[SETTINGS_WIFI_SSID_MAX_LEN + 1] = {};
 char g_wifiPassword[SETTINGS_WIFI_PASSWORD_MAX_LEN + 1] = {};
@@ -28,6 +29,11 @@ void setHostnameCache(char* dest, const char* src) {
 void setLoadingCache(char* dest, const char* src) {
   strncpy(dest, src, SETTINGS_LOADING_MAX_LEN);
   dest[SETTINGS_LOADING_MAX_LEN] = '\0';
+}
+
+void setEyesStyleCache(char* dest, const char* src) {
+  strncpy(dest, src, SETTINGS_EYES_STYLE_MAX_LEN);
+  dest[SETTINGS_EYES_STYLE_MAX_LEN] = '\0';
 }
 
 void setAccessTokenCache(char* dest, const char* src) {
@@ -71,6 +77,8 @@ void logSettingsSnapshot(const char* prefix) {
   serialLogPrint(g_continuousTimeoutMin);
   serialLogPrint("min loading=");
   serialLogPrint(g_loading);
+  serialLogPrint(" eyes_style=");
+  serialLogPrint(g_eyesStyle);
   logAccessTokenState();
   serialLogPrint(" wifi=");
   serialLogPrint(g_wifiSsid[0] != '\0' ? "configured" : "unset");

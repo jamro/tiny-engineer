@@ -12,6 +12,7 @@ bool saveSettings(
   const bool* serialLog,
   const uint32_t* continuousTimeoutMin,
   const char* loading,
+  const char* eyesStyle,
   const char* accessToken,
   const char* wifiSsid,
   const char* wifiPassword,
@@ -32,6 +33,7 @@ bool saveSettings(
       serialLog == nullptr &&
       continuousTimeoutMin == nullptr &&
       loading == nullptr &&
+      eyesStyle == nullptr &&
       accessToken == nullptr &&
       wifiSsid == nullptr &&
       wifiPassword == nullptr &&
@@ -51,6 +53,8 @@ bool saveSettings(
   uint32_t nextContTo = g_continuousTimeoutMin;
   char nextLoading[SETTINGS_LOADING_MAX_LEN + 1];
   setLoadingCache(nextLoading, g_loading);
+  char nextEyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1];
+  setEyesStyleCache(nextEyesStyle, g_eyesStyle);
   char nextAccessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1];
   setAccessTokenCache(nextAccessToken, g_accessToken);
   char nextWifiSsid[SETTINGS_WIFI_SSID_MAX_LEN + 1];
@@ -113,6 +117,14 @@ bool saveSettings(
     setLoadingCache(nextLoading, loading);
   }
 
+  if (eyesStyle != nullptr) {
+    if (!settingsValidateEyesStyle(eyesStyle)) {
+      return false;
+    }
+
+    setEyesStyleCache(nextEyesStyle, eyesStyle);
+  }
+
   if (accessToken != nullptr) {
     if (!settingsValidateAccessToken(accessToken)) {
       return false;
@@ -170,6 +182,7 @@ bool saveSettings(
         nextSerialLog,
         nextContTo,
         nextLoading,
+        nextEyesStyle,
         nextAccessToken,
         nextWifiSsid,
         nextWifiPassword,
@@ -188,6 +201,7 @@ bool saveSettings(
   g_serialLog = nextSerialLog;
   g_continuousTimeoutMin = nextContTo;
   setLoadingCache(g_loading, nextLoading);
+  setEyesStyleCache(g_eyesStyle, nextEyesStyle);
   setAccessTokenCache(g_accessToken, nextAccessToken);
   setWifiSsidCache(g_wifiSsid, nextWifiSsid);
   setWifiPasswordCache(g_wifiPassword, nextWifiPassword);

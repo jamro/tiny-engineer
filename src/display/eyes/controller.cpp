@@ -1,16 +1,20 @@
 #include <Arduino.h>
 
+#include <cstring>
+
+#include "animation.h"
 #include "animation/registry.h"
 #include "animation/util.h"
 #include "display/eyes.h"
 #include "display/oled.h"
 #include "display/eyes/core/blink.h"
 #include "display/eyes/core/constants.h"
-#include "display/eyes/core/draw.h"
 #include "display/eyes/core/impact.h"
 #include "display/eyes/core/internal.h"
 #include "display/eyes/core/util.h"
-#include "animation/dead.h"
+#include "display/eyes/styles/eye_style.h"
+#include "display/eyes/styles/kaomoji.h"
+#include "settings/settings.h"
 
 namespace {
 
@@ -35,6 +39,20 @@ uint32_t g_sleepAnimStartedMs = 0;
 uint32_t g_sleepAnimDurationMs = 0;
 float g_sleepAnimFromAmount = 1.0f;
 
+char g_lastDrawnStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1] = {};
+
+EyeStyleSleepPhase currentSleepPhase() {
+  switch (g_sleepEyeAnim) {
+    case SleepEyeAnim::Closing:
+      return EyeStyleSleepPhase::Closing;
+    case SleepEyeAnim::Opening:
+      return EyeStyleSleepPhase::Opening;
+    case SleepEyeAnim::None:
+    default:
+      return EyeStyleSleepPhase::None;
+  }
+}
+
 void updateModePose(uint32_t now) {
   const ModeEntry* entry = modeByEyeMode(g_eyeMode);
 
@@ -45,15 +63,15 @@ void updateModePose(uint32_t now) {
   applyImpactOverlay(g_leftEye, g_rightEye, now);
 }
 
-void drawCurrentEyes() {
-  if (g_eyeMode == EyeMode::Dead && deadShowingX()) {
-    drawDeadXEyes(g_leftEye, g_rightEye);
-    return;
-  }
-
-  const Eye left = eyes::renderEye(g_leftEye, blinkOpenAmount());
-  const Eye right = eyes::renderEye(g_rightEye, blinkOpenAmount());
-  drawEyes(left, right, eyes::EYE_CORNER_RADIUS);
+void drawCurrentEyes(uint32_t now) {
+  const EyeStyleRenderer* style = currentEyeStyle();
+  style->draw(
+    g_eyeMode,
+    getAnimation(),
+    g_modeStartedMs,
+    now,
+    currentSleepPhase()
+  );
 }
 
 bool advanceSleepEyeAnim(uint32_t now) {
@@ -86,6 +104,18 @@ bool advanceSleepEyeAnim(uint32_t now) {
   }
 
   return false;
+}
+
+void noteStyleIfChanged() {
+  const char* styleId = settingsEyesStyle();
+  if (strcmp(g_lastDrawnStyle, styleId) != 0) {
+    strncpy(g_lastDrawnStyle, styleId, SETTINGS_EYES_STYLE_MAX_LEN);
+    g_lastDrawnStyle[SETTINGS_EYES_STYLE_MAX_LEN] = '\0';
+    g_forceRedraw = true;
+    if (strcmp(styleId, "kaomoji") == 0) {
+      kaomojiResetPlayback(millis());
+    }
+  }
 }
 
 }  // namespace
@@ -155,7 +185,10 @@ void setEyeMode(EyeMode mode, uint32_t now) {
     entry->startEyes(now);
   }
 
-  updateModePose(now);
+  if (currentEyeStyle()->needsPoseUpdate) {
+    updateModePose(now);
+  }
+
   g_forceRedraw = true;
 }
 
@@ -168,7 +201,7 @@ void startEyes() {
   blinkBeginIdle(millis());
   blinkSetNextBlinkMs(millis() + anim::randRangeMs(800, 2000));
   setEyeMode(EyeMode::Idle, millis());
-  drawCurrentEyes();
+  drawCurrentEyes(millis());
   g_lastDrawMs = millis();
   g_forceRedraw = false;
 }
@@ -218,7 +251,12 @@ SleepEyeResult updateSleepEyes(uint32_t now) {
     return SleepEyeResult::Running;
   }
 
-  updateModePose(now);
+  noteStyleIfChanged();
+
+  const EyeStyleRenderer* style = currentEyeStyle();
+  if (style->needsPoseUpdate) {
+    updateModePose(now);
+  }
 
   const SleepEyeAnim phase = g_sleepEyeAnim;
   const bool finished = advanceSleepEyeAnim(now);
@@ -228,7 +266,7 @@ SleepEyeResult updateSleepEyes(uint32_t now) {
     (now - g_lastDrawMs) >= eyes::REDRAW_INTERVAL_MS;
 
   if (shouldDraw) {
-    drawCurrentEyes();
+    drawCurrentEyes(now);
     g_lastDrawMs = now;
     g_forceRedraw = false;
   }
@@ -253,20 +291,30 @@ void updateEyes(uint32_t now) {
     return;
   }
 
-  updateModePose(now);
+  noteStyleIfChanged();
 
-  if (g_eyeMode != EyeMode::Welcome &&
+  const EyeStyleRenderer* style = currentEyeStyle();
+
+  if (style->needsPoseUpdate) {
+    updateModePose(now);
+  }
+
+  if (style->needsBlink &&
+      g_eyeMode != EyeMode::Welcome &&
       g_eyeMode != EyeMode::Wakeup &&
       g_eyeMode != EyeMode::Dead) {
     blinkAdvance(now);
   }
 
-  if (!g_forceRedraw &&
-      (now - g_lastDrawMs) < eyes::REDRAW_INTERVAL_MS) {
+  const uint32_t redrawInterval = style->needsPoseUpdate
+    ? eyes::REDRAW_INTERVAL_MS
+    : 100;
+
+  if (!g_forceRedraw && (now - g_lastDrawMs) < redrawInterval) {
     return;
   }
 
-  drawCurrentEyes();
+  drawCurrentEyes(now);
   g_lastDrawMs = now;
   g_forceRedraw = false;
 }

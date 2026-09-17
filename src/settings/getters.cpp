@@ -43,6 +43,10 @@ const char* settingsLoading() {
   return g_loading;
 }
 
+const char* settingsEyesStyle() {
+  return g_eyesStyle;
+}
+
 const char* settingsAccessToken() {
   return g_accessToken;
 }

@@ -213,7 +213,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <a class="card" href="/animations"><h3>Animations</h3><p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a>
 <a class="card" href="/servo"><h3>Servo control</h3><p>Move individual servos to any angle.</p></a>
 <a class="card" href="/tests"><h3>Hardware tests</h3><p>Try the speaker, screen, LEDs, and servo sweep.</p></a>
-<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, boot behavior, serial logging, and API token. WiFi is set in setup mode after factory reset; servo ranges, screen orientation, and RGB mapping can be retuned there too.</p></a>
+<a class="card" href="/config"><h3>Config</h3><p>Device name, timeouts, volume, eyes style, boot behavior, serial logging, and API token. WiFi is set in setup mode after factory reset; servo ranges, screen orientation, and RGB mapping can be retuned there too.</p></a>
 <a class="card" href="/api"><h3>API reference</h3><p>Full endpoint list, parameters, and curl-friendly docs.</p></a>
 <a class="card card-github" href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener"><h3>GitHub docs &rarr;</h3><p>Build guide, wiring, and full project docs.</p></a>
 </div>
@@ -258,6 +258,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <tr><td><code>serial_log</code></td><td>integer</td><td>0 or 1 (USB serial debug logging)</td></tr>
 <tr><td><code>continuous_timeout</code></td><td>integer</td><td>1&ndash;1440 minutes</td></tr>
 <tr><td><code>loading</code></td><td>string</td><td><code>progress</code> or <code>sleep_inertia</code> (boot screen; next reboot)</td></tr>
+<tr><td><code>eyes_style</code></td><td>string</td><td><code>classic</code> or <code>kaomoji</code> (OLED eyes look; immediate)</td></tr>
 <tr><td><code>access_token</code></td><td>string</td><td>0&ndash;64 printable ASCII; empty clears (disables auth)</td></tr>
 <tr><td><code>wifi_ssid</code></td><td>string</td><td>1&ndash;32 chars; setup AP only; requires <code>wifi_password</code></td></tr>
 <tr><td><code>wifi_password</code></td><td>string</td><td>0&ndash;63 chars; setup AP only; tested before save</td></tr>
@@ -555,6 +556,17 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <input type="range" id="config-volume-slider" min="0" max="100" value="70">
 <input type="number" id="config-volume" min="0" max="100" step="1" value="70" required>
 </div>
+</div>
+</div>
+<div class="config-section">
+<div class="config-section-head"><h3>Display</h3><span class="apply-badge apply-now">Immediate</span></div>
+<div class="form-group">
+<div class="field-head"><label for="config-eyes-style">Eyes style</label><span class="apply-badge apply-now">Immediate</span></div>
+<select id="config-eyes-style">
+<option value="classic">Classic (rounded eyes)</option>
+<option value="kaomoji">Kaomoji (animated faces)</option>
+</select>
+<p class="hint">Classic is the default procedural eyes. Kaomoji maps each animation to a face from the expression library. Add new styles in firmware under <code>display/eyes/styles/</code>.</p>
 </div>
 </div>
 <div class="config-section">
@@ -1197,6 +1209,7 @@ function loadSettings(){
     document.getElementById("config-welcome").checked=j.welcome!==false;
     document.getElementById("config-serial-log").checked=!!j.serial_log;
     document.getElementById("config-loading").value=j.loading==="sleep_inertia"?"sleep_inertia":"progress";
+    document.getElementById("config-eyes-style").value=j.eyes_style==="kaomoji"?"kaomoji":"classic";
     setAccessTokenFromServer(!!j.access_token_set);
     updateWelcomeMotionHint();
     applyServoRangesFromSettings(j);
@@ -1463,9 +1476,10 @@ document.getElementById("config-form").addEventListener("submit",function(e){
   var welcome=document.getElementById("config-welcome").checked?1:0;
   var serialLog=document.getElementById("config-serial-log").checked?1:0;
   var loading=document.getElementById("config-loading").value;
+  var eyesStyle=document.getElementById("config-eyes-style").value;
   var newToken=document.getElementById("config-access-token").value;
   var wasClearPending=accessTokenClearPending;
-  var url="/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume)+"&welcome="+welcome+"&serial_log="+serialLog+"&continuous_timeout="+encodeURIComponent(continuous)+"&loading="+encodeURIComponent(loading);
+  var url="/settings?sleep_timeout="+encodeURIComponent(sleep)+"&hostname="+encodeURIComponent(host)+"&volume="+encodeURIComponent(volume)+"&welcome="+welcome+"&serial_log="+serialLog+"&continuous_timeout="+encodeURIComponent(continuous)+"&loading="+encodeURIComponent(loading)+"&eyes_style="+encodeURIComponent(eyesStyle);
   if(wasClearPending)url+="&access_token=";
   else if(!accessTokenMaskActive&&newToken)url+="&access_token="+encodeURIComponent(newToken);
   setBusy(true);
@@ -1481,6 +1495,7 @@ document.getElementById("config-form").addEventListener("submit",function(e){
       document.getElementById("config-welcome").checked=res.data.welcome!==false;
       document.getElementById("config-serial-log").checked=!!res.data.serial_log;
       document.getElementById("config-loading").value=res.data.loading==="sleep_inertia"?"sleep_inertia":"progress";
+      document.getElementById("config-eyes-style").value=res.data.eyes_style==="kaomoji"?"kaomoji":"classic";
       if(wasClearPending)setStoredToken("");
       else if(!accessTokenMaskActive&&newToken)setStoredToken(newToken);
       setAccessTokenFromServer(!!res.data.access_token_set);

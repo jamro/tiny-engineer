@@ -2,7 +2,7 @@
 
 Persistent settings live in NVS (namespace `te`) under [`src/settings/`](../src/settings/). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
-Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `access_token`, `wifi_ssid`, `wifi_password`, `sranges` (packed servo min/max blob), `rgb_ord` (WS2812 byte-order string), `oled_rot` (OLED 180° rotation bool). Follow the same pattern for a new one.
+Existing keys: `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `eyes_style`, `access_token`, `wifi_ssid`, `wifi_password`, `sranges` (packed servo min/max blob), `rgb_ord` (WS2812 byte-order string), `oled_rot` (OLED 180° rotation bool). Follow the same pattern for a new one.
 
 ## Design choices
 
