@@ -1,0 +1,95 @@
+{
+  "width": 128,
+  "height": 32,
+  "format": "row-major-msb-first",
+  "frameMs": 100,
+  "loopMs": 3000,
+  "expressions": [
+    {
+      "id": "idle",
+      "frames": 30,
+      "sha256": "6413f4edee0cbd53f16e7bb490a6a751e3806ba9e66ccde21c6aa3e4bcfa29b0"
+    },
+    {
+      "id": "happy",
+      "frames": 30,
+      "sha256": "ace03d8dff6394548e44c18e663c016d41398ab8f909ac8be97d7154f9539fb6"
+    },
+    {
+      "id": "laugh",
+      "frames": 30,
+      "sha256": "94930173e299ad7055f23d3676998113d895c4f9963788ba0d70800f2297ca25"
+    },
+    {
+      "id": "wink",
+      "frames": 30,
+      "sha256": "ba70db8e958d7a1c1e8432f935e0a113d0620af7e6cafa8b678d2c0cce0c405b"
+    },
+    {
+      "id": "curious",
+      "frames": 30,
+      "sha256": "bb3dfdae21c82b6a7fbd1139cdf1b6266dad1680947f38082705c2b7a29f3f2a"
+    },
+    {
+      "id": "thinking",
+      "frames": 30,
+      "sha256": "1eff7f7fdc13cdebe26a6fa8ba34304fbff97ad41b9691c962e9eb7f6bd165b0"
+    },
+    {
+      "id": "surprise",
+      "frames": 30,
+      "sha256": "1b01090f343d5ef581cd60cf00fa36db793f9304ace61f2cd727f88c4ef49d7e"
+    },
+    {
+      "id": "smug",
+      "frames": 30,
+      "sha256": "a7baa4aae4fb360d7b3cd3f730ceef5929ef2f58721eebee62fa32bd0721f3f7"
+    },
+    {
+      "id": "sleepy",
+      "frames": 30,
+      "sha256": "2a173eebc1dd1f373dd9090072fdb133a3a2f7907bb4c302640e00b85fdc1204"
+    },
+    {
+      "id": "sleep",
+      "frames": 30,
+      "sha256": "b7c465908e413777815b39ba2bdbf7490b4a275932552e1916f34a8ca09c6db3"
+    },
+    {
+      "id": "sad",
+      "frames": 30,
+      "sha256": "3d01ba558d2f2f1bcc2ef78a4ad57d8aa70c21859661dada925e92e8685a88df"
+    },
+    {
+      "id": "cry",
+      "frames": 30,
+      "sha256": "da60536d38f074526521a39c99ff16cf1404cffaf1366cb433978263489ab86b"
+    },
+    {
+      "id": "angry",
+      "frames": 30,
+      "sha256": "eaa6db37e687504871b1f04563a9eeca6820464fd7978e8044cefa6ffaf7f9e6"
+    },
+    {
+      "id": "panic",
+      "frames": 30,
+      "sha256": "a62a4d723c7698c9d52d1c241ea2eecf5a2e200f37529ea4debeb09211b8d9e0"
+    },
+    {
+      "id": "shy",
+      "frames": 30,
+      "sha256": "27fbd45135ad16f1189997c22bbb3ba388894c07902651862478724c5656351e"
+    },
+    {
+      "id": "love",
+      "frames": 30,
+      "sha256": "311a089f5fcffa1152324a75888b3a4f22331e4e8c0e7a0036207638ae708024"
+    }
+  ],
+  "totalFrames": 480,
+  "uniqueFrames": 87,
+  "rleBytes": 17968,
+  "indexBytes": 480,
+  "offsetBytes": 176,
+  "assetBytes": 18624
+}

@@ -33,6 +33,8 @@ jobs:
         run: pip install -U platformio
       - name: Build firmware
         run: pio run
+      - name: Build OLED expression demo
+        run: pio run -e expression-demo
       - name: Host Unity tests
         run: pio test -e native
 
@@ -43,6 +45,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Check OLED expression assets
+        run: |
+          node scripts/expressions/generate.js --check
+          node scripts/expressions/test-assets.js
       - name: Cursor package tests
         run: npm test --prefix packages/tiny-engineer-cursor
       - name: Antigravity package tests

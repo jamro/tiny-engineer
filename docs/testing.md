@@ -12,6 +12,19 @@ pio test -e native
 
 `pio run` builds firmware. Native tests are **`pio test -e native`**, not `pio run -e native`.
 
+## OLED expressions
+
+The optional [expression library](../lib/TinyEngineerExpressions/README.md) has deterministic asset checks and native renderer tests. These checks require Node 18+ and PlatformIO; they do not access hardware.
+
+```bash
+node scripts/expressions/generate.js --check
+node scripts/expressions/test-assets.js
+pio test -e native
+pio run -e expression-demo
+```
+
+The `expression-demo` environment builds a separate OLED-only application without changing the default robot build. For a later bench test, follow its [wiring and upload notes](../lib/TinyEngineerExpressions/README.md#standalone-oled-demo), leave the separate servo supply off, and observe all 16 faces through a complete 48-second cycle. Report physical display results separately from host tests and compilation.
+
 ## Packages
 
 Node 18+. No robot.
