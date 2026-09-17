@@ -1,1 +1,4 @@
 *.bak
+gerbers/
+production/
+fabrication-toolkit-options.json
