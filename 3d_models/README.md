@@ -8,11 +8,16 @@ The full assembly — all components composed — lives in [`cad/TinyEngineer.f3
 
 ## Printables
 
-Individual parts are exported under [`parts/{servo_id}/`](parts/). Print the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, or **`parts/hd1370a/3mf/`** to match the servos you bought ([which servo](../docs/3d/parametric-design.md)). They are ready to print in an orientation that does not need supports. Print with **PLA** or **PETG**. `stl/` next to `3mf/` is the same mesh in binary STL. `step/` next to those is CAD interchange (BRep STEP), not a printable mesh.
+Individual parts are exported under [`parts/{servo_id}/`](parts/). Match the folder to the servos you bought ([which servo](../docs/3d/parametric-design.md)). `stl/` next to `3mf/` is the same mesh in binary STL. `step/` next to those is CAD interchange (BRep STEP), not a printable mesh for a home slicer.
+
+Two ways to get the mechanical set (same place in the build path):
+
+- **Print yourself** — use the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, or **`parts/hd1370a/3mf/`**. Ready to print in an orientation that does not need supports. **PLA** or **PETG**. Start with [Print first](#print-first).
+- **No printer?** — order the aggregated sets from a third-party service: [order printed parts](../docs/3d/order-parts.md). Orders are at your own risk; fit can vary by provider and design revision.
 
 ### Print first
 
-Print these two small testers from that folder **before** the rest of the set. Do not print the full robot until both fit.
+**Home printers only.** Print these two small testers from that folder **before** the rest of the set. Do not print the full robot until both fit. Skip this step when ordering from a service (testers alone are rarely worth the min fee + shipping).
 
 1. **`ServoSizingTester.3mf`** — seat a real servo; do not force it. The body should slide, tabs sit, holes line up, and the shaft should have clearance. Tight or loose → sand/ream, or adjust servo CAD params ([parametric design](../docs/3d/parametric-design.md)).
 2. **`ScrewSizingTest.3mf`** — M2 screw pilot-hole tolerance. Each hole is marked with its diameter. Drive an M2 screw into each hole and pick the tightest size that still cuts a thread (does not spin freely / slide through). Set Fusion user parameter `screw_thread_diameter` to that marked value, then re-export before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
@@ -21,10 +26,12 @@ Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — n
 
 ## Parts
 
-Same filenames in each `parts/{servo_id}/3mf/` folder:
+Same filenames in each `parts/{servo_id}/3mf/` folder (and matching `stl/` / `step/`):
 
 | File | Role |
 | --- | --- |
+| `PartsSetA.3mf` | Aggregated copper-color group for [service orders](../docs/3d/order-parts.md) (home print: use individuals below) |
+| `PartsSetB.3mf` | Aggregated black-color group for [service orders](../docs/3d/order-parts.md) (home print: use individuals below) |
 | `Head.3mf` | Head (pitch) |
 | `Neck.3mf` | Neck (yaw) |
 | `ForearmLeft.3mf` | Left forearm / hand |

@@ -25,7 +25,7 @@ Gather electronics from [hardware/components.md](hardware/components.md). Minimu
 
 ### 2. Print and mechanical
 
-Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/{servo_id}/3mf/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md). Print [`ServoSizingTester`](../3d_models/README.md#print-first) and [`ScrewSizingTest`](../3d_models/README.md#print-first) first — confirm a real servo fits and pick an M2 pilot-hole diameter before queuing the rest of the set ([M2 screw holes](3d/parametric-design.md#m2-screw-holes)).
+Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/{servo_id}/3mf/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). No printer? [Order the aggregated sets from a provider](3d/order-parts.md) instead. Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md). When printing yourself, print [`ServoSizingTester`](../3d_models/README.md#print-first) and [`ScrewSizingTest`](../3d_models/README.md#print-first) first — confirm a real servo fits and pick an M2 pilot-hole diameter before queuing the rest of the set ([M2 screw holes](3d/parametric-design.md#m2-screw-holes)). Skip the testers-first step when ordering from a service.
 
 Join printed parts with **M2 screws** that thread directly into the plastic (no glue, no inserts; easy to dismount later). Exact screw lengths/counts and a full assembly SOP are **not documented yet** — use the parts table there as the inventory. After print:
 

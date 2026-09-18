@@ -29,6 +29,8 @@ Supports leave scars, use filament, and make small holes and servo pockets messy
 
 All parts were printed and test-fitted on a **Creality Ender 3 V3 SE**. You should be able to print them on **any FDM printer** that can run PLA (or PETG) at typical hobby settings — the files are not locked to that machine.
 
+No printer? You can [order the aggregated part sets from a third-party service](../3d/order-parts.md) instead of printing at home, then continue with assembly.
+
 ---
 
 ## Materials: PLA vs PETG
