@@ -7,7 +7,7 @@ or any other open-source licence in this repository:
 
 - The name **Tiny Engineer**
 - The Tiny Engineer logo and visual identity
-- The AI emblem geometry in [`3d_models/parts/AiEmblem.3mf`](3d_models/parts/AiEmblem.3mf)
+- The AI emblem geometry in [`3d_models/parts/sg90/3mf/AiEmblem.3mf`](3d_models/parts/sg90/3mf/AiEmblem.3mf) (same part under other servo folders)
 - Project images in `docs/` that depict the Tiny Engineer branding
 
 Copyright in design files does not grant trademark rights. Licensing

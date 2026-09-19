@@ -1,6 +1,6 @@
 # Order printed parts (no 3D printer)
 
-No printer at home? You can still get the printed set from a third-party 3D-printing service, then follow the interleaved build path: mechanical assembly continues around wiring and flashing ([assembly guide](assembly.md) is the sequencing authority; overview in [getting started](../getting-started.md)).
+No printer at home? You can still get the printed set from a third-party 3D-printing service, then return to the [getting-started](../getting-started.md) checklist. Mechanical joins: [assembly.md](assembly.md).
 
 Orders are at your own risk. Fit and finish can vary by provider and by design revision — especially on development builds there may be bugs — and we cannot guarantee every part will match every time.
 
@@ -10,7 +10,7 @@ Any FDM bureau that accepts STL or STEP can work. **[PCBWay 3D printing](https:/
 
 ## Which files to upload
 
-1. Pick the servo folder that matches the servos you bought: `3d_models/parts/<servo_id>/` ([which servo](parametric-design.md)).
+1. Pick the servo folder that matches the servos you bought: `3d_models/parts/<servo_id>/` ([which servo](../shopping.md)).
 2. Prefer files under **`stl/`** (widely accepted). Use **`step/`** if the provider prefers CAD. **`3mf/`** is mainly for home slicers.
 3. Upload these **three** aggregates only — not the full individual-part inventory. They group pieces meant for the same material / color:
 
@@ -47,4 +47,4 @@ UI labels change; follow the outcomes, not exact button names. The flow below ma
 
 ## Next steps
 
-Back to the interleaved build path: [getting started → Print and mechanical](../getting-started.md#2-print-and-mechanical), then [assemble](assembly.md) (wire and flash mid-assembly per that guide — not after all joins). Part inventory and home-print notes: [3d_models/README.md](../../3d_models/README.md).
+Return to the [getting-started](../getting-started.md) checklist ([§2 Print or order](../getting-started.md#2-print-or-order) done). Next on that list is **wire**, then flash, then one assembly run. Part inventory and home-print notes: [3d_models/README.md](../../3d_models/README.md).

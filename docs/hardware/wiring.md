@@ -1,5 +1,22 @@
 # Wiring
 
+Build the harness **on the desk** ([getting-started](../getting-started.md) — after print, before flash). Do not seat it in the chest until [assembly §12](../3d/assembly.md#12-electronics-inside-the-desk).
+
+**Why these nets exist:**
+
+- Two voltage rails: **5 V** for servos and the amp; **3.3 V** for ESP32 GPIO, PCA9685 **VCC**, and OLED. Never jumper those together.
+- PCA9685 **VCC** is logic; **V+** is servo power. Same chip, two jobs.
+- OLED and PCA9685 share one I2C bus (SDA/SCL).
+- Audio is I2S into the MAX98357A; the speaker is **BTL** — **SPK− is not ground**.
+- Every module shares **GND**.
+
+**Connect in this order (power last):**
+
+1. Common **GND** to every module.
+2. Signal wires: I2C (SDA/SCL), I2S (BCLK/LRC/DIN), USB D+/D−, PCA9685 OE if you use it.
+3. Logic **3V3**: ESP32 **3V3** → PCA9685 **VCC** and OLED **VCC**.
+4. **5 V** last: USB VBUS → ESP32 **5V**, PCA9685 **5V**, MAX98357A **Vin**. Leave servo leads unplugged until centering.
+
 Source of truth for *what is connected to what*: [`docs/wiring/Tiny Engineer.drawio.png`](../wiring/Tiny%20Engineer.drawio.png) ([`.drawio`](../wiring/Tiny%20Engineer.drawio)).
 
 Firmware GPIO numbers: [`include/pins.h`](../../include/pins.h) / [pinout.md](pinout.md). Diagram labels pads **GP0**…**GP21**; those are the same pins as GPIO0…GPIO21.
@@ -119,7 +136,7 @@ One generic **Servo** block:
 | 5V | V+ |
 | GND | GND |
 
-Firmware drives **channels 0–4** (`SERVO_CHANNELS`). The drawing does not number the PWM header. Channel → joint: [robot-movement.md](../robot-movement.md) / [`include/servos.h`](../../include/servos.h).
+Firmware drives **channels 0–4** (`SERVO_SPECS` / `SERVO_HEAD`…`SERVO_BODY`). The drawing does not number the PWM header. Channel → joint: [robot-movement.md](../robot-movement.md) / [`include/servos.h`](../../include/servos.h).
 
 ## Pads drawn with no wires
 

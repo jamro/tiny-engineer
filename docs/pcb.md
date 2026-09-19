@@ -79,7 +79,7 @@ Commit the source files required to edit and reproduce the design, including whe
 - `sym-lib-table`
 - `fp-lib-table`
 - board documentation (`README.md`)
-- `expected-nets.yml` (critical net memberships for review — see [below](#expected-netsyml))
+- `expected-nets.yml` (critical net memberships for review — see [below](#expected-nets-yml))
 
 Do not commit temporary, local, backup, or generated files such as:
 

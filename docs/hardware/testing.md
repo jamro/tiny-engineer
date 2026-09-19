@@ -11,7 +11,7 @@ Firmware is [`src/main.cpp`](../../src/main.cpp). Boot **inits** hardware and st
 
 Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi credentials are saved in NVS and configured only in setup AP mode (first boot, or after factory reset + power-cycle). Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are also setup-AP-only; factory reset keeps them.
 
-Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200). Physical board is **Waveshare ESP32-C3-Zero**; PlatformIO env name is `esp32-c3-devkitm-1`.
+Build/flash: [flash.md](../flash.md) (`pio run`, `pio run -t upload`, serial 115200). Physical board is **Waveshare ESP32-C3-Zero**; PlatformIO env name is `esp32-c3-devkitm-1`.
 
 ## What boot covers
 
@@ -24,7 +24,7 @@ Build/flash: project root README (`pio run`, `pio run -t upload`, serial 115200)
 | Wi-Fi | STA connect from saved NVS credentials, or setup AP `TinyEngineer-XXXX` when unset/failed; mDNS `{hostname}.local` after STA connect |
 | MAX98357A / I2S | `I2S.begin` 44.1 kHz 16-bit stereo |
 | Servos | Smooth move to mid (or sleep pose) at 35°/s |
-| HTTP | Port 80 if Wi-Fi connected |
+| HTTP | Port 80 when STA connected, or on setup AP at `192.168.4.1` |
 | Success | Dim green RGB during init; then animation LED (see below) |
 | Fatal init failure | Red blink code on the WS2812 (see below) |
 
@@ -73,7 +73,7 @@ During normal operation the onboard WS2812 tracks the active animation (not boot
 | `abort` | Solid red |
 | `none`, `sleep` | Off |
 
-State changes fade over **1 s** (see [`docs/api.md`](../api.md#rgb-led)). Trigger via `POST /anim?name=…` or Cursor hooks.
+State changes fade over **1 s** (see [`docs/api.md`](../api.md#rgb-led)). Trigger via `POST /anim?name=…` or agent hooks / CLIs.
 
 OLED shows matching status strings when the panel is present (progress loading: WiFi step labels; sleep inertia: eyes only).
 
@@ -107,7 +107,8 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | --- | --- | --- |
 | `GET` | `/` | HTML endpoint index |
 | `GET` | `/auth` | Auth status (`ok`, `required`, `wifi_configured`, `provisioning`) — always public |
-| `GET` | `/health` | Health JSON (`ok`, `uptime_ms`, `free_heap`, `heap_size`, `cpu_temp_c`, `wifi`, `oled`) |
+| `GET` | `/health` | Health JSON — full field list in [api.md](../api.md#get-health) |
+| `GET` / `POST` | `/anim` | Current animation / start one (`name`, optional `interrupt`) — full params in [api.md](../api.md#post-anim) |
 | `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `wifi_ssid`, `wifi_password_set`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`) |
 | `POST` | `/settings?...&wifi_ssid=&wifi_password=` | Update NVS settings; WiFi params setup-AP-only and tested before save; `reboot_required` if hostname changed |
 | `POST` | `/settings?...&servo_mins=&servo_maxs=` | Servo min/max comma lists; setup-AP-only |

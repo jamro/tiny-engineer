@@ -1,7 +1,7 @@
 {
   "name": "tiny-engineer-cursor",
   "version": "0.1.0",
-  "description": "Cursor hooks CLI that drives Tiny Engineer robot animations over HTTP. Root package wraps packages/tiny-engineer-cursor for npx github:jamro/tiny-engineer.",
+  "description": "Cursor hooks CLI that drives Tiny Engineer robot animations over HTTP. Root package wraps packages/tiny-engineer-cursor for HTTPS-tarball / local npx (see docs/hooks.md; avoid npx github:… in hooks).",
   "type": "module",
   "bin": {
     "tiny-engineer-cursor": "./packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js"

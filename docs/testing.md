@@ -32,4 +32,5 @@ Node 18+. No robot.
 ```bash
 npm test --prefix packages/tiny-engineer-cursor
 npm test --prefix packages/tiny-engineer-antigravity
+npm test --prefix packages/tiny-engineer-claude-code
 ```

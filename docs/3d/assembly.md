@@ -2,19 +2,20 @@
 
 How to join the printed parts and seat the five micro servos. Use **M2 screws** that thread into the plastic — no glue, no heat-set inserts.
 
-Screw lengths called out below (M2×4 / ×8 / ×16) match the reference shopping list. If you substitute nearby lengths, **test-fit** first. Totals: [3d_models/README.md → Screws](../../3d_models/README.md#screws).
+Follow [getting-started.md](../getting-started.md) for overall build order; this file is the mechanical procedure. Start here **after** wiring and flashing.
 
-**Before you start:** print or order the set for your servo model ([3d_models/README.md](../../3d_models/README.md), [order-parts.md](order-parts.md)). All five servos are the same type; the printed pockets match that model.
+Screw lengths called out below (M2×4 / ×8 / ×16) match the reference list. If you substitute nearby lengths, **test-fit** first. Totals: [3d_models/README.md → Screws](../../3d_models/README.md#screws). Buyer cart: [shopping.md](../shopping.md).
+
+**Before you start:** harness already on the desk, firmware on the board ([wiring.md](../hardware/wiring.md), [flash.md](../flash.md)). Print or order the set for your servo model ([3d_models/README.md](../../3d_models/README.md), [order-parts.md](order-parts.md)). All five servos are the same type; the printed pockets match that model.
 
 **Left / right:** throughout this guide, “robot’s left” and “robot’s right” mean the **figure’s** sides — not your left/right as you face it.
 
 ### Build map
 
 1. Head + Hat (OLED + head servo)
-2. **Wire, flash, setup AP** (required before any centering)
-3. Center Neck → join Head/Neck → Chest side servos → mount on Chest → Belly → Chair
-4. Desk stack → mount electronics → plug channels → Chair↔Desk
-5. Arms → Lamp → setup wizard
+2. Center Neck → join Head/Neck → Chest side servos → mount on Chest → Belly → Chair
+3. Desk stack → mount electronics → plug channels → Chair↔Desk
+4. Arms → Lamp → setup wizard
 
 ## 1. Head — OLED and servo
 
@@ -34,14 +35,13 @@ Screw lengths called out below (M2×4 / ×8 / ×16) match the reference shopping
 
 ![Head](./assembly_visuals/head_2.jpg)
 
-## 2a. Electronics and firmware (required before centering)
+## 2a. Bench window (centering)
 
-From here on you set each printed part on a servo that is already at **90°** (shaft center). That needs a working board.
+Harness and firmware should already be done ([getting-started](../getting-started.md) wire + flash). If the board is not flashed yet, stop and do [flash.md](../flash.md) first. From here on you set each printed part on a servo that is already at **90°** (shaft center).
 
-1. Build and wire the electronics ([wiring](../hardware/wiring.md), [getting started → Wire](../getting-started.md#3-wire-and-power)).
-2. Flash the firmware ([getting started → Flash](../getting-started.md#4-flash)).
+**Bench window:** keep the electronics on the desk — do **not** seat the full harness in the chest until [§12](#12-electronics-inside-the-desk).
 
-You will use the **setup access point** and its web configurator — not the normal Wi‑Fi UI yet. Details: [getting started → Wi‑Fi setup](../getting-started.md#5-wi-fi-setup).
+> **Stop.** Join the setup AP only to press **Move all to 90°**. Do **not** finish the wizard (ranges, OLED, LED, speaker, home Wi-Fi) until [§20](#20-setup-wizard-and-first-boot-on-wi-fi).
 
 After each centering step, **unplug the servo from the PCA9685** before you keep building. Leaving the lead attached makes the next joins awkward. You reconnect the correct channels later.
 
@@ -252,23 +252,31 @@ No screws — everything is a friction fit.
 
 ![Lamp](./assembly_visuals/lamp_1.jpg)
 
-## 20. Setup wizard and first boot on Wi‑Fi
+## 20. Setup wizard and first boot on Wi-Fi
 
-The robot is built. What remains is servo calibration, Wi‑Fi, and a quick check that everything works.
+The robot is built. What remains is servo calibration, Wi-Fi, and a quick check that everything works.
 
-1. Connect power. The board should start the **setup access point**.
-2. Join that Wi‑Fi and open the configurator (`http://192.168.4.1/config`).
-3. Walk through the **entire setup wizard** (servo ranges, OLED, LED, speaker, hostname / home Wi‑Fi) — [getting started → Wi‑Fi setup](../getting-started.md#5-wi-fi-setup).
+1. Connect power. The board should start the **setup access point** (`TinyEngineer-XXXX`). First boot, or after factory reset + power-cycle.
+2. Join that Wi-Fi and open the configurator (`http://192.168.4.1/config`).
+3. Walk through the **entire setup wizard**:
+   1. Seat printed parts on the servo shafts at 90°, then mark each joint’s safe min/max (factory reset keeps prior ranges; you can still change them here).
+   2. Look at the OLED and tap Rotate 180° if text is upside down (factory reset keeps the rotation).
+   3. Tap Red/Green/Blue on the onboard LED; change mapping only if colors look wrong (default **GRB**; factory reset keeps the mapping).
+   4. Play the welcome clip through the speaker.
+   5. Hostname and home Wi-Fi (**2.4 GHz** only). OLED shows join-AP steps.
 4. When the wizard is finished, **disconnect power**, then power on again.
-5. The robot should join your home network and expose the **REST API**. Prove it with the web UI or a curl — [getting started → Prove it](../getting-started.md#6-prove-it), [api.md](../api.md).
+5. The robot should join your home network and expose the **REST API**. Prove it — [getting-started §7](../getting-started.md#7-prove-it), [api.md](../api.md).
+
+Wi-Fi is not editable from the normal Config page later — factory reset to change it.
 
 ## Related
 
 | Topic | Doc |
 | --- | --- |
+| Overall build checklist | [getting-started.md](../getting-started.md) (assemble is [§5](../getting-started.md#5-assemble)) |
+| Shopping list | [shopping.md](../shopping.md) |
 | Parts inventory / printables | [3d_models/README.md](../../3d_models/README.md) |
-| Print or order parts | [getting-started.md → Print and mechanical](../getting-started.md#2-print-and-mechanical) · [order-parts.md](order-parts.md) |
+| Print or order parts | [getting-started §2](../getting-started.md#2-print-or-order) · [order-parts.md](order-parts.md) |
 | Different servo size / CAD params | [parametric-design.md](parametric-design.md) |
 | Servo axes and safe ranges | [robot-movement.md](../robot-movement.md) |
-| Wire and power after assembly | [hardware/wiring.md](../hardware/wiring.md) · [hardware/README.md](../hardware/README.md) |
-| Full build path | [getting-started.md](../getting-started.md) |
+| Wire and flash (before this page) | [hardware/wiring.md](../hardware/wiring.md) · [flash.md](../flash.md) |

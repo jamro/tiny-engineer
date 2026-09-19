@@ -23,7 +23,7 @@ This build uses Dupont on **servos**, **OLED**, and **ESP32** so those parts unp
 **Practical split:**
 - **Solder** the boards that stay in the robot: USB-C breakout, PCA9685 servo driver, audio amp, and the power/signal harness between them
 - **Dupont** to ESP32, OLED, and servos — replaceable without a soldering iron
-- Wire and **verify on the bench** (boot, I2C, one servo, audio) **before** routing into the shell. Debugging inside a closed chest is miserable
+- Wire and **verify on the desk** (boot, I2C, one servo) **before** seating the harness in the chest. Debugging inside a closed chest is miserable
 
 The Waveshare **ESP32-C3-Zero** used here ships with **male pins already soldered**. You still solder everything else that doesn't come with headers you can plug into: USB socket/breakout, servo controller, audio board, and the wires that join those modules.
 
@@ -86,12 +86,12 @@ Assembly checks before first power: [wiring.md](../hardware/wiring.md) — read 
 
 Use [Tiny Engineer.drawio.png](../wiring/Tiny%20Engineer.drawio.png) as your map and [wiring.md](../hardware/wiring.md) as your checklist. This guide doesn't duplicate the connection table.
 
-**Bench bring-up order** (wiring mindset):
+**Desk smoke order** (wiring mindset — after wire + flash, before the mechanical run):
 1. USB power + GND only → ESP32 boots (LED, serial)
 2. Add I2C devices → serial shows PCA9685 found
-3. Add one servo on one channel → `/test/servo` moves it
-4. Add audio, OLED, remaining servos
-5. Install into printed parts
+3. Add one servo on one channel → `/test/servo` or setup AP **Move all to 90°**
+4. Add audio and OLED as you wire the rest of the harness
+5. Then open [assembly.md](../3d/assembly.md) from §1 (one mechanical run). Seat the harness when that guide mounts electronics (§12).
 
 **OLED naming trap:** this build uses the [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm), which labels the clock pad **SCL**. Many clone 0.91" boards print **SCK** on that same I2C clock pin — not SPI. The wiring PNG may still say **SCK**.
 

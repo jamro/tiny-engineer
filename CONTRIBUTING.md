@@ -7,7 +7,7 @@ This is a desk robot: firmware on an ESP32-C3, 3D-printed mechanics, and HTTP cl
 ## Ways to help
 
 - Firmware (`src/`, `include/`, `lib/`, `data/`)
-- Integrations: Cursor hooks, Antigravity CLI, or any REST client ([docs/integration.md](docs/integration.md))
+- Integrations: Cursor hooks, Antigravity CLI, Claude Code hooks, or any REST client ([docs/integration.md](docs/integration.md))
 - Docs, wiring, BOM corrections
 - CAD / printables (`3d_models/`)
 - KiCad PCB boards (`hardware/boards/` — [docs/pcb.md](docs/pcb.md))
@@ -25,7 +25,7 @@ Opening a PR licenses your change under the license of the files you touch. No C
 
 If you modify the hardware designs and distribute Products based on them, CERN-OHL-S-2.0 requires you to make the Complete Source available under the same license. Keep [3d_models/NOTICE](3d_models/NOTICE) and [hardware/NOTICE](hardware/NOTICE) Source Location accurate for the revision you ship.
 
-The **Tiny Engineer** name, logo, and [`3d_models/parts/AiEmblem.3mf`](3d_models/parts/AiEmblem.3mf) are **not** licensed. Factual “based on Tiny Engineer” is fine. Do not imply an official product. Details: [TRADEMARK.md](TRADEMARK.md).
+The **Tiny Engineer** name, logo, and [`3d_models/parts/sg90/3mf/AiEmblem.3mf`](3d_models/parts/sg90/3mf/AiEmblem.3mf) are **not** licensed. Factual “based on Tiny Engineer” is fine. Do not imply an official product. Details: [TRADEMARK.md](TRADEMARK.md).
 
 New hardware paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
 
@@ -37,9 +37,13 @@ PlatformIO from the repo root. Node 18+ for packages. GitHub Actions on `main` a
 
 ```bash
 pio run
+pio run -e expression-demo
 pio test -e native
+node scripts/expressions/generate.js --check
+node scripts/expressions/test-assets.js
 npm test --prefix packages/tiny-engineer-cursor
 npm test --prefix packages/tiny-engineer-antigravity
+npm test --prefix packages/tiny-engineer-claude-code
 ```
 
 `pio test -e native` is not `pio run -e native`. Details: [docs/testing.md](docs/testing.md). Flash locally with `pio run -t upload` when you have a board. Physical module is a **Waveshare ESP32-C3-Zero**; PlatformIO `board = esp32-c3-devkitm-1` is the build target name.
@@ -56,7 +60,7 @@ npm test --prefix packages/tiny-engineer-antigravity
 
 **CAD.** Edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change.
 
-**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Keep [`expected-nets.yml`](docs/pcb.md#expected-netsyml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
+**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Keep [`expected-nets.yml`](docs/pcb.md#expected-nets-yml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
 
 **Motion.** Animations use −1..1 poses mapped to the saved min/max in [docs/robot-movement.md](docs/robot-movement.md). Stock defaults live in [`include/servos.h`](include/servos.h). Do not widen NVS servo clamps without testing on a real robot. Setup AP `POST /setup/servo` can use 0–180° to find limits; assembled motion must not.
 

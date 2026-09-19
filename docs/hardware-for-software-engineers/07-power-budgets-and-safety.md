@@ -158,7 +158,7 @@ flowchart TB
   PCApwr --> SERVOS
 ```
 
-Bench bring-up with strong 5 V **before** cramming everything into the printed chest. Debugging power inside a closed shell is dark work.
+Strong 5 V bring-up on the desk after [wiring](../hardware/wiring.md) and [flash](../flash.md) ([getting-started](../getting-started.md)) **before** closing the chest. Debugging power inside a sealed shell is dark work.
 
 ---
 

@@ -53,7 +53,7 @@ You don't get unlimited pins. Each pin might be reserved for flash, USB, or boot
 
 **Upload** — PlatformIO sends firmware over USB. On ESP32-C3, that's **native USB** on specific GPIO pins (not a separate USB-UART chip).
 
-If upload fails: try another cable (data, not charge-only), another port, hold BOOT, check drivers. Details in [getting-started.md § Flash](../getting-started.md#4-flash).
+If upload fails: try another cable (data, not charge-only), another port, hold BOOT, check drivers. Details in [flash.md](../flash.md).
 
 ---
 
@@ -122,10 +122,10 @@ Wi-Fi is how coding agents talk to the robot. The C3-Zero uses a **ceramic anten
 
 ### Flash workflow
 
-Build, upload, monitor — copy-paste lives in [getting-started.md § Flash](../getting-started.md#4-flash). This chapter stops at *what* the chip is; that page is *how* to deploy.
+Build, upload, monitor — copy-paste lives in [flash.md](../flash.md). This chapter stops at *what* the chip is; that page is *how* to deploy.
 
 ---
 
 **Next:** [Wiring craft and schematics](03-wiring-craft-and-schematics.md)
 
-**Reference:** [hardware/components.md](../hardware/components.md) · [hardware/pinout.md](../hardware/pinout.md) · [getting-started.md § Flash](../getting-started.md#4-flash)
+**Reference:** [hardware/components.md](../hardware/components.md) · [hardware/pinout.md](../hardware/pinout.md) · [flash.md](../flash.md)

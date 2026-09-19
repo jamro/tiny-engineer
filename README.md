@@ -24,9 +24,10 @@ An AI agent works; an integration turns that into events; the robot’s REST API
 
 - **Cursor** — Cursor Agent → Cursor hooks → `tiny-engineer-cursor` → HTTP over Wi-Fi
 - **Antigravity CLI** — Antigravity Agent → lifecycle hooks → `tiny-engineer-antigravity` → HTTP over Wi-Fi
-- **Bring your own** — Claude, Codex, or any other agent → your script/plugin/app → HTTP REST
+- **Claude Code** — Claude Code → project hooks → `tiny-engineer-claude-code` → HTTP over Wi-Fi
+- **Bring your own** — Codex or any other agent → your script/plugin/app → HTTP REST
 
-Both hit the same Tiny Engineer REST API (`/anim`). The ESP32-C3 runs that API, robot logic, and animations, then drives:
+All hit the same Tiny Engineer REST API (`/anim`). The ESP32-C3 runs that API, robot logic, and animations, then drives:
 
 | Bus | Hardware | Role |
 | --- | --- | --- |
@@ -34,22 +35,13 @@ Both hit the same Tiny Engineer REST API (`/anim`). The ESP32-C3 runs that API, 
 | I2C | Waveshare 0.91inch OLED (SSD1306) | Status, face, info |
 | I2S | MAX98357A → speaker | Audio |
 
-Cursor is one, sample, client, not the architecture. Details: [Cursor hooks](docs/hooks.md) · [any integration](docs/integration.md) · [HTTP API](docs/api.md)
+Cursor is one sample client, not the architecture. Details: [Cursor hooks](docs/hooks.md) · [any integration](docs/integration.md) · [HTTP API](docs/api.md)
 
 ## Build your own
 
-End-to-end path (details live in the linked docs):
+**Start here:** [docs/getting-started.md](docs/getting-started.md) — thin checklist (shop → print → wire → flash → assemble → wizard → prove → agent).
 
-New to hardware? Start with **[From Code to Circuits](docs/hardware-for-software-engineers/README.md)** — hardware and electronics for software engineers; Tiny Engineer is the worked example.
-
-1. **Get the electronics** — [hardware inventory](docs/hardware/components.md)
-2. **3D print or order the parts** — [printables](3d_models/README.md), or [order from a provider](docs/3d/order-parts.md) if you have no printer. Different servo size: [parametric CAD](docs/3d/parametric-design.md)
-3. **Assemble, wire, and flash (interleaved)** — mechanical assembly continues around wiring and flashing; [assembly guide](docs/3d/assembly.md) is the sequencing authority (Head + Hat, then wire/flash before centering, then remaining joins). Fit details: [3D models](3d_models/README.md), [servo axes](docs/robot-movement.md). Wiring: [wiring](docs/hardware/wiring.md), [hardware overview](docs/hardware/README.md). Flash: [getting started → Flash](docs/getting-started.md#4-flash)
-4. **Configure Wi-Fi** — [getting started → Wi-Fi](docs/getting-started.md#5-wi-fi-setup)
-5. **Test the robot** — web UI + a curl — [getting started → Prove it](docs/getting-started.md#6-prove-it)
-6. **Connect your coding agent** — [Cursor hooks](docs/hooks.md) or [any IDE / REST](docs/integration.md)
-
-Full walkthrough: [docs/getting-started.md](docs/getting-started.md).
+New to hardware? Optional skim of **[From Code to Circuits](docs/hardware-for-software-engineers/README.md)** — at least [Ch. 01](docs/hardware-for-software-engineers/01-electricity-and-units.md) and [Ch. 07](docs/hardware-for-software-engineers/07-power-budgets-and-safety.md) (3.3 V vs 5 V, VCC ≠ V+) — then return to the checklist.
 
 ## Hardware overview
 
@@ -65,7 +57,7 @@ Major pieces (exact models and counts in the BOM):
 | USB / power | Adafruit 5993 USB-C breakout; **5 V / ≥2 A** supply | 1 |
 | Structure | 3D-printed parts | — |
 
-Complete inventory and limits: [docs/hardware/components.md](docs/hardware/components.md). Which servo to buy and which parts to print: [docs/3d/parametric-design.md](docs/3d/parametric-design.md).
+Complete inventory and limits: [docs/hardware/components.md](docs/hardware/components.md). What to buy (cart + which servo): [docs/shopping.md](docs/shopping.md).
 
 ## Quick start
 
@@ -108,7 +100,8 @@ Cursor projects can map agent events to poses via hooks — [docs/hooks.md](docs
 | Goal | Doc |
 | --- | --- |
 | Build end-to-end | [docs/getting-started.md](docs/getting-started.md) |
-| Parts / BOM | [docs/hardware/components.md](docs/hardware/components.md) |
+| Flash firmware | [docs/flash.md](docs/flash.md) |
+| Parts / cart | [docs/shopping.md](docs/shopping.md) |
 | Wiring / power | [docs/hardware/README.md](docs/hardware/README.md) |
 | Printable parts | [3d_models/README.md](3d_models/README.md) |
 | Assemble printed parts | [docs/3d/assembly.md](docs/3d/assembly.md) |

@@ -18,7 +18,7 @@ If you live in code, hardware docs can feel like a foreign API with no types and
 
 **What you'll get out of it:** read datasheets, schematics, and embedded docs without feeling like an outsider — whether you build this robot or the next board on your bench.
 
-**Honest expectation:** Tiny Engineer was never meant to be an entry-level electronics kit (no single-LED breadboard tutorial). Overall difficulty is **medium**. It can still be your **first hardware project** as a software engineer — if you read first, bench-test before closing the shell, and don't treat "first" as "trivial." See [difficulty by area](#honest-difficulty-by-area) below.
+**Honest expectation:** Tiny Engineer was never meant to be an entry-level electronics kit (no single-LED breadboard tutorial). Overall difficulty is **medium**. It can still be your **first hardware project** as a software engineer — if you read alongside the build, smoke-test the harness on the desk (wire + flash) before closing the shell, and don't treat "first" as "trivial." See [difficulty by area](#honest-difficulty-by-area) below.
 
 ---
 
@@ -28,7 +28,7 @@ Tiny Engineer is one project in that line. I'd recommend this path to any softwa
 
 **What this is:** a bridge into electronics, microcontrollers, power, protocols, and mechanical build craft — taught with software-engineer mental models.
 
-**What this is not:** only a Tiny Engineer assembly manual. When you're ready to wire and flash step by step, use [getting-started.md](../getting-started.md) and the [hardware reference](../hardware/README.md).
+**What this is not:** only a Tiny Engineer assembly manual. When you're ready to build step by step, use [getting-started.md](../getting-started.md) (checklist), [flash.md](../flash.md), and the [hardware reference](../hardware/README.md).
 
 ---
 
@@ -68,7 +68,7 @@ Rough levels: **Easy** · **Medium** · **Medium–High** (for someone with no p
 - This guide translates concepts into your vocabulary first
 - Finish line is motivating (desk robot, not only a blinking LED)
 
-If you've never touched a multimeter, budget extra time on [Ch. 01](01-electricity-and-units.md), [Ch. 07](07-power-budgets-and-safety.md), and bench bring-up in [Ch. 08](08-tools-debugging-and-embedded-workflow.md). Skipping straight to "assemble everything and flash" is how medium projects feel hard.
+If you've never touched a multimeter, budget extra time on [Ch. 01](01-electricity-and-units.md), [Ch. 07](07-power-budgets-and-safety.md), and bring-up discipline in [Ch. 08](08-tools-debugging-and-embedded-workflow.md). Skipping straight to "assemble everything and flash" (or closing the chest before desk smoke) is how medium projects feel hard.
 
 ---
 
@@ -83,7 +83,7 @@ If you've never touched a multimeter, budget extra time on [Ch. 01](01-electrici
 
 **Skip this if you:**
 - Already own a multimeter and use words like "pull-up" without Googling
-- Have built an ESP32 project before and just need the BOM — go to [getting-started.md](../getting-started.md)
+- Have built an ESP32 project before and just need the BOM — go to [shopping.md](../shopping.md) and [getting-started.md](../getting-started.md)
 
 **Don't skip the difficulty section** if this is your first hardware build — [Honest difficulty by area](#honest-difficulty-by-area) sets expectations.
 
@@ -96,7 +96,7 @@ There are three layers. Read them in order when you're learning; jump to the rig
 ```mermaid
 flowchart LR
   primer["hardware-for-software-engineers\n(concepts)"]
-  build["getting-started.md\n(steps)"]
+  build["getting-started.md\n(checklist)"]
   ref["hardware/\n(reference)"]
 
   primer -->|"understand why"| build
@@ -106,14 +106,14 @@ flowchart LR
 | Layer | When to use it |
 | --- | --- |
 | **This guide** | Bridging hardware/electronics concepts from a software background |
-| **[getting-started.md](../getting-started.md)** | Doing the build step by step |
-| **[hardware/](../hardware/README.md)** | Looking up pins, wiring, power numbers, test procedures |
+| **[getting-started.md](../getting-started.md)** | Canonical build checklist (open leaf docs, return) |
+| **[hardware/](../hardware/README.md)** / [flash.md](../flash.md) | Looking up pins, wiring, power, flash, test procedures |
 
 ---
 
 ## Reading order
 
-**Full path** (recommended if hardware is new to you):
+**Alongside the checklist** if hardware is new — print while you read; do not finish this guide before [getting-started.md](../getting-started.md):
 
 1. [Electricity and units](01-electricity-and-units.md)
 2. [Microcontrollers and ESP32](02-microcontrollers-and-esp32.md)
@@ -167,6 +167,8 @@ You've read enough when you can explain in plain language:
 - Why there's a separate PCA9685 chip instead of "just PWM in code"
 - Where the ceramic antenna is and why you shouldn't bury it in plastic
 
-Then open [getting-started.md](../getting-started.md) and work through parts → print → wire → flash → Wi-Fi → prove it.
+**Minimum skim before power:** [Ch. 01](01-electricity-and-units.md) and [Ch. 07](07-power-budgets-and-safety.md) (3.3 V vs 5 V, VCC ≠ V+). This guide is **parallel reading**, not a prerequisite. Jump to one chapter from the shortcuts table if you only need that topic.
+
+Then open [getting-started.md](../getting-started.md) and work the checklist (shop → print → wire → flash → assemble → wizard → prove).
 
 **Reference:** [getting-started.md](../getting-started.md) · [hardware/README.md](../hardware/README.md) · [3d_models/README.md](../../3d_models/README.md)

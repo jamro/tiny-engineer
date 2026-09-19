@@ -43,7 +43,7 @@ pio device monitor
 
 > **If you've written backend code…** Serial is structured logging before structured logging existed on the device. Read it before guessing.
 
-Upload and monitor details: [getting-started.md § Flash](../getting-started.md#4-flash).
+Upload and monitor details: [flash.md](../flash.md).
 
 ---
 
@@ -130,7 +130,7 @@ When two things changed, revert one. Hardware debugging punishes batch changes l
 
 ## When things are "done enough"
 
-You're ready for [getting-started.md § Prove it](../getting-started.md#6-prove-it) and agent hooks when:
+You're ready for [getting-started.md § Prove it](../getting-started.md#7-prove-it) and agent hooks when:
 
 - `/health` returns OK on Wi-Fi
 - Each servo sweeps inside safe range without buzzing

@@ -8,7 +8,7 @@ The full assembly — all components composed — lives in [`cad/TinyEngineer.f3
 
 ## Printables
 
-Individual parts are exported under [`parts/{servo_id}/`](parts/). Match the folder to the servos you bought ([which servo](../docs/3d/parametric-design.md)). `stl/` next to `3mf/` is the same mesh in binary STL. `step/` next to those is CAD interchange (BRep STEP), not a printable mesh for a home slicer.
+Individual parts are exported under [`parts/{servo_id}/`](parts/). Match the folder to the servos you bought ([which servo](../docs/shopping.md)). `stl/` next to `3mf/` is the same mesh in binary STL. `step/` next to those is CAD interchange (BRep STEP), not a printable mesh for a home slicer.
 
 Two ways to get the mechanical set (same place in the build path):
 
@@ -22,15 +22,15 @@ Two ways to get the mechanical set (same place in the build path):
 1. **`ServoSizingTester.3mf`** — seat a real servo; do not force it. The body should slide, tabs sit, holes line up, and the shaft should have clearance. Tight or loose → sand/ream, or adjust servo CAD params ([parametric design](../docs/3d/parametric-design.md)).
 2. **`ScrewSizingTest.3mf`** — M2 screw pilot-hole tolerance. Each hole is marked with its diameter. Drive an M2 screw into each hole and pick the tightest size that still cuts a thread (does not spin freely / slide through). Set Fusion user parameter `screw_thread_diameter` to that marked value, then re-export before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
 
-Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Mechanical assembly continues around wiring and flashing — [docs/3d/assembly.md](../docs/3d/assembly.md) is the sequencing authority. Use the [screw list](#screws) below.
+Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Buyer cart (electronics + screw qty + supply): [docs/shopping.md](../docs/shopping.md). Overall build order: [docs/getting-started.md](../docs/getting-started.md). Mechanical procedure: [docs/3d/assembly.md](../docs/3d/assembly.md). Per-step lengths: [screw list](#screws) below.
 
 ### Screws
 
 **Spec:** M2 thread-forming (self-tapping) screws for plastic, **pan-head or button-head** — there are no counterbores/countersinks in any part, so heads sit on the plastic surface. CAD default pilot is **2.1 mm** (Fusion user parameter `screw_thread_diameter`); if your `ScrewSizingTest` winner differs, re-export at that diameter before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
 
-**One BOM for every servo preset** (`parts/sg90/`, `parts/fs0307/`, `parts/hd1370a/`, …). Printed parts scale with the servo choice, but the lengths below are the reference shopping list for all of them — including smaller models for smaller servos. Pilots are cut as deep as practical so nearby lengths often work too; if you already have different M2 lengths, test-fit before buying a full set. Per-step placement: [assembly guide](../docs/3d/assembly.md).
+**One BOM for every servo preset** (`parts/sg90/`, `parts/fs0307/`, `parts/hd1370a/`, …). Printed parts scale with the servo choice, but the lengths below are the reference list for all of them — including smaller models for smaller servos. Buy quantities: [docs/shopping.md](../docs/shopping.md). Pilots are cut as deep as practical so nearby lengths often work too; if you already have different M2 lengths, test-fit before buying a full set. Per-step placement: [assembly guide](../docs/3d/assembly.md).
 
-**Shopping list (per robot):**
+**Per robot (qty is source of truth):**
 
 | Item | Qty | Typical use |
 | --- | --- | --- |
@@ -80,11 +80,11 @@ Same filenames in each `parts/{servo_id}/3mf/` folder (and matching `stl/` / `st
 
 ## Next steps
 
-Interleaved build path (assembly continues around wiring and flash): [docs/getting-started.md](../docs/getting-started.md). Sequencing authority: [docs/3d/assembly.md](../docs/3d/assembly.md).
+Return to the build checklist: [docs/getting-started.md](../docs/getting-started.md) ([§2 Print or order](../docs/getting-started.md#2-print-or-order) done). Wire and flash **before** opening the mechanical guide.
 
-1. Assemble with mid-build wire/flash checkpoints: [docs/3d/assembly.md](../docs/3d/assembly.md)
-2. Servo axes and safe ranges: [docs/robot-movement.md](../docs/robot-movement.md)
-3. Wiring reference (use when the assembly guide calls for it): [docs/hardware/wiring.md](../docs/hardware/wiring.md), [docs/hardware/README.md](../docs/hardware/README.md)
+1. Wire, then flash: [docs/hardware/wiring.md](../docs/hardware/wiring.md), [docs/flash.md](../docs/flash.md)
+2. Assemble in one run: [docs/3d/assembly.md](../docs/3d/assembly.md)
+3. Servo axes and safe ranges: [docs/robot-movement.md](../docs/robot-movement.md)
 4. Bring-up and failures: [docs/hardware/testing.md](../docs/hardware/testing.md)
 
 ## License

@@ -1,4 +1,4 @@
-# AGENTS.md
+# CLAUDE.md
 
 Tool-agnostic brief for coding agents working **on this repository**.
 
@@ -11,7 +11,7 @@ Tiny Engineer is an open-source ESP32-C3 Wi-Fi desk robot: 3D-printed mechanics,
 | Path | Role |
 | --- | --- |
 | `src/`, `include/`, `lib/`, `data/` | Firmware (PlatformIO) |
-| `packages/` | HTTP / hook CLIs (Cursor, Antigravity, …) — scope `integrations` |
+| `packages/` | HTTP / hook CLIs (Cursor, Antigravity, Claude Code, …) — scope `integrations` |
 | `3d_models/` | CAD and printables (CERN-OHL-S) |
 | `hardware/` | KiCad boards (CERN-OHL-S) |
 | `docs/` | Human docs; depth lives here |
@@ -24,9 +24,13 @@ From the repo root (Node 18+ for packages). Host only — CI never flashes.
 
 ```bash
 pio run
+pio run -e expression-demo
 pio test -e native
+node scripts/expressions/generate.js --check
+node scripts/expressions/test-assets.js
 npm test --prefix packages/tiny-engineer-cursor
 npm test --prefix packages/tiny-engineer-antigravity
+npm test --prefix packages/tiny-engineer-claude-code
 ```
 
 `pio test -e native` is not `pio run -e native`. Details: [docs/testing.md](docs/testing.md).
@@ -84,7 +88,7 @@ Truth order (do not skip ahead for connectivity claims):
 
 **Required:** netlist ↔ `expected-nets.yml` comparison for connectivity. No `kicad-cli` → say so and **skip** connectivity claims (layout/docs review only).
 
-Contribute/review process: [docs/pcb.md](docs/pcb.md). `expected-nets.yml`: [docs/pcb.md#expected-netsyml](docs/pcb.md#expected-netsyml).
+Contribute/review process: [docs/pcb.md](docs/pcb.md). `expected-nets.yml`: [docs/pcb.md#expected-nets-yml](docs/pcb.md#expected-nets-yml).
 
 ## Bench safety
 

@@ -9,7 +9,7 @@
 | Driver | Adafruit PCA9685, I2C `0x40` |
 | Servo supply | PCA9685 **V+** ← drawing: USB **5V** → PCA9685 **5V** (same servo rail as **V+**; not **VCC**) |
 | PWM frequency | **50 Hz** (`pwm.setPWMFreq(50)`) |
-| Channels | 0, 1, 2, 3, 4 (`SERVO_CHANNELS`) |
+| Channels | 0, 1, 2, 3, 4 (`SERVO_HEAD`…`SERVO_BODY` in `SERVO_SPECS`) |
 
 > [!WARNING]
 > Never power the servos from the ESP32 3.3 V regulator.

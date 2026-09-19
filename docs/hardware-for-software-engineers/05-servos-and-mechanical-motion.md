@@ -26,13 +26,13 @@ You command an **angle** (via pulse width). The servo tries to reach it and **ho
 
 Power and signal are separate. The signal wire is low current; the power wire carries motor current.
 
-PWM here means a timed HIGH pulse on the signal wire — how long that HIGH lasts is the angle. Full protocol picture (and why a PCA9685 does it): [Ch. 04 — Buses and protocols](04-buses-and-protocols.md#pwm--how-long-high-lasts-is-the-angle).
+PWM here means a timed HIGH pulse on the signal wire — how long that HIGH lasts is the angle. Full protocol picture (and why a PCA9685 does it): [Ch. 04 — Buses and protocols](04-buses-and-protocols.md#pwm-how-long-high-lasts-is-the-angle).
 
 ---
 
 ## PWM as angle — recap
 
-Short version (details in [Ch. 04](04-buses-and-protocols.md#pwm--how-long-high-lasts-is-the-angle)): ~50 Hz frame, pulse width sets target:
+Short version (details in [Ch. 04](04-buses-and-protocols.md#pwm-how-long-high-lasts-is-the-angle)): ~50 Hz frame, pulse width sets target:
 
 - ~1500 µs ≈ center / neutral
 - Shorter pulse → one direction
@@ -134,15 +134,16 @@ No PCA9685 at `0x40` → init fails, red LED, hang. Unlike the OLED. Plan bring-
 
 ---
 
-## Bench testing before closing the shell
+## Safe-range checks during assembly
 
-1. Mount one servo in loose fixture or hand-hold (careful — pinching)
-2. Flash firmware, verify serial shows PCA9685 OK
-3. Command one joint via web UI or `/test/servo`
-4. Sweep through **safe range** slowly — watch for binding
-5. Repeat for all five before screwing into final plastic
+Do this after wire/flash, on the desk, and while centering joints ([assembly.md](../3d/assembly.md)) — before final screws jam a horn against plastic:
 
-Mechanical integration last. Software can clamp angles; it can't un-strip a gear.
+1. After wire/flash, keep electronics on the desk; confirm serial shows PCA9685 OK
+2. Command one joint via setup AP **Move all to 90°**, web UI, or `/test/servo`
+3. Seat each printed part on a centered shaft; sweep the **safe range** slowly — watch for binding
+4. Unplug between awkward joins; reconnect channels when the guide says so
+
+Software can clamp angles; it can't un-strip a gear. Don't wait until the chest is closed to discover a stall.
 
 ---
 

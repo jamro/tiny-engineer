@@ -109,6 +109,7 @@ Details: [power.md](power.md).
 
 | File | Contents |
 | --- | --- |
+| [../shopping.md](../shopping.md) | Buyer cart (electronics, screws, supply) |
 | [components.md](components.md) | Inventory, voltages, limits |
 | [pinout.md](pinout.md) | GPIO map + allocation rules |
 | [wiring.md](wiring.md) | Every electrical connection |
