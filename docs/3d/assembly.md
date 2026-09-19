@@ -25,10 +25,14 @@ Screw lengths called out below (M2×4 / ×8 / ×16) match the reference shopping
 5. Route both cables through the openings in the shell — OLED cable on one side of the head, servo lead on the opposite side.
 6. Clip each cable into the molded cable clips on the **back** of `Head` (clips are part of the print).
 
+![Head](./assembly_visuals/head_1.jpg)
+
 ## 2. Hat
 
 1. Place `Hat` on top of `Head`.
 2. Fasten with **two M2 screws** (M2×8 mm works). Thread into the printed plastic — do not overtighten.
+
+![Head](./assembly_visuals/head_2.jpg)
 
 ## 2a. Electronics and firmware (required before centering)
 
@@ -62,6 +66,8 @@ Use this recipe whenever a later step says to center a servo:
    - The pocket with the smaller hole is for mounting a servo later — leave it empty for now.
 7. Unplug this servo from the PCA9685 so the next steps are easier to handle.
 
+![Neck](./assembly_visuals/neck_1.jpg)
+
 ## 4. Join `Neck` and `Head`
 
 1. [Center](#center-a-servo) the servo already inside `Head`.
@@ -73,6 +79,8 @@ Use this recipe whenever a later step says to center a servo:
    - Robot’s left: the mounting screw that came with the servo.
 6. Unplug the Head servo from the PCA9685 before continuing.
 
+![Neck](./assembly_visuals/neck_2.jpg)
+
 ## 5. Chest — side servos
 
 1. Take the printed `Chest`.
@@ -80,12 +88,16 @@ Use this recipe whenever a later step says to center a servo:
 3. Route each servo lead through the **vertical tunnel at the front** of `Chest` so the connectors exit from the **bottom** of the part.
 4. Fasten both servos with **four M2 screws** total — two per servo (M2×16 mm works). Do not overtighten.
 
+![Chest](./assembly_visuals/chest_1.jpg)
+
 ## 6. Mount head assembly on `Chest`
 
 1. Take the joined `Head` + `Neck` from [§4](#4-join-neck-and-head). The servo already fastened to `Neck` goes into the **center** servo pocket in `Chest`.
 2. **Before** seating that servo, route its lead through the **central tunnel** in `Chest` and out the **bottom** of the part.
 3. Seat the Neck servo fully in the center pocket. Keep front of `Head`/`Neck` on the same side as front of `Chest` (the side with the cable tunnels).
 4. Fasten it to `Chest` with M2×8 mm screws. Prefer two screws; if space is tight, one screw at the back of the robot is enough.
+
+![Chest](./assembly_visuals/chest_2.jpg)
 
 ## 7. Belly — last servo
 
@@ -95,12 +107,16 @@ Use this recipe whenever a later step says to center a servo:
 4. When alignment is correct, fasten with the **screw that came with the servo**.
 5. Unplug this servo from the PCA9685 before continuing.
 
+![Belly](./assembly_visuals/belly_1.jpg)
+
 ## 8. Route chest cables through `Belly` and join
 
 1. Take the three servo leads that exit the bottom of `Chest`: Neck (center) and the two side (hand) servos.
 2. Pass them into `Belly` through the **large upper** opening, then out through the **lower side** opening.
 3. Keep the same left-to-right order as they leave `Chest`: **left hand → neck → right hand**. That order is only an identification aid for later — not the PCA9685 channel sequence.
 4. Orient `Belly` so its rounded side faces the **back** and matches the profile of `Chest`, then fasten with **four M2 screws** (M2×8 mm works).
+
+![Belly](./assembly_visuals/belly_2.jpg)
 
 ## 9. Seat the body in `Chair`
 
@@ -112,6 +128,8 @@ Use this recipe whenever a later step says to center a servo:
 
 This finishes the **main robot body**. Set it aside — next steps build the desk.
 
+![Chair](./assembly_visuals/chair_1.jpg)
+
 ## 10. Desk top stack
 
 1. Take `DeskTop`, `DeskPad`, and `Desk`.
@@ -119,10 +137,14 @@ This finishes the **main robot body**. Set it aside — next steps build the des
 3. Place that stack onto `Desk`. Orient so the rounded cutout faces the robot (the side where the figure sits).
 4. Fasten through the four corner holes with **four M2 screws** (M2×16 mm works).
 
+![Desk](./assembly_visuals/desk_1.jpg)
+
 ## 11. Desk emblem
 
 1. Place `AiEmblem` on the front of the desk.
 2. Fasten with **two short M2 screws** (M2×4 mm works).
+
+![Desk](./assembly_visuals/emblem_1.jpg)
 
 ## 12. Electronics inside the desk
 
@@ -142,6 +164,8 @@ Everything else in the harness stays as already soldered and assembled.
 
 Mount in that order — USB first, then PCA9685, then MAX98357A, then the speaker — so later boards are not in the way.
 
+![Desk](./assembly_visuals/electronics_1.jpg)
+
 ## 13. ESP32, power/AP smoke test, and `LampBase`
 
 1. Seat the **ESP32-C3-Zero** in the opening in the desk top from above. The pins must pass through the holes in the top; the module should sit flush in the recess and not stick up above the desk surface.
@@ -155,11 +179,15 @@ Mount in that order — USB first, then PCA9685, then MAX98357A, then the speake
 5. Orient `LampBase` so its opening sits over the ESP32 status LED.
 6. Fasten `LampBase` to the desk with **two M2 screws** (M2×8 mm works). This also holds the ESP32 from above.
 
+![Desk](./assembly_visuals/electronics_2.jpg)
+
 ## 14. Desk props — laptop, mug, bell
 
 1. **Laptop** — slide `LaptopScreen` into the pocket on the underside of `LaptopCase`. Place the laptop on the desk and fasten with one M2 screw from under the desk (M2×8 mm works).
 2. **Mug** — seat `Coffee` inside `Mug`. Place the mug in its dedicated spot on the desk and fasten the same way: one M2 screw from under the desk (M2×8 mm works).
 3. **Bell** — first drive the M2 screw fully into `Bell` alone (M2×16 mm works). Then, with the screw already in the bell, drive that screw down into the desk from above and secure with an M2 nut underneath.
+
+![Desk](./assembly_visuals/desk_2.jpg)
 
 ## 15. Connect servos and OLED
 
@@ -187,10 +215,14 @@ Easiest with the desk tipped onto its front wall so the PCA9685 plugs face up, a
    Head pitch → channel **0**. Body / torso (Belly servo under the chair) → channel **4**.
 3. Power up and run a **servos + OLED smoke test**: servos respond, OLED shows something sensible, no brown-out or odd movement. If something is wrong, power down before swapping plugs.
 
+![Desk](./assembly_visuals/electronics_3.jpg)
+
 ## 16. Fasten `Chair` to `Desk`
 
 1. Gently slide the desk up to the chair so the mounting holes on the desk (back / armrest sides) line up with the matching holes on `Chair`.
 2. Fasten with **six M2 screws** total — three per side (M2×8 mm works). Do not force the parts; keep cables clear of the screw paths.
+
+![Desk](./assembly_visuals/body_1.jpg)
 
 ## 17. Arms — elbow joints
 
@@ -198,6 +230,8 @@ Build the arm assemblies only — do **not** mount them on the chest servos yet.
 
 1. At each elbow there is a screw hole joining the forearm to the upper arm.
 2. Fasten left and right the same way: `ForearmLeft` to `UpperArm` and `ForearmRight` to `UpperArm` with one M2 screw per elbow (M2×8 mm works). Print / use two `UpperArm` parts (one per side).
+
+![Arms](./assembly_visuals/arms_1.jpg)
 
 ## 18. Mount arms on the chest servos
 
@@ -207,12 +241,16 @@ Build the arm assemblies only — do **not** mount them on the chest servos yet.
 4. When the pose looks right, fasten each arm with the mounting screw that came with that servo.
 5. Do this for both arms. If centering is not perfect, that is fine — you will refine it in the setup calibration later.
 
+![Body](./assembly_visuals/body_2.jpg)
+
 ## 19. Lamp (press-fit)
 
 No screws — everything is a friction fit.
 
 1. Place `LampCap` onto `LampDiffuser`.
 2. Push that stack into the opening in `LampBase`.
+
+![Lamp](./assembly_visuals/lamp_1.jpg)
 
 ## 20. Setup wizard and first boot on Wi‑Fi
 
