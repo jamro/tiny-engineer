@@ -106,7 +106,7 @@ Print [`ServoSizingTester`](../../3d_models/README.md#print-first) in the same �
 
 | Value | When |
 | --- | --- |
-| **2.2 mm** | CAD default and shipped `parts/*/3mf/` exports. Tested path on a **Creality Ender 3 V3 SE**, PLA, ~0.16 mm layer height ([printing notes](../hardware-for-software-engineers/06-3d-printing-and-mechanical-build.md)). |
+| **2.1 mm** | CAD default and shipped `parts/*/3mf/` exports. Tested path on a **Creality Ender 3 V3 SE**, PLA, ~0.16 mm layer height ([printing notes](../hardware-for-software-engineers/06-3d-printing-and-mechanical-build.md)). |
 | Smaller (e.g. 2.05–2.15 mm) | Screws feel loose / slide through on your printer — pick from `ScrewSizingTest`. |
 | Larger (e.g. 2.25–2.35 mm) | Pilot too tight to start a thread without cracking — pick from `ScrewSizingTest`. |
 

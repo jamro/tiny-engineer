@@ -47,4 +47,4 @@ UI labels change; follow the outcomes, not exact button names. The flow below ma
 
 ## Next steps
 
-Back to the build path: [getting started → Print and mechanical](../getting-started.md#2-print-and-mechanical) → wire → flash. Part inventory and home-print notes: [3d_models/README.md](../../3d_models/README.md).
+Back to the build path: [getting started → Print and mechanical](../getting-started.md#2-print-and-mechanical) → [assemble](assembly.md) → wire → flash. Part inventory and home-print notes: [3d_models/README.md](../../3d_models/README.md).

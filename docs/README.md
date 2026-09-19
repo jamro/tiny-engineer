@@ -10,6 +10,7 @@ Pick a path. Depth lives in the linked pages.
 | **Flash / configure** only | [getting-started.md](getting-started.md)#4-flash |
 | **Wire / power detail** | [getting-started.md](getting-started.md)#3-wire-and-power → [hardware/README.md](hardware/README.md) |
 | **Print / parts inventory** | [getting-started.md](getting-started.md)#2-print-and-mechanical → [../3d_models/README.md](../3d_models/README.md) |
+| **Assemble printed parts** | [3d/assembly.md](3d/assembly.md) |
 | **Order printed parts** (no 3D printer) | [3d/order-parts.md](3d/order-parts.md) |
 | **Adapt CAD to a different servo** | [3d/parametric-design.md](3d/parametric-design.md) |
 | **Contribute a PCB** (KiCad) | [pcb.md](pcb.md) → [`hardware/`](../hardware/README.md) |
