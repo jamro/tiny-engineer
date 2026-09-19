@@ -22,7 +22,7 @@ Two ways to get the mechanical set (same place in the build path):
 1. **`ServoSizingTester.3mf`** — seat a real servo; do not force it. The body should slide, tabs sit, holes line up, and the shaft should have clearance. Tight or loose → sand/ream, or adjust servo CAD params ([parametric design](../docs/3d/parametric-design.md)).
 2. **`ScrewSizingTest.3mf`** — M2 screw pilot-hole tolerance. Each hole is marked with its diameter. Drive an M2 screw into each hole and pick the tightest size that still cuts a thread (does not spin freely / slide through). Set Fusion user parameter `screw_thread_diameter` to that marked value, then re-export before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
 
-Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Full step-by-step assembly is **not documented yet** — use the [screw list](#screws) and part table below, then electrical and bring-up docs.
+Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Step-by-step join order: [docs/3d/assembly.md](../docs/3d/assembly.md). Use the [screw list](#screws) and part table below, then electrical and bring-up docs.
 
 ### Screws
 
@@ -47,6 +47,7 @@ Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — n
 Only the **head** ships servo-tab pilots — the other four servos are retained by pocket fit plus the horn screw capturing each joint. Servo horn screws come **in the servo bags** (one per joint, five total); standard servo packs also include mounting screws, but only the head needs them — the rest are spares.
 
 **Shopping list (per robot):** ~30× **M2×6** (covers every pilot ≤ 8.5 mm deep) + ~5× **M2×12** (the two 12.8 mm head pilots + spares). One M2 assortment kit (M2×4–M2×12) is the easy path.
+
 
 ## Parts
 
@@ -87,9 +88,10 @@ Same filenames in each `parts/{servo_id}/3mf/` folder (and matching `stl/` / `st
 
 Full build path (print → wire → flash): [docs/getting-started.md](../docs/getting-started.md).
 
-1. Servo axes and safe ranges: [docs/robot-movement.md](../docs/robot-movement.md)
-2. Wiring and power: [docs/hardware/wiring.md](../docs/hardware/wiring.md), [docs/hardware/README.md](../docs/hardware/README.md)
-3. Bring-up and failures: [docs/hardware/testing.md](../docs/hardware/testing.md)
+1. Mechanical assembly: [docs/3d/assembly.md](../docs/3d/assembly.md)
+2. Servo axes and safe ranges: [docs/robot-movement.md](../docs/robot-movement.md)
+3. Wiring and power: [docs/hardware/wiring.md](../docs/hardware/wiring.md), [docs/hardware/README.md](../docs/hardware/README.md)
+4. Bring-up and failures: [docs/hardware/testing.md](../docs/hardware/testing.md)
 
 ## License
 

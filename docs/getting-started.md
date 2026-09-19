@@ -27,7 +27,8 @@ Gather electronics from [hardware/components.md](hardware/components.md). Minimu
 
 Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/{servo_id}/3mf/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). No printer? [Order the aggregated sets from a provider](3d/order-parts.md) instead. Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md). When printing yourself, print [`ServoSizingTester`](../3d_models/README.md#print-first) and [`ScrewSizingTest`](../3d_models/README.md#print-first) first — confirm a real servo fits and pick an M2 pilot-hole diameter before queuing the rest of the set ([M2 screw holes](3d/parametric-design.md#m2-screw-holes)). Skip the testers-first step when ordering from a service.
 
-Join printed parts with **M2 screws** that thread directly into the plastic (no glue, no inserts; easy to dismount later). A measured per-part screw list and shopping list (sg90) is in the [3D models README](../3d_models/README.md#screws) — ~30× M2×6 + ~5× M2×12, pan/button head. A full assembly SOP is **not documented yet** — use the parts table there as the inventory. After print:
+Join printed parts with **M2 screws** that thread directly into the plastic (no glue, no inserts; easy to dismount later). A measured per-part screw list and shopping list (sg90) is in the [3D models README](../3d_models/README.md#screws) — ~30× M2×6 + ~5× M2×12, pan/button head. Step-by-step join order: [3d/assembly.md](3d/assembly.md). After print:
+
 
 - Fit the five servos (head, neck, left/right hand, body) — axes and safe ranges: [robot-movement.md](robot-movement.md)
 - Leave the ESP32 ceramic antenna clear of metal / dense plastic ([hardware/components.md](hardware/components.md))
@@ -94,6 +95,7 @@ Robot on the same LAN → [hooks.md](hooks.md). Any IDE / scripts → [integrati
 | --- | --- |
 | Which wires / voltages? | [hardware/wiring.md](hardware/wiring.md), [hardware/pinout.md](hardware/pinout.md) |
 | What to print? | [3d_models/README.md](../3d_models/README.md) |
+| How to assemble printed parts? | [3d/assembly.md](3d/assembly.md) |
 | `.local` slow or fails | OLED IP; `curl -4 http://…` |
 | OLED shows join AP / `192.168.4.1` | Wi‑Fi not saved or STA failed — finish the setup AP wizard |
 | Welcome / ring silent (servos move) | LittleFS missing WAVs — `pio run -t uploadfs` |
