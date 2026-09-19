@@ -58,9 +58,9 @@ The models are **prepared with clearance** so printed parts and hardware (servos
 
 > **If you've written backend code…** Printed holes are like JSON numbers — `2.0` isn't exactly 2.0 after float serialization. These files already budget slack; a badly calibrated printer can still eat it.
 
-**Screws:** assembly uses **M2** screws that thread directly into the printed plastic — no glue, no heat-set inserts. A measured per-part screw list and shopping list (sg90) lives in the [3D models README](../../3d_models/README.md#screws): ~30× M2×6 + ~5× M2×12, pan/button head. Join order: [assembly guide](../3d/assembly.md). Test fit as you go.
+**Screws:** assembly uses **M2** screws that thread directly into the printed plastic — no glue, no heat-set inserts. Shopping list (M2×4 / ×8 / ×16 + nuts; same lengths for every servo preset) lives in the [3D models README](../../3d_models/README.md#screws). Join order: [assembly guide](../3d/assembly.md). Test fit as you go.
 
-**If M2 screws feel loose (slide instead of cutting a thread):** print tolerances ate the pilot. Print [`ScrewSizingTest.3mf`](../../3d_models/README.md#print-first) first (alongside [`ServoSizingTester`](../../3d_models/README.md#print-first)), pick the labeled hole that bites firmly, set Fusion `screw_thread_diameter` to that diameter, and re-export. CAD default / shipped parts use **2.2 mm**. Full write-up: [M2 screw holes](../3d/parametric-design.md#m2-screw-holes).
+**If M2 screws feel loose (slide instead of cutting a thread):** print tolerances ate the pilot. Print [`ScrewSizingTest.3mf`](../../3d_models/README.md#print-first) first (alongside [`ServoSizingTester`](../../3d_models/README.md#print-first)), pick the labeled hole that bites firmly, set Fusion `screw_thread_diameter` to that diameter, and re-export. CAD default / shipped parts use **2.1 mm**. Full write-up: [M2 screw holes](../3d/parametric-design.md#m2-screw-holes).
 
 ---
 

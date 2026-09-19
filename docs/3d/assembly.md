@@ -2,6 +2,8 @@
 
 How to join the printed parts and seat the five micro servos. Use **M2 screws** that thread into the plastic — no glue, no heat-set inserts.
 
+Lengths called out below (M2×4 / ×8 / ×16) are the **reference BOM for every servo preset** — printed parts scale with servo choice, but these lengths still work on smaller models. Pilots are cut as deep as practical so nearby lengths often work too; if you substitute, **test-fit** before committing. Shopping totals: [3d_models/README.md → Screws](../../3d_models/README.md#screws).
+
 **Before you start:** print or order the set for your servo model ([3d_models/README.md](../../3d_models/README.md), [order-parts.md](order-parts.md)). All five servos are the same type; the printed pockets match that model.
 
 ## 1. Head — OLED and servo
