@@ -22,7 +22,31 @@ Two ways to get the mechanical set (same place in the build path):
 1. **`ServoSizingTester.3mf`** — seat a real servo; do not force it. The body should slide, tabs sit, holes line up, and the shaft should have clearance. Tight or loose → sand/ream, or adjust servo CAD params ([parametric design](../docs/3d/parametric-design.md)).
 2. **`ScrewSizingTest.3mf`** — M2 screw pilot-hole tolerance. Each hole is marked with its diameter. Drive an M2 screw into each hole and pick the tightest size that still cuts a thread (does not spin freely / slide through). Set Fusion user parameter `screw_thread_diameter` to that marked value, then re-export before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
 
-Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Exact screw lengths/counts and full assembly steps are **not documented yet**. Use the part table below, then electrical and bring-up docs.
+Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Full step-by-step assembly is **not documented yet** — use the [screw list](#screws) and part table below, then electrical and bring-up docs.
+
+### Screws
+
+**Spec:** M2 thread-forming (self-tapping) screws for plastic, **pan-head or button-head** — there are no counterbores/countersinks in any part, so heads sit on the plastic surface. CAD default pilot is **2.2 mm** (Fusion user parameter `screw_thread_diameter`); if your `ScrewSizingTest` winner differs, re-export at that diameter before printing structural parts.
+
+**Measured pilot census** of the shipped `sg90` meshes (pilot Ø ≈ 2.1 mm; counted from exported meshes, not the Fusion source — treat as a verified starting point and test-fit as you go):
+
+| Part | M2 pilots | Pilot depth | Notes |
+| --- | --- | --- | --- |
+| `AiEmblem.3mf` | 1 | 4.0 mm blind | emblem → shell |
+| `Bell.3mf` | 1 | 6.6 mm through | bell → desk |
+| `Chest.3mf` | 0 screws (5 channels) | 14–23 mm through | deep channels are servo-wire routing, not screws |
+| `Coffee.3mf` | 1 | 8.5 mm blind | pairs with `Mug` |
+| `Desk.3mf` | 10 | 5.0–7.5 mm through | frame joints |
+| `DeskTop.3mf` | 5 | 2.5–3.5 mm through | pilots for top-mounted items |
+| `Head.3mf` | 3 | 1× 5.0 mm + 2× 12.8 mm blind | the two deep pilots are servo tab screws |
+| `LampButton.3mf` | 1 | 6.1 mm through | button retention |
+| `Mug.3mf` | 1 | 2.5 mm through | pairs with `Coffee` |
+| `SeatLeft.3mf` / `SeatRight.3mf` | 2 each | 7.0 mm through | chair assembly |
+| Neck, arms, belly, hat, lamp, laptop, desk pad, chair | 0 | — | no M2 pilots |
+
+Only the **head** ships servo-tab pilots — the other four servos are retained by pocket fit plus the horn screw capturing each joint. Servo horn screws come **in the servo bags** (one per joint, five total); standard servo packs also include mounting screws, but only the head needs them — the rest are spares.
+
+**Shopping list (per robot):** ~30× **M2×6** (covers every pilot ≤ 8.5 mm deep) + ~5× **M2×12** (the two 12.8 mm head pilots + spares). One M2 assortment kit (M2×4–M2×12) is the easy path.
 
 ## Parts
 
