@@ -100,7 +100,7 @@ Alternatives (FreeCAD, Onshape) can work but project source is Fusion.
 
 ## Mechanical assembly principles
 
-Step-by-step SOP: [assembly.md](../3d/assembly.md). Principles below keep you out of trouble until that lands:
+Step-by-step SOP: [assembly.md](../3d/assembly.md). Use that guide for the build sequence; principles below cover key failure modes.
 
 ### Servo installation
 

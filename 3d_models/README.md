@@ -22,7 +22,7 @@ Two ways to get the mechanical set (same place in the build path):
 1. **`ServoSizingTester.3mf`** — seat a real servo; do not force it. The body should slide, tabs sit, holes line up, and the shaft should have clearance. Tight or loose → sand/ream, or adjust servo CAD params ([parametric design](../docs/3d/parametric-design.md)).
 2. **`ScrewSizingTest.3mf`** — M2 screw pilot-hole tolerance. Each hole is marked with its diameter. Drive an M2 screw into each hole and pick the tightest size that still cuts a thread (does not spin freely / slide through). Set Fusion user parameter `screw_thread_diameter` to that marked value, then re-export before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
 
-Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Step-by-step join order: [docs/3d/assembly.md](../docs/3d/assembly.md). Use the [screw list](#screws) below, then electrical and bring-up docs.
+Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Mechanical assembly continues around wiring and flashing — [docs/3d/assembly.md](../docs/3d/assembly.md) is the sequencing authority. Use the [screw list](#screws) below.
 
 ### Screws
 
@@ -80,11 +80,11 @@ Same filenames in each `parts/{servo_id}/3mf/` folder (and matching `stl/` / `st
 
 ## Next steps
 
-Full build path (print → wire → flash): [docs/getting-started.md](../docs/getting-started.md).
+Interleaved build path (assembly continues around wiring and flash): [docs/getting-started.md](../docs/getting-started.md). Sequencing authority: [docs/3d/assembly.md](../docs/3d/assembly.md).
 
-1. Mechanical assembly: [docs/3d/assembly.md](../docs/3d/assembly.md)
+1. Assemble with mid-build wire/flash checkpoints: [docs/3d/assembly.md](../docs/3d/assembly.md)
 2. Servo axes and safe ranges: [docs/robot-movement.md](../docs/robot-movement.md)
-3. Wiring and power: [docs/hardware/wiring.md](../docs/hardware/wiring.md), [docs/hardware/README.md](../docs/hardware/README.md)
+3. Wiring reference (use when the assembly guide calls for it): [docs/hardware/wiring.md](../docs/hardware/wiring.md), [docs/hardware/README.md](../docs/hardware/README.md)
 4. Bring-up and failures: [docs/hardware/testing.md](../docs/hardware/testing.md)
 
 ## License

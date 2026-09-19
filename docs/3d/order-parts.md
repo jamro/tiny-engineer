@@ -1,6 +1,6 @@
 # Order printed parts (no 3D printer)
 
-No printer at home? You can still complete the mechanical step of the build by ordering the printed set from a third-party 3D-printing service, then continue with assembly, wiring, and flash as usual ([getting started](../getting-started.md)).
+No printer at home? You can still get the printed set from a third-party 3D-printing service, then follow the interleaved build path: mechanical assembly continues around wiring and flashing ([assembly guide](assembly.md) is the sequencing authority; overview in [getting started](../getting-started.md)).
 
 Orders are at your own risk. Fit and finish can vary by provider and by design revision — especially on development builds there may be bugs — and we cannot guarantee every part will match every time.
 
@@ -47,4 +47,4 @@ UI labels change; follow the outcomes, not exact button names. The flow below ma
 
 ## Next steps
 
-Back to the build path: [getting started → Print and mechanical](../getting-started.md#2-print-and-mechanical) → [assemble](assembly.md) → wire → flash. Part inventory and home-print notes: [3d_models/README.md](../../3d_models/README.md).
+Back to the interleaved build path: [getting started → Print and mechanical](../getting-started.md#2-print-and-mechanical), then [assemble](assembly.md) (wire and flash mid-assembly per that guide — not after all joins). Part inventory and home-print notes: [3d_models/README.md](../../3d_models/README.md).

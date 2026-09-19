@@ -44,12 +44,10 @@ New to hardware? Start with **[From Code to Circuits](docs/hardware-for-software
 
 1. **Get the electronics** — [hardware inventory](docs/hardware/components.md)
 2. **3D print or order the parts** — [printables](3d_models/README.md), or [order from a provider](docs/3d/order-parts.md) if you have no printer. Different servo size: [parametric CAD](docs/3d/parametric-design.md)
-3. **Assemble the mechanics** — fit the five servos — [assembly guide](docs/3d/assembly.md), [3D models](3d_models/README.md), [servo axes](docs/robot-movement.md)
-4. **Wire the electronics** — [wiring](docs/hardware/wiring.md), [hardware overview](docs/hardware/README.md)
-5. **Flash the ESP32 firmware** — [getting started → Flash](docs/getting-started.md#4-flash)
-6. **Configure Wi-Fi** — [getting started → Wi-Fi](docs/getting-started.md#5-wi-fi-setup)
-7. **Test the robot** — web UI + a curl — [getting started → Prove it](docs/getting-started.md#6-prove-it)
-8. **Connect your coding agent** — [Cursor hooks](docs/hooks.md) or [any IDE / REST](docs/integration.md)
+3. **Assemble, wire, and flash (interleaved)** — mechanical assembly continues around wiring and flashing; [assembly guide](docs/3d/assembly.md) is the sequencing authority (Head + Hat, then wire/flash before centering, then remaining joins). Fit details: [3D models](3d_models/README.md), [servo axes](docs/robot-movement.md). Wiring: [wiring](docs/hardware/wiring.md), [hardware overview](docs/hardware/README.md). Flash: [getting started → Flash](docs/getting-started.md#4-flash)
+4. **Configure Wi-Fi** — [getting started → Wi-Fi](docs/getting-started.md#5-wi-fi-setup)
+5. **Test the robot** — web UI + a curl — [getting started → Prove it](docs/getting-started.md#6-prove-it)
+6. **Connect your coding agent** — [Cursor hooks](docs/hooks.md) or [any IDE / REST](docs/integration.md)
 
 Full walkthrough: [docs/getting-started.md](docs/getting-started.md).
 

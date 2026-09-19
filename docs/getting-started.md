@@ -1,6 +1,6 @@
 # Getting started
 
-Build the robot end-to-end: parts → print → wire → flash → Wi‑Fi → one animation. Skip ahead if that stage is already done (e.g. robot on Wi‑Fi → jump to [hooks](hooks.md)).
+Build the robot end-to-end: parts, print, then mechanical assembly interleaved with wiring and flash ([assembly guide](3d/assembly.md) is the sequencing authority), then Wi‑Fi and one animation. Skip ahead if that stage is already done (e.g. robot on Wi‑Fi → jump to [hooks](hooks.md)).
 
 ## What is the ESP32?
 
@@ -27,21 +27,20 @@ Gather electronics from [hardware/components.md](hardware/components.md). Minimu
 
 Printables and CAD: [3d_models/README.md](../3d_models/README.md) (`parts/{servo_id}/3mf/*.3mf` ready to print PLA/PETG, no supports; source `cad/TinyEngineer.f3d` for edits / different hardware). No printer? [Order the aggregated sets from a provider](3d/order-parts.md) instead. Parametric servo sizes, Fusion add-in, and export: [3d/parametric-design.md](3d/parametric-design.md). When printing yourself, print [`ServoSizingTester`](../3d_models/README.md#print-first) and [`ScrewSizingTest`](../3d_models/README.md#print-first) first — confirm a real servo fits and pick an M2 pilot-hole diameter before queuing the rest of the set ([M2 screw holes](3d/parametric-design.md#m2-screw-holes)). Skip the testers-first step when ordering from a service.
 
-Join printed parts with **M2 screws** that thread directly into the plastic (no glue, no inserts; easy to dismount later). Shopping list (M2×4 / ×8 / ×16 + nuts; same lengths for every servo preset): [3D models README → Screws](../3d_models/README.md#screws). Step-by-step join order: [3d/assembly.md](3d/assembly.md). After print:
+Join printed parts with **M2 screws** that thread directly into the plastic (no glue, no inserts; easy to dismount later). Shopping list (M2×4 / ×8 / ×16 + nuts; same lengths for every servo preset): [3D models README → Screws](../3d_models/README.md#screws). Mechanical assembly continues around wiring and flashing — do not treat wire/flash as post-assembly steps. Sequencing authority: [3d/assembly.md](3d/assembly.md) (build map: Head + Hat, then wire/flash/setup AP before any centering, then the rest of the joins). After print:
 
-
-- Fit the five servos (head, neck, left/right hand, body) — axes and safe ranges: [robot-movement.md](robot-movement.md)
+- Start the assembly guide; fit servos as that guide calls for them (head, neck, left/right hand, body) — axes and safe ranges: [robot-movement.md](robot-movement.md)
 - Leave the ESP32 ceramic antenna clear of metal / dense plastic ([hardware/components.md](hardware/components.md))
 
 ### 3. Wire and power
 
-Canonical connections: [hardware/wiring.md](hardware/wiring.md) and the diagram [wiring/Tiny Engineer.drawio.png](wiring/Tiny%20Engineer.drawio.png). Overview: [hardware/README.md](hardware/README.md).
+Wiring happens mid-assembly (after Head + Hat, before servo centering). Canonical connections: [hardware/wiring.md](hardware/wiring.md) and the diagram [wiring/Tiny Engineer.drawio.png](wiring/Tiny%20Engineer.drawio.png). Overview: [hardware/README.md](hardware/README.md). Follow [3d/assembly.md](3d/assembly.md) for when to pause mechanical work and wire.
 
 Before first power-up, run the assembly checks in wiring.md (common GND, PCA9685 **VCC** = 3.3 V vs **V+** = 5 V not shorted, OLED clock on **SCL**, speaker on **SPK+/SPK−** only). Prefer bench bring-up with a strong 5 V supply before seating everything in the printed shell.
 
 ### 4. Flash
 
-Firmware is Arduino on [PlatformIO](https://platformio.org/) ([pioarduino](https://github.com/pioarduino/platform-espressif32) / Arduino-ESP32 3.x). Board and baud live in `platformio.ini`.
+Flash in the same mid-assembly window as wiring (required before centering). Firmware is Arduino on [PlatformIO](https://platformio.org/) ([pioarduino](https://github.com/pioarduino/platform-espressif32) / Arduino-ESP32 3.x). Board and baud live in `platformio.ini`.
 
 Install [PlatformIO Core](https://docs.platformio.org/en/latest/core/installation.html) (or the PlatformIO extension). Connect the board over USB (Adafruit 5993 data lines when assembled).
 
