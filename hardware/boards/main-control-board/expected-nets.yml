@@ -5,43 +5,49 @@
 
 nets:
   "+5V":
-    - ESP1.1:5V
     - J1.7:Pin_7
-    - PCA1.6:V+
-    - USB1.3:Pin_3
+    - J3.1:Pin_1
+    - J4.1:Pin_1
+    - J6.1:Pin_1
+    - J7.3:Pin_3
   "+3.3V":
-    - ESP1.3:3V3
     - J2.1:Pin_1
-    - PCA1.5:VCC
+    - J3.2:Pin_2
+    - J4.2:Pin_2
+    - J6.3:Pin_3
   GND:
-    - ESP1.2:GND
     - J1.6:Pin_6
     - J2.2:Pin_2
-    - PCA1.1:GND
-    - USB1.4:Pin_4
+    - J3.6:Pin_6
+    - J4.6:Pin_6
+    - J6.2:Pin_2
+    - J7.4:Pin_4
   "/I2C_SDA":
-    - ESP1.4:GP0
     - J2.3:Pin_3
-    - PCA1.4:SDA
+    - J3.3:Pin_3
+    - J4.3:Pin_3
+    - J6.4:Pin_4
   "/I2C_SCL":
-    - ESP1.5:GP1
     - J2.4:Pin_4
-    - PCA1.3:SCL
+    - J3.4:Pin_4
+    - J4.4:Pin_4
+    - J6.5:Pin_5
   "/I2S_BCLK":
-    - ESP1.6:GP2
     - J1.2:Pin_2
+    - J6.6:Pin_6
   "/I2S_LRC":
-    - ESP1.7:GP3
     - J1.1:Pin_1
+    - J6.7:Pin_7
   "/I2S_DIN":
-    - ESP1.8:GP4
     - J1.3:Pin_3
-  "Net-(ESP1-GP5)":
-    - ESP1.9:GP5
-    - PCA1.2:OE
+    - J6.8:Pin_8
+  "Net-(J3-Pin_5)":
+    - J3.5:Pin_5
+    - J4.5:Pin_5
+    - J6.9:Pin_9
   "/USB_D+":
-    - ESP1.16:USB_DP
-    - USB1.1:Pin_1
+    - J5.7:Pin_7
+    - J7.1:Pin_1
   "/USB_D-":
-    - ESP1.15:USB_DM
-    - USB1.2:Pin_2
+    - J5.6:Pin_6
+    - J7.2:Pin_2
