@@ -27,6 +27,8 @@ public:
   void stop();
   void update();
   bool isMoving() const;
+  void ensureServoOutput();
+  void releaseServoOutput();
 
   friend void servoMoveAllSmoothTo(
     const float targets[SERVO_COUNT],
@@ -44,6 +46,7 @@ private:
   float speedDegS_;
   uint32_t lastUpdateMs_;
   uint16_t lastPulse_;
+  bool released_;
 
   void writeAngle(float angle, bool log, bool electrical);
 };
@@ -62,6 +65,9 @@ void servoMoveAllToElectrical(
   float speedDegS = SERVO_CALIB_SPEED_DEG_S
 );
 void updateAllServos();
+bool anyServoMoving();
+void ensureAllServoOutputs();
+void releaseAllServoOutputs();
 float clampElectricalAngle(float angle);
 float clampServoAngle(int index, float angle);
 float servoRuntimeMid(int index);

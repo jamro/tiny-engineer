@@ -28,7 +28,7 @@ Manufacturer pulse window used in firmware:
 
 `counts = round(pulse_us * 4096 / 20000)`
 
-Effective angular spacing is **~0.63° per count** (~288 distinct positions over 180°). `writeAngle()` skips redundant I2C writes when the rounded count is unchanged.
+Effective angular spacing is **~0.63° per count** (~288 distinct positions over 180°). `writeAngle()` skips redundant I2C writes when the rounded count is unchanged. The PCA9685 keeps emitting that last pulse until a later write — skipping I2C does **not** turn the servo off.
 
 Datasheet travel over 800–2200 µs is **approximately 130°**, while many sellers list 0–180°. Firmware still uses a 0–180 mathematical scale. That scale is **not** a promise of mechanical 180° in the robot.
 
@@ -40,6 +40,7 @@ Verified in [`include/pins.h`](../../include/pins.h) and [`include/servos.h`](..
 | --- | --- | --- |
 | `SERVO_STEP_MS` | 10 | Live update / interpolation step (ms) |
 | `SERVO_ANGLE_DEADBAND_DEG` | **0.32** | Stop threshold (~half PWM count) |
+| `SERVO_PWM_RELEASE_DELAY_MS` | **2000** | After idle/sleep park, hold PWM this long then full-off |
 | `SERVO_MAX_SPEED_DEG_S` | **140.0** | Smooth rate for `POST /test/servo` |
 | `SERVO_BOOT_SPEED_DEG_S` | **35.0** | Boot centering and sleep-pose moves |
 
@@ -53,6 +54,14 @@ On every boot (and after each flash reset):
 4. **Smooth boot moves** — `centerAllServos()` and sleep-inertia pose use `servoMoveAllSmoothTo()` at `SERVO_BOOT_SPEED_DEG_S` (35°/s), not instant snaps.
 
 Set `PCA9685_OE_WIRED = true` in [`include/pins.h`](../../include/pins.h) after wiring GP5 → PCA9685 **OE**. OE is **active LOW** on the Adafruit breakout.
+
+## Idle and sleep PWM release
+
+Analog servos hunt while a 50 Hz pulse is present. Firmware does **not** use OE for this: after animation `none` parks (awake rest or device-sleep chin-down) and every joint is still for `SERVO_PWM_RELEASE_DELAY_MS` (**2000** ms), it writes PCA9685 full-off (`setPWM(channel, 0, 4096)`) on channels 0–4. SIG stays low; the servo goes **limp** (no holding torque). Head pitch can droop; hands-down usually rests on the desk.
+
+The next animation, `/test/servo`, or `/setup/servo` rewrite the last commanded pulse before moving. Leaving `none` restores all five channels at their last angles first.
+
+**Setup AP** (`wifiProvisioningMode`) never releases PWM, so “Move all to 90°” / horn install still holds.
 
 ## Motion modes
 

@@ -1,5 +1,6 @@
 #include "animation/registry.h"
 
+#include <Arduino.h>
 #include <cstddef>
 #include <cstring>
 
@@ -26,11 +27,18 @@
 #include "display/eyes/modes/typing.h"
 #include "display/eyes/modes/wakeup.h"
 #include "display/eyes/modes/welcome.h"
+#include "hardware/servo_wrapper.h"
+#include "network/wifi_connect.h"
 #include "sleep.h"
 
 namespace {
 
+uint32_t g_noneStillSinceMs = 0;
+bool g_noneStillTracking = false;
+
 void startNoneAt(uint32_t /*nowMs*/) {
+  g_noneStillTracking = false;
+  g_noneStillSinceMs = 0;
   anim::stopAnimServos();
   // Sleeping: keep chin-down (same pose wakeup starts from).
   if (isSleeping()) {
@@ -39,6 +47,30 @@ void startNoneAt(uint32_t /*nowMs*/) {
   }
 
   anim::parkNonePose();
+}
+
+void updateNoneAt(uint32_t nowMs) {
+  updateAllServos();
+
+  if (wifiProvisioningMode()) {
+    g_noneStillTracking = false;
+    return;
+  }
+
+  if (anyServoMoving()) {
+    g_noneStillTracking = false;
+    return;
+  }
+
+  if (!g_noneStillTracking) {
+    g_noneStillTracking = true;
+    g_noneStillSinceMs = nowMs;
+    return;
+  }
+
+  if (nowMs - g_noneStillSinceMs >= SERVO_PWM_RELEASE_DELAY_MS) {
+    releaseAllServoOutputs();
+  }
 }
 
 void startTypingAt(uint32_t /*nowMs*/) {
@@ -101,7 +133,7 @@ constexpr ModeEntry kModes[] = {
     false,
     -1,
     startNoneAt,
-    nullptr,
+    updateNoneAt,
     startIdleEyes,
     updateIdleEyes,
   },

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 // =====================================================
 // SERVO IDENTITY + LIMITS
 // =====================================================
@@ -66,3 +68,6 @@ constexpr float SERVO_ANGLE_DEADBAND_DEG = 0.32f;
 
 // Approximate angular spacing of one PWM count
 constexpr float SERVO_PWM_STEP_DEG = 0.63f;
+
+// Idle/sleep: hold PWM this long after all joints still, then full-off
+constexpr uint32_t SERVO_PWM_RELEASE_DELAY_MS = 2000;

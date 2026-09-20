@@ -46,6 +46,10 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
   serialLogPrintln(entry->name);
   anim::logServoSnapshot("pre-transition");
 
+  if (g_animation == AnimationId::None && id != AnimationId::None) {
+    ensureAllServoOutputs();
+  }
+
   // Raise head out of sleep pose before the new anim claims servos.
   // None / Sleep / Wakeup must keep chin-down (or own the rise).
   if (id != AnimationId::None &&

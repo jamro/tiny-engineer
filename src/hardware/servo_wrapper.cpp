@@ -10,6 +10,10 @@
 
 Adafruit_PWMServoDriver pwm(PCA9685_ADDRESS);
 
+// PCA9685 LEDn_OFF full-off bit. Do not use (4096, 0) — that is full-on HIGH.
+constexpr uint16_t kPca9685FullOff = 4096;
+static bool g_allOutputsReleased = false;
+
 ServoWrapper g_servos[SERVO_COUNT] = {
   ServoWrapper(SERVO_HEAD),
   ServoWrapper(SERVO_NECK),
@@ -134,13 +138,15 @@ ServoWrapper::ServoWrapper(int index)
     target_(angle_),
     speedDegS_(SERVO_MAX_SPEED_DEG_S),
     lastUpdateMs_(0),
-    lastPulse_(UINT16_MAX) {}
+    lastPulse_(UINT16_MAX),
+    released_(false) {}
 
 float ServoWrapper::angle() const {
   return angle_;
 }
 
 void ServoWrapper::setTarget(float target, float speedDegS) {
+  ensureServoOutput();
   target_ = clampServoAngle(index_, target);
   speedDegS_ = constrain(
     speedDegS,
@@ -214,7 +220,74 @@ void updateAllServos() {
   }
 }
 
+bool anyServoMoving() {
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    if (g_servos[i].isMoving()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void ensureAllServoOutputs() {
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    g_servos[i].ensureServoOutput();
+  }
+}
+
+void releaseAllServoOutputs() {
+  if (g_allOutputsReleased) {
+    return;
+  }
+
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    g_servos[i].releaseServoOutput();
+  }
+
+  g_allOutputsReleased = true;
+  serialLogPrintln("[servo] pwm off");
+}
+
+void ServoWrapper::ensureServoOutput() {
+  if (!released_) {
+    return;
+  }
+
+  released_ = false;
+  g_allOutputsReleased = false;
+  lastPulse_ = UINT16_MAX;
+
+  const uint16_t pulse = angleToPulse(angle_);
+  pwm.setPWM(
+    SERVO_SPECS[index_].channel,
+    0,
+    pulse
+  );
+  lastPulse_ = pulse;
+
+  serialLogPrint("[servo] pwm on ");
+  serialLogPrint(SERVO_SPECS[index_].name);
+  serialLogPrint(" ch=");
+  serialLogPrintln(SERVO_SPECS[index_].channel);
+}
+
+void ServoWrapper::releaseServoOutput() {
+  if (released_) {
+    return;
+  }
+
+  pwm.setPWM(
+    SERVO_SPECS[index_].channel,
+    0,
+    kPca9685FullOff
+  );
+  lastPulse_ = UINT16_MAX;
+  released_ = true;
+}
+
 void ServoWrapper::writeAngle(float angle, bool log, bool electrical) {
+  ensureServoOutput();
   angle = clampAngle(index_, angle, electrical);
 
   const uint16_t pulse = angleToPulse(angle);
