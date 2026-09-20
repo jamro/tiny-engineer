@@ -8,9 +8,10 @@ enum class WavClip : uint8_t {
   Attention,
   Error,
   Abort,
+  Dead,
 };
 
-constexpr uint8_t kWavClipCount = 5;
+constexpr uint8_t kWavClipCount = 6;
 
 const char* wavClipPath(WavClip clip);
 const char* wavClipOledTitle(WavClip clip);

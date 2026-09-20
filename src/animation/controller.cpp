@@ -30,8 +30,11 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
   if (id != AnimationId::Attention) {
     stopAttentionPlayback();
   }
-  if (id != AnimationId::Error && id != AnimationId::Dead) {
+  if (id != AnimationId::Error) {
     stopErrorPlayback();
+  }
+  if (id != AnimationId::Dead) {
+    stopDeadPlayback();
   }
   if (id != AnimationId::Abort) {
     stopAbortPlayback();

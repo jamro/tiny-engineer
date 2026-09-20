@@ -32,4 +32,8 @@ bool startAbortPlayback();
 bool updateAbortPlayback();
 void stopAbortPlayback();
 bool playAbort();
+bool startDeadPlayback();
+bool updateDeadPlayback();
+void stopDeadPlayback();
+bool playDead();
 void runSoundTest();

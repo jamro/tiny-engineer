@@ -92,6 +92,5 @@ constexpr float ABORT_HAND_LEFT_SHRUG = 2.0f / 45.0f;
 
 // Power-loss collapse: chin fully down, hands parked.
 constexpr float DEAD_HEAD_DOWN = -1.0f;
-constexpr float DEAD_COLLAPSE_SPEED_DEG_S = 48.0f;
 
 }  // namespace anim

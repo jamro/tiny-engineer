@@ -9,8 +9,9 @@ constexpr uint32_t ERROR_AUDIO_PROBLEM_END_MS = 2140;
 constexpr uint32_t ERROR_AUDIO_END_MS = 2220;
 
 void startError();
+void startDeadWarning();
 void updateError(uint32_t now);
-// Obstacle pose + error.wav + glances. True when audio ends or fails to start.
+// Obstacle pose + warning clip + glances. True when audio ends or fails to start.
 bool updateErrorWarning(uint32_t now);
 bool errorAudioStarted();
 uint32_t errorAudioElapsed(uint32_t now);

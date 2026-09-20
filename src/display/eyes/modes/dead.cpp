@@ -88,7 +88,7 @@ void updateFlickerWarning(uint32_t now) {
   const bool audioOn = errorAudioStarted();
   const uint32_t audioElapsed = errorAudioElapsed(now);
   const bool dense = audioOn
-    && audioElapsed >= ERROR_AUDIO_PROBLEM_END_MS;
+    && audioElapsed >= DEAD_AUDIO_DENSE_MS;
 
   if (now < g_blankUntilMs) {
     g_leftH = 1;

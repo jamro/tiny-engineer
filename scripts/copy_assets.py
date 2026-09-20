@@ -9,7 +9,14 @@ dest_dir = project_dir / "data"
 
 dest_dir.mkdir(exist_ok=True)
 
-for name in ("bell.wav", "welcome.wav", "attention.wav", "error.wav", "abort.wav"):
+for name in (
+    "bell.wav",
+    "welcome.wav",
+    "attention.wav",
+    "error.wav",
+    "abort.wav",
+    "dead.wav",
+):
     source = assets_dir / name
     if not source.is_file():
         raise FileNotFoundError(f"Missing audio asset: {source}")

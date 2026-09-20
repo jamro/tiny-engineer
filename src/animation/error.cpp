@@ -32,6 +32,8 @@ enum class ErrorPhase {
 ErrorPhase g_errorPhase = ErrorPhase::ObstaclePose;
 uint32_t g_errorAudioStartMs = 0;
 bool g_errorAudioStarted = false;
+bool (*g_warningStartPlayback)() = startErrorPlayback;
+bool (*g_warningUpdatePlayback)() = updateErrorPlayback;
 uint32_t g_blockedHoldStartedMs = 0;
 uint32_t g_nextHoldMoveMs = 0;
 bool g_holdNodLow = false;
@@ -131,12 +133,15 @@ void enterBlockedHold(uint32_t now) {
   scheduleNextHoldMove(now);
 }
 
-}  // namespace
-
-void startError() {
+void beginObstacleWarning(
+  bool (*startPlayback)(),
+  bool (*updatePlayback)()
+) {
   stopAllWavPlayback();
   stopAnimServos();
 
+  g_warningStartPlayback = startPlayback;
+  g_warningUpdatePlayback = updatePlayback;
   g_errorPhase = ErrorPhase::ObstaclePose;
   g_errorAudioStartMs = 0;
   g_errorAudioStarted = false;
@@ -146,6 +151,16 @@ void startError() {
   g_currentLook = ErrorLook::Task;
 
   commandObstaclePose();
+}
+
+}  // namespace
+
+void startError() {
+  beginObstacleWarning(startErrorPlayback, updateErrorPlayback);
+}
+
+void startDeadWarning() {
+  beginObstacleWarning(startDeadPlayback, updateDeadPlayback);
 }
 
 bool errorAudioStarted() {
@@ -165,7 +180,7 @@ bool updateErrorWarning(uint32_t now) {
     case ErrorPhase::ObstaclePose:
       updateAllServos();
       if (allErrorServosStopped()) {
-        if (startErrorPlayback()) {
+        if (g_warningStartPlayback()) {
           g_errorAudioStarted = true;
           g_errorAudioStartMs = now;
           g_nextHoldMoveMs = now + ERROR_AUDIO_UHOH_END_MS;
@@ -182,7 +197,7 @@ bool updateErrorWarning(uint32_t now) {
       if (allErrorServosStopped()) {
         commandNervousLook(now);
       }
-      if (!updateErrorPlayback()) {
+      if (!g_warningUpdatePlayback()) {
         g_errorPhase = ErrorPhase::Finished;
         return true;
       }
