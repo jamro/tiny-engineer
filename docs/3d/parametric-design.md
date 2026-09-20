@@ -114,7 +114,7 @@ Always trust **your** `ScrewSizingTest` result over the table if they disagree.
 
 ## TinyEngineer Tools add-in
 
-**TinyEngineer Tools** is a Fusion add-in for [`cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d). It writes servo dimensions from [`TinyEngineerTools/servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) into Fusion user parameters, and exports each `PRINT_LAYOUT` child as a `.3mf` and binary `.stl` mesh plus a `.step` CAD file (PRINT_LAYOUT with one child visible, so captured print pose stays). STL/3MF use Save as Mesh; STEP uses File → Export.
+**TinyEngineer Tools** is a Fusion add-in for [`cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d). It writes servo dimensions from [`TinyEngineerTools/servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) into Fusion user parameters, and exports selected `PRINT_LAYOUT` children as `.3mf` / binary `.stl` / `.step` (PRINT_LAYOUT with one child visible, so captured print pose stays). STL/3MF use Save as Mesh; STEP uses File → Export.
 
 Fusion must know about the add-in folder. Folder name, `TinyEngineerTools.py`, and `TinyEngineerTools.manifest` must stay the same.
 
@@ -140,24 +140,26 @@ Open [`cad/TinyEngineer.f3d`](../../3d_models/cad/TinyEngineer.f3d) and stay in 
 
 Select a servo model and apply dimensions, including `servo_id` (short lowercase id such as `sg90`).
 
-The command reads [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json), previews the values, and writes them into the design’s user parameters. Apply a servo before exporting.
+The command reads [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json), previews the values, and writes them into the design’s user parameters. Use this to preview a preset in the open design; Parts Exporter can also apply selected servos during export.
 
 #### Tiny Engineer Parts Exporter
 
-Choose an export folder.
+A command dialog asks what to export (all checkboxes **on** by default):
 
-The add-in finds the `PRINT_LAYOUT` component and exports each of its direct child components separately. For each child, it temporarily hides the others, keeps that child visible in its saved print orientation, and exports the full PRINT_LAYOUT as:
+* **Servos** — each preset in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json)
+* **Parts** — each direct `PRINT_LAYOUT` child in a scrollable table, with **Select all** / **Deselect all**
+* **Formats** — `3MF`, `STL`, `STEP`
 
-* `{servo_id}/3mf/{name}.3mf`
-* `{servo_id}/stl/{name}.stl` in binary STL format
-* `{servo_id}/step/{name}.step` as STEP CAD (File → Export, not Save as Mesh)
+Then choose an export folder.
+
+For each selected servo the add-in applies that preset’s parameters, then exports each selected part separately. For each part it temporarily hides the others, keeps that child visible in its saved print orientation, and writes the checked formats under that servo’s folder:
+
+* `{servo_id}/3mf/{name}.3mf` (if 3MF selected)
+* `{servo_id}/stl/{name}.stl` binary STL (if STL selected)
+* `{servo_id}/step/{name}.step` STEP CAD via File → Export (if STEP selected)
 * `{servo_id}/README.md` with that servo’s parameters from `servos.json`
 
-`servo_id` comes from the Fusion parameter set by Servo Configurator. Apply a servo before exporting.
-
-In that way, each component is exported as a separate file, all keeping their captured print orientation.
-
-After all components are exported, the original visibility settings are restored. A progress dialog stays up during the run so Fusion can paint; Cancel stops after the current part.
+After the run, visibility and the design’s previous servo parameters are restored. A progress dialog stays up so Fusion can paint; Cancel stops after the current part.
 
 ## Add a new servo
 

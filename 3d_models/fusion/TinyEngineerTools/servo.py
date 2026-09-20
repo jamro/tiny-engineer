@@ -143,7 +143,8 @@ def _apply_servo_id(params, value):
     )
 
 
-def _apply_servo(design, servo_data):
+def _apply_servo(design, servo_data, show_errors=True):
+    """Apply servo_data to design user parameters. Returns True on success."""
     params = design.userParameters
     dimensions = {
         name: value
@@ -152,11 +153,12 @@ def _apply_servo(design, servo_data):
     }
     missing = [name for name in dimensions if not params.itemByName(name)]
     if missing:
-        ui.messageBox(
-            'The following Fusion parameters do not exist:\n\n'
-            + '\n'.join(missing)
-        )
-        return
+        if show_errors:
+            ui.messageBox(
+                'The following Fusion parameters do not exist:\n\n'
+                + '\n'.join(missing)
+            )
+        return False
 
     servo_id = servo_data.get(SERVO_ID_PARAM)
     if servo_id:
@@ -169,10 +171,12 @@ def _apply_servo(design, servo_data):
         values.append(adsk.core.ValueInput.createByString(value))
 
     if not design.modifyParameters(to_set, values):
-        ui.messageBox('Failed to set servo parameters.')
-        return
+        if show_errors:
+            ui.messageBox('Failed to set servo parameters.')
+        return False
 
     design.computeAll()
+    return True
 
 
 def _error(title):
