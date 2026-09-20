@@ -136,7 +136,7 @@
 				)
 			)
 		)
-		(property "Value" "PCA9685"
+		(property "Value" "Adafruit PCA9685"
 			(at 0 1 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -177,7 +177,13 @@
 		(path "/6391d22f-15dc-41a6-9172-b77d075a6c9e")
 		(sheetname "/")
 		(sheetfile "main-control-board.kicad_sch")
-		(attr through_hole)
+		(units
+			(unit
+				(name "A")
+				(pins "6" "1" "2" "3" "4" "5")
+			)
+		)
+		(attr through_hole exclude_from_pos_files exclude_from_bom)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -31.85 -11.4)
@@ -453,7 +459,7 @@
 			(remove_unused_layers no)
 			(net "/I2C_SCL")
 			(pinfunction "SCL_3")
-			(pintype "bidirectional")
+			(pintype "input")
 			(uuid "f013e112-91e4-41d6-a005-dc259e65c7d1")
 		)
 		(pad "3" thru_hole circle
@@ -464,7 +470,7 @@
 			(remove_unused_layers no)
 			(net "/I2C_SCL")
 			(pinfunction "SCL_3")
-			(pintype "bidirectional")
+			(pintype "input")
 			(uuid "77ffa5dc-6840-49a0-9683-bce37c275924")
 		)
 		(pad "4" thru_hole circle
@@ -583,7 +589,7 @@
 				)
 			)
 		)
-		(property "Value" "USB"
+		(property "Value" "Conn_01x04_Socket"
 			(at -3.15 -0.09 180)
 			(layer "F.Fab")
 			(uuid "1cf5ff3e-495e-418b-86f9-123e16217741")
@@ -605,7 +611,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Generic connector, single row, 01x04, script generated"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -621,6 +627,32 @@
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "6e2540e2-94bc-451e-aea8-1d8ea239cf60")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "LCSC Part #" "C2718488"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "0711813a-d566-4fd5-aa82-c929ddf486b3")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "44b65ccd-d619-493a-8799-3ce8317a5a5e")
 			(effects
 				(font
 					(size 1 1)
@@ -875,7 +907,7 @@
 				)
 			)
 		)
-		(property "Value" "MAX98357"
+		(property "Value" "MAX98357A"
 			(at 0 10 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -916,7 +948,13 @@
 		(path "/36531e2b-a362-4cd5-9344-6709539e35aa")
 		(sheetname "/")
 		(sheetfile "main-control-board.kicad_sch")
-		(attr through_hole)
+		(units
+			(unit
+				(name "A")
+				(pins "1" "2" "3" "4" "5" "7" "6")
+			)
+		)
+		(attr through_hole exclude_from_pos_files exclude_from_bom)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 9.35 8.75)
@@ -1121,7 +1159,7 @@
 			(roundrect_rratio 0.1470588235)
 			(net "/I2S_LRC")
 			(pinfunction "LRC_1")
-			(pintype "bidirectional")
+			(pintype "input")
 			(uuid "bac83806-9801-452c-89c3-e9b10d0270ab")
 		)
 		(pad "2" thru_hole circle
@@ -1132,7 +1170,7 @@
 			(remove_unused_layers no)
 			(net "/I2S_BCLK")
 			(pinfunction "BCLK_2")
-			(pintype "bidirectional")
+			(pintype "input")
 			(uuid "35be6f7c-471d-4e9d-91c4-2d8d01e03899")
 		)
 		(pad "3" thru_hole circle
@@ -1143,7 +1181,7 @@
 			(remove_unused_layers no)
 			(net "/I2S_DIN")
 			(pinfunction "DIN_3")
-			(pintype "bidirectional")
+			(pintype "input")
 			(uuid "d2579328-5e00-47e9-b665-e53ce7372787")
 		)
 		(pad "4" thru_hole circle
@@ -1154,7 +1192,7 @@
 			(remove_unused_layers no)
 			(net "unconnected-(MAX1-GAIN-Pad4)")
 			(pinfunction "GAIN_4")
-			(pintype "bidirectional+no_connect")
+			(pintype "input+no_connect")
 			(uuid "28876361-9b99-427f-8540-0b63c65ad81f")
 		)
 		(pad "5" thru_hole circle
@@ -1165,7 +1203,7 @@
 			(remove_unused_layers no)
 			(net "unconnected-(MAX1-SD-Pad5)")
 			(pinfunction "SD_5")
-			(pintype "bidirectional+no_connect")
+			(pintype "input+no_connect")
 			(uuid "df7d059b-b445-44f6-862d-12cedfc3c96e")
 		)
 		(pad "6" thru_hole circle
@@ -1240,7 +1278,7 @@
 				)
 			)
 		)
-		(property "Value" "OLED"
+		(property "Value" "Waveshare 0.91 OLED"
 			(at 2.65 7.46 90)
 			(layer "F.Fab")
 			(uuid "b2e280ed-ad2c-4ebf-837e-7bb0a4880ed8")
@@ -1278,6 +1316,32 @@
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "7e4776da-7665-4c95-a8bb-31f76dc57a95")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "LCSC Part #" "C2691448"
+			(at 0 0 180)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "0e999f6d-7a8a-41b2-9cc6-ef4e0772b455")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
+			(at 0 0 180)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "491f927d-cdf6-4cb3-b11b-e5b4bc780631")
 			(effects
 				(font
 					(size 1 1)
@@ -1469,7 +1533,7 @@
 			(remove_unused_layers no)
 			(net "/I2C_SCL")
 			(pinfunction "SCL_4")
-			(pintype "bidirectional")
+			(pintype "input")
 			(uuid "0741a587-a504-4963-81ae-17c8e1fa43ae")
 		)
 		(embedded_fonts no)
@@ -1516,7 +1580,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.waveshare.com/wiki/ESP32-C3-Zero"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -1530,7 +1594,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Waveshare ESP32-C3-Zero module header, pads numbered anticlockwise from USB"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "B.Fab")
@@ -1547,7 +1611,15 @@
 		(path "/830dbdd4-4215-415a-a843-81c8ec435273")
 		(sheetname "/")
 		(sheetfile "main-control-board.kicad_sch")
-		(attr through_hole)
+		(units
+			(unit
+				(name "A")
+				(pins "3" "4" "5" "6" "7" "8" "9" "1" "2" "18" "17" "16" "15" "14" "13"
+					"12" "11" "10"
+				)
+			)
+		)
+		(attr through_hole exclude_from_pos_files exclude_from_bom)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 9.3 11.9)
