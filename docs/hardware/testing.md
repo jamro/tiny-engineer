@@ -51,7 +51,7 @@ silent, which makes the LED the only signal a first-boot board gives you.
 4. `Checking OLED at 0x3C...` → found or `ERROR: OLED not found` (continues)
 5. Settings load from NVS (`loading` = `progress` or `sleep_inertia`)
 6. **Progress loading (default):** OLED progress steps (Display → WiFi → Servos → Audio → Storage → Ready), then large full-width IP (or `No IP`) for 3 s, then idle eyes
-7. **Sleep inertia loading:** closed eyes during init; smooth move to sleep pose if `welcome` is on; slow eye open + blinks (~5.5 s). Head/neck wave only if `welcome` is on; otherwise eyes only
+7. **Sleep inertia loading:** wakeup frame 0 during init (classic: closed lids; kaomoji: Sleepy). Smooth move to sleep pose if `welcome` is on. After init, wake plays from t=0: slow eye open + blinks (~5.5 s). Head/neck wave only if `welcome` is on; otherwise eyes only
 8. `WIFI SETUP` on serial — connect OK + IP, open setup AP, or saved credentials failed (setup AP for reconfiguration)
 9. `Starting MAX98357A` → `I2S OK`
 10. `Centering servos` — smooth move to per-channel mid (progress path only; skipped if sleep pose already applied)

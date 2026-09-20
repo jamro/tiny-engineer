@@ -7,7 +7,6 @@
 #include "animation/wakeup.h"
 #include "display/eyes.h"
 #include "display/eyes/core/blink.h"
-#include "display/eyes/core/constants.h"
 #include "display/eyes/core/internal.h"
 #include "display/oled.h"
 #include "hardware/servo_wrapper.h"
@@ -38,11 +37,10 @@ void bootShowProgress(
 }
 
 void bootBeginSleepingFace() {
-  startEyes();
-  blinkSetOpenAmount(eyes::BLINK_CLOSED_AMOUNT);
-  blinkBeginIdle(millis());
-  blinkSetNextBlinkMs(millis() + 60000UL);
-  eyes::requestForceRedraw();
+  eyes::setEyesRunning(true);
+  blinkResetCounters();
+  eyes::setLastDrawMs(0);
+  setEyeMode(EyeMode::Wakeup, millis());
   updateEyes(millis());
 }
 

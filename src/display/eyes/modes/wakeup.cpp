@@ -7,6 +7,7 @@
 #include "display/eyes/core/blink.h"
 #include "display/eyes/core/constants.h"
 #include "display/eyes/core/internal.h"
+#include "display/eyes/styles/kaomoji.h"
 
 namespace {
 
@@ -24,6 +25,7 @@ void startWakeupEyes(uint32_t now) {
   blinkBeginIdle(now);
   blinkSetNextBlinkMs(now + 60000UL);
   blinkSetOpenAmount(eyes::BLINK_CLOSED_AMOUNT);
+  kaomojiResetPlayback(now);
   eyes::requestForceRedraw();
 
   g_blink1Armed = true;
