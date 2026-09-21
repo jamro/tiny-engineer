@@ -1,0 +1,53 @@
+# Critical net → pin memberships for review.
+# Tokens = KiCad netlist RefDes.PinNum:PinName (pin number + symbol pin name).
+# Compare with: kicad-cli sch export netlist
+# See docs/pcb.md#expected-netsyml
+
+nets:
+  "+5V":
+    - J1.7:Pin_7
+    - J3.1:Pin_1
+    - J4.1:Pin_1
+    - J6.1:Pin_1
+    - J7.3:Pin_3
+  "+3.3V":
+    - J2.1:Pin_1
+    - J3.2:Pin_2
+    - J4.2:Pin_2
+    - J6.3:Pin_3
+  GND:
+    - J1.6:Pin_6
+    - J2.2:Pin_2
+    - J3.6:Pin_6
+    - J4.6:Pin_6
+    - J6.2:Pin_2
+    - J7.4:Pin_4
+  "/I2C_SDA":
+    - J2.3:Pin_3
+    - J3.3:Pin_3
+    - J4.3:Pin_3
+    - J6.4:Pin_4
+  "/I2C_SCL":
+    - J2.4:Pin_4
+    - J3.4:Pin_4
+    - J4.4:Pin_4
+    - J6.5:Pin_5
+  "/I2S_BCLK":
+    - J1.2:Pin_2
+    - J6.6:Pin_6
+  "/I2S_LRC":
+    - J1.1:Pin_1
+    - J6.7:Pin_7
+  "/I2S_DIN":
+    - J1.3:Pin_3
+    - J6.8:Pin_8
+  "Net-(J3-Pin_5)":
+    - J3.5:Pin_5
+    - J4.5:Pin_5
+    - J6.9:Pin_9
+  "/USB_D+":
+    - J5.7:Pin_7
+    - J7.1:Pin_1
+  "/USB_D-":
+    - J5.6:Pin_6
+    - J7.2:Pin_2
