@@ -790,13 +790,29 @@
         "uuid": "82a78d11-58ff-455c-a94e-f7463ce9fc2e"
       }
     ],
-    "used_designators": "#PWR1-2,#PWR11,#PWR13-25,J1-6,J8,USB1,R1-2",
+    "used_designators": "PCA2,#FLG1-2,#PWR1-2,#PWR7,#PWR11-31,J1-8,R1-2,ESP2,MAX2,USB1",
     "variants": []
   },
   "sheets": [
     [
       "82a78d11-58ff-455c-a94e-f7463ce9fc2e",
       "main-control-board"
+    ],
+    [
+      "40cd2a5a-2e60-4300-b34c-2601a9f7b845",
+      "USB"
+    ],
+    [
+      "9ca8381d-c51d-4172-aff4-163dcd982dc8",
+      "PCA"
+    ],
+    [
+      "fe9c0ff4-ff93-486d-af4d-0d3b12e4783b",
+      "Audio"
+    ],
+    [
+      "5279ce81-4ccb-4a15-9003-792cb3c65582",
+      "ESP32"
     ]
   ],
   "text_variables": {},
