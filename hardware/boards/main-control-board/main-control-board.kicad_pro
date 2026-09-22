@@ -39,9 +39,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.8,
-          "height": 1.27,
-          "width": 1.27
+          "drill": 0.599998,
+          "height": 1.9,
+          "width": 1.1
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -60,7 +60,7 @@
           "hatch_smoothing_level": 0,
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
-          "min_clearance": 0.5,
+          "min_clearance": 0.0,
           "min_island_area": 10.0,
           "min_thickness": 0.25,
           "pad_connection": 1,
@@ -69,7 +69,13 @@
           "thermal_relief_spoke_width": 0.5
         }
       },
-      "diff_pair_dimensions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -153,7 +159,7 @@
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
         "min_through_hole_diameter": 0.3,
-        "min_track_width": 0.2,
+        "min_track_width": 0.15,
         "min_via_annular_width": 0.1,
         "min_via_diameter": 0.5,
         "solder_mask_to_copper_clearance": 0.005,
@@ -205,6 +211,7 @@
       ],
       "track_widths": [
         0.0,
+        0.15,
         0.2,
         0.4,
         1.5,
@@ -783,7 +790,7 @@
         "uuid": "82a78d11-58ff-455c-a94e-f7463ce9fc2e"
       }
     ],
-    "used_designators": "#PWR1-2,#PWR13-20,J1-6",
+    "used_designators": "#PWR1-2,#PWR11,#PWR13-25,J1-6,J8,USB1,R1-2",
     "variants": []
   },
   "sheets": [
