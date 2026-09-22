@@ -40,8 +40,8 @@
         "other_text_upright": false,
         "pads": {
           "drill": 0.599998,
-          "height": 1.9,
-          "width": 1.1
+          "height": 1.6,
+          "width": 1.2
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -521,7 +521,7 @@
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.25,
+        "clearance": 0.2,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.25,
@@ -539,7 +539,7 @@
         "wire_width": 6
       },
       {
-        "clearance": 0.25,
+        "clearance": 0.2,
         "diff_pair_gap": 0.25,
         "diff_pair_width": 0.25,
         "microvia_diameter": 0.8,
@@ -569,7 +569,7 @@
         "via_drill": 0.3
       },
       {
-        "clearance": 0.25,
+        "clearance": 0.2,
         "diff_pair_gap": 0.25,
         "diff_pair_width": 0.25,
         "microvia_diameter": 0.8,
@@ -790,7 +790,7 @@
         "uuid": "82a78d11-58ff-455c-a94e-f7463ce9fc2e"
       }
     ],
-    "used_designators": "PCA2,#FLG1-2,#PWR1-2,#PWR7,#PWR11-31,J1-8,R1-2,ESP2,MAX2,USB1",
+    "used_designators": "USB1,R1-10,MAX2,ESP2,J1-8,#PWR1-31,C1-3,PCA2,#FLG1-2,U1-2",
     "variants": []
   },
   "sheets": [

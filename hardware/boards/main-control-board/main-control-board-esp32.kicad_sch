@@ -2073,17 +2073,6 @@
 				)
 			)
 		)
-		(property "FT Rotation Offset" "90"
-			(at 99.06 54.61 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(pin "8"
 			(uuid "6237bbaa-44f0-416b-9d2d-dd0850e13d5d")
 		)
@@ -2186,17 +2175,6 @@
 			)
 		)
 		(property "LCSC Part #" "C2897372"
-			(at 177.8 54.61 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "FT Rotation Offset" "90"
 			(at 177.8 54.61 90)
 			(hide yes)
 			(show_name no)

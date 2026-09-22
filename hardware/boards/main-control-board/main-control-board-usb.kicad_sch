@@ -1380,17 +1380,6 @@
 				)
 			)
 		)
-		(property "FT Rotation Offset" "90"
-			(at 107.95 66.04 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(pin "2"
 			(uuid "85574a51-c630-4fde-80a3-504995f84c43")
 		)
@@ -1494,28 +1483,6 @@
 			)
 		)
 		(property "LCSC Part #" "C2765186"
-			(at 135.89 106.68 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "FT Rotation Offset" "90"
-			(at 135.89 74.93 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC Part" "C2765186"
 			(at 135.89 106.68 0)
 			(hide yes)
 			(show_name no)
@@ -1954,17 +1921,6 @@
 			)
 		)
 		(property "LCSC Part #" "C23186"
-			(at 107.95 83.82 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "FT Rotation Offset" "90"
 			(at 107.95 83.82 90)
 			(hide yes)
 			(show_name no)
