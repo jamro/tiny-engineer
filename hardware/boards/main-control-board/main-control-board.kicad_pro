@@ -790,7 +790,7 @@
         "uuid": "82a78d11-58ff-455c-a94e-f7463ce9fc2e"
       }
     ],
-    "used_designators": "USB1,R1-10,MAX2,ESP2,J1-8,#PWR1-31,C1-3,PCA2,#FLG1-2,U1-2",
+    "used_designators": "F1,USB1,R1-11,MAX2,ESP2,J1-8,D1,#PWR1-31,U1-2,C1-3,PCA2,#FLG1-2",
     "variants": []
   },
   "sheets": [
