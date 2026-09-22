@@ -846,17 +846,6 @@
 				)
 			)
 		)
-		(property "FT Rotation Offset" "90"
-			(at 115.57 25.4 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(pin "4"
 			(uuid "63d84785-86eb-49b3-a535-d857f10ec4d7")
 		)
