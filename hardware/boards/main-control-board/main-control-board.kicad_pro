@@ -39,9 +39,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.599998,
-          "height": 1.6,
-          "width": 1.2
+          "drill": 0.999998,
+          "height": 1.7,
+          "width": 1.7
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -544,9 +544,24 @@
         "diff_pair_width": 0.25,
         "microvia_diameter": 0.8,
         "microvia_drill": 0.4,
+        "name": "AUDIO_5V",
+        "pcb_color": "rgb(255, 153, 0)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.5,
+        "tuning_profile": "",
+        "via_diameter": 0.8,
+        "via_drill": 0.4
+      },
+      {
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.25,
+        "microvia_diameter": 0.8,
+        "microvia_drill": 0.4,
         "name": "GND",
         "pcb_color": "rgb(132, 132, 132)",
-        "priority": 0,
+        "priority": 1,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.4,
         "tuning_profile": "",
@@ -561,7 +576,7 @@
         "microvia_drill": 0.3,
         "name": "Power3V3",
         "pcb_color": "rgb(221, 133, 0)",
-        "priority": 2,
+        "priority": 3,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.4,
         "tuning_profile": "",
@@ -576,7 +591,7 @@
         "microvia_drill": 0.4,
         "name": "Power5V",
         "pcb_color": "rgb(194, 0, 0)",
-        "priority": 3,
+        "priority": 4,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 1.5,
         "tuning_profile": "",
@@ -591,7 +606,7 @@
         "microvia_drill": 0.3,
         "name": "USB",
         "pcb_color": "rgb(0, 0, 255)",
-        "priority": 1,
+        "priority": 2,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.2,
         "tuning_profile": "",
@@ -628,6 +643,14 @@
       {
         "netclass": "Default",
         "pattern": "/I2C_*"
+      },
+      {
+        "netclass": "AUDIO_5V",
+        "pattern": "AUDIO_5V"
+      },
+      {
+        "netclass": "AUDIO_5V",
+        "pattern": "/Audio/AUDIO_5V"
       }
     ]
   },
@@ -790,7 +813,7 @@
         "uuid": "82a78d11-58ff-455c-a94e-f7463ce9fc2e"
       }
     ],
-    "used_designators": "F1,USB1,R1-11,MAX2,ESP2,J1-8,D1,#PWR1-31,U1-2,C1-3,PCA2,#FLG1-2",
+    "used_designators": "TP1-2,F1,USB1,R1-12,JP1,ESP2,MAX2,NT1,J1-8,U1-3,C1-3,#PWR1-35,D1,PCA2,#FLG1-2",
     "variants": []
   },
   "sheets": [
