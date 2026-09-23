@@ -5,49 +5,74 @@
 
 nets:
   "+5V":
-    - J1.7:Pin_7
-    - J3.1:Pin_1
-    - J4.1:Pin_1
-    - J6.1:Pin_1
-    - J7.3:Pin_3
+    - C2.1:1
+    - J7.1:Pin_1
+    - R11.1:1
+    - U2.2:2
+    - U2.5:5
+    - U2.8:8
+    - U2.11:11
+    - U2.14:14
+    - USB1.A4B9:VBUS
+    - USB1.B4A9:VBUS
   "+3.3V":
+    - C1.2:2
     - J2.1:Pin_1
-    - J3.2:Pin_2
-    - J4.2:Pin_2
-    - J6.3:Pin_3
+    - J7.3:Pin_3
+    - R3.1:1
+    - R4.1:1
+    - R5.1:1
+    - U1.28:VDD
   GND:
-    - J1.6:Pin_6
+    - C1.1:1
+    - C2.2:2
+    - D1.1:K
     - J2.2:Pin_2
-    - J3.6:Pin_6
-    - J4.6:Pin_6
-    - J6.2:Pin_2
-    - J7.4:Pin_4
+    - J7.2:Pin_2
+    - R1.1:1
+    - R2.1:1
+    - U1.1:A0
+    - U1.2:A1
+    - U1.3:A2
+    - U1.4:A3
+    - U1.5:A4
+    - U1.14:VSS
+    - U1.24:A5
+    - U1.25:EXTCLK
+    - U2.1:1
+    - U2.4:4
+    - U2.7:7
+    - U2.10:10
+    - U2.13:13
+    - USB1.13:EH
+    - USB1.14:EH
+    - USB1.A1B12:GND
+    - USB1.B1A12:GND
   "/I2C_SDA":
     - J2.3:Pin_3
-    - J3.3:Pin_3
-    - J4.3:Pin_3
-    - J6.4:Pin_4
+    - J7.4:Pin_4
+    - R5.2:2
+    - U1.27:SDA
   "/I2C_SCL":
     - J2.4:Pin_4
-    - J3.4:Pin_4
-    - J4.4:Pin_4
-    - J6.5:Pin_5
+    - J7.5:Pin_5
+    - R4.2:2
+    - U1.26:SCL
+  "/ESP32/GP5":
+    - J7.9:Pin_9
+    - R3.2:2
+    - U1.23:~{OE}
   "/I2S_BCLK":
-    - J1.2:Pin_2
-    - J6.6:Pin_6
+    - J7.6:Pin_6
   "/I2S_LRC":
-    - J1.1:Pin_1
-    - J6.7:Pin_7
+    - J7.7:Pin_7
   "/I2S_DIN":
-    - J1.3:Pin_3
-    - J6.8:Pin_8
-  "Net-(J3-Pin_5)":
-    - J3.5:Pin_5
-    - J4.5:Pin_5
-    - J6.9:Pin_9
+    - J7.8:Pin_8
   "/USB_D+":
-    - J5.7:Pin_7
-    - J7.1:Pin_1
+    - J8.7:Pin_7
+    - USB1.A6:Dp1
+    - USB1.B6:Dp2
   "/USB_D-":
-    - J5.6:Pin_6
-    - J7.2:Pin_2
+    - J8.6:Pin_6
+    - USB1.A7:Dn1
+    - USB1.B7:Dn2
