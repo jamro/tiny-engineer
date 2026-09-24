@@ -1,7 +1,43 @@
-# Critical net → pin memberships for review.
-# Tokens = KiCad netlist RefDes.PinNum:PinName (pin number + symbol pin name).
+# Critical net → pin memberships and net classes for review.
+# Pin tokens = KiCad netlist RefDes.PinNum:PinName (pin number + symbol pin name).
+# Net classes = KiCad netlist `class` list, effective class first.
 # Compare with: kicad-cli sch export netlist
 # See docs/pcb.md#expected-netsyml
+
+netclasses:
+  "+5V":
+    - Power5V
+    - Default
+  "/USB/USB_VBUS":
+    - Power5V
+    - Default
+  "/Audio/AUDIO_5V":
+    - AUDIO_5V
+    - Default
+  "+3.3V":
+    - Power3V3
+    - Default
+  GND:
+    - GND
+    - Default
+  "/I2C_SDA":
+    - Default
+  "/I2C_SCL":
+    - Default
+  "/ESP32/GP5":
+    - Default
+  "/I2S_BCLK":
+    - Default
+  "/I2S_LRC":
+    - Default
+  "/I2S_DIN":
+    - Default
+  "/USB_D+":
+    - USB
+    - Default
+  "/USB_D-":
+    - USB
+    - Default
 
 nets:
   "+5V":

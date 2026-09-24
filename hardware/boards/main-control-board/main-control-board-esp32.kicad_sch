@@ -1768,8 +1768,8 @@
 		)
 		(uuid "ff1b118f-e23c-4f1f-9c57-116007d97054")
 	)
-	(hierarchical_label "UDB_DP"
-		(shape input)
+	(hierarchical_label "USB_DP"
+		(shape bidirectional)
 		(at 194.31 80.01 0)
 		(effects
 			(font
@@ -1780,7 +1780,7 @@
 		(uuid "00133cff-9d47-4d0e-989c-a75d2968ef32")
 	)
 	(hierarchical_label "GP1"
-		(shape input)
+		(shape bidirectional)
 		(at 88.9 85.09 180)
 		(effects
 			(font
@@ -1791,7 +1791,7 @@
 		(uuid "01ac8cb7-7046-43cd-bcda-18a1dca34030")
 	)
 	(hierarchical_label "GP5"
-		(shape input)
+		(shape bidirectional)
 		(at 88.9 95.25 180)
 		(effects
 			(font
@@ -1802,7 +1802,7 @@
 		(uuid "285a4512-5f23-4af9-9096-4347575e0cc9")
 	)
 	(hierarchical_label "GP6"
-		(shape input)
+		(shape bidirectional)
 		(at 194.31 95.25 0)
 		(effects
 			(font
@@ -1813,7 +1813,7 @@
 		(uuid "4a13daf2-494a-4ccf-ad45-727fae48be70")
 	)
 	(hierarchical_label "GP0"
-		(shape input)
+		(shape bidirectional)
 		(at 88.9 82.55 180)
 		(effects
 			(font
@@ -1824,7 +1824,7 @@
 		(uuid "a3b65e43-69fc-4b24-9fd8-a0b5c3ed6b67")
 	)
 	(hierarchical_label "GP2"
-		(shape input)
+		(shape bidirectional)
 		(at 88.9 87.63 180)
 		(effects
 			(font
@@ -1835,7 +1835,7 @@
 		(uuid "a7531e92-0987-4dcb-850c-b09cd1cb41bb")
 	)
 	(hierarchical_label "GP3"
-		(shape input)
+		(shape bidirectional)
 		(at 88.9 90.17 180)
 		(effects
 			(font
@@ -1846,7 +1846,7 @@
 		(uuid "a7986196-9699-47e5-8615-2e5edb14822b")
 	)
 	(hierarchical_label "GP4"
-		(shape input)
+		(shape bidirectional)
 		(at 88.9 92.71 180)
 		(effects
 			(font
@@ -1857,7 +1857,7 @@
 		(uuid "b33cd244-e368-4808-bff2-8281acf5d8d5")
 	)
 	(hierarchical_label "USB_DM"
-		(shape input)
+		(shape bidirectional)
 		(at 194.31 82.55 0)
 		(effects
 			(font

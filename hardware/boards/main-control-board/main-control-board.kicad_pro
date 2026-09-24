@@ -146,7 +146,7 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.0,
+        "min_clearance": 0.15,
         "min_connection": 0.0,
         "min_copper_edge_clearance": 0.5,
         "min_groove_width": 0.0,
@@ -266,7 +266,7 @@
       "internal_id": "",
       "mfg": "",
       "mpn": "",
-      "sch_revision": "v1"
+      "sch_revision": "v2"
     },
     "layer_pairs": [],
     "layer_presets": [],
@@ -646,11 +646,11 @@
       },
       {
         "netclass": "AUDIO_5V",
-        "pattern": "AUDIO_5V"
+        "pattern": "/Audio/AUDIO_5V"
       },
       {
-        "netclass": "AUDIO_5V",
-        "pattern": "/Audio/AUDIO_5V"
+        "netclass": "Power5V",
+        "pattern": "/USB/USB_VBUS"
       }
     ]
   },
