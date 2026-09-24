@@ -1317,6 +1317,12 @@
 		(uuid "7415c8b0-37e3-4552-a94d-b65dc1cb98eb")
 	)
 	(junction
+		(at 167.64 95.25)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "79efe2c2-9474-4d54-a391-f07ba914ee60")
+	)
+	(junction
 		(at 109.22 95.25)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -1411,6 +1417,16 @@
 			(type default)
 		)
 		(uuid "3a39fc5a-d062-4449-8bff-f3da27fb82c2")
+	)
+	(wire
+		(pts
+			(xy 167.64 95.25) (xy 194.31 95.25)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3ce5c501-fe0f-454d-94b3-378eeb9d5ec9")
 	)
 	(wire
 		(pts
@@ -1784,6 +1800,17 @@
 			(justify right)
 		)
 		(uuid "285a4512-5f23-4af9-9096-4347575e0cc9")
+	)
+	(hierarchical_label "GP6"
+		(shape input)
+		(at 194.31 95.25 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4a13daf2-494a-4ccf-ad45-727fae48be70")
 	)
 	(hierarchical_label "GP0"
 		(shape input)
