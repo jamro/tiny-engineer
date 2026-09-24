@@ -385,12 +385,11 @@ def check_expected_nets(expected_path: Path, netlist_path: Path) -> list[str]:
             )
 
     for net_name, want_classes in expected_classes.items():
-        got_classes = actual_classes.get(net_name)
-        if got_classes is None:
-            if net_name not in actual:
-                errors.append(f"net {net_name!r}: missing from netlist")
-            else:
-                errors.append(f"net {net_name!r}: netlist has no class")
+        if net_name not in actual:
+            continue  # already reported in pin loop
+        got_classes = actual_classes.get(net_name) or []
+        if not got_classes:
+            errors.append(f"net {net_name!r}: netlist has no class")
             continue
         if got_classes != want_classes:
             errors.append(
