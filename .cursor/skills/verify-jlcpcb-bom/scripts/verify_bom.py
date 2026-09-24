@@ -563,9 +563,16 @@ def fetch_catalog(code: str) -> Catalog:
         return Catalog(error=f"HTTP {exc.code}")
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
         return Catalog(error=str(exc))
-    if not isinstance(payload, dict) or payload.get("code") != 200 or not isinstance(payload.get("data"), dict):
+    if not isinstance(payload, dict):
+        return Catalog(error="unexpected JLCPCB payload")
+    data = payload.get("data")
+    if payload.get("code") == 200 and isinstance(data, dict):
+        return Catalog(data=data)
+    # Observed not-found / bad componentCode: business code 400, data null
+    if payload.get("code") == 400 and data is None:
         return Catalog(missing=True)
-    return Catalog(data=payload["data"])
+    msg = payload.get("message") or "unexpected response"
+    return Catalog(error=f"JLCPCB code {payload.get('code')}: {msg}")
 
 
 def attr_map(data: dict) -> dict[str, str]:
