@@ -7,6 +7,7 @@ nets:
   "+5V":
     - C2.1:1
     - J7.1:Pin_1
+    - NT1.1:1
     - R11.1:1
     - U2.2:2
     - U2.5:5
@@ -15,6 +16,13 @@ nets:
     - U2.14:14
     - USB1.A4B9:VBUS
     - USB1.B4A9:VBUS
+  "/Audio/AUDIO_5V":
+    - C3.2:2
+    - JP1.1:A
+    - NT1.2:2
+    - R12.1:1
+    - U3.7:VDD
+    - U3.8:VDD
   "+3.3V":
     - C1.2:2
     - J2.1:Pin_1
@@ -26,6 +34,7 @@ nets:
   GND:
     - C1.1:1
     - C2.2:2
+    - C3.1:1
     - D1.1:K
     - J2.2:Pin_2
     - J7.2:Pin_2
@@ -44,6 +53,10 @@ nets:
     - U2.7:7
     - U2.10:10
     - U2.13:13
+    - U3.3:GND
+    - U3.11:GND
+    - U3.15:GND
+    - U3.17:EP
     - USB1.13:EH
     - USB1.14:EH
     - USB1.A1B12:GND
@@ -64,10 +77,13 @@ nets:
     - U1.23:~{OE}
   "/I2S_BCLK":
     - J7.6:Pin_6
+    - U3.16:BCLK
   "/I2S_LRC":
     - J7.7:Pin_7
+    - U3.14:LRCLK
   "/I2S_DIN":
     - J7.8:Pin_8
+    - U3.1:DIN
   "/USB_D+":
     - J8.7:Pin_7
     - USB1.A6:Dp1
