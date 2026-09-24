@@ -813,7 +813,7 @@
         "uuid": "82a78d11-58ff-455c-a94e-f7463ce9fc2e"
       }
     ],
-    "used_designators": "TP1-2,F1,USB1,R1-12,JP1,ESP2,MAX2,NT1,J1-8,U1-3,C1-3,#PWR1-35,D1,PCA2,#FLG1-2",
+    "used_designators": "TP1-2,F1,USB1,H1-2,R1-12,JP1,ESP2,MAX2,NT1,J1-8,U1-3,C1-3,#PWR1-35,D1,PCA2,#FLG1-2",
     "variants": []
   },
   "sheets": [
