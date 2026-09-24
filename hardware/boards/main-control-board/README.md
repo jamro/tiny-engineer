@@ -63,4 +63,14 @@ Two-layer FR4, about 1.6 mm thick.
 
 The two ESP32 sockets follow the Waveshare header. Pad 1 is 5 V. Pads count anticlockwise from the module's USB connector. Those numbers are the module's header pads, not the pins of the ESP32-C3 chip.
 
+## Library exceptions
+
+### USB1 3D model (C2765186)
+
+Footprint `USB-C-SMD_TYPE-C-16PIN-2MD-073` loads `USB-C-SMD_TYPE-C-6PIN-2MD-073.{wrl,step}`.
+
+EasyEDA has no separate `…16PIN….wrl` for this LCSC part. Official package `c_para.3DModel` is `USB-C-SMD_TYPE-C-6PIN-2MD-073` (outline3D uuid `4ee8413127e64716b804db03d4b340ae`). Re-import via `import_lcsc.py --lcsc-id C2765186` reproduces the same mapping.
+
+Do not rename or replace the model only to silence filename-mismatch reviews — this is intentional.
+
 Contribution rules: [`docs/pcb.md`](../../../docs/pcb.md).
