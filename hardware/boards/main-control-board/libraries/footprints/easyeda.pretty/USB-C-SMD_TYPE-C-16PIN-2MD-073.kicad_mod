@@ -276,6 +276,7 @@
 		(uuid "a576c9ef-3393-482c-b30b-b1ff1fad8d51")
 	)
 	(embedded_fonts no)
+	# EasyEDA: no …16PIN… 3D; package c_para.3DModel = …6PIN… (C2765186). See board README.
 	(model "${KIPRJMOD}/libraries/3d/easyeda.3dshapes/USB-C-SMD_TYPE-C-6PIN-2MD-073.wrl"
 		(offset
 			(xyz 0 0 0)
