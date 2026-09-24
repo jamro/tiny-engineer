@@ -118,16 +118,23 @@ Errors fail; warnings do not. Reports go to a temp dir, or pass `--report-dir ar
 
 ## expected-nets.yml
 
-Committed checklist of **critical** net → pin memberships for human/AI review. Not a full netlist dump.
+Committed checklist of **critical** net → pin memberships, and of those nets' KiCad net classes, for human/AI review. Not a full netlist dump.
 
 - **Path:** `hardware/boards/<board-name>/expected-nets.yml`
 - **Check:** `python3 scripts/check_pcb.py` (exports netlist via `kicad-cli` and compares). Manual: `kicad-cli sch export netlist`, then compare to this file. No `kicad-cli` → say so and skip connectivity claims ([AGENTS.md](../AGENTS.md)).
 - **Do not** infer nets from `.kicad_sch` / `.kicad_pcb` coordinates or geometry.
-- **Update** when you intentionally change listed nets or pins. Keep the list to power and important buses (I2C, I2S, USB, …), not every net.
+- **Update** when you intentionally change listed nets, pins, or net classes. Keep the list to power and important buses (I2C, I2S, USB, …), not every net.
 
-Minimal shape (pin tokens = KiCad netlist `RefDes.PinNum:PinName` — pin number plus symbol pin name, so duplicate names like multiple `GND` pins stay distinct):
+Minimal shape (pin tokens = KiCad netlist `RefDes.PinNum:PinName` — pin number plus symbol pin name, so duplicate names like multiple `GND` pins stay distinct). Optional `netclasses:` lists KiCad netlist class names for the same nets, effective class first (`kicad-cli sch export netlist`, the `class` attribute):
 
 ```yaml
+netclasses:
+  "+5V":
+    - Power5V
+    - Default
+  GND:
+    - GND
+    - Default
 nets:
   "+5V":
     - ESP1.1:5V

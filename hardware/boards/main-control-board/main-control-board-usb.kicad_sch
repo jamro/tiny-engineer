@@ -1644,7 +1644,7 @@
 		(uuid "c9ec084b-51ee-407c-a6d7-e1687a0fc9f6")
 	)
 	(hierarchical_label "USB_D-"
-		(shape input)
+		(shape bidirectional)
 		(at 106.68 71.12 180)
 		(effects
 			(font
@@ -1655,7 +1655,7 @@
 		(uuid "b9eacae3-0f89-4c57-a27a-6321a4797147")
 	)
 	(hierarchical_label "USB_D+"
-		(shape input)
+		(shape bidirectional)
 		(at 106.68 76.2 180)
 		(effects
 			(font

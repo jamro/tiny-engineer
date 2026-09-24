@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "TinyEngineer PCB")
-		(date "2026-09-12")
-		(rev "v1")
+		(date "2026-09-24")
+		(rev "v2")
 	)
 	(lib_symbols
 		(symbol "Connector:Conn_01x04_Pin"
@@ -3110,7 +3110,7 @@
 				(justify left top)
 			)
 		)
-		(pin "USB_D-" input
+		(pin "USB_D-" bidirectional
 			(at 224.79 95.25 180)
 			(uuid "593ccca2-998c-4b93-b4e8-ef17913e4798")
 			(effects
@@ -3120,7 +3120,7 @@
 				(justify left)
 			)
 		)
-		(pin "USB_D+" input
+		(pin "USB_D+" bidirectional
 			(at 224.79 92.71 180)
 			(uuid "9f02a412-44d8-451f-bb74-6e5cd7f86c95")
 			(effects
@@ -3176,7 +3176,7 @@
 				(justify left top)
 			)
 		)
-		(pin "GP0" input
+		(pin "GP0" bidirectional
 			(at 139.7 87.63 180)
 			(uuid "97368ad3-aa38-4748-9626-7500d59c8917")
 			(effects
@@ -3186,7 +3186,7 @@
 				(justify left)
 			)
 		)
-		(pin "GP2" input
+		(pin "GP2" bidirectional
 			(at 139.7 97.79 180)
 			(uuid "9dd540af-9904-4f5e-8086-052be114cf88")
 			(effects
@@ -3196,7 +3196,7 @@
 				(justify left)
 			)
 		)
-		(pin "GP1" input
+		(pin "GP1" bidirectional
 			(at 139.7 90.17 180)
 			(uuid "d2dba0ac-c968-4083-93a7-91aa810a1d0f")
 			(effects
@@ -3206,17 +3206,7 @@
 				(justify left)
 			)
 		)
-		(pin "UDB_DP" input
-			(at 186.69 92.71 0)
-			(uuid "cc773ab0-5006-4a25-8469-5cb928481a46")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "USB_DM" input
+		(pin "USB_DM" bidirectional
 			(at 186.69 95.25 0)
 			(uuid "35076592-06cf-4d92-955a-a085e2e736e1")
 			(effects
@@ -3226,7 +3216,7 @@
 				(justify right)
 			)
 		)
-		(pin "GP5" input
+		(pin "GP5" bidirectional
 			(at 139.7 92.71 180)
 			(uuid "03c1088d-629a-41eb-9ac4-282ec2efc4a2")
 			(effects
@@ -3236,7 +3226,7 @@
 				(justify left)
 			)
 		)
-		(pin "GP4" input
+		(pin "GP4" bidirectional
 			(at 139.7 102.87 180)
 			(uuid "f4801336-0e8a-4a7e-becc-e72217f5177f")
 			(effects
@@ -3246,7 +3236,7 @@
 				(justify left)
 			)
 		)
-		(pin "GP3" input
+		(pin "GP3" bidirectional
 			(at 139.7 100.33 180)
 			(uuid "c1681c9b-ac47-4eb0-a07a-a3d3b88d324d")
 			(effects
@@ -3256,9 +3246,19 @@
 				(justify left)
 			)
 		)
-		(pin "GP6" input
+		(pin "GP6" bidirectional
 			(at 186.69 87.63 0)
 			(uuid "0c90d443-6716-4aa7-8f61-7b760df5fbb0")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "USB_DP" bidirectional
+			(at 186.69 92.71 0)
+			(uuid "d2231743-3a77-4266-a686-40686ce8894e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3312,7 +3312,7 @@
 				(justify left top)
 			)
 		)
-		(pin "SCL" input
+		(pin "SCL" bidirectional
 			(at 99.06 90.17 0)
 			(uuid "009454fd-74b5-40c0-b708-6ddd0934a723")
 			(effects
@@ -3332,7 +3332,7 @@
 				(justify right)
 			)
 		)
-		(pin "SDA" input
+		(pin "SDA" bidirectional
 			(at 99.06 87.63 0)
 			(uuid "b8ae1308-9b56-4658-9909-75ba4aa62228")
 			(effects
