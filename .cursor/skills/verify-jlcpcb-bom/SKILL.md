@@ -45,7 +45,7 @@ After the quote, interpret every `FAIL` and `WARN`. Group lines that share one c
 
 Verdict for each line: **real**, **false positive**, or **info**.
 
-A lookup failure is neither a design bug nor a false positive. Say the catalog was not reached, skip package and value claims for those refs, and stop.
+A lookup failure is neither a design bug nor a false positive. For refs whose lookup failed, say the catalog was not reached and skip package and value claims. Continue interpreting findings for all other refs.
 
 ### Package line is a name search
 
