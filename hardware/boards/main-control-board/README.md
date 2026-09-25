@@ -16,6 +16,7 @@ The servo driver, the speaker amplifier, and the USB-C connector are parts on th
 - **MAX98357A** is the mono class-D amplifier. The speaker connects to a 2-pin header. The speaker's minus terminal is not ground. Connect the speaker only between the two amplifier outputs.
 - **USB-C connector** supplies 5 V and the USB data pair. Two 5.1 kΩ resistors on the CC pins mark this board as a USB device. The charger decides how much current is available.
 - A **3 A resettable fuse** sits between USB power and the 5 V rail.
+- A **TPS259571** eFuse (`U4`) sits between that 5 V rail and servo 5 V. Current limit is set by `R14` (1 kΩ ≈ 2 A). On fault the device auto-retries.
 - **OLED header** is for the SSD1306 display. Pin order, from pin 1: 3.3 V, ground, SDA, SCL.
 - A second header shares that I2C bus. Its pin order is different: ground, 3.3 V, SDA, SCL.
 - A spare 4-pin header is on the board for later use.
@@ -30,15 +31,15 @@ The OLED module plugs into the OLED header.
 
 ## Power
 
-USB-C 5 V goes through the fuse onto the 5 V rail. That rail feeds the ESP32 5 V pin, the servo plugs, and a 5 V indicator LED.
+USB-C 5 V goes through the fuse onto the `+5V` rail. That rail feeds the ESP32 5 V pin, a 5 V indicator LED, and the eFuse input.
 
-The amplifier has its own 5 V net. A net tie joins it to the main 5 V rail, so the amplifier supply can be routed on its own.
+The eFuse output is `SERVO_5V`. That rail feeds the servo plugs (PCA9685 V+), a bulk capacitor, and — through a net tie — the amplifier 5 V net, so the amp supply can still be routed on its own but comes from the protected servo rail, not raw `+5V`.
 
 3.3 V comes from the regulator on the ESP32 module. This board does not have a 3.3 V regulator. 3.3 V feeds the PCA9685 logic supply, the OLED, the I2C pull-ups (4.7 kΩ), the pull-up on the PCA9685 output-enable pin (10 kΩ), and a 3.3 V indicator LED.
 
 Servo 5 V and logic 3.3 V stay separate. They share ground.
 
-Use a **5 V supply of at least 2 A**. Five stalled servos can draw more than a typical USB port provides.
+Use a **5 V supply of at least 2 A**. Five stalled servos can draw more than a typical USB port provides. Multi-servo stall can also hit the eFuse’s ~2 A limit before the 3 A resettable fuse trips.
 
 ## Connections from the ESP32
 
@@ -59,7 +60,7 @@ The output-enable wire is on this board. Firmware still ignores it: `PCA9685_OE_
 
 Two-layer FR4, about 1.6 mm thick.
 
-5 V tracks are 1.5 mm wide. 3.3 V tracks are 0.4 mm. The amplifier 5 V net is 0.5 mm. USB data tracks use their own width.
+5 V tracks (`+5V` and `SERVO_5V`) are 1.5 mm wide. 3.3 V tracks are 0.4 mm. The amplifier 5 V net is 0.5 mm. USB data tracks use their own width.
 
 The two ESP32 sockets follow the Waveshare header. Pad 1 is 5 V. Pads count anticlockwise from the module's USB connector. Those numbers are the module's header pads, not the pins of the ESP32-C3 chip.
 

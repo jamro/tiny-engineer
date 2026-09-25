@@ -2,7 +2,7 @@
 # Pin tokens = KiCad netlist RefDes.PinNum:PinName (pin number + symbol pin name).
 # Net classes = KiCad netlist `class` list, effective class first.
 # Compare with: kicad-cli sch export netlist
-# See docs/pcb.md#expected-netsyml
+# See docs/pcb.md#expected-nets-yml
 
 netclasses:
   "+5V":
@@ -13,6 +13,9 @@ netclasses:
     - Default
   "/Audio/AUDIO_5V":
     - AUDIO_5V
+    - Default
+  "/PCA/SERVO_5V":
+    - Power5V
     - Default
   "+3.3V":
     - Power3V3
@@ -25,6 +28,8 @@ netclasses:
   "/I2C_SCL":
     - Default
   "/ESP32/GP5":
+    - Default
+  "/ESP32/GP6":
     - Default
   "/I2S_BCLK":
     - Default
@@ -41,17 +46,13 @@ netclasses:
 
 nets:
   "+5V":
-    - C2.1:1
+    - C4.2:2
     - F1.1:1
-    - J4.1:Pin_1
     - J7.1:Pin_1
-    - NT1.1:1
     - R11.1:1
-    - U2.2:2
-    - U2.5:5
-    - U2.8:8
-    - U2.11:11
-    - U2.14:14
+    - U4.2:EN/UVLO
+    - U4.3:IN
+    - U4.4:IN
   "/USB/USB_VBUS":
     - F1.2:2
     - USB1.A4B9:VBUS
@@ -63,6 +64,17 @@ nets:
     - R12.1:1
     - U3.7:VDD
     - U3.8:VDD
+  "/PCA/SERVO_5V":
+    - C2.1:1
+    - C5.2:2
+    - J4.1:Pin_1
+    - NT1.1:1
+    - U2.11:11
+    - U2.14:14
+    - U2.2:2
+    - U2.5:5
+    - U2.8:8
+    - U4.5:OUT
   "+3.3V":
     - C1.2:2
     - J2.1:Pin_1
@@ -78,6 +90,8 @@ nets:
     - C1.1:1
     - C2.2:2
     - C3.1:1
+    - C4.1:1
+    - C5.1:1
     - D1.1:K
     - D2.1:K
     - J2.2:Pin_2
@@ -86,6 +100,7 @@ nets:
     - J7.2:Pin_2
     - R1.1:1
     - R2.1:1
+    - R14.2:2
     - U1.1:A0
     - U1.2:A1
     - U1.3:A2
@@ -103,6 +118,8 @@ nets:
     - U3.11:GND
     - U3.15:GND
     - U3.17:EP
+    - U4.8:GND
+    - U4.9:GND
     - USB1.13:EH
     - USB1.14:EH
     - USB1.A1B12:GND
@@ -123,6 +140,9 @@ nets:
     - J7.9:Pin_9
     - R3.2:2
     - U1.23:~{OE}
+  "/ESP32/GP6":
+    - J4.4:Pin_4
+    - J8.1:Pin_1
   "/I2S_BCLK":
     - J7.6:Pin_6
     - U3.16:BCLK

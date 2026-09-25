@@ -40,8 +40,8 @@
         "other_text_upright": false,
         "pads": {
           "drill": 0.0,
-          "height": 0.95,
-          "width": 0.875
+          "height": 3.4,
+          "width": 1.125
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -60,7 +60,7 @@
           "hatch_smoothing_level": 0,
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
-          "min_clearance": 0.0,
+          "min_clearance": 0.2,
           "min_island_area": 10.0,
           "min_thickness": 0.25,
           "pad_connection": 1,
@@ -651,6 +651,10 @@
       {
         "netclass": "Power5V",
         "pattern": "/USB/USB_VBUS"
+      },
+      {
+        "netclass": "Power5V",
+        "pattern": "/PCA/SERVO_5V"
       }
     ]
   },
@@ -813,7 +817,7 @@
         "uuid": "82a78d11-58ff-455c-a94e-f7463ce9fc2e"
       }
     ],
-    "used_designators": "TP1-5,F1,U1-3,C1-3,USB1,H1-3,R1-13,JP1,ESP2,MAX2,NT1,J1-8,#PWR1-37,D1-2,PCA2,#FLG1-2,#FLG4",
+    "used_designators": "TP1-5,F1,U1-4,C1-5,USB1,H1-3,R1-14,JP1,ESP2,MAX2,NT1,J1-8,#PWR1-40,D1-2,PCA2,#FLG1-2,#FLG4",
     "variants": []
   },
   "sheets": [
