@@ -31,6 +31,11 @@
   (constraint track_width (min 0.3mm) (opt 0.4mm))
 )
 
+(rule "eFuse 5V neckdown"
+  (condition "A.NetClass == 'Power5V' && A.intersectsArea('EFUSE_5V_NECKDOWN')")
+  (constraint track_width (min 0.3mm) (opt 0.4mm))
+)
+
 (rule "Silkscreen to soldermask clearance"
   (condition "B.Layer == 'F.Mask' || B.Layer == 'B.Mask'")
   (constraint silk_clearance (min 0.15mm))
