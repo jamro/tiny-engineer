@@ -15,6 +15,7 @@ Pick a path. Depth lives in the linked pages.
 | **Print / parts inventory** | [../3d_models/README.md](../3d_models/README.md) |
 | **Order printed parts** (no 3D printer) | [3d/order-parts.md](3d/order-parts.md) |
 | **Adapt CAD to a different servo** | [3d/parametric-design.md](3d/parametric-design.md) |
+| **Add a new CAD / printable part** | [3d/adding-parts.md](3d/adding-parts.md) |
 | **Use with an agent** (robot already on Wi-Fi) | [integration.md](integration.md) · Cursor: [hooks.md](hooks.md) |
 
 ### Reference and contribute
