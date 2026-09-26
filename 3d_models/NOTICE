@@ -12,6 +12,12 @@ Source Location
 
 https://github.com/jamro/tiny-engineer/tree/main/3d_models
 
+Optional HD1370A bottom-cover modification (Hanson Wen, 2026):
+https://github.com/Hilo-Hilo/tiny-engineer/tree/feat/hd1370a-bottom-cover/3d_models
+
+The modified master includes a hidden HD1370A-only cover reference. Its editable
+source, print exports and verification scripts are included in this source tree.
+
 When distributing a specific revision, use the corresponding tagged
 release or commit URL.
 

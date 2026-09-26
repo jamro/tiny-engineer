@@ -1,0 +1,46 @@
+{
+  "revision": 2,
+  "mesh_count": 1,
+  "bounds_mm": [
+    [
+      -75.3,
+      -64.6,
+      0.0
+    ],
+    [
+      29.0,
+      64.6,
+      4.5
+    ]
+  ],
+  "extents_mm": [
+    104.3,
+    129.2,
+    4.5
+  ],
+  "watertight": true,
+  "winding_consistent": true,
+  "euler_number": -6,
+  "volume_mm3": 49111.26985144659,
+  "units": "mm",
+  "sections": [
+    {
+      "height_from_print_bed_mm": 0.5,
+      "hole_equivalent_diameters_mm": [
+        2.299941846965864,
+        2.2999418469658646,
+        2.299941846965865,
+        2.299941846965865
+      ]
+    },
+    {
+      "height_from_print_bed_mm": 3.5,
+      "hole_equivalent_diameters_mm": [
+        4.299890674435669,
+        4.2998906744356695,
+        4.299890708703264,
+        4.29989070870327
+      ]
+    }
+  ]
+}

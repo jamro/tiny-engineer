@@ -1,0 +1,38 @@
+{
+  "revision": 2,
+  "full_original_assembly_interference": {
+    "Chair": 0,
+    "Desk": 0,
+    "DeskPad": 0,
+    "DeskTop": 0
+  },
+  "screw_envelopes": [
+    {
+      "head_floor_gap_mm": 0.3,
+      "cover_interference": 0,
+      "desk_interference": 0
+    },
+    {
+      "head_floor_gap_mm": 0.3,
+      "cover_interference": 0,
+      "desk_interference": 0
+    },
+    {
+      "head_floor_gap_mm": 0.3,
+      "cover_interference": 0,
+      "desk_interference": 0
+    },
+    {
+      "head_floor_gap_mm": 0.3,
+      "cover_interference": 0,
+      "desk_interference": 0
+    }
+  ],
+  "native_f3d_reopened": {
+    "body_count": 1,
+    "volume_mm3": 49111.270220730024,
+    "timeline_count": 6
+  },
+  "all_geometric_checks_pass": true,
+  "thread_retention_verified": false
+}

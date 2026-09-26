@@ -1,0 +1,11 @@
+{
+  "baseline_commit": "44122c02e51962606ca31a676c6982ca534428ab",
+  "source_repository": "https://github.com/jamro/tiny-engineer",
+  "source_files_sha256": {
+    "3d_models/parts/hd1370a/step/Desk.step": "a7caa2b100eba380a9b46e8175cb07d1e2f999c8c6107419ca7616acbab5bbbc",
+    "3d_models/parts/hd1370a/step/Chair.step": "4ec4ec0c31622bca53362e94802d862a200f705d465e91b5dcd7badd51c367e8",
+    "3d_models/parts/hd1370a/step/DeskTop.step": "378180c4f255a3cdcb9b471d4a718e1339adb0e904dd370dbfccc9b000d31f30",
+    "3d_models/parts/hd1370a/step/DeskPad.step": "ef3503fd6fcbeec9cd4698258c3315ddc6b8fdb088da687aee051a5c58c190d5"
+  },
+  "scope": "HD1370A only; physical fit and machine-screw retention unverified"
+}

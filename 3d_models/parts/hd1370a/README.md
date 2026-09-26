@@ -15,3 +15,7 @@
 - `servo_mount_hole_radius`: 1 mm
 - `servo_mount_hole_depth_offset`: 0 mm
 - `servo_mount_hole_width_offset`: 0 mm
+
+## Optional accessory
+
+[Bottom cover](bottom-cover/README.md): T-shaped, with recessed M2 head seats. CAD checked; physical fit and screw retention remain unverified.

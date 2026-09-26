@@ -1,0 +1,460 @@
+{
+  "parameters_mm": {
+    "thickness": 4.5,
+    "clearance": 0.3,
+    "hole_diameter": 2.3,
+    "head_diameter": 4.3,
+    "head_depth": 2.3
+  },
+  "outline_segments_mm": [
+    {
+      "type": "LINE",
+      "start_mm": [
+        -75.3,
+        35.6
+      ],
+      "end_mm": [
+        -24.0,
+        35.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        -24.0,
+        35.6
+      ],
+      "end_mm": [
+        -23.0,
+        36.6
+      ],
+      "mid_mm": [
+        -23.292893219,
+        35.892893219
+      ],
+      "radius_mm": 1.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        -23.0,
+        36.6
+      ],
+      "end_mm": [
+        -23.0,
+        37.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        -23.0,
+        37.6
+      ],
+      "end_mm": [
+        -24.0,
+        38.6
+      ],
+      "mid_mm": [
+        -23.292893219,
+        38.307106781
+      ],
+      "radius_mm": 1.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        -24.0,
+        38.6
+      ],
+      "end_mm": [
+        -30.0,
+        38.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        -30.0,
+        38.6
+      ],
+      "end_mm": [
+        -33.0,
+        41.6
+      ],
+      "mid_mm": [
+        -32.121320344,
+        39.478679656
+      ],
+      "radius_mm": 3.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        -33.0,
+        41.6
+      ],
+      "end_mm": [
+        -33.0,
+        61.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        -33.0,
+        61.6
+      ],
+      "end_mm": [
+        -30.0,
+        64.6
+      ],
+      "mid_mm": [
+        -32.121320344,
+        63.721320344
+      ],
+      "radius_mm": 3.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        -30.0,
+        64.6
+      ],
+      "end_mm": [
+        26.0,
+        64.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        26.0,
+        64.6
+      ],
+      "end_mm": [
+        29.0,
+        61.6
+      ],
+      "mid_mm": [
+        28.121320344,
+        63.721320344
+      ],
+      "radius_mm": 3.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        29.0,
+        61.6
+      ],
+      "end_mm": [
+        29.0,
+        -61.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        29.0,
+        -61.6
+      ],
+      "end_mm": [
+        26.0,
+        -64.6
+      ],
+      "mid_mm": [
+        28.121320343,
+        -63.721320344
+      ],
+      "radius_mm": 3.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        26.0,
+        -64.6
+      ],
+      "end_mm": [
+        -30.0,
+        -64.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        -30.0,
+        -64.6
+      ],
+      "end_mm": [
+        -33.0,
+        -61.6
+      ],
+      "mid_mm": [
+        -32.121320344,
+        -63.721320344
+      ],
+      "radius_mm": 3.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        -33.0,
+        -61.6
+      ],
+      "end_mm": [
+        -33.0,
+        -41.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        -33.0,
+        -41.6
+      ],
+      "end_mm": [
+        -30.0,
+        -38.6
+      ],
+      "mid_mm": [
+        -32.121320344,
+        -39.478679656
+      ],
+      "radius_mm": 3.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        -30.0,
+        -38.6
+      ],
+      "end_mm": [
+        -24.0,
+        -38.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        -24.0,
+        -38.6
+      ],
+      "end_mm": [
+        -23.0,
+        -37.6
+      ],
+      "mid_mm": [
+        -23.292893219,
+        -38.307106781
+      ],
+      "radius_mm": 1.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        -23.0,
+        -37.6
+      ],
+      "end_mm": [
+        -23.0,
+        -36.6
+      ]
+    },
+    {
+      "type": "CIRCLE",
+      "start_mm": [
+        -23.0,
+        -36.6
+      ],
+      "end_mm": [
+        -24.0,
+        -35.6
+      ],
+      "mid_mm": [
+        -23.292893219,
+        -35.892893219
+      ],
+      "radius_mm": 1.0
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        -24.0,
+        -35.6
+      ],
+      "end_mm": [
+        -75.3,
+        -35.6
+      ]
+    },
+    {
+      "type": "LINE",
+      "start_mm": [
+        -75.3,
+        -35.6
+      ],
+      "end_mm": [
+        -75.3,
+        35.6
+      ]
+    }
+  ],
+  "revision": 2,
+  "hole_centres_mm": [
+    [
+      -30,
+      -61.6
+    ],
+    [
+      26,
+      -61.6
+    ],
+    [
+      -30,
+      61.6
+    ],
+    [
+      26,
+      61.6
+    ]
+  ],
+  "scope": "HD1370A only; CAD verified, physical print not yet fit-tested",
+  "assembly_transforms": {
+    "Desk": "rotate X 180 deg; translate (0,0,38.5) mm",
+    "Chair": "translate (-59.3,0,4.5) mm",
+    "DeskTop": "translate (0,0,40.0) mm",
+    "DeskPad": "translate (-2,0.0000082699,38.5) mm"
+  },
+  "valid_solid": true,
+  "solid_count": 1,
+  "mesh_watertight": true,
+  "mesh_winding_consistent": true,
+  "mesh_euler_number": -6,
+  "volume_mm3": 49111.27022073003,
+  "bounds_mm": [
+    [
+      -75.3,
+      -64.6,
+      -7.993605777301127e-15
+    ],
+    [
+      29.0,
+      64.6,
+      4.500000000000008
+    ]
+  ],
+  "part_interference_mm3": {
+    "Desk": 0.0,
+    "Chair": 0.0,
+    "DeskTop": 0.0,
+    "DeskPad": 0.0
+  },
+  "head_checks": [
+    {
+      "centre_mm": [
+        -30,
+        -61.6
+      ],
+      "head_to_floor_clearance_mm": 0.3,
+      "radial_head_clearance_mm": 0.15,
+      "radial_shank_clearance_mm": 0.15,
+      "remaining_plate_bearing_mm": 2.2,
+      "M2x6_insertion_into_desk_mm": 3.8,
+      "head_plate_interference_mm3": 0.0,
+      "shank_plate_interference_mm3": 0.0,
+      "shank_desk_interference_mm3": 0.0
+    },
+    {
+      "centre_mm": [
+        26,
+        -61.6
+      ],
+      "head_to_floor_clearance_mm": 0.3,
+      "radial_head_clearance_mm": 0.15,
+      "radial_shank_clearance_mm": 0.15,
+      "remaining_plate_bearing_mm": 2.2,
+      "M2x6_insertion_into_desk_mm": 3.8,
+      "head_plate_interference_mm3": 0.0,
+      "shank_plate_interference_mm3": 0.0,
+      "shank_desk_interference_mm3": 0.0
+    },
+    {
+      "centre_mm": [
+        -30,
+        61.6
+      ],
+      "head_to_floor_clearance_mm": 0.3,
+      "radial_head_clearance_mm": 0.15,
+      "radial_shank_clearance_mm": 0.15,
+      "remaining_plate_bearing_mm": 2.2,
+      "M2x6_insertion_into_desk_mm": 3.8,
+      "head_plate_interference_mm3": 0.0,
+      "shank_plate_interference_mm3": 0.0,
+      "shank_desk_interference_mm3": 0.0
+    },
+    {
+      "centre_mm": [
+        26,
+        61.6
+      ],
+      "head_to_floor_clearance_mm": 0.3,
+      "radial_head_clearance_mm": 0.15,
+      "radial_shank_clearance_mm": 0.15,
+      "remaining_plate_bearing_mm": 2.2,
+      "M2x6_insertion_into_desk_mm": 3.8,
+      "head_plate_interference_mm3": 0.0,
+      "shank_plate_interference_mm3": 0.0,
+      "shank_desk_interference_mm3": 0.0
+    }
+  ],
+  "perimeter_fit": {
+    "perimeter_offset_mm": 0,
+    "excess_footprint_area_mm2": 0.0,
+    "missing_footprint_area_mm2": 0.0,
+    "max_sampled_source_edge_deviation_mm": 6.642349625640078e-10,
+    "copied_desk_edge_count": 21,
+    "radii_mm": [
+      1.0,
+      1.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      1.0,
+      1.0
+    ],
+    "square_rear_corners_mm": [
+      [
+        -75.3,
+        -35.6
+      ],
+      [
+        -75.3,
+        35.6
+      ]
+    ],
+    "rear_seam_bridges_mm": [
+      0.3,
+      0.3
+    ],
+    "note": "Straight rear closure coincides with chair and desk rear planes and bridges only their two existing 0.3 mm assembly seams."
+  },
+  "step_roundtrip_valid": true,
+  "step_roundtrip_volume_error_mm3": 6.184563972055912e-10,
+  "3mf_mesh_count": 1,
+  "3mf_bounds_mm": [
+    [
+      -75.3,
+      -64.6,
+      -7.993605777301127e-15
+    ],
+    [
+      29.0,
+      64.6,
+      4.500000000000008
+    ]
+  ]
+}
