@@ -6,7 +6,7 @@ Boards live under `boards/<board-name>/`. Prefer the same name for the directory
 
 | Board | Role |
 | --- | --- |
-| [`main-control-board`](boards/main-control-board/) | Draft interconnect / carrier (header sockets for existing modules) |
+| [`main-control-board`](boards/main-control-board/) | Draft main board: PCA9685, MAX98357A, and USB-C on the board; ESP32-C3-Zero plugs into two sockets |
 
 Contribution rules, KiCad version, what to commit, ERC/DRC, and PR expectations: [docs/pcb.md](../docs/pcb.md). Pre-PR checklist: [docs/pcb.md#checklist](../docs/pcb.md#checklist). Critical net checklist: [docs/pcb.md#expected-nets-yml](../docs/pcb.md#expected-nets-yml). Local/CI checks: `python3 scripts/check_pcb.py` (KiCad 10) — [docs/testing.md](../docs/testing.md).
 

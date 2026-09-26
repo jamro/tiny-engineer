@@ -1,14 +1,42 @@
 (version 1)
 
 (rule "5V min width"
+  (condition "A.NetClass == 'Power5V'")
   (constraint track_width (min 1.5mm))
-  (condition "A.NetClass == 'Power5V'"))
+)
 
 (rule "5V via min"
+  (condition "A.NetClass == 'Power5V' && A.Type == 'Via'")
   (constraint via_diameter (min 0.8mm))
   (constraint hole_size (min 0.4mm))
-  (condition "A.NetClass == 'Power5V' && A.Type == 'Via'"))
+)
 
 (rule "3V3 min width"
+  (condition "A.NetClass == 'Power3V3'")
   (constraint track_width (min 0.4mm))
-  (condition "A.NetClass == 'Power3V3'"))
+)
+
+(rule "USB-C local clearance"
+  (condition "A.memberOfFootprint('USB1')")
+  (constraint clearance (min 0.15mm))
+)
+
+(rule "USB-C hole clearance"
+  (condition "A.memberOfFootprint('USB1') || B.memberOfFootprint('USB1')")
+  (constraint hole_clearance (min 0.15mm))
+)
+
+(rule "USB1 5V neckdown"
+  (condition "A.NetClass == 'Power5V' && A.intersectsArea('USB1_5V_NECKDOWN')")
+  (constraint track_width (min 0.3mm) (opt 0.4mm))
+)
+
+(rule "eFuse 5V neckdown"
+  (condition "A.NetClass == 'Power5V' && A.intersectsArea('EFUSE_5V_NECKDOWN')")
+  (constraint track_width (min 0.3mm) (opt 0.4mm))
+)
+
+(rule "Silkscreen to soldermask clearance"
+  (condition "B.Layer == 'F.Mask' || B.Layer == 'B.Mask'")
+  (constraint silk_clearance (min 0.15mm))
+)

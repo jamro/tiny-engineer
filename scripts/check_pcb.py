@@ -173,8 +173,14 @@ def _atom(node: list[Any], tag: str) -> str | None:
     return str(c[1])
 
 
-def parse_netlist_pins(netlist_text: str) -> dict[str, set[str]]:
-    """Return net name -> set of RefDes.PinNum:PinName tokens."""
+def parse_netlist_pins(
+    netlist_text: str,
+) -> tuple[dict[str, set[str]], dict[str, list[str]]]:
+    """Return pin sets and netclass lists from a KiCad sexpr netlist.
+
+    Pin tokens are RefDes.PinNum:PinName. Net classes follow the netlist
+    `class` attribute, comma-split, effective class first.
+    """
     root = parse_sexpr(netlist_text)
     if not isinstance(root, list) or root[0] != "export":
         raise ValueError("netlist root is not (export ...)")
@@ -208,14 +214,17 @@ def parse_netlist_pins(netlist_text: str) -> dict[str, set[str]]:
                 ref_libpart[ref] = (lib, part)
 
     nets_out: dict[str, set[str]] = {}
+    classes_out: dict[str, list[str]] = {}
     nets = _child(root, "nets")
     if not nets:
-        return nets_out
+        return nets_out, classes_out
 
     for net in _children(nets, "net"):
         name = _atom(net, "name")
         if not name:
             continue
+        class_attr = _atom(net, "class") or ""
+        classes_out[name] = [part for part in class_attr.split(",") if part]
         pins: set[str] = set()
         for node in _children(net, "node"):
             ref = _atom(node, "ref")
@@ -236,20 +245,36 @@ def parse_netlist_pins(netlist_text: str) -> dict[str, set[str]]:
                     pin_name = pin_num
             pins.add(f"{ref}.{pin_num}:{pin_name}")
         nets_out[name] = pins
-    return nets_out
+    return nets_out, classes_out
 
 
-def load_expected_nets(path: Path) -> dict[str, list[str]]:
+def _unquote_net_key(key: str) -> str:
+    if key.startswith('"') and key.endswith('"'):
+        return key[1:-1].replace(r"\"", '"').replace(r"\\", "\\")
+    return key
+
+
+def load_expected_nets(
+    path: Path,
+) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     """Parse constrained expected-nets.yml (stdlib only).
 
-    Accepts: # comments, blank lines, top-level `nets:`, bare or double-quoted
-    net keys, and `- Token` list items. Rejects anything else.
+    Accepts: # comments, blank lines, top-level `nets:` and `netclasses:`,
+    bare or double-quoted net keys, and `- Token` list items. Rejects
+    anything else.
+
     Pin tokens: RefDes.PinNum:PinName (e.g. ESP1.1:5V).
+    Netclass tokens: KiCad netlist class names, effective class first
+    (e.g. Power5V, then Default). When `netclasses:` is present, its net
+    keys must match `nets:`.
     """
     text = path.read_text(encoding="utf-8")
     nets: dict[str, list[str]] = {}
+    netclasses: dict[str, list[str]] = {}
+    section: str | None = None
     current: str | None = None
     seen_nets = False
+    seen_classes = False
     key_re = re.compile(r'^("(?:\\.|[^"\\])*"|[A-Za-z0-9_./+-]+)\s*:\s*$')
     item_re = re.compile(r"^-\s+(\S+)\s*$")
 
@@ -260,17 +285,29 @@ def load_expected_nets(path: Path) -> dict[str, list[str]]:
         stripped = line.strip()
         indent = len(line) - len(line.lstrip(" "))
 
-        if indent == 0 and stripped == "nets:":
-            if seen_nets:
-                raise ValueError(f"{path}:{lineno}: duplicate 'nets:'")
-            seen_nets = True
+        if indent == 0 and stripped in ("nets:", "netclasses:"):
+            name = stripped[:-1]
+            if name == "nets":
+                if seen_nets:
+                    raise ValueError(f"{path}:{lineno}: duplicate 'nets:'")
+                seen_nets = True
+            else:
+                if seen_classes:
+                    raise ValueError(f"{path}:{lineno}: duplicate 'netclasses:'")
+                seen_classes = True
+            section = name
             current = None
             continue
 
-        if not seen_nets:
+        if section is None:
             raise ValueError(
-                f"{path}:{lineno}: expected top-level 'nets:' before other content"
+                f"{path}:{lineno}: expected top-level 'nets:' or 'netclasses:'"
             )
+
+        target = nets if section == "nets" else netclasses
+        item_kind = (
+            "RefDes.PinNum:PinName" if section == "nets" else "NetClass"
+        )
 
         if indent == 2:
             m = key_re.match(stripped)
@@ -278,12 +315,10 @@ def load_expected_nets(path: Path) -> dict[str, list[str]]:
                 raise ValueError(
                     f"{path}:{lineno}: expected net key like GND: or \"+5V\":"
                 )
-            key = m.group(1)
-            if key.startswith('"') and key.endswith('"'):
-                key = key[1:-1].replace(r"\"", '"').replace(r"\\", "\\")
-            if key in nets:
+            key = _unquote_net_key(m.group(1))
+            if key in target:
                 raise ValueError(f"{path}:{lineno}: duplicate net {key!r}")
-            nets[key] = []
+            target[key] = []
             current = key
             continue
 
@@ -291,10 +326,9 @@ def load_expected_nets(path: Path) -> dict[str, list[str]]:
             m = item_re.match(stripped)
             if not m:
                 raise ValueError(
-                    f"{path}:{lineno}: expected list item "
-                    f"'- RefDes.PinNum:PinName'"
+                    f"{path}:{lineno}: expected list item '- {item_kind}'"
                 )
-            nets[current].append(m.group(1))
+            target[current].append(m.group(1))
             continue
 
         raise ValueError(f"{path}:{lineno}: unsupported line: {raw!r}")
@@ -303,18 +337,35 @@ def load_expected_nets(path: Path) -> dict[str, list[str]]:
         raise ValueError(f"{path}: missing top-level 'nets:'")
     if not nets:
         raise ValueError(f"{path}: 'nets:' has no entries")
-    return nets
+    if seen_classes:
+        if not netclasses:
+            raise ValueError(f"{path}: 'netclasses:' has no entries")
+        missing = sorted(set(nets) - set(netclasses))
+        extra = sorted(set(netclasses) - set(nets))
+        if missing or extra:
+            parts: list[str] = []
+            if missing:
+                parts.append("missing " + ", ".join(missing))
+            if extra:
+                parts.append("extra " + ", ".join(extra))
+            raise ValueError(
+                f"{path}: netclasses keys must match nets: {'; '.join(parts)}"
+            )
+        for net_name, classes in netclasses.items():
+            if not classes:
+                raise ValueError(f"{path}: net {net_name!r} has no netclass")
+    return nets, netclasses
 
 
 def check_expected_nets(expected_path: Path, netlist_path: Path) -> list[str]:
     errors: list[str] = []
     try:
-        expected_nets = load_expected_nets(expected_path)
+        expected_nets, expected_classes = load_expected_nets(expected_path)
     except ValueError as exc:
         return [str(exc)]
 
     netlist_text = netlist_path.read_text(encoding="utf-8")
-    actual = parse_netlist_pins(netlist_text)
+    actual, actual_classes = parse_netlist_pins(netlist_text)
 
     for net_name, pins in expected_nets.items():
         want = set(pins)
@@ -331,6 +382,19 @@ def check_expected_nets(expected_path: Path, netlist_path: Path) -> list[str]:
         if extra:
             errors.append(
                 f"net {net_name!r}: unexpected pins: {', '.join(extra)}"
+            )
+
+    for net_name, want_classes in expected_classes.items():
+        if net_name not in actual:
+            continue  # already reported in pin loop
+        got_classes = actual_classes.get(net_name) or []
+        if not got_classes:
+            errors.append(f"net {net_name!r}: netlist has no class")
+            continue
+        if got_classes != want_classes:
+            errors.append(
+                f"net {net_name!r}: netclass "
+                f"{', '.join(got_classes)} != {', '.join(want_classes)}"
             )
     return errors
 
