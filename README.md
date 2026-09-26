@@ -4,7 +4,7 @@
 
 ![Tiny Engineer demo](docs/tiny-engineer-preview.gif)
 
-Tiny Engineer is an open-source, 3D-printable desktop robot that physically acts out what an AI coding agent is doing: reading, thinking, coding, finishing tasks. It runs on an ESP32 over Wi-Fi and exposes a simple REST API, so any tool that can make an HTTP request can drive it.
+Tiny Engineer is an open-source, 3D-printable desktop robot that physically acts out what an AI coding agent is doing: reading, thinking, coding, finishing tasks (with a audio cue). It runs on an ESP32 over Wi-Fi and exposes a simple REST API, so any tool that can make an HTTP request can drive it.
 
 **[Watch the demo](https://youtu.be/RX_QRxdXMjg) · [Build your own](#build-your-own) · [How it works](#how-it-works) · [API](docs/api.md)**
 
@@ -22,26 +22,26 @@ An AI agent works; an integration turns that into events; the robot’s REST API
 
 **How it connects**
 
-- **Cursor** — Cursor Agent → Cursor hooks → `tiny-engineer-cursor` → HTTP over Wi-Fi
-- **Antigravity CLI** — Antigravity Agent → lifecycle hooks → `tiny-engineer-antigravity` → HTTP over Wi-Fi
-- **Claude Code** — Claude Code → project hooks → `tiny-engineer-claude-code` → HTTP over Wi-Fi
+- **Cursor** — Cursor Agent → Cursor hooks → `tiny-engineer-cursor` script → HTTP over Wi-Fi
+- **Antigravity CLI** — Antigravity Agent → lifecycle hooks → `tiny-engineer-antigravity` script → HTTP over Wi-Fi
+- **Claude Code** — Claude Code → project hooks → `tiny-engineer-claude-code` script → HTTP over Wi-Fi
 - **Bring your own** — Codex or any other agent → your script/plugin/app → HTTP REST
 
-All hit the same Tiny Engineer REST API (`/anim`). The ESP32-C3 runs that API, robot logic, and animations, then drives:
+All hit the same Tiny Engineer REST API (`/anim`). The ESP32-C3 runs that API, robot logic, and animations, then drives (and plays audio):
 
-| Bus | Hardware | Role |
-| --- | --- | --- |
-| I2C | PCA9685 → 5× servos | Head / neck, hands / body |
-| I2C | Waveshare 0.91inch OLED (SSD1306) | Status, face, info |
-| I2S | MAX98357A → speaker | Audio |
+| Hardware | Role |
+| --- | --- |
+| PCA9685 → 5× servos | Head / neck, hands / body |
+| Waveshare 0.91inch OLED (SSD1306) | Status, face, info |
+| MAX98357A → speaker | Audio |
 
-Cursor is one sample client, not the architecture. Details: [Cursor hooks](docs/hooks.md) · [any integration](docs/integration.md) · [HTTP API](docs/api.md)
+Cursor is one example client, not the architecture. Details: [Cursor hooks](docs/hooks.md) · [any integration](docs/integration.md) · [HTTP API](docs/api.md)
 
 ## Build your own
 
 **Start here:** [docs/getting-started.md](docs/getting-started.md) — thin checklist (shop → print → wire → flash → assemble → wizard → prove → agent).
 
-New to hardware? Optional skim of **[From Code to Circuits](docs/hardware-for-software-engineers/README.md)** — at least [Ch. 01](docs/hardware-for-software-engineers/01-electricity-and-units.md) and [Ch. 07](docs/hardware-for-software-engineers/07-power-budgets-and-safety.md) (3.3 V vs 5 V, VCC ≠ V+) — then return to the checklist.
+New to hardware? Optional skim of **[From Code to Circuits](docs/hardware-for-software-engineers/README.md)** — then return to the checklist.
 
 ## Hardware overview
 
@@ -49,12 +49,12 @@ Major pieces (exact models and counts in the BOM):
 
 | Role | Part | Qty |
 | --- | --- | --- |
-| Controller | Waveshare ESP32-C3-Zero | 1 |
-| Servo PWM | Adafruit PCA9685 | 1 |
-| Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 for a compact build; PowerHD HD-1370A still supported | 5 |
+| Main Controller | [Waveshare ESP32-C3-Zero](https://www.waveshare.com/esp32-c3-zero.htm) | 1 |
+| Servo Controller PWM | [Adafruit PCA9685](https://www.adafruit.com/product/815) | 1 |
+| Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 for a compact build; Parametrically designed for any standard micro servos | 5 |
 | Display | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 |
-| Audio | MAX98357A + 8 Ω / 1 W speaker | 1 + 1 |
-| USB / power | Adafruit 5993 USB-C breakout; **5 V / ≥2 A** supply | 1 |
+| Audio | [MAX98357A](https://www.adafruit.com/product/3006) + [8 Ω / 1 W speaker](https://www.adafruit.com/product/3923) | 1 + 1 |
+| USB / power | [Adafruit 5993 USB-C breakout](https://www.adafruit.com/product/5993); **5 V / ≥2 A** supply | 1 |
 | Structure | 3D-printed parts | — |
 
 Complete inventory and limits: [docs/hardware/components.md](docs/hardware/components.md). What to buy (cart + which servo): [docs/shopping.md](docs/shopping.md).
