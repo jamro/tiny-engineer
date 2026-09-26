@@ -1,0 +1,7 @@
+{
+  "revision": 2,
+  "fusion_vs_cadquery_symmetric_difference_mm3": 0.0,
+  "fusion_perimeter_excess_area_mm2": 0.0,
+  "fusion_perimeter_missing_area_mm2": 0.0,
+  "fusion_max_sampled_boundary_deviation_mm": 6.642632261806385e-10
+}

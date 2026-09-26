@@ -1,0 +1,43 @@
+{
+  "all_four_head_shoulders_present": true,
+  "checks": [
+    {
+      "centre_mm": [
+        -30,
+        -61.6
+      ],
+      "seated_head_collision_mm3": 0.0,
+      "head_pushed_up_0p1mm_collision_mm3": 0.8411614329986641
+    },
+    {
+      "centre_mm": [
+        26,
+        -61.6
+      ],
+      "seated_head_collision_mm3": 0.0,
+      "head_pushed_up_0p1mm_collision_mm3": 0.8411614329986641
+    },
+    {
+      "centre_mm": [
+        -30,
+        61.6
+      ],
+      "seated_head_collision_mm3": 0.0,
+      "head_pushed_up_0p1mm_collision_mm3": 0.8411614329986641
+    },
+    {
+      "centre_mm": [
+        26,
+        61.6
+      ],
+      "seated_head_collision_mm3": 0.0,
+      "head_pushed_up_0p1mm_collision_mm3": 0.8411614329986641
+    }
+  ],
+  "through_hole_mm": 2.3,
+  "head_recess_mm": 4.3,
+  "recess_depth_mm": 2.3,
+  "plastic_above_head_seat_mm": 2.2,
+  "reference_head_overlap_per_side_mm": 0.85,
+  "scope": "Checks head retention against the cover only. Desk pilot thread engagement depends on actual screw and printed hole size; zero collision does not establish grip."
+}

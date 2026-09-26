@@ -1,0 +1,4 @@
+# Generated STEP exports; review the native CAD, scripts and previews.
+step/BottomCover.step linguist-generated=true
+bottom-cover/BottomCover_Fusion.step linguist-generated=true
+bottom-cover/BottomCover_FitCheck.step linguist-generated=true

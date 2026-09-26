@@ -15,6 +15,10 @@ Two ways to get the mechanical set (same place in the build path):
 - **Print yourself** — use the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, or **`parts/hd1370a/3mf/`**. Ready to print in an orientation that does not need supports. **PLA** or **PETG**. Start with [Print first](#print-first).
 - **No printer?** — order the aggregated sets from a third-party service: [order printed parts](../docs/3d/order-parts.md). Orders are at your own risk; fit can vary by provider and design revision.
 
+### Optional HD1370A bottom cover
+
+An optional [T-shaped underside cover](parts/hd1370a/bottom-cover/README.md) is available as an editable Fusion design and [printable 3MF](parts/hd1370a/3mf/BottomCover.3mf). It follows the desk/chair perimeter and has four recessed M2 head seats with a flat exterior. **Prototype: CAD geometry checked; physical fit and screw retention unverified.** HD1370A only; not included in the normal part-set exports.
+
 ### Print first
 
 **Home printers only.** Print these two small testers from that folder **before** the rest of the set. Do not print the full robot until both fit. Skip this step when ordering from a service (testers alone are rarely worth the min fee + shipping).

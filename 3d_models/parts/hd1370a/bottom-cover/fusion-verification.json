@@ -1,0 +1,58 @@
+{
+  "revision": 2,
+  "outline_source": "underside-profile.json; actual underside edges with zero offset",
+  "body_count": 1,
+  "is_solid": true,
+  "volume_mm3": 49111.270220730024,
+  "timeline_features": 6,
+  "feature_health": [
+    {
+      "name": "Plate - exact flush rim and flat floor",
+      "state": 0,
+      "message": ""
+    },
+    {
+      "name": "M2 through holes (1)",
+      "state": 0,
+      "message": ""
+    },
+    {
+      "name": "Recessed M2 heads on floor side (1)",
+      "state": 0,
+      "message": ""
+    }
+  ],
+  "fit_occurrences": [
+    {
+      "path": "BottomCover:1",
+      "name": "BottomCover"
+    },
+    {
+      "path": "Desk:1",
+      "name": "Desk"
+    },
+    {
+      "path": "Chair:1",
+      "name": "Chair"
+    },
+    {
+      "path": "DeskTop:1",
+      "name": "DeskTop"
+    },
+    {
+      "path": "DeskPad:1",
+      "name": "DeskPad"
+    }
+  ],
+  "interference": {
+    "Desk": 0,
+    "Chair": 0,
+    "DeskTop": 0,
+    "DeskPad": 0
+  },
+  "source_global_offset_mm": [
+    43.5,
+    -13.9259877217,
+    -15.4740122783
+  ]
+}

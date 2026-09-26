@@ -1,0 +1,51 @@
+{
+  "scope": "Optional HD1370A reference in current upstream master",
+  "thread_retention_verified": false,
+  "hd1370a_interference": {
+    "Desk": 0,
+    "Chair": 0,
+    "DeskTop": 0,
+    "DeskPad": 0
+  },
+  "original_geometry_identical_before_save": true,
+  "original_user_parameters_preserved": true,
+  "default_servo_expression": "'sg90'",
+  "optional_component_hidden": true,
+  "original_occurrence_count": 87,
+  "outside_print_layout": true,
+  "max_original_geometry_numeric_change_after_reopen": 0.0,
+  "master_archive_reopened": true,
+  "cover_volume_mm3": 49111.27022072877,
+  "native_master_mate_comparison": {
+    "Desk": {
+      "valid_solids": true,
+      "volume_difference_mm3": 9.531504474580288e-10,
+      "face_counts": [
+        228,
+        228
+      ],
+      "edge_counts": [
+        655,
+        655
+      ],
+      "native_to_fixture_max_sampled_edge_distance_mm": 2.2196424601986253e-10,
+      "fixture_to_native_max_sampled_edge_distance_mm": 2.4990814052563653e-10,
+      "samples_per_edge": 11
+    },
+    "Chair": {
+      "valid_solids": true,
+      "volume_difference_mm3": 8.440110832452774e-10,
+      "face_counts": [
+        78,
+        78
+      ],
+      "edge_counts": [
+        215,
+        215
+      ],
+      "native_to_fixture_max_sampled_edge_distance_mm": 4.4437176391450477e-11,
+      "fixture_to_native_max_sampled_edge_distance_mm": 5.026630994684662e-11,
+      "samples_per_edge": 11
+    }
+  }
+}
