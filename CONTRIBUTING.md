@@ -59,7 +59,9 @@ python3 scripts/check_pcb.py
 
 **Integrations.** Add or extend tests in the package you change. Raw REST examples belong in [docs/integration.md](docs/integration.md). Prefer short timeouts and ignore network errors so a missing robot does not stall the agent.
 
-**CAD.** Edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change.
+**CAD.** Edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change. New parts: [docs/3d/adding-parts.md](docs/3d/adding-parts.md). Servo presets / add-in: [docs/3d/parametric-design.md](docs/3d/parametric-design.md).
+
+**Mods.** Optional CAD under [`3d_models/mods/<mod_name>/`](3d_models/mods/README.md). Commit as `type(mods)` and name the mod in the summary. Do not add a scope per mod. `feat(mods)` / `fix(mods)` do not version the stock CAD revision.
 
 **PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Run `python3 scripts/check_pcb.py` before opening a PCB PR. Keep [`expected-nets.yml`](docs/pcb.md#expected-nets-yml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
 
@@ -89,13 +91,15 @@ Format: `type(scope): summary`
 | `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | MAJOR |
 | `docs`, `style`, `test`, `chore`, `ci`, `refactor` (unless breaking) | no bump |
 
-Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `pcb`, `docs`, `scripts`, `ci`.
+Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `mods`, `pcb`, `docs`, `scripts`, `ci`.
 
 `integrations` is anything under `packages/` (Cursor, Antigravity, Claude Code, later agent CLIs). Do not add a new scope per package.
 
+`mods` is anything under `3d_models/mods/`. Name the mod in the summary. Do not add a new scope per mod.
+
 **Breaking in this repo** means: removed or renamed HTTP route or query param; NVS key rename that drops existing settings; pinout change; default servo range change that invalidates calibration; hook CLI flag or event rename. Call it out with `!` on the type and a `BREAKING CHANGE:` footer.
 
-CAD-only `feat(cad)` / `fix(cad)` and PCB-only `feat(pcb)` / `fix(pcb)` version the hardware design, not the npm packages.
+CAD-only `feat(cad)` / `fix(cad)` and PCB-only `feat(pcb)` / `fix(pcb)` version the hardware design, not the npm packages. `feat(mods)` / `fix(mods)` do not version the stock CAD revision. Promoting a mod into stock `cad/` and `parts/` is `feat(cad)`.
 
 Examples:
 
@@ -103,6 +107,7 @@ Examples:
 feat(anim): add dead pose
 feat(integrations): add Claude Code hooks CLI
 fix(cad): add screw hole to desk pad
+feat(mods): add desk clamp
 feat(pcb): add controller board
 feat(http)!: drop query alias on /anim
 

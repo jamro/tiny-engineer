@@ -21,8 +21,8 @@ Auth:
 Hook mode (no animation args):
   Cursor pipes JSON with hook_event_name (tool_name for preToolUse,
   status for stop). The CLI maps the event to reading / thinking / typing /
-  ring / abort / error and POSTs \${url}/anim?name=…. Unknown or unmatched events
-  exit 0 with no request.
+  ring / abort / error and POSTs \${url}/anim?name=…. Unknown or unmatched events,
+  and events whose conversation_id or generation_id is "", exit 0 with no request.
 
 Event map:
   sessionStart, beforeSubmitPrompt, beforeReadFile  → reading

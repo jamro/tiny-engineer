@@ -117,8 +117,8 @@ void updateWakeupAt(uint32_t nowMs) {
   }
 }
 
-void startSleepAt(uint32_t /*nowMs*/) {
-  startSleepAnim();
+void startSleepAt(uint32_t nowMs) {
+  startSleepAnim(nowMs);
 }
 
 void startDeadAt(uint32_t /*nowMs*/) {

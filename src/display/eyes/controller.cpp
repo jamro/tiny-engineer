@@ -3,7 +3,9 @@
 #include <cstring>
 
 #include "animation.h"
+#include "animation/constants.h"
 #include "animation/registry.h"
+#include "animation/sleep_anim.h"
 #include "animation/util.h"
 #include "display/eyes.h"
 #include "display/oled.h"
@@ -79,28 +81,37 @@ bool advanceSleepEyeAnim(uint32_t now) {
     return false;
   }
 
-  const float t = anim::easeInOutCubic(
-    eyes::moveProgress(now, g_sleepAnimStartedMs, g_sleepAnimDurationMs)
-  );
-
   if (g_sleepEyeAnim == SleepEyeAnim::Closing) {
-    blinkSetOpenAmount(g_sleepAnimFromAmount * (1.0f - t));
+    const uint32_t elapsed =
+      now >= g_sleepAnimStartedMs ? now - g_sleepAnimStartedMs : 0;
+    const anim::SleepNodOffPose pose = anim::sleepNodOffPose(
+      elapsed,
+      g_sleepAnimFromAmount,
+      0.0f
+    );
+    blinkSetOpenAmount(pose.open);
 
-    if (t >= 1.0f) {
+    if (elapsed >= anim::SLEEP_NOD_OFF_MS) {
       blinkSetOpenAmount(0.0f);
       g_sleepEyeAnim = SleepEyeAnim::None;
       return true;
     }
-  } else {
-    blinkSetOpenAmount(
-      g_sleepAnimFromAmount + t * (1.0f - g_sleepAnimFromAmount)
-    );
 
-    if (t >= 1.0f) {
-      g_sleepEyeAnim = SleepEyeAnim::None;
-      blinkOnSleepOpenComplete(now);
-      return true;
-    }
+    return false;
+  }
+
+  const float t = anim::easeInOutCubic(
+    eyes::moveProgress(now, g_sleepAnimStartedMs, g_sleepAnimDurationMs)
+  );
+
+  blinkSetOpenAmount(
+    g_sleepAnimFromAmount + t * (1.0f - g_sleepAnimFromAmount)
+  );
+
+  if (t >= 1.0f) {
+    g_sleepEyeAnim = SleepEyeAnim::None;
+    blinkOnSleepOpenComplete(now);
+    return true;
   }
 
   return false;
@@ -219,7 +230,6 @@ void requestSleepEyeClose(uint32_t now) {
   g_sleepEyeAnim = SleepEyeAnim::Closing;
   g_sleepAnimFromAmount = blinkOpenAmount();
   g_sleepAnimStartedMs = now;
-  g_sleepAnimDurationMs = 280;
   g_forceRedraw = true;
 }
 

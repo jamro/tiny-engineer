@@ -1,5 +1,6 @@
 .DS_Store
 __pycache__/
+data/*.*
 
 # Cursor hook event log
 cursor_events.log

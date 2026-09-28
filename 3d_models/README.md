@@ -6,6 +6,8 @@ Printable parts and source CAD for the Tiny Engineer desk robot.
 
 The full assembly — all components composed — lives in [`cad/TinyEngineer.f3d`](cad/TinyEngineer.f3d) (Autodesk Fusion). Open that file to adjust the model or adapt it to different hardware sizing (e.g. different servos). Parametric servo sizes and the Fusion add-in: [docs/3d/parametric-design.md](../docs/3d/parametric-design.md).
 
+**Adding a new part** (parametric rules, timeline, `PRINT_LAYOUT`, Servo Configurator, export, optional mods): [docs/3d/adding-parts.md](../docs/3d/adding-parts.md). Optional / community mods: [`mods/`](mods/).
+
 ## Printables
 
 Individual parts are exported under [`parts/{servo_id}/`](parts/). Match the folder to the servos you bought ([which servo](../docs/shopping.md)). `stl/` next to `3mf/` is the same mesh in binary STL. `step/` next to those is CAD interchange (BRep STEP), not a printable mesh for a home slicer.

@@ -101,6 +101,25 @@ test("stop maps completed or missing status to ring", () => {
   assert.equal(animationForEvent({ hook_event_name: "stop" }), "ring");
 });
 
+test("skips empty conversation_id or generation_id", () => {
+  assert.equal(
+    animationForEvent({ hook_event_name: "stop", conversation_id: "" }),
+    null
+  );
+  assert.equal(
+    animationForEvent({ hook_event_name: "stop", generation_id: "" }),
+    null
+  );
+  assert.equal(
+    animationForEvent({
+      hook_event_name: "stop",
+      conversation_id: "conv",
+      generation_id: "gen",
+    }),
+    "ring"
+  );
+});
+
 test("skips missing or unknown hook_event_name", () => {
   assert.equal(animationForEvent(undefined), null);
   assert.equal(animationForEvent({}), null);

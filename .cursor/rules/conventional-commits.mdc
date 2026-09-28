@@ -19,13 +19,15 @@ Format: `type(scope): summary`
 | `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | MAJOR |
 | `docs`, `style`, `test`, `chore`, `ci`, `refactor` (unless breaking) | no bump |
 
-Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `pcb`, `docs`, `scripts`, `ci`.
+Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `mods`, `pcb`, `docs`, `scripts`, `ci`.
 
 `integrations` is anything under `packages/` (Cursor, Antigravity, Claude Code, later agent CLIs). Do not add a new scope per package.
 
+`mods` is anything under `3d_models/mods/`. Name the mod in the summary. Do not add a new scope per mod.
+
 **Breaking here:** removed/renamed HTTP route or query param; NVS key rename that drops settings; pinout change; default servo range change that invalidates calibration; hook CLI flag or event rename. Use `!` on the type **and** a `BREAKING CHANGE:` footer.
 
-CAD-only `feat(cad)` / `fix(cad)` and PCB-only `feat(pcb)` / `fix(pcb)` version the hardware design, not npm packages.
+CAD-only `feat(cad)` / `fix(cad)` and PCB-only `feat(pcb)` / `fix(pcb)` version the hardware design, not npm packages. `feat(mods)` / `fix(mods)` do not version the stock CAD revision. Promoting a mod into stock `cad/` and `parts/` is `feat(cad)`.
 
 Examples:
 
@@ -33,6 +35,7 @@ Examples:
 feat(anim): add dead pose
 feat(integrations): add Claude Code hooks CLI
 fix(cad): add screw hole to desk pad
+feat(mods): add desk clamp
 feat(pcb): add controller board
 feat(http)!: drop query alias on /anim
 

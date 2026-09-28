@@ -6,12 +6,16 @@
 
 extern const EyeStyleRenderer kClassicEyeStyle;
 extern const EyeStyleRenderer kKaomojiEyeStyle;
+extern const EyeStyleRenderer kCoverEyeStyle;
+extern const EyeStyleRenderer kDotsEyeStyle;
 
 namespace {
 
 const EyeStyleRenderer* const kEyeStyles[] = {
   &kClassicEyeStyle,
   &kKaomojiEyeStyle,
+  &kCoverEyeStyle,
+  &kDotsEyeStyle,
 };
 
 }  // namespace

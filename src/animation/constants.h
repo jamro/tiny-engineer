@@ -85,6 +85,7 @@ constexpr float ABORT_HEAD_ANYWAY = 18.0f / 35.0f;
 // Idle sleep / boot sleep-inertia: chin down, then rise to mid on wake.
 constexpr float SLEEP_HEAD_DOWN = -4.0f / 7.0f;
 constexpr float SLEEP_HEAD_AWAKE = 0.0f;
+constexpr uint32_t SLEEP_NOD_OFF_MS = 2000;
 constexpr float ABORT_HAND_RIGHT_UP = 1.0f;
 constexpr float ABORT_HAND_RIGHT_SHRUG = 7.0f / 9.0f;
 constexpr float ABORT_HAND_LEFT_UP = -2.0f / 9.0f;

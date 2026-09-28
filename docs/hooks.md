@@ -145,7 +145,7 @@ HTTPS **tarball** URL avoids SSH and works in hooks.
 | `stop` (`status: aborted`) | `abort` | Agent turn cancelled |
 | `stop` (`status: error`) | `error` | Agent turn failed |
 
-Each anim hook runs the same command with **no animation args**. Cursor pipes event JSON on stdin; the CLI reads `hook_event_name` (plus `tool_name` for `preToolUse`, `status` for `stop`), maps to a pose in [`packages/tiny-engineer-cursor/src/map.js`](../packages/tiny-engineer-cursor/src/map.js), and `POST`s `/anim?name=…` (2s HTTP timeout, exit 0). Optional `--url` overrides the default `http://tiny-engineer.local`.
+Each anim hook runs the same command with **no animation args**. Cursor pipes event JSON on stdin; the CLI reads `hook_event_name` (plus `tool_name` for `preToolUse`, `status` for `stop`), maps to a pose in [`packages/tiny-engineer-cursor/src/map.js`](../packages/tiny-engineer-cursor/src/map.js), and `POST`s `/anim?name=…` (2s HTTP timeout, exit 0). Optional `--url` overrides the default `http://tiny-engineer.local`. Events whose `conversation_id` or `generation_id` is `""` are skipped (no POST). Missing IDs still map.
 
 If the robot has an `access_token` set, put the same value in `TINY_ENGINEER_TOKEN` (system/process env, or project-root `.env`). The CLI then sends `Authorization: Bearer <token>`. Without a token, no auth header is sent.
 

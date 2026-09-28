@@ -258,7 +258,7 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 <tr><td><code>serial_log</code></td><td>integer</td><td>0 or 1 (USB serial debug logging)</td></tr>
 <tr><td><code>continuous_timeout</code></td><td>integer</td><td>1&ndash;1440 minutes</td></tr>
 <tr><td><code>loading</code></td><td>string</td><td><code>progress</code> or <code>sleep_inertia</code> (boot screen; next reboot)</td></tr>
-<tr><td><code>eyes_style</code></td><td>string</td><td><code>classic</code> or <code>kaomoji</code> (OLED eyes look; immediate)</td></tr>
+<tr><td><code>eyes_style</code></td><td>string</td><td><code>classic</code>, <code>kaomoji</code>, <code>cover</code>, or <code>dots</code> (OLED eyes look; immediate)</td></tr>
 <tr><td><code>access_token</code></td><td>string</td><td>0&ndash;64 printable ASCII; empty clears (disables auth)</td></tr>
 <tr><td><code>wifi_ssid</code></td><td>string</td><td>1&ndash;32 chars; setup AP only; requires <code>wifi_password</code></td></tr>
 <tr><td><code>wifi_password</code></td><td>string</td><td>0&ndash;63 chars; setup AP only; tested before save</td></tr>
@@ -559,14 +559,16 @@ body:not(.setup-mode) #setup-wizard{display:none!important}
 </div>
 </div>
 <div class="config-section">
-<div class="config-section-head"><h3>Display</h3><span class="apply-badge apply-now">Immediate</span></div>
+<div class="config-section-head"><h3>Display</h3></div>
 <div class="form-group">
 <div class="field-head"><label for="config-eyes-style">Eyes style</label><span class="apply-badge apply-now">Immediate</span></div>
 <select id="config-eyes-style">
-<option value="classic">Classic (rounded eyes)</option>
-<option value="kaomoji">Kaomoji (animated faces)</option>
+<option value="classic">Classic</option>
+<option value="kaomoji">Kaomoji</option>
+<option value="cover">Cover</option>
+<option value="dots">Dots</option>
 </select>
-<p class="hint">Classic is the default procedural eyes. Kaomoji maps each animation to a face from the expression library. Add new styles in firmware under <code>display/eyes/styles/</code>.</p>
+<p class="hint">Classic is the default procedural eyes. Kaomoji maps each animation to a face from the expression library. Cover fills each half of the screen for a mask with eye holes; animations change height with black margins. Dots draws a 12x12 circle per eye; size and position follow the same poses as classic. Add new styles in firmware under <code>display/eyes/styles/</code>.</p>
 </div>
 </div>
 <div class="config-section">
@@ -1209,7 +1211,7 @@ function loadSettings(){
     document.getElementById("config-welcome").checked=j.welcome!==false;
     document.getElementById("config-serial-log").checked=!!j.serial_log;
     document.getElementById("config-loading").value=j.loading==="sleep_inertia"?"sleep_inertia":"progress";
-    document.getElementById("config-eyes-style").value=j.eyes_style==="kaomoji"?"kaomoji":"classic";
+    document.getElementById("config-eyes-style").value=(j.eyes_style==="kaomoji"||j.eyes_style==="cover"||j.eyes_style==="dots")?j.eyes_style:"classic";
     setAccessTokenFromServer(!!j.access_token_set);
     updateWelcomeMotionHint();
     applyServoRangesFromSettings(j);
@@ -1495,7 +1497,7 @@ document.getElementById("config-form").addEventListener("submit",function(e){
       document.getElementById("config-welcome").checked=res.data.welcome!==false;
       document.getElementById("config-serial-log").checked=!!res.data.serial_log;
       document.getElementById("config-loading").value=res.data.loading==="sleep_inertia"?"sleep_inertia":"progress";
-      document.getElementById("config-eyes-style").value=res.data.eyes_style==="kaomoji"?"kaomoji":"classic";
+      document.getElementById("config-eyes-style").value=(res.data.eyes_style==="kaomoji"||res.data.eyes_style==="cover"||res.data.eyes_style==="dots")?res.data.eyes_style:"classic";
       if(wasClearPending)setStoredToken("");
       else if(!accessTokenMaskActive&&newToken)setStoredToken(newToken);
       setAccessTokenFromServer(!!res.data.access_token_set);

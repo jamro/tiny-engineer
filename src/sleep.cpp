@@ -36,7 +36,6 @@ void wakeFromSleep(uint32_t now) {
 
 void beginSleepClosing(uint32_t now) {
   requestSleepEyeClose(now);
-  commandSleepHead(anim::SLEEP_HEAD_DOWN);
   g_state = SleepState::Closing;
 }
 
@@ -55,13 +54,13 @@ void prepareSleepWakePose() {
   commandSleepHead(anim::SLEEP_HEAD_AWAKE);
 }
 
-void requestSleep() {
+void requestSleep(uint32_t now) {
   if (g_state == SleepState::Sleeping ||
       g_state == SleepState::Closing) {
     return;
   }
 
-  beginSleepClosing(millis());
+  beginSleepClosing(now);
 }
 
 void onAnimationApplied(AnimationId id, uint32_t now) {
