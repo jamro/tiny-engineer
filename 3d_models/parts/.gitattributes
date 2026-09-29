@@ -1,0 +1,4 @@
+# Native Parts Exporter output: preserve generated STEP text verbatim.
+*/step/BottomCover.step linguist-generated=true whitespace=-blank-at-eol
+*/step/Chair.step linguist-generated=true whitespace=-blank-at-eol
+*/step/PartsSetB.step linguist-generated=true whitespace=-blank-at-eol

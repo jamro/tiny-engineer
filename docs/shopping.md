@@ -39,10 +39,12 @@ M2 thread-forming (self-tapping) screws for plastic, **pan-head or button-head**
 | Item | Qty |
 | --- | --- |
 | M2×4 mm | 8 |
-| M2×8 mm | 21 |
+| M2×8 mm | 27 |
 | M2×16 mm | 15 |
 | M2 nuts | 6 |
 | Servo bag screws | 5 (come with the servos) |
+
+The six `BottomCover` screws are included in the M2×8 total. Their heads must be at most **4.0 mm diameter × 2.0 mm high** to fit the recessed pockets.
 
 An M2 assortment covering **M2×4–M2×16** is the easy path. Nearby lengths often work; test-fit if you substitute.
 

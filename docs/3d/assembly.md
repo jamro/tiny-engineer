@@ -14,7 +14,7 @@ Screw lengths called out below (M2×4 / ×8 / ×16) match the reference list. If
 
 1. Head + Hat (OLED + head servo)
 2. Center Neck → join Head/Neck → Chest side servos → mount on Chest → Belly → Chair
-3. Desk stack → mount electronics → plug channels → Chair↔Desk
+3. Desk stack → mount electronics → plug channels → Chair↔Desk → BottomCover
 4. Arms → Lamp → setup wizard
 
 ## 1. Head — OLED and servo
@@ -223,6 +223,17 @@ Easiest with the desk tipped onto its front wall so the PCA9685 plugs face up, a
 2. Fasten with **six M2 screws** total — three per side (M2×8 mm works). Do not force the parts; keep cables clear of the screw paths.
 
 ![Desk](./assembly_visuals/body_1.jpg)
+
+### Close the underside with `BottomCover`
+
+1. Finish the wiring and the six side screws joining `Chair` to `Desk` first. Power down, support the robot, and turn it over without loading the arms or desk props.
+2. Route the chair leads through the existing tunnel and into the desk cavity. Keep the harness inside the perimeter, away from all six cover screw paths; no wire should sit between the cover and the chair/desk mating surfaces.
+3. Use the updated `Chair` from the same servo folder: it has two reinforced blind pilot holes underneath its rear wall. An older chair without these holes must be reprinted for the six-point attachment; do not drill blindly near the existing side screws or wiring.
+4. Place the flat mating face of `BottomCover` against the desk and chair. Its stem follows the chair; the recessed pockets face outward. Align the four desk holes and the two rear chair holes.
+5. Fit **six M2×8 mm thread-forming pan/button-head screws**: four into the desk's existing vertical pilots and two into the new chair pilots. Use heads up to **4.0 mm diameter × 2.0 mm high**. The cover's 2.3 mm shaft holes are clearance holes; retention comes from the receiving pilots, sized with `ScrewSizingTest`. No nuts are added for this joint.
+6. Tighten gently until each head bears on its shoulder. The desk-corner pockets are open at the edges to avoid thin rims; the chair pockets are round. Both leave a 2.2 mm bearing layer and recess the specified heads by 0.3 mm. Check that the cover seats without trapped wires and that no head projects below the flat underside, then return the robot upright.
+
+Print `BottomCover` with its **mating face down and pockets up**, as exported; no supports. The native model has been checked for all three servo presets, but printed fit, thread grip, and the actual cable harness still require a physical test-fit. See [bottom-cover design and checks](bottom-cover.md).
 
 ## 17. Arms — elbow joints
 

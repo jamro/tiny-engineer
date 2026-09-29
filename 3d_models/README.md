@@ -17,10 +17,6 @@ Two ways to get the mechanical set (same place in the build path):
 - **Print yourself** — use the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, or **`parts/hd1370a/3mf/`**. Ready to print in an orientation that does not need supports. **PLA** or **PETG**. Start with [Print first](#print-first).
 - **No printer?** — order the aggregated sets from a third-party service: [order printed parts](../docs/3d/order-parts.md). Orders are at your own risk; fit can vary by provider and design revision.
 
-### Optional HD1370A bottom cover
-
-An optional [T-shaped underside cover](parts/hd1370a/bottom-cover/README.md) is available as an editable Fusion design and [printable 3MF](parts/hd1370a/3mf/BottomCover.3mf). It follows the desk/chair perimeter and has four recessed M2 head seats with a flat exterior. **Prototype: CAD geometry checked; physical fit and screw retention unverified.** HD1370A only; not included in the normal part-set exports.
-
 ### Print first
 
 **Home printers only.** Print these two small testers from that folder **before** the rest of the set. Do not print the full robot until both fit. Skip this step when ordering from a service (testers alone are rarely worth the min fee + shipping).
@@ -32,7 +28,7 @@ Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — n
 
 ### Screws
 
-**Spec:** M2 thread-forming (self-tapping) screws for plastic, **pan-head or button-head** — there are no counterbores/countersinks in any part, so heads sit on the plastic surface. CAD default pilot is **2.1 mm** (Fusion user parameter `screw_thread_diameter`); if your `ScrewSizingTest` winner differs, re-export at that diameter before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
+**Spec:** M2 thread-forming (self-tapping) screws for plastic, **pan-head or button-head** — heads normally sit on the plastic surface. `BottomCover` has recessed head pockets so its underside rests flat. Use heads no larger than **4.0 mm diameter × 2.0 mm high** there; the pockets include 0.3 mm clearance. CAD default pilot is **2.1 mm** (Fusion user parameter `screw_thread_diameter`); if your `ScrewSizingTest` winner differs, re-export at that diameter before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
 
 **One BOM for every servo preset** (`parts/sg90/`, `parts/fs0307/`, `parts/hd1370a/`, …). Printed parts scale with the servo choice, but the lengths below are the reference list for all of them — including smaller models for smaller servos. Buy quantities: [docs/shopping.md](../docs/shopping.md). Pilots are cut as deep as practical so nearby lengths often work too; if you already have different M2 lengths, test-fit before buying a full set. Per-step placement: [assembly guide](../docs/3d/assembly.md).
 
@@ -41,12 +37,12 @@ Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — n
 | Item | Qty | Typical use |
 | --- | --- | --- |
 | M2×4 mm | 8 | Emblem, PCA9685, MAX98357A |
-| M2×8 mm | 21 | Hat, Neck↔Head, Chest center (prefer two), Belly↔Chest, LampBase, laptop, mug, Chair↔Desk, elbows |
+| M2×8 mm | 27 | Hat, Neck↔Head, Chest center (prefer two), Belly↔Chest, LampBase, laptop, mug, Chair↔Desk, elbows, BottomCover ×6 |
 | M2×16 mm | 15 | Chest side servos, SeatLeft/Right, DeskTop stack, USB-C, Bell |
 | M2 nuts | 6 | Neck captured ×1, USB-C ×4, Bell ×1 |
 | Servo bag screws | 5 | Neck shaft, Neck↔Head (robot’s left), Belly shaft, both arms |
 
-Prefer **two** M2×8 for the Neck servo in `Chest`; one at the back is enough if space is tight (buy 21 either way). An M2 assortment covering **M2×4–M2×16** is the easy path.
+Prefer **two** M2×8 for the Neck servo in `Chest`; one at the back is enough if space is tight (buy 27 either way). An M2 assortment covering **M2×4–M2×16** is the easy path.
 
 
 ## Parts
@@ -68,6 +64,7 @@ Same filenames in each `parts/{servo_id}/3mf/` folder (and matching `stl/` / `st
 | `SeatLeft.3mf` | Left chair seat |
 | `SeatRight.3mf` | Right chair seat |
 | `Desk.3mf` | Desk structure |
+| `BottomCover.3mf` | [T-shaped underside cover](../docs/3d/bottom-cover.md); four desk and two chair fasteners |
 | `DeskTop.3mf` | Desk top surface |
 | `DeskPad.3mf` | Desk pad |
 | `LaptopCase.3mf` | Miniature laptop body |

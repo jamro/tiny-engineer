@@ -1,0 +1,903 @@
+{
+  "validated_date": "2026-09-28",
+  "source": "3d_models/cad/TinyEngineer.f3d",
+  "source_sha256": "dea28f71ba4d3b4b78fcc6c621759fa0bde7e341e3698802e1c8633b6d998c62",
+  "upstream_base": "8975e63",
+  "method": {
+    "native": "Autodesk Fusion; repository Servo Configurator and Parts Exporter implementations",
+    "independent_geometry": "CadQuery 2.8.0 / Open Cascade 7.9.3.1",
+    "meshes": "trimesh 5.1.0",
+    "length_unit": "mm",
+    "physical_test_completed": false
+  },
+  "native": {
+    "fs0307": {
+      "timeline_warnings": [],
+      "assembly_cover_bounds_mm": [
+        [
+          -31.9,
+          -79.2259877,
+          -16.5740123
+        ],
+        [
+          72.1,
+          51.3740123,
+          -12.0740123
+        ]
+      ],
+      "print_cover_bounds_mm": [
+        [
+          -52.0,
+          -65.3,
+          0.0
+        ],
+        [
+          52.0,
+          65.3,
+          4.5
+        ]
+      ],
+      "black_set_bounds_mm": [
+        [
+          -108.88,
+          -120.9,
+          -0.0
+        ],
+        [
+          99.4,
+          192.0,
+          77.7645337
+        ]
+      ],
+      "assembly_interference": {},
+      "black_set_interference": {},
+      "cover_sketches_fully_constrained": {
+        "BottomCover - linked desk and chair perimeter": true,
+        "BottomCover - six aligned shaft clearances": true,
+        "BottomCover - recessed head pockets": true
+      },
+      "exported_parts": [
+        "BottomCover",
+        "Chair",
+        "PartsSetB"
+      ]
+    },
+    "sg90": {
+      "timeline_warnings": [],
+      "assembly_cover_bounds_mm": [
+        [
+          -34.3,
+          -86.6259877,
+          -22.1740123
+        ],
+        [
+          85.65,
+          58.7740123,
+          -17.6740123
+        ]
+      ],
+      "print_cover_bounds_mm": [
+        [
+          -59.975,
+          -72.7,
+          0.0
+        ],
+        [
+          59.975,
+          72.7,
+          4.5
+        ]
+      ],
+      "black_set_bounds_mm": [
+        [
+          -116.9980058,
+          -132.05,
+          -0.0
+        ],
+        [
+          117.7,
+          199.975,
+          100.4589374
+        ]
+      ],
+      "assembly_interference": {},
+      "black_set_interference": {},
+      "cover_sketches_fully_constrained": {
+        "BottomCover - linked desk and chair perimeter": true,
+        "BottomCover - six aligned shaft clearances": true,
+        "BottomCover - recessed head pockets": true
+      },
+      "exported_parts": [
+        "BottomCover",
+        "Chair",
+        "PartsSetB"
+      ]
+    },
+    "hd1370a": {
+      "timeline_warnings": [],
+      "assembly_cover_bounds_mm": [
+        [
+          -31.8,
+          -78.5259877,
+          -15.4740123
+        ],
+        [
+          72.5,
+          50.6740123,
+          -10.9740123
+        ]
+      ],
+      "print_cover_bounds_mm": [
+        [
+          -52.15,
+          -64.6,
+          0.0
+        ],
+        [
+          52.15,
+          64.6,
+          4.5
+        ]
+      ],
+      "black_set_bounds_mm": [
+        [
+          -107.94,
+          -120.1,
+          -0.0
+        ],
+        [
+          100.0,
+          192.15,
+          76.7946874
+        ]
+      ],
+      "assembly_interference": {},
+      "black_set_interference": {},
+      "cover_sketches_fully_constrained": {
+        "BottomCover - linked desk and chair perimeter": true,
+        "BottomCover - six aligned shaft clearances": true,
+        "BottomCover - recessed head pockets": true
+      },
+      "exported_parts": [
+        "BottomCover",
+        "Chair",
+        "PartsSetB"
+      ]
+    }
+  },
+  "reopened_source": {
+    "timeline_warnings": [],
+    "component_count": 35,
+    "servo": "'sg90'"
+  },
+  "geometry": {
+    "fs0307": {
+      "valid_single_solid": true,
+      "cover_size_mm": [
+        104.0,
+        130.6,
+        4.5
+      ],
+      "footprint_overhang_mm2": 0.0,
+      "footprint_missing_mm2": 0.0,
+      "maximum_hole_axis_error_mm": 2.1179857867537066e-10,
+      "existing_chair_pilots_count": 8,
+      "minimum_new_to_existing_chair_pilot_clearance_mm": 4.450909015795927,
+      "existing_chair_pilots_filled_mm3": 0.0,
+      "desk_cover_intersection_mm3": 0.0,
+      "chair_cover_intersection_mm3": 0.0,
+      "desk_opposed_screw_tip_gap_mm": 12.700000000233079
+    },
+    "sg90": {
+      "valid_single_solid": true,
+      "cover_size_mm": [
+        119.95,
+        145.4,
+        4.5
+      ],
+      "footprint_overhang_mm2": 0.0,
+      "footprint_missing_mm2": 0.0,
+      "maximum_hole_axis_error_mm": 1.582094455443439e-10,
+      "existing_chair_pilots_count": 8,
+      "minimum_new_to_existing_chair_pilot_clearance_mm": 8.150543462187278,
+      "existing_chair_pilots_filled_mm3": 0.0,
+      "desk_cover_intersection_mm3": 0.0,
+      "chair_cover_intersection_mm3": 0.0,
+      "desk_opposed_screw_tip_gap_mm": 24.400000000152065
+    },
+    "hd1370a": {
+      "valid_single_solid": true,
+      "cover_size_mm": [
+        104.3,
+        129.2,
+        4.5
+      ],
+      "footprint_overhang_mm2": 0.0,
+      "footprint_missing_mm2": 0.0,
+      "maximum_hole_axis_error_mm": 2.105906560245785e-10,
+      "existing_chair_pilots_count": 8,
+      "minimum_new_to_existing_chair_pilot_clearance_mm": 4.100970782295188,
+      "existing_chair_pilots_filled_mm3": 0.0,
+      "desk_cover_intersection_mm3": 0.0,
+      "chair_cover_intersection_mm3": 0.0,
+      "desk_opposed_screw_tip_gap_mm": 12.200000000234265
+    }
+  },
+  "head_seats": {
+    "fs0307": {
+      "head_count": 6,
+      "floor_clearance_mm": 0.3,
+      "bearing_layer_mm": 2.2,
+      "head_tests": [
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614329262651
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614324384655
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614317856182
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.841161432435955
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614317872902
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614329254282
+        }
+      ]
+    },
+    "sg90": {
+      "head_count": 6,
+      "floor_clearance_mm": 0.3,
+      "bearing_layer_mm": 2.2,
+      "head_tests": [
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614329263917
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614323966425
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614316040852
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614323942753
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614316065646
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614329255549
+        }
+      ]
+    },
+    "hd1370a": {
+      "head_count": 6,
+      "floor_clearance_mm": 0.3,
+      "bearing_layer_mm": 2.2,
+      "head_tests": [
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614329263907
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614324419634
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614317874436
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614324402898
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614317891172
+        },
+        {
+          "seated_collision_mm3": 0.0,
+          "pushed_up_0_1_mm_collision_mm3": 0.8411614329263906
+        }
+      ]
+    }
+  },
+  "existing_side_head_paths": {
+    "fs0307": {
+      "boss_to_existing_side_head_sweep_clearance_mm": 1.8500000000061,
+      "existing_side_head_to_cover_mating_plane_gap_mm": 0.4999999999999005,
+      "assumed_side_head_diameter_mm": 4,
+      "sweep_length": "full original pilot length"
+    },
+    "sg90": {
+      "boss_to_existing_side_head_sweep_clearance_mm": 5.549999999978498,
+      "existing_side_head_to_cover_mating_plane_gap_mm": 0.4999999999999005,
+      "assumed_side_head_diameter_mm": 4,
+      "sweep_length": "full original pilot length"
+    },
+    "hd1370a": {
+      "boss_to_existing_side_head_sweep_clearance_mm": 1.5000000000060005,
+      "existing_side_head_to_cover_mating_plane_gap_mm": 0.5,
+      "assumed_side_head_diameter_mm": 4,
+      "sweep_length": "full original pilot length"
+    }
+  },
+  "wire_passage": {
+    "fs0307": {
+      "original_central_passage_core_y_span_mm": 9.199999999992201,
+      "new_material_in_existing_passage_mm3": 0.0
+    },
+    "sg90": {
+      "original_central_passage_core_y_span_mm": 12.79999999999149,
+      "new_material_in_existing_passage_mm3": 0.0
+    },
+    "hd1370a": {
+      "original_central_passage_core_y_span_mm": 9.1999999999921,
+      "new_material_in_existing_passage_mm3": 0.0
+    }
+  },
+  "exports": {
+    "fs0307": {
+      "BottomCover": {
+        "stl": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 49388.86048998823,
+          "bounds_mm": [
+            [
+              -52.0,
+              -65.30000305175781,
+              -7.246114819281502e-11
+            ],
+            [
+              52.0,
+              65.30000305175781,
+              4.5
+            ]
+          ],
+          "triangles": 1188,
+          "sha256": "edf4fc6b8d1739955d3d5077eca270794b6541d40ee759aad66aeff51078392c"
+        },
+        "3mf": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 49388.86116977031,
+          "bounds_mm": [
+            [
+              -52.0,
+              -65.300004,
+              0.0
+            ],
+            [
+              52.0,
+              65.300004,
+              4.5
+            ]
+          ],
+          "triangles": 1188,
+          "sha256": "5c2ace7ba98921b6fe0a2f23bbcaf34a0a3c787fe6d57d674731ead153e5e48f"
+        },
+        "step": {
+          "solid_count": 1,
+          "valid": true,
+          "volume_mm3": 49388.232580584445,
+          "bounds_mm": [
+            [
+              -52.000000000046796,
+              -65.30000000009139,
+              -7.250377000595681e-11
+            ],
+            [
+              52.00000000009944,
+              65.30000000015814,
+              4.500000000072404
+            ]
+          ],
+          "sha256": "a58e0848389136354fb8bb2ebc01f721d9599ca719a0c0dbedaefbf76f8d691e"
+        }
+      },
+      "Chair": {
+        "stl": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 58718.09353533606,
+          "bounds_mm": [
+            [
+              -29.040922164916992,
+              -31.0,
+              -1.4210854715202004e-14
+            ],
+            [
+              36.29999923706055,
+              31.0,
+              77.76436614990234
+            ]
+          ],
+          "triangles": 2590,
+          "sha256": "f382f16d61397eabec1eade54fa25b90f671d95eed4a37c4e59b3f77235b5e7e"
+        },
+        "3mf": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 58718.09280932195,
+          "bounds_mm": [
+            [
+              -29.040922,
+              -31.0,
+              0.0
+            ],
+            [
+              36.3,
+              31.0,
+              77.764368
+            ]
+          ],
+          "triangles": 2590,
+          "sha256": "cf973367cc1bf9ee8b46a085bf81170bcf6dbddc74d4b4fa14f4e57c2cd5b76e"
+        },
+        "step": {
+          "solid_count": 1,
+          "valid": true,
+          "volume_mm3": 58724.21888371151,
+          "bounds_mm": [
+            [
+              -29.046362470920567,
+              -31.000000100044417,
+              -1.0000000868905413e-07
+            ],
+            [
+              36.30000000006521,
+              31.000000100044584,
+              77.76456343652085
+            ]
+          ],
+          "sha256": "cf6152738396aa531ff05cf6b6aef9907dface0a9481873708bcfd2e5984757a"
+        }
+      },
+      "PartsSetB": {
+        "stl": {
+          "solid_count": 14,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 224722.6288385006,
+          "bounds_mm": [
+            [
+              -108.86322021484375,
+              -120.9000015258789,
+              -7.246114819281502e-11
+            ],
+            [
+              99.4000015258789,
+              192.0,
+              77.76436614990234
+            ]
+          ],
+          "triangles": 33940,
+          "sha256": "bd11ead0ee19ccbb11a135fae2580561bd518e05727a1f6939d71d1661dacce4"
+        },
+        "3mf": {
+          "solid_count": 14,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 224722.63031786357,
+          "bounds_mm": [
+            [
+              -108.863224,
+              -120.9,
+              0.0
+            ],
+            [
+              99.4,
+              192.0,
+              77.764368
+            ]
+          ],
+          "triangles": 33940,
+          "sha256": "b5975fb2eeff000f2bdaf3fbfb7dfd0e8421f6cf13c72a119dbd002f3f1f0658"
+        },
+        "step": {
+          "solid_count": 14,
+          "valid": true,
+          "volume_mm3": 224751.31821646317,
+          "bounds_mm": [
+            [
+              -108.879999999943,
+              -120.90000010003175,
+              -3.551859600990532e-06
+            ],
+            [
+              99.40000000032792,
+              192.00000000009942,
+              77.76456343652085
+            ]
+          ],
+          "sha256": "5e5928c95b08a59ddb62cb45db2759cb1f599053deaf8fa8899d70f0c9fe8c0a"
+        }
+      }
+    },
+    "sg90": {
+      "BottomCover": {
+        "stl": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 65772.45717704389,
+          "bounds_mm": [
+            [
+              -59.974998474121094,
+              -72.69999694824219,
+              -8.323297606693814e-11
+            ],
+            [
+              59.974998474121094,
+              72.69999694824219,
+              4.5
+            ]
+          ],
+          "triangles": 1148,
+          "sha256": "1be71a75e233e5bc3b86455b332f88c6c2871707c27a7c8ba6d96389979234f8"
+        },
+        "3mf": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 65772.4600491723,
+          "bounds_mm": [
+            [
+              -59.975,
+              -72.7,
+              0.0
+            ],
+            [
+              59.975,
+              72.7,
+              4.5
+            ]
+          ],
+          "triangles": 1148,
+          "sha256": "2e4462d89c5f6d37d545920c2464af8dc3d31e21facf83895e6563d9bc4ffd38"
+        },
+        "step": {
+          "solid_count": 1,
+          "valid": true,
+          "volume_mm3": 65771.96758048904,
+          "bounds_mm": [
+            [
+              -59.9750000000264,
+              -72.69999999999493,
+              -8.325429659622564e-11
+            ],
+            [
+              59.97500000008802,
+              72.70000000007315,
+              4.50000000008319
+            ]
+          ],
+          "sha256": "0a13a8281b6354e480f164f5e87a16985bb745a6d17654fed270fa9ec806bac7"
+        }
+      },
+      "Chair": {
+        "stl": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 104412.8026180882,
+          "bounds_mm": [
+            [
+              -34.042564392089844,
+              -38.400001525878906,
+              -4.263256414560601e-14
+            ],
+            [
+              39.04999923706055,
+              38.400001525878906,
+              100.45877075195312
+            ]
+          ],
+          "triangles": 2766,
+          "sha256": "502202422e6e2fa213ce5f32b910bcad8296d32f1b86cf357f858e4459d2c1ab"
+        },
+        "3mf": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 104412.7938053411,
+          "bounds_mm": [
+            [
+              -34.042564,
+              -38.4,
+              0.0
+            ],
+            [
+              39.05,
+              38.4,
+              100.458768
+            ]
+          ],
+          "triangles": 2766,
+          "sha256": "c49847f976e35c6594b898fac65e57e828bc2f1182555134b1ce031521c737b1"
+        },
+        "step": {
+          "solid_count": 1,
+          "valid": true,
+          "volume_mm3": 104416.779979968,
+          "bounds_mm": [
+            [
+              -34.04799811373366,
+              -38.400000099993974,
+              -1.0000001487538401e-07
+            ],
+            [
+              39.05000000002833,
+              38.400000099994145,
+              100.45896753060447
+            ]
+          ],
+          "sha256": "e01f4a77b515016f8263dc57a3c016f4671752571d8d63e50746530049be0d12"
+        }
+      },
+      "PartsSetB": {
+        "stl": {
+          "solid_count": 14,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 331027.63364454923,
+          "bounds_mm": [
+            [
+              -116.99256134033203,
+              -132.0500030517578,
+              -8.323297606693814e-11
+            ],
+            [
+              117.69999694824219,
+              199.97500610351562,
+              100.45877075195312
+            ]
+          ],
+          "triangles": 33852,
+          "sha256": "97c4313a9a9cfd2c076a178ed0d6b3af0ab56776e860ab3f755051b93505052e"
+        },
+        "3mf": {
+          "solid_count": 14,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 331027.61328577826,
+          "bounds_mm": [
+            [
+              -116.99256,
+              -132.05,
+              0.0
+            ],
+            [
+              117.7,
+              199.975008,
+              100.458768
+            ]
+          ],
+          "triangles": 33852,
+          "sha256": "3b337bb61973f1a2d093e02cae30e01637067c1a1b65bea367a924fbb2181eeb"
+        },
+        "step": {
+          "solid_count": 14,
+          "valid": true,
+          "volume_mm3": 331061.4862928643,
+          "bounds_mm": [
+            [
+              -116.99799811375334,
+              -132.05000009979884,
+              -3.551859624083171e-06
+            ],
+            [
+              117.70000000014286,
+              199.97500000008762,
+              100.45896753060437
+            ]
+          ],
+          "sha256": "3ef0ae1d50ed79f23f4c3e633fe0d6f6b0ef32b1b6cedfd56168a4d2e765fbf4"
+        }
+      }
+    },
+    "hd1370a": {
+      "BottomCover": {
+        "stl": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 48934.17932099295,
+          "bounds_mm": [
+            [
+              -52.150001525878906,
+              -64.5999984741211,
+              -7.23758830645238e-11
+            ],
+            [
+              52.150001525878906,
+              64.5999984741211,
+              4.5
+            ]
+          ],
+          "triangles": 1188,
+          "sha256": "ef2513d80bcbf9c898b7863fe8ff4cab4fbcb8f90518c3b0017d3218d9112eed"
+        },
+        "3mf": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 48934.17929146306,
+          "bounds_mm": [
+            [
+              -52.15,
+              -64.6,
+              0.0
+            ],
+            [
+              52.15,
+              64.6,
+              4.5
+            ]
+          ],
+          "triangles": 1188,
+          "sha256": "8f7739a31eb1bbff4383f1fbfef8e5ea7083f7e878ab69e69e2638faef0b3b9e"
+        },
+        "step": {
+          "solid_count": 1,
+          "valid": true,
+          "volume_mm3": 48933.5525805823,
+          "bounds_mm": [
+            [
+              -52.1500000000467,
+              -64.60000000009103,
+              -7.241610991058955e-11
+            ],
+            [
+              52.15000000009832,
+              64.6000000001579,
+              4.500000000072291
+            ]
+          ],
+          "sha256": "d76e790934c70ac456fcd22e9de41ec2652317853a8f569d6f9ff8dca851cf6f"
+        }
+      },
+      "Chair": {
+        "stl": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 56655.256744926795,
+          "bounds_mm": [
+            [
+              -28.76991081237793,
+              -30.299999237060547,
+              -2.842170943040401e-14
+            ],
+            [
+              36.29999923706055,
+              30.299999237060547,
+              76.79452514648438
+            ]
+          ],
+          "triangles": 2634,
+          "sha256": "615d6b727766d495aab4d8509f72a6b8378fd6446317f4ff80f62dc111573509"
+        },
+        "3mf": {
+          "solid_count": 1,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 56655.25875375199,
+          "bounds_mm": [
+            [
+              -28.76991,
+              -30.3,
+              0.0
+            ],
+            [
+              36.3,
+              30.3,
+              76.794528
+            ]
+          ],
+          "triangles": 2634,
+          "sha256": "d74f11e244ddd440a0ab5eb0acc801670740385d14f51d633beda1d1a91f8d6b"
+        },
+        "step": {
+          "solid_count": 1,
+          "valid": true,
+          "volume_mm3": 56661.24164842763,
+          "bounds_mm": [
+            [
+              -28.775352400948734,
+              -30.30000010004418,
+              -1.0000000831564213e-07
+            ],
+            [
+              36.300000000064706,
+              30.30000010004433,
+              76.79471710522643
+            ]
+          ],
+          "sha256": "b1d8491b5e2a665fcd065eae8aeacb54cb9b460b5ba9ac6125a65042bfaf4b75"
+        }
+      },
+      "PartsSetB": {
+        "stl": {
+          "solid_count": 14,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 218691.72463483422,
+          "bounds_mm": [
+            [
+              -107.9232177734375,
+              -120.0999984741211,
+              -7.23758830645238e-11
+            ],
+            [
+              100.0,
+              192.14999389648438,
+              76.79452514648438
+            ]
+          ],
+          "triangles": 33880,
+          "sha256": "c4ca34f0dee0014feaa0dccf155eedc9c0a6d431dc2cc9909825175be04f4d2f"
+        },
+        "3mf": {
+          "solid_count": 14,
+          "watertight": true,
+          "positive_volumes": true,
+          "volume_mm3": 218691.73557500506,
+          "bounds_mm": [
+            [
+              -107.923216,
+              -120.1,
+              0.0
+            ],
+            [
+              100.0,
+              192.15,
+              76.794528
+            ]
+          ],
+          "triangles": 33880,
+          "sha256": "0c8a1c6cb9e3c6a27f3c59d616d1e035ef5196f0f578fc06b98b33b3fcc8c94a"
+        },
+        "step": {
+          "solid_count": 14,
+          "valid": true,
+          "volume_mm3": 218719.58707078802,
+          "bounds_mm": [
+            [
+              -107.939999999943,
+              -120.10000010010621,
+              -3.551859590258425e-06
+            ],
+            [
+              100.00000000026057,
+              192.15000000009871,
+              76.79471710522643
+            ]
+          ],
+          "sha256": "ab319509d588aaebb5264689d0cb18028536002445882a5f67bd4072c56f8533"
+        }
+      }
+    }
+  }
+}
