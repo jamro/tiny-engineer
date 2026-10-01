@@ -19,7 +19,7 @@ Stock flash: **[Web flash](https://jamro.github.io/tiny-engineer/flash/)**. Buil
 | --- | --- |
 | Built-in WS2812 | Green ready (GPIO10) |
 | I2C init | `Wire.begin` on GPIO0/GPIO1 |
-| PCA9685 | Probe `0x40` early; park neutral; OE skipped (`PCA9685_OE_WIRED` is false until GP5→OE is implemented) |
+| PCA9685 | Probe `0x40` early; OE HIGH during init, park neutral, then OE LOW (`PCA9685_OE_WIRED`) |
 | OLED | Probe `0x3C`, init (optional) |
 | Wi-Fi | STA connect from saved NVS credentials, or setup AP `TinyEngineer-XXXX` when unset/failed; mDNS `{hostname}.local` after STA connect |
 | MAX98357A / I2S | `I2S.begin` 22.05 kHz 16-bit stereo |

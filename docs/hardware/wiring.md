@@ -13,7 +13,7 @@ Build the harness **on the desk** ([getting-started](../getting-started.md) — 
 **Connect in this order (power last):**
 
 1. Common **GND** to every module.
-2. Signal wires: I2C (SDA/SCL), I2S (BCLK/LRC/DIN), USB D+/D−, PCA9685 OE if you use it.
+2. Signal wires: I2C (SDA/SCL), I2S (BCLK/LRC/DIN), USB D+/D−, PCA9685 OE (GP5 → OE).
 3. Logic **3V3**: ESP32 **3V3** → PCA9685 **VCC** and OLED **VCC**.
 4. **5 V** last: USB VBUS → ESP32 **5V**, PCA9685 **5V**, MAX98357A **Vin**. Leave servo leads unplugged until centering.
 
@@ -141,11 +141,11 @@ Firmware drives **channels 0–4** (`SERVO_SPECS` / `SERVO_HEAD`…`SERVO_BODY`)
 
 ESP32-C3-Zero, unused in the PNG:
 
-**GP5, GP6, GP7, GP8, GP9, GP10, GP20, GP21**
+**GP6, GP7, GP8, GP9, GP10, GP20, GP21**
 
-GP5 is reserved for PCA9685 OE (`PCA9685_OE_PIN`) but that net is **pending**: schematic and PCB do not implement or validate GP5→OE yet (`PCA9685_OE_WIRED = false`). GP9 = BOOT, GP10 = onboard WS2812. GP18/GP19 = native USB — wire from 5993 D−/D+ even if the base PNG omits them. See [pinout.md](pinout.md).
+Wire **GP5** → PCA9685 **OE** (`PCA9685_OE_PIN`; active LOW). The base PNG may omit that wire — add it on the breadboard and on the Adafruit breakout OE pin. GP9 = BOOT, GP10 = onboard WS2812. GP18/GP19 = native USB — wire from 5993 D−/D+ even if the base PNG omits them. See [pinout.md](pinout.md).
 
-PCA9685 **OE** is not wired on this board. MAX98357A **GAIN** / **SD** not wired (breakout defaults). **SPK+** / **SPK-** not drawn.
+MAX98357A **GAIN** / **SD** not wired (breakout defaults). **SPK+** / **SPK-** not drawn.
 
 ## Not on the drawing
 
@@ -156,6 +156,7 @@ Still part of the selected hardware; do not invent extra ESP32 GPIO for them.
 | Speaker | Terminals → MAX98357A **SPK+** and **SPK-** only |
 | 4 extra analog micro servos | Same 3-wire pattern as the drawn servo, on PCA9685 PWM 0–4 |
 | Adafruit 5993 D+/D− | Wire to ESP32 **GP19** / **GP18** for flash and CDC (single-USB design) |
+| PCA9685 OE | Wire ESP32 **GP5** → PCA9685 **OE** (active LOW) |
 | MAX98357A GAIN / SD | Not wired; leave breakout defaults |
 
 > [!WARNING]

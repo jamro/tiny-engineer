@@ -54,7 +54,7 @@ Use a **5 V supply of at least 2 A**. Five stalled servos can draw more than a t
 | USB D− | GPIO18 | USB-C |
 | USB D+ | GPIO19 | USB-C |
 
-The output-enable wire is on this board. Firmware still ignores it: `PCA9685_OE_WIRED` is false in [`include/pins.h`](../../../include/pins.h).
+GP5 drives PCA9685 OE (`PCA9685_OE_WIRED` in [`include/pins.h`](../../../include/pins.h)). A 10 kΩ pull-up holds OE high until firmware drives it low after neutral park.
 
 ## Board
 
