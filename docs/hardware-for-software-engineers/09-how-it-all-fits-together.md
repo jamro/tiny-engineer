@@ -92,7 +92,7 @@ flowchart TB
 | --- | --- | --- |
 | Volts, amps, GND, two domains | Ch. 01, 07 | [power.md](../hardware/power.md) |
 | ESP32-C3, GPIO, USB, antenna | Ch. 02 | [pinout.md](../hardware/pinout.md) |
-| Wires, schematic reading | Ch. 03 | [wiring.md](../hardware/wiring.md), [diagram](../wiring/Tiny%20Engineer.drawio.png) |
+| Wires, schematic reading | Ch. 03 | [wiring.md](../hardware/wiring.md), [main-control-board.md](../hardware/main-control-board.md), [diagram](../wiring/Tiny%20Engineer.drawio.png) |
 | I2C, I2S, PWM | Ch. 04 | [interfaces.md](../hardware/interfaces.md) |
 | Servos, horns, joints | Ch. 05 | [robot-movement.md](../robot-movement.md), [servos.md](../hardware/servos.md) |
 | Print, PLA/PETG, Fusion | Ch. 06 | [3d_models/README.md](../../3d_models/README.md) |
@@ -106,9 +106,9 @@ flowchart TB
 
 Follow the checklist in [getting-started.md](../getting-started.md). Summary:
 
-1. **Shop** → [shopping.md](../shopping.md)
+1. **Shop** → [shopping.md](../shopping.md) (modular or main control board)
 2. **Print or order** (can overlap with learning) → [3d_models](../../3d_models/README.md)
-3. **Wire** + **flash** on the desk → [wiring.md](../hardware/wiring.md), [flash.md](../flash.md)
+3. **Wire** + **flash** on the desk → [wiring.md](../hardware/wiring.md) or [main-control-board.md](../hardware/main-control-board.md), then [flash.md](../flash.md)
 4. **Assemble** (one run: Head/Hat, centering, joins) → [assembly.md](../3d/assembly.md) §§1–19
 5. **Setup wizard** → assembly §20
 6. **Prove** (`/health`, `ring`) → [getting-started §7](../getting-started.md#7-prove-it)

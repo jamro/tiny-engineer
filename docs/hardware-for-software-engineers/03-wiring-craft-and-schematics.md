@@ -18,14 +18,14 @@ This build uses Dupont on **servos**, **OLED**, and **ESP32** so those parts unp
 
 **Breadboard** — spring clips, no solder. Great for blinking an LED. Wires pop out. Too bulky for this robot.
 
-**This project needs permanent wiring** — soldered joints that survive being stuffed into a small printed body. Vibration and tight space kill breadboard builds.
+**This project needs permanent wiring** for the **modular** path — soldered joints that survive being stuffed into a small printed body. Vibration and tight space kill breadboard builds. Equal alternative: the [main control board](../hardware/main-control-board.md) (PCA9685, amp, and USB-C on one PCB) — pick a path in [shopping](../shopping.md#choose-electronics-path).
 
-**Practical split:**
+**Practical split (modular):**
 - **Solder** the boards that stay in the robot: USB-C breakout, PCA9685 servo driver, audio amp, and the power/signal harness between them
 - **Dupont** to ESP32, OLED, and servos — replaceable without a soldering iron
-- Wire and **verify on the desk** (boot, I2C, one servo) **before** seating the harness in the chest. Debugging inside a closed chest is miserable
+- Wire and **verify on the desk** (boot, I2C, one servo) **before** seating the electronics in the chest. Debugging inside a closed chest is miserable
 
-The Waveshare **ESP32-C3-Zero** used here ships with **male pins already soldered**. You still solder everything else that doesn't come with headers you can plug into: USB socket/breakout, servo controller, audio board, and the wires that join those modules.
+The Waveshare **ESP32-C3-Zero** used here ships with **male pins already soldered**. On the modular path you still solder everything else that doesn't come with headers you can plug into: USB socket/breakout, servo controller, audio board, and the wires that join those modules.
 
 ---
 

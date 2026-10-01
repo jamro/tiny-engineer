@@ -1,5 +1,7 @@
 # Wiring
 
+**Modular breakout harness.** For the main control board path, use [main-control-board.md](main-control-board.md) instead.
+
 Build the harness **on the desk** ([getting-started](../getting-started.md) — after print, before flash). Do not seat it in the chest until [assembly §12](../3d/assembly.md#12-electronics-inside-the-desk).
 
 **Why these nets exist:**

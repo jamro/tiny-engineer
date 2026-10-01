@@ -7,11 +7,12 @@ Pick a path. Depth lives in the linked pages.
 | You want to… | Start here |
 | --- | --- |
 | **Build from scratch** (canonical checklist) | [getting-started.md](getting-started.md) |
-| **Buy parts** (one cart) | [shopping.md](shopping.md) |
+| **Buy parts** (choose path + cart) | [shopping.md](shopping.md) |
 | **Bridge into hardware/electronics** (software engineer background) | [hardware-for-software-engineers/README.md](hardware-for-software-engineers/README.md) — optional parallel reading; safety card lives on the checklist |
 | **Assemble printed parts** (mechanical procedure) | [3d/assembly.md](3d/assembly.md) |
 | **Flash firmware** | **[Web flash](https://jamro.github.io/tiny-engineer/flash/)** (default) · [flash.md](flash.md) (PlatformIO / mods / OTA) |
-| **Wire / power detail** | [hardware/wiring.md](hardware/wiring.md) → [hardware/README.md](hardware/README.md) |
+| **Electronics** (modular or main control board) | [shopping.md](shopping.md#choose-electronics-path) → [hardware/wiring.md](hardware/wiring.md) or [hardware/main-control-board.md](hardware/main-control-board.md) → [hardware/README.md](hardware/README.md) |
+| **Wire / power detail** (modular harness) | [hardware/wiring.md](hardware/wiring.md) → [hardware/README.md](hardware/README.md) |
 | **Print / parts inventory** | [../3d_models/README.md](../3d_models/README.md) |
 | **Order printed parts** (no 3D printer) | [3d/order-parts.md](3d/order-parts.md) |
 | **Adapt CAD to a different servo** | [3d/parametric-design.md](3d/parametric-design.md) |

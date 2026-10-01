@@ -7,6 +7,8 @@ This board drives the robot's servos and speaker. Power and USB data come in on 
 - **Built:** not manufactured
 - **Tested:** not tested
 
+![Main Control Board](./main-control-board-rev-2-preview.jpg)
+
 ## Soldered on the board
 
 The servo driver, the speaker amplifier, and the USB-C connector are parts on this PCB. They replace the plug-in PCA9685 board, the MAX98357A breakout, and the Adafruit 5993 USB-C breakout.

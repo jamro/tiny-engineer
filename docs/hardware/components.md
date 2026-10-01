@@ -1,8 +1,8 @@
 # Hardware inventory
 
-Buyers: start at [shopping.md](../shopping.md) (cart, servo fork, screws, supply). This page is the electrical spec.
+Buyers: start at [shopping.md](../shopping.md) (choose modular or main control board, then cart). This page is the electrical spec for the **modular** parts list; PCB path still uses the shared modules (ESP32, servos, OLED, speaker) with PWM/amp/USB on the board — [main-control-board.md](main-control-board.md).
 
-Selected hardware only. Do not substitute electronics from this list without updating this file, [pinout.md](pinout.md), and [wiring.md](wiring.md). Servo *model* may be any preset in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) if the printed parts match — [parametric design](../3d/parametric-design.md).
+Selected hardware only. Do not substitute electronics from this list without updating this file, [pinout.md](pinout.md), and [wiring.md](wiring.md) (or the board design for the PCB path). Servo *model* may be any preset in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) if the printed parts match — [parametric design](../3d/parametric-design.md).
 
 Constants cited below match [`include/pins.h`](../../include/pins.h).
 

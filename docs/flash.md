@@ -1,6 +1,6 @@
 # Flash firmware
 
-Flash **after wiring, before assembly**. Overview order: [getting-started.md](getting-started.md). Centering (Move all to 90°) happens on this desk harness; do not finish the Wi-Fi wizard until [assembly.md §20](3d/assembly.md#20-setup-wizard-and-first-boot-on-wi-fi).
+Flash **after wiring, before assembly**. Overview order: [getting-started.md](getting-started.md). Centering (Move all to 90°) happens on the desk electronics (modular harness or main control board); do not finish the Wi-Fi wizard until [assembly.md §20](3d/assembly.md#20-setup-wizard-and-first-boot-on-wi-fi).
 
 Physical module is a **Waveshare ESP32-C3-Zero**.
 
@@ -42,7 +42,7 @@ Firmware is Arduino on [PlatformIO](https://platformio.org/) ([pioarduino](https
 
 1. Install [PlatformIO Core](https://docs.platformio.org/en/latest/core/installation.html) (or the PlatformIO IDE extension).
 2. Use a USB-C **data** cable. Charge-only cables fail upload and serial.
-3. Connect the board over USB (Adafruit 5993 data lines when the harness is wired; onboard USB-C on a bare C3-Zero also works for this step).
+3. Connect over USB with a data cable: modular path — Adafruit 5993 (or onboard USB-C on a bare C3-Zero for this step); main control board — the board USB-C once the ESP32 is seated on its headers.
 
 ### Build, upload, serial
 

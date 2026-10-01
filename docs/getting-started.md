@@ -16,7 +16,9 @@ Read this before you power anything. Optional *why*: [Ch. 01](hardware-for-softw
 
 ## Timeline
 
-Shop → print → wire → flash → assemble (one run) → setup wizard → prove → agent hooks.
+Shop (pick electronics path) → print → wire → flash → assemble (one run) → setup wizard → prove → agent hooks.
+
+Same safety rules apply whether you build with **modular breakouts** or the **main control board**.
 
 ```mermaid
 flowchart LR
@@ -42,8 +44,8 @@ flowchart LR
 
 ### 1. Shop
 
-- **Open:** [shopping.md](shopping.md).
-- **Until:** cart in hand — electronics, M2 screws/nuts, **5 V / ≥2 A** supply, **data** USB cable, and a print path (filament or a service order). Default servos: **Tower Pro SG90**.
+- **Open:** [shopping.md](shopping.md). Pick **modular** or **main control board** — that page has pros/cons and carts.
+- **Until:** cart in hand for your path — electronics, M2 screws/nuts, **5 V / ≥2 A** supply, **data** USB cable, and a print path (filament or a service order). Default servos: **Tower Pro SG90**.
 - **Return** here.
 
 ### 2. Print or order
@@ -54,15 +56,16 @@ flowchart LR
 
 ### 3. Wire
 
-- **Open:** [hardware/wiring.md](hardware/wiring.md) and the diagram [wiring/Tiny Engineer.drawio.png](wiring/Tiny%20Engineer.drawio.png).
-- **Until:** pre-power checks pass (common GND; PCA9685 **VCC** = 3.3 V vs **V+** = 5 V not shorted; OLED clock on **SCL**; speaker on **SPK+/SPK−** only). Harness stays on the desk.
+- **Modular:** [hardware/wiring.md](hardware/wiring.md) and [wiring/Tiny Engineer.drawio.png](wiring/Tiny%20Engineer.drawio.png).
+- **Main control board:** [hardware/main-control-board.md](hardware/main-control-board.md).
+- **Until:** pre-power checks pass (common GND; PCA9685 **VCC** = 3.3 V vs **V+** = 5 V not shorted; OLED clock on **SCL**; speaker on **SPK+/SPK−** only — PCB path: one speaker method only). Electronics stay on the desk.
 - **Return** here.
 
 ### 4. Flash
 
 - **Open:** **[Web flash](https://jamro.github.io/tiny-engineer/flash/)** (Chrome or Edge; USB-C **data** cable). Pick the latest release → Connect & install. No PlatformIO or repo clone needed for stock firmware. More detail / stuck / advanced: [flash.md](flash.md).
 - **Until:** stock firmware + audio on the board; **Move all to 90°** (setup AP config page) or one servo moves. Do not finish the Wi-Fi wizard yet.
-- **Return** here. Keep boards on the desk — do not seat the harness in the chest.
+- **Return** here. Keep electronics on the desk — do not seat them in the chest yet.
 
 ### 5. Assemble
 
@@ -98,8 +101,9 @@ curl -X POST "http://tiny-engineer.local/anim?name=ring"
 
 | Symptom | What to try |
 | --- | --- |
+| Which electronics path? | [shopping.md](shopping.md#choose-electronics-path) |
 | What to buy? | [shopping.md](shopping.md) |
-| Which wires / voltages? | [hardware/wiring.md](hardware/wiring.md), [hardware/pinout.md](hardware/pinout.md) |
+| Which wires / voltages? | Modular: [hardware/wiring.md](hardware/wiring.md). PCB: [hardware/main-control-board.md](hardware/main-control-board.md). Pins: [hardware/pinout.md](hardware/pinout.md) |
 | What to print? | [3d_models/README.md](../3d_models/README.md) |
 | How to assemble printed parts? | [3d/assembly.md](3d/assembly.md) |
 | Flash / install stuck | [Web flash](https://jamro.github.io/tiny-engineer/flash/) · [flash.md](flash.md) |
