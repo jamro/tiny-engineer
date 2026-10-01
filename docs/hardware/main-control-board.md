@@ -2,7 +2,7 @@
 
 Builder connect guide for the integrated PCB path. Same firmware and pins as the modular harness. Decide path and cart: [shopping.md](../shopping.md#choose-electronics-path).
 
-The board is **open source** ([CERN-OHL-S](../../3d_models/LICENSE)). KiCad sources: [`hardware/boards/main-control-board/`](../../hardware/boards/main-control-board/). Export Gerbers and order from any fab yourself. The [interest check](https://github.com/jamro/tiny-engineer/discussions/50) is optional — a community batch for easier / cheaper buys, not a gate to use the design.
+The board is **open source** ([CERN-OHL-S](../../3d_models/LICENSE)). KiCad sources: [`hardware/boards/main-control-board/`](../../hardware/boards/main-control-board/). Export Gerbers and order from any fab yourself — step-by-step (JLCPCB example): [order-main-control-board.md](order-main-control-board.md). The [interest check](https://github.com/jamro/tiny-engineer/discussions/50) is optional — a community batch for easier / cheaper buys, not a gate to use the design.
 
 On the board: PCA9685, MAX98357A, USB-C (power + data). Still plug in: ESP32-C3-Zero, OLED, five servos, speaker. Electrical detail for contributors: the board README in that folder.
 

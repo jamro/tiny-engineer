@@ -109,6 +109,7 @@ Prefer a **5 V / ≥2 A** source with margin. Details: [power.md](power.md).
 | --- | --- |
 | [../shopping.md](../shopping.md) | Choose path + buyer cart |
 | [main-control-board.md](main-control-board.md) | PCB path: connect ESP32, OLED, servos, speaker |
+| [order-main-control-board.md](order-main-control-board.md) | Order the PCB / PCBA (any fab; JLCPCB walkthrough) |
 | [components.md](components.md) | Inventory, voltages, limits |
 | [pinout.md](pinout.md) | GPIO map + allocation rules |
 | [wiring.md](wiring.md) | Modular harness connections |

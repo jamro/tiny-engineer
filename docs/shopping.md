@@ -27,7 +27,7 @@ Same robot, same firmware, same printed Desk. Two equal ways to build the electr
 
 Neither path is preferred. Pick by comfort (solder vs fab), timeline, and whether you need catalog parts tonight.
 
-How to connect the PCB: [hardware/main-control-board.md](hardware/main-control-board.md). Interest in a cheaper community batch: [discussion #50](https://github.com/jamro/tiny-engineer/discussions/50).
+How to order the PCB: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). How to connect it: [hardware/main-control-board.md](hardware/main-control-board.md). Interest in a cheaper community batch: [discussion #50](https://github.com/jamro/tiny-engineer/discussions/50).
 
 ## Buy this
 
@@ -60,7 +60,7 @@ Skip this section if you wire modular breakouts. Do **not** buy the PCA9685, MAX
 
 | Part | Qty | Notes |
 | --- | --- | --- |
-| Tiny Engineer main control board | 1 | Open-source KiCad in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/) ([CERN-OHL-S](../3d_models/LICENSE)). Export Gerbers and order from any fab, or watch the [interest check](https://github.com/jamro/tiny-engineer/discussions/50) for a community batch. Builder connect steps: [hardware/main-control-board.md](hardware/main-control-board.md). |
+| Tiny Engineer main control board | 1 | Open-source KiCad in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/) ([CERN-OHL-S](../3d_models/LICENSE)). How to order (any fab; JLCPCB walkthrough): [hardware/order-main-control-board.md](hardware/order-main-control-board.md). Or watch the [interest check](https://github.com/jamro/tiny-engineer/discussions/50) for a community batch. Builder connect steps: [hardware/main-control-board.md](hardware/main-control-board.md). |
 
 ### Fasteners
 

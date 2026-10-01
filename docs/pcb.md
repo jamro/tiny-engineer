@@ -201,6 +201,8 @@ When manufacturing a board:
 3. Inspect the generated files before ordering.
 4. Verify the result in the manufacturer's Gerber viewer where available.
 
+Builder walkthrough for the integrated robot board (any fab; JLCPCB example): [hardware/order-main-control-board.md](hardware/order-main-control-board.md).
+
 A more standardized manufacturing and release workflow may come later, after the process has been validated on real boards.
 
 ## Checklist
