@@ -26,7 +26,7 @@ Non-preset servo: measure it, add a preset, export parts — [parametric design]
 | Adafruit PCA9685 16-channel PWM servo driver | 1 | https://www.adafruit.com/product/815 |
 | Tower Pro SG90 (or equivalent 9 g analog micro) | 5 | Widely available hobby servo — no single canonical SKU |
 | MAX98357A I2S class-D mono amplifier | 1 | https://www.aliexpress.us/item/3256805196806369.html |
-| 8 Ω / 1 W mono speaker | 1 | https://www.aliexpress.us/item/3256807341987395.html |
+| [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 | https://www.adafruit.com/product/3923 |
 | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 | https://www.waveshare.com/0.91inch-oled-module.htm |
 | Adafruit 5993 USB-C breakout | 1 | https://www.adafruit.com/product/5993 |
 
@@ -39,10 +39,12 @@ M2 thread-forming (self-tapping) screws for plastic, **pan-head or button-head**
 | Item | Qty |
 | --- | --- |
 | M2×4 mm | 8 |
-| M2×8 mm | 21 |
+| M2×8 mm | 27 |
 | M2×16 mm | 15 |
 | M2 nuts | 6 |
 | Servo bag screws | 5 (come with the servos) |
+
+The six `BottomCover` screws are included in the M2×8 total. Their heads must be at most **4.0 mm diameter × 2.0 mm high** to fit the recessed pockets.
 
 An M2 assortment covering **M2×4–M2×16** is the easy path. Nearby lengths often work; test-fit if you substitute.
 

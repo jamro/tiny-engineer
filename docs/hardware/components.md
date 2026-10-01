@@ -16,7 +16,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 | Feetech FS0307 | See vendor listing for FS0307 analog micro |
 | PowerHD HD-1370A (backward compatibility) | https://www.chd.hk/Product_Detail.aspx?id=30 |
 | MAX98357A I2S class-D mono amplifier | https://www.aliexpress.us/item/3256805196806369.html |
-| 8 Ω / 1 W mono speaker | https://www.aliexpress.us/item/3256807341987395.html |
+| [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | https://www.adafruit.com/product/3923 |
 | Waveshare 0.91inch OLED Module | https://www.waveshare.com/0.91inch-oled-module.htm |
 | Adafruit 5993 USB-C breakout | https://www.adafruit.com/product/5993 |
 
@@ -140,7 +140,7 @@ Print [`3d_models/parts/hd1370a/3mf/`](../../3d_models/parts/hd1370a/3mf/).
 
 | Field | Value |
 | --- | --- |
-| Exact model | 8 Ω / 1 W mono speaker (AliExpress listing above) |
+| Exact model | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) (8 Ω, 1 W mono) |
 | Quantity | 1 |
 | Purpose | Acoustic output |
 | Operating voltage | Not a voltage-rail device — driven by MAX98357A BTL |

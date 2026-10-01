@@ -14,6 +14,10 @@ This is a desk robot: firmware on an ESP32-C3, 3D-printed mechanics, and HTTP cl
 - KiCad PCB boards (`hardware/boards/` — [docs/pcb.md](docs/pcb.md))
 - Photos of a working build or a failure (brownout, binding, blink codes)
 
+## Share your build
+
+Finished a Tiny Engineer? Post photos (or a short clip) in **[Show and tell](https://github.com/jamro/tiny-engineer/discussions/categories/show-and-tell)** on GitHub Discussions. Mention mods, servo size, or which agent you hooked up. The README links there instead of listing builds in-repo.
+
 ## Legal
 
 Opening a PR licenses your change under the license of the files you touch. No CLA or DCO.

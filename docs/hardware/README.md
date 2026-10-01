@@ -80,7 +80,7 @@ Speaker **SPK+/SPK-** are not on the PNG. See [wiring.md](wiring.md#not-on-the-d
 | Servo PWM | Adafruit PCA9685 16-channel driver | 1 |
 | Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 compact; PowerHD HD-1370A still supported | 5 |
 | Audio amp | MAX98357A I2S class-D (mono) | 1 |
-| Speaker | 8 Ω / 1 W mono | 1 |
+| Speaker | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 |
 | Display | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 |
 | Robot USB | Adafruit 5993 USB-C breakout (power + data) | 1 |
 
