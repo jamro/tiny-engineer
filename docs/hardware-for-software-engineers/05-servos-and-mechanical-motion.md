@@ -26,13 +26,13 @@ You command an **angle** (via pulse width). The servo tries to reach it and **ho
 
 Power and signal are separate. The signal wire is low current; the power wire carries motor current.
 
-PWM here means a timed HIGH pulse on the signal wire — how long that HIGH lasts is the angle. Full protocol picture (and why a PCA9685 does it): [Ch. 04 — Buses and protocols](04-buses-and-protocols.md#pwm-how-long-high-lasts-is-the-angle).
+PWM here means a timed HIGH pulse on the signal wire — how long that HIGH lasts is the angle. Full protocol picture (and why a PCA9685 does it): [Ch. 04 — Buses and protocols](04-buses-and-protocols.md#pwm--how-long-high-lasts-is-the-angle).
 
 ---
 
 ## PWM as angle — recap
 
-Short version (details in [Ch. 04](04-buses-and-protocols.md#pwm-how-long-high-lasts-is-the-angle)): ~50 Hz frame, pulse width sets target:
+Short version (details in [Ch. 04](04-buses-and-protocols.md#pwm--how-long-high-lasts-is-the-angle)): ~50 Hz frame, pulse width sets target:
 
 - ~1500 µs ≈ center / neutral
 - Shorter pulse → one direction

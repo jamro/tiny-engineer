@@ -1,6 +1,6 @@
 # Shopping list
 
-Buy this before you print or wire. Electrical spec (voltages, limits, pin notes): [hardware/components.md](hardware/components.md). Screw lengths in assembly steps: [3d_models/README.md → Screws](../3d_models/README.md#screws). Build order: [getting-started.md](getting-started.md).
+Buy this before you print or connect. Electrical spec (voltages, limits, pin notes): [hardware/components.md](hardware/components.md). Screw lengths in assembly steps: [3d_models/README.md → Screws](../3d_models/README.md#screws). Build order: [getting-started.md](getting-started.md).
 
 ## Servo size (pick first)
 
@@ -16,27 +16,17 @@ Servo size sets the size of the **whole robot**. Buy five of **one** model, then
 
 Non-preset servo: measure it, add a preset, export parts — [parametric design](3d/parametric-design.md).
 
-## Choose electronics path
+## Electronics
 
-Same robot, same firmware, same printed Desk. Two equal ways to build the electronics:
+The default build uses the **main control board**. PCA9685, the audio amp, and USB-C are on that PCB. You plug in the ESP32, OLED, five servos, and the speaker.
 
-| | **Modular** (breakouts + harness) | **Main control board** (integrated PCB) |
+Order the open-source board from any fab: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). Connect it: [hardware/main-control-board.md](hardware/main-control-board.md). A cheaper assembled batch may show up later: [discussion #50](https://github.com/jamro/tiny-engineer/discussions/50). Fab lead time is part of ordering the board.
+
+### Default cart
+
+| Part | Qty | Link / notes |
 | --- | --- | --- |
-| **Pros** | Catalog parts today; no fab account; swap one module if it fails; matches the drawio and many community photos | One open-source board (PCA9685 + amp + USB-C); far less interconnect soldering; cleaner desk cavity; order from any fab yourself |
-| **Cons** | More soldering and harness work; more boards in the desk; easier to mix VCC/V+ or miss a net; longer wire step | Must fabricate (or wait for a community batch); single-board failure replaces three modules; fab MOQ / shipping / lead time; drawio still shows the modular layout for detailed nets |
-
-Neither path is preferred. Pick by comfort (solder vs fab), timeline, and whether you need catalog parts tonight.
-
-How to order the PCB: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). How to connect it: [hardware/main-control-board.md](hardware/main-control-board.md). Interest in a cheaper community batch: [discussion #50](https://github.com/jamro/tiny-engineer/discussions/50).
-
-## Buy this
-
-### Shared electronics
-
-Buy these for **either** path:
-
-| Part | Qty | Link |
-| --- | --- | --- |
+| Tiny Engineer main control board | 1 | KiCad in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/) ([CERN-OHL-S](../3d_models/LICENSE)). Order: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). |
 | Waveshare ESP32-C3-Zero | 1 | https://docs.waveshare.com/ESP32-C3-Zero |
 | Tower Pro SG90 (or equivalent 9 g analog micro) | 5 | Widely available hobby servo — no single canonical SKU |
 | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 | https://www.adafruit.com/product/3923 |
@@ -44,9 +34,11 @@ Buy these for **either** path:
 
 Compact build: swap the five SG90 for **Feetech FS0307** (same qty). Do not mix models.
 
-### Modular only
+The board already includes the PCA9685, the MAX98357A, and USB-C.
 
-Skip this section if you use the main control board.
+### Advanced: extra modules
+
+Use separate breakouts when you want modules the main control board does not support. Same firmware and printed Desk. More soldering and more boards in the cavity. Wiring: [hardware/wiring.md](hardware/wiring.md). Desk mounting: [3d/assembly-modular.md](3d/assembly-modular.md).
 
 | Part | Qty | Link |
 | --- | --- | --- |
@@ -54,13 +46,7 @@ Skip this section if you use the main control board.
 | MAX98357A I2S class-D mono amplifier | 1 | https://www.aliexpress.us/item/3256805196806369.html |
 | Adafruit 5993 USB-C breakout | 1 | https://www.adafruit.com/product/5993 |
 
-### Main control board only
-
-Skip this section if you wire modular breakouts. Do **not** buy the PCA9685, MAX98357A, or Adafruit 5993 breakouts.
-
-| Part | Qty | Notes |
-| --- | --- | --- |
-| Tiny Engineer main control board | 1 | Open-source KiCad in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/) ([CERN-OHL-S](../3d_models/LICENSE)). How to order (any fab; JLCPCB walkthrough): [hardware/order-main-control-board.md](hardware/order-main-control-board.md). Or watch the [interest check](https://github.com/jamro/tiny-engineer/discussions/50) for a community batch. Builder connect steps: [hardware/main-control-board.md](hardware/main-control-board.md). |
+These three replace the main control board. You still buy the ESP32, servos, speaker, and OLED from the default cart.
 
 ### Fasteners
 

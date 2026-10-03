@@ -65,11 +65,11 @@ python3 scripts/check_pcb.py
 
 **Integrations.** Add or extend tests in the package you change. Raw REST examples belong in [docs/integration.md](docs/integration.md). Prefer short timeouts and ignore network errors so a missing robot does not stall the agent.
 
-**CAD.** Edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change. New parts: [docs/3d/adding-parts.md](docs/3d/adding-parts.md). Servo presets / add-in: [docs/3d/parametric-design.md](docs/3d/parametric-design.md).
+**CAD.** **Start a GitHub Discussion before modifying CAD files**, as they are difficult to merge. After discussion, edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change. New parts: [docs/3d/adding-parts.md](docs/3d/adding-parts.md). Servo presets / add-in: [docs/3d/parametric-design.md](docs/3d/parametric-design.md).
 
 **Mods.** Optional add-ons under [`mods/<mod_name>/`](mods/README.md). Models live in `3d_models/{cad,parts}/`; other files sit beside that folder. Commit as `type(mods)` and name the mod in the summary. Do not add a scope per mod. `feat(mods)` / `fix(mods)` do not version the stock CAD revision.
 
-**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Run `python3 scripts/check_pcb.py` before opening a PCB PR. Keep [`expected-nets.yml`](docs/pcb.md#expected-nets-yml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
+**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Run `python3 scripts/check_pcb.py` before opening a PCB PR. Keep [`expected-nets.yml`](docs/pcb.md#expected-netsyml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
 
 **Motion.** Animations use −1..1 poses mapped to the saved min/max in [docs/robot-movement.md](docs/robot-movement.md). Stock defaults live in [`include/servos.h`](include/servos.h). Do not widen NVS servo clamps without testing on a real robot. Setup AP `POST /setup/servo` can use 0–180° to find limits; assembled motion must not.
 

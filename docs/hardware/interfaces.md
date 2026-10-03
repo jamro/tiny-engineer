@@ -18,7 +18,7 @@ Shared bus.
 
 Bus start: `Wire.begin(I2C_SDA, I2C_SCL)` with no explicit frequency → Arduino-ESP32 default (typically **100 kHz**). Not set in this repo.
 
-PCA9685 **VCC** = **3V3**. OLED **VCC** = **3V3**. Pull-ups: onboard on the Adafruit PCA9685 and typical OLED modules are enough; no external pull-ups required.
+PCA9685 **VCC** = **3V3**. OLED **VCC** = **3V3**. Pull-ups are on the main control board and on a typical OLED; the Adafruit PCA9685 breakout has its own. No extra pull-ups.
 
 ## I2S
 
@@ -39,9 +39,9 @@ Bring-up configuration in [`src/main.cpp`](../../src/main.cpp):
 | Width | `I2S_DATA_BIT_WIDTH_16BIT` |
 | Slots | `I2S_SLOT_MODE_STEREO` |
 
-Firmware writes identical samples to both stereo slots. MAX98357A is mono; with **GAIN** and **SD** not wired, breakout defaults apply (GAIN floating ≈ 9 dB, SD pulled up ≈ left channel).
+Firmware writes identical samples to both stereo slots. MAX98357A is mono. On the main control board, gain is the solder jumper next to the amplifier ([board README](../../hardware/boards/main-control-board/README.md)). On the advanced breakout, **GAIN** and **SD** stay unwired (GAIN floating ≈ 9 dB, SD pulled up ≈ left channel) — [wiring.md](wiring.md).
 
-Amp **Vin** = USB **5V** (drawing). I2S wires are 3.3 V logic. **SPK+/SPK-** are not on the PNG.
+Amp **Vin** = USB **5V**. I2S wires are 3.3 V logic. Speaker connects to **SPK+** / **SPK−** — [main-control-board.md](main-control-board.md).
 
 > [!WARNING]
 > MAX98357A SPK- is not ground.
@@ -67,16 +67,18 @@ Default on (`PCA9685_OE_WIRED = true` in [`include/pins.h`](../../include/pins.h
 
 ## USB
 
-Single USB-C on the robot: **Adafruit 5993**.
+Single USB-C on the robot: the **main control board**.
 
-| Net | 5993 | ESP32 |
+| Net | Board USB-C | ESP32 |
 | --- | --- | --- |
 | VBUS | +5V rail | **5V** pad |
 | GND | common GND | **GND** |
 | D− | data | **GPIO18** |
 | D+ | data | **GPIO19** |
 
-One cable for robot power, flash, and serial CDC (`ARDUINO_USB_MODE=1`, `ARDUINO_USB_CDC_ON_BOOT=1`, monitor 115200). Leave the C3-Zero onboard USB-C unused when 5993 data is wired — [power.md](power.md).
+One cable for robot power, flash, and serial CDC (`ARDUINO_USB_MODE=1`, `ARDUINO_USB_CDC_ON_BOOT=1`, monitor 115200). Leave the C3-Zero onboard USB-C unused when the board USB-C supplies power and data — [power.md](power.md).
+
+The advanced path wires the same nets from an Adafruit 5993 — [wiring.md](wiring.md#usb-connector-5993).
 
 C3-Zero has **no** USB–UART bridge. If CDC does not enumerate, hold **BOOT (GPIO9)** then attach USB (Waveshare flashing note).
 
@@ -86,4 +88,4 @@ C3-Zero has **no** USB–UART bridge. If CDC does not enumerate, hold **BOOT (GP
 | --- | --- | --- |
 | UART0 | GPIO21 TX / GPIO20 RX | Silkscreen; console is USB CDC |
 | BLE | antenna | Hardware may be present; **out of scope** — product uses Wi-Fi only |
-| ESP32 onboard USB-C | — | Unused when 5993 supplies power + data |
+| ESP32 onboard USB-C | — | Unused when the board USB-C supplies power + data |

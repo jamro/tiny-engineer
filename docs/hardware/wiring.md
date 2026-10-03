@@ -1,8 +1,8 @@
-# Wiring
+# Modular wiring (advanced)
 
-**Modular breakout harness.** For the main control board path, use [main-control-board.md](main-control-board.md) instead.
+The default build uses the [main control board](main-control-board.md). This page is for adding modules that board does not support: a separate PCA9685 breakout, a MAX98357A breakout, and an Adafruit 5993 USB-C breakout.
 
-Build the harness **on the desk** ([getting-started](../getting-started.md) — after print, before flash). Do not seat it in the chest until [assembly §12](../3d/assembly.md#12-electronics-inside-the-desk).
+Build the harness **on the desk** ([getting-started](../getting-started.md) — after print, before flash). Seat it with [assembly-modular.md](../3d/assembly-modular.md), which replaces [assembly §12–§13](../3d/assembly.md#12-electronics-inside-the-desk).
 
 **Why these nets exist:**
 
@@ -164,12 +164,31 @@ Still part of the selected hardware; do not invent extra ESP32 GPIO for them.
 > [!WARNING]
 > MAX98357A output is BTL. **SPK- is not ground.** Never tie SPK- or SPK+ to GND. Never drive the speaker from ESP32 GPIO.
 
-## USB connector (single)
+## USB connector (5993)
+
+On this path the robot uses **one** USB-C connector: the Adafruit 5993.
+
+| Net | 5993 | ESP32 |
+| --- | --- | --- |
+| +5V | **VBUS** | **5V** pad (and the shared +5V rail) |
+| GND | **GND** | **GND** |
+| USB D− | **D−** | **GPIO18** (native USB D−) |
+| USB D+ | **D+** | **GPIO19** (native USB D+) |
 
 | Connector | Role |
 | --- | --- |
 | Adafruit **5993** | Only robot USB-C: **VBUS/GND** (power) + **D+/D−** → GP19/GP18 (flash / serial CDC) |
 | ESP32-C3-Zero onboard USB-C | Leave **unused** when 5993 data is wired (avoids dual 5 V feed) |
+
+That one cable supplies robot power and programming / serial CDC (`ARDUINO_USB_MODE=1`, `ARDUINO_USB_CDC_ON_BOOT=1`, monitor 115200). For early bare-module flashing before 5993 data is wired, the onboard port is fine.
+
+Adafruit 5993 is a USB Type-C vertical breakout (downstream). Two 5.1 kΩ CC resistors ask the upstream port for **5 V / up to ~1.5 A**. Whether 1.5 A actually arrives depends on the charger/port. Five HD-1370A servos at stall (~1.3 A @ 4.8 V) plus the rest of the robot leaves little safety margin on a 1.5 A USB source. SG90 stall is typically higher still.
+
+- **5 V / ≥ 2 A**, with extra margin if several servos can move **while audio plays**.
+- The 5993 does not raise the current ceiling above what the source and CC advertisement allow.
+- The 5993 is **not** USB-PD voltage conversion. Feed it 5 V USB, or bypass it with a dedicated 5 V / ≥2 A PSU on the +5V and GND rails.
+
+The drawing may show USB **5V** / **GND** only; also wire **D+/D−**.
 
 See [interfaces.md](interfaces.md), [power.md](power.md).
 

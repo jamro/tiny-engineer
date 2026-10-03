@@ -99,4 +99,4 @@ Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out
 
 See [robot-movement.md](../robot-movement.md) for layout, axis directions, and per-servo safe angles (`include/servos.h`).
 
-Related: [power.md](power.md), [wiring.md](wiring.md), [testing.md](testing.md).
+Related: [main-control-board.md](main-control-board.md), [power.md](power.md), [testing.md](testing.md). Advanced harness: [wiring.md](wiring.md).

@@ -23,8 +23,8 @@ Logic level: **3.3 V**.
 | GPIO9 | **Reserved** | BOOT button / strapping. Do not pick casually for peripherals |
 | GPIO10 | **Occupied** | Onboard WS2812 |
 | GPIO12–GPIO17 | **Unavailable** | Stacked flash, not brought out |
-| GPIO18 | **Reserved** | Native USB D− (via Adafruit 5993 D−) |
-| GPIO19 | **Reserved** | Native USB D+ (via Adafruit 5993 D+) |
+| GPIO18 | **Reserved** | Native USB D− (main control board USB-C; advanced path: [5993](wiring.md#usb-connector-5993)) |
+| GPIO19 | **Reserved** | Native USB D+ (main control board USB-C; advanced path: [5993](wiring.md#usb-connector-5993)) |
 
 ## Free / default-function pads
 
@@ -70,9 +70,9 @@ New hardware **must not** pick pins ad-hoc.
 3. Update **both**:
    - [`include/pins.h`](../../include/pins.h)
    - this `pinout.md`
-4. Update [wiring.md](wiring.md) and [interfaces.md](interfaces.md) in the same change.
+4. Update [interfaces.md](interfaces.md) and, when the harness or the board plugs change, [main-control-board.md](main-control-board.md) and [wiring.md](wiring.md) in the same change.
 5. Stay in the **3.3 V** GPIO domain. Level-shift if a new device is 5 V-only.
 6. I2C devices need a unique address on the shared GPIO0/GPIO1 bus.
 7. After the edit, grep the repo for old GPIO numbers so comments and tests stay consistent.
 
-Related: [wiring.md](wiring.md), [interfaces.md](interfaces.md).
+Related: [main-control-board.md](main-control-board.md), [interfaces.md](interfaces.md). Advanced harness: [wiring.md](wiring.md).

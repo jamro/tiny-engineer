@@ -6,46 +6,38 @@ Robot already on Wi-Fi? Jump to [step 8](#8-agent-hooks).
 
 ## Safety
 
-Read this before you power anything. Optional *why*: [Ch. 01](hardware-for-software-engineers/01-electricity-and-units.md) and [Ch. 07](hardware-for-software-engineers/07-power-budgets-and-safety.md). Full primer is parallel reading, not a gate — [From Code to Circuits](hardware-for-software-engineers/README.md).
+Read this before you power anything. Optional primer, not a gate: [From Code to Circuits](hardware-for-software-engineers/README.md).
 
-- Logic is **3.3 V**. Servos and the amp need **5 V / ≥2 A**. Never power servos from the ESP32 3.3 V pin.
-- PCA9685 **VCC** (logic, 3.3 V) must not short to **V+** (servo rail, 5 V).
-- Every module shares **GND**.
-- Speaker connects to **SPK+** and **SPK−** only. **SPK− is not ground.**
+- Supply **5 V / ≥2 A** on the board USB-C.
+- Speaker: connector **or** solder pads, never both. **SPK− is not ground.**
 - Leave the C3-Zero ceramic antenna clear of metal and dense plastic.
 
 ## Timeline
 
-Shop (pick electronics path) → print → wire → flash → assemble (one run) → setup wizard → prove → agent hooks.
+Shop → print → connect → flash → assemble (one run) → setup wizard → prove → agent hooks.
 
-Same safety rules apply whether you build with **modular breakouts** or the **main control board**.
+The default build uses the **main control board**. Plug in the ESP32, OLED, servos, and speaker. To add modules the board does not carry, follow the harness rules in [wiring.md](hardware/wiring.md) and mount them with [assembly-modular.md](3d/assembly-modular.md).
 
 ```mermaid
 flowchart LR
   shop[Shop]
   print[Print]
-  wire[Wire]
+  connect[Connect]
   flash[Flash]
   mech[Assemble]
   wiz[Wizard]
   prove[Prove]
   agent[Agent]
 
-  shop --> print --> wire --> flash --> mech --> wiz --> prove --> agent
+  shop --> print --> connect --> flash --> mech --> wiz --> prove --> agent
 ```
 
 ## Checklist
 
-### 0. Safety
-
-- **Open:** the [Safety](#safety) card on this page.
-- **Until:** you know 3.3 V vs 5 V, VCC ≠ V+, common GND, SPK− ≠ GND, and 2 A.
-- **Return** here.
-
 ### 1. Shop
 
-- **Open:** [shopping.md](shopping.md). Pick **modular** or **main control board** — that page has pros/cons and carts.
-- **Until:** cart in hand for your path — electronics, M2 screws/nuts, **5 V / ≥2 A** supply, **data** USB cable, and a print path (filament or a service order). Default servos: **Tower Pro SG90**.
+- **Open:** [shopping.md](shopping.md). Default cart is the main control board plus the ESP32, OLED, servos, and speaker.
+- **Until:** cart in hand — main control board, ESP32, servos, OLED, speaker, M2 screws/nuts, **5 V / ≥2 A** supply, **data** USB cable, and a print path (filament or a service order). Default servos: **Tower Pro SG90**.
 - **Return** here.
 
 ### 2. Print or order
@@ -54,11 +46,11 @@ flowchart LR
 - **Until:** printed set for your servo model ready.
 - **Return** here.
 
-### 3. Wire
+### 3. Connect
 
-- **Modular:** [hardware/wiring.md](hardware/wiring.md) and [wiring/Tiny Engineer.drawio.png](wiring/Tiny%20Engineer.drawio.png).
-- **Main control board:** [hardware/main-control-board.md](hardware/main-control-board.md).
-- **Until:** pre-power checks pass (common GND; PCA9685 **VCC** = 3.3 V vs **V+** = 5 V not shorted; OLED clock on **SCL**; speaker on **SPK+/SPK−** only — PCB path: one speaker method only). Electronics stay on the desk.
+- **Open:** [hardware/main-control-board.md](hardware/main-control-board.md).
+- **Until:** pre-power checks pass (speaker on **SPK+/SPK−** only, one method; servo plugs match the labels; ESP32 orientation matches the PCB USB mark). Electronics stay on the desk.
+- **Advanced:** extra modules the board does not support — wire the harness now ([hardware/wiring.md](hardware/wiring.md)). Mount those boards during assembly ([3d/assembly-modular.md](3d/assembly-modular.md)).
 - **Return** here.
 
 ### 4. Flash
@@ -70,7 +62,7 @@ flowchart LR
 ### 5. Assemble
 
 - **Open:** [3d/assembly.md](3d/assembly.md) from §1 through §19 (Head/Hat, centering, joins, channels, arms, lamp).
-- **Until:** all joins done; PCA9685 channels plugged per the guide.
+- **Until:** all joins done; servo and OLED headers plugged per the guide.
 - **Return** here.
 
 ### 6. Setup wizard
@@ -101,9 +93,9 @@ curl -X POST "http://tiny-engineer.local/anim?name=ring"
 
 | Symptom | What to try |
 | --- | --- |
-| Which electronics path? | [shopping.md](shopping.md#choose-electronics-path) |
+| Extra modules the board does not support? | [shopping.md](shopping.md#advanced-extra-modules) · [hardware/wiring.md](hardware/wiring.md) |
 | What to buy? | [shopping.md](shopping.md) |
-| Which wires / voltages? | Modular: [hardware/wiring.md](hardware/wiring.md). PCB: [hardware/main-control-board.md](hardware/main-control-board.md). Pins: [hardware/pinout.md](hardware/pinout.md) |
+| How to plug in the board? | [hardware/main-control-board.md](hardware/main-control-board.md) |
 | What to print? | [3d_models/README.md](../3d_models/README.md) |
 | How to assemble printed parts? | [3d/assembly.md](3d/assembly.md) |
 | Flash / install stuck | [Web flash](https://jamro.github.io/tiny-engineer/flash/) · [flash.md](flash.md) |

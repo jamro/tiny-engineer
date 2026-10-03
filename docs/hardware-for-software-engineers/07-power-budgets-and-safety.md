@@ -78,7 +78,9 @@ Jumpering them = wrong domain crossover. See [Ch. 01](01-electricity-and-units.m
 
 ---
 
-## USB-C breakout (5993) — what it does and doesn't do
+## USB-C — what it does and doesn't do
+
+The default robot connector is the main control board USB-C ([power.md](../hardware/power.md)). This list is the advanced Adafruit 5993 — [wiring.md](../hardware/wiring.md#usb-connector-5993).
 
 **Does:**
 - Bring USB-C connector to your wiring
@@ -98,7 +100,7 @@ Weak laptop port or thin cable → voltage drop → mystery failures. Use a know
 
 Thin/long power wires have resistance. At 1.5 A, even small R means measurable voltage lost *before* the load.
 
-**Mitigation:** shorter, thicker runs for 5 V servo power; star GND at USB breakout; don't daisy-chain power through a single Dupont jumper for all servos.
+**Mitigation:** shorter, thicker runs for 5 V servo power; star GND at the board USB-C (or at the 5993 on the advanced path); don't daisy-chain power through a single Dupont jumper for all servos.
 
 ---
 
@@ -126,7 +128,7 @@ Before applying power:
 5. **Servos unloaded** — horns free to move, not wedged against stops
 6. **One subsystem at a time** if debugging — see [Ch. 08](08-tools-debugging-and-embedded-workflow.md)
 
-Assembly checks: [wiring.md](../hardware/wiring.md).
+Assembly checks: [main-control-board.md](../hardware/main-control-board.md). Advanced harness: [wiring.md](../hardware/wiring.md).
 
 ---
 
@@ -158,10 +160,10 @@ flowchart TB
   PCApwr --> SERVOS
 ```
 
-Strong 5 V bring-up on the desk after [wiring](../hardware/wiring.md) and [flash](../flash.md) ([getting-started](../getting-started.md)) **before** closing the chest. Debugging power inside a sealed shell is dark work.
+Strong 5 V bring-up on the desk after [connecting the main control board](../hardware/main-control-board.md) and [flash](../flash.md) ([getting-started](../getting-started.md)) **before** closing the chest. Debugging power inside a sealed shell is dark work. Advanced harness: [wiring.md](../hardware/wiring.md).
 
 ---
 
 **Next:** [Tools, debugging, and embedded workflow](08-tools-debugging-and-embedded-workflow.md)
 
-**Reference:** [hardware/power.md](../hardware/power.md) · [hardware/wiring.md](../hardware/wiring.md)
+**Reference:** [hardware/power.md](../hardware/power.md) · [hardware/main-control-board.md](../hardware/main-control-board.md) · [hardware/wiring.md](../hardware/wiring.md)

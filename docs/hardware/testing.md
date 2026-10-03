@@ -157,4 +157,4 @@ All five servos move together on `POST /test/movement`. A weak USB port often di
 - Speaker power rating vs max amp output
 - I2C at high speed
 
-Related: [pinout.md](pinout.md), [wiring.md](wiring.md), [servos.md](servos.md).
+Related: [main-control-board.md](main-control-board.md), [pinout.md](pinout.md), [servos.md](servos.md). Advanced harness: [wiring.md](wiring.md).

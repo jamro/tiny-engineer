@@ -1,6 +1,6 @@
 # Main control board
 
-Builder connect guide for the integrated PCB path. Same firmware and pins as the modular harness. Decide path and cart: [shopping.md](../shopping.md#choose-electronics-path).
+Default connect guide. Same firmware and pins as the advanced breakout harness. Cart: [shopping.md](../shopping.md).
 
 The board is **open source** ([CERN-OHL-S](../../3d_models/LICENSE)). KiCad sources: [`hardware/boards/main-control-board/`](../../hardware/boards/main-control-board/). Export Gerbers and order from any fab yourself — step-by-step (JLCPCB example): [order-main-control-board.md](order-main-control-board.md). The [interest check](https://github.com/jamro/tiny-engineer/discussions/50) is optional — a community batch for easier / cheaper buys, not a gate to use the design.
 
@@ -27,7 +27,7 @@ Seat the PCB in the printed `Desk` during [assembly §12–13](../3d/assembly.md
 - ESP32 seated in the correct orientation (PCB USB mark).
 - Supply **5 V / ≥2 A** on the board USB-C.
 
-Same voltage rules as [getting-started Safety](../getting-started.md#safety). Power architecture: [power.md](power.md).
+Supply and speaker rules: [getting-started Safety](../getting-started.md#safety). Power architecture: [power.md](power.md).
 
 ## Next
 

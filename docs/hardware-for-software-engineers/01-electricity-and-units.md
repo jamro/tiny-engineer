@@ -166,7 +166,7 @@ flowchart TB
   PCApwr --> SERVOS
 ```
 
-**5 V domain** — USB comes in through the Adafruit 5993 breakout and feeds:
+**5 V domain** — USB comes in through the main control board USB-C (advanced path: Adafruit 5993 — [wiring.md](../hardware/wiring.md#usb-connector-5993)) and feeds:
 - ESP32 **5V** input (then an onboard LDO drops to 3.3 V for the chip)
 - PCA9685 **5V** and **V+** (servo motor power)
 - MAX98357A **Vin** (audio amp)
@@ -194,4 +194,4 @@ Full stall math and symptom tables: [power.md](../hardware/power.md).
 
 **Next:** [Microcontrollers and ESP32](02-microcontrollers-and-esp32.md)
 
-**Reference:** [hardware/power.md](../hardware/power.md) · [hardware/wiring.md](../hardware/wiring.md)
+**Reference:** [hardware/power.md](../hardware/power.md) · [hardware/main-control-board.md](../hardware/main-control-board.md) · [hardware/wiring.md](../hardware/wiring.md)
