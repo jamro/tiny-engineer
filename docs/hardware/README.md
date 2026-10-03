@@ -2,9 +2,9 @@
 
 Canonical hardware reference for the Tiny Engineer robot.
 
-Firmware pin constants live in [`include/pins.h`](../../include/pins.h). Wiring topology lives in [`docs/wiring/Tiny Engineer.drawio.png`](../wiring/Tiny%20Engineer.drawio.png).
+Firmware pin constants live in [`include/pins.h`](../../include/pins.h). The default build is the **main control board** ([main-control-board.md](main-control-board.md)). The advanced path wires separate breakouts ([wiring.md](wiring.md) + drawio) when you add modules the board does not support. Same nets and firmware.
 
-Source of truth: firmware `include/pins.h`, then this `docs/hardware/` set and `docs/wiring/`.
+Source of truth: firmware `include/pins.h`, then this `docs/hardware/` set. Modular topology: `docs/wiring/`. PCB connectivity: board `expected-nets.yml` / netlist per [pcb.md](../pcb.md).
 
 | Audience | Use this set for |
 | --- | --- |
@@ -24,7 +24,7 @@ Firmware (`src/main.cpp`) is the robot application: Wi-Fi, settings, hardware te
 
 ## Hardware architecture
 
-One ESP32-C3 module owns all logic. Servo PWM is offloaded to a PCA9685 so pulse generation does not depend on ESP32 timing. Audio is I2S into a class-D amp. Display and servo driver share one I2C bus.
+One ESP32-C3 module owns all logic. Servo PWM is offloaded to a PCA9685 so pulse generation does not depend on ESP32 timing. Audio is I2S into a class-D amp. Display and servo driver share one I2C bus. On the default build those chips are on the main control board. The advanced path puts the same chips on breakouts — the diagram is the same either way.
 
 ```mermaid
 flowchart TB
@@ -58,7 +58,7 @@ flowchart TB
   PCA -->|"PWM"| SERVOS
 ```
 
-Speaker **SPK+/SPK-** are not on the PNG. See [wiring.md](wiring.md#not-on-the-drawing).
+Speaker **SPK+/SPK-**: [main-control-board.md](main-control-board.md). The modular PNG omits them — [wiring.md](wiring.md#not-on-the-drawing).
 
 | Domain | Voltage | What lives there |
 | --- | --- | --- |
@@ -74,17 +74,17 @@ Speaker **SPK+/SPK-** are not on the PNG. See [wiring.md](wiring.md#not-on-the-d
 
 ## Major components
 
-| Role | Part | Qty |
-| --- | --- | --- |
-| Controller | Waveshare ESP32-C3-Zero | 1 |
-| Servo PWM | Adafruit PCA9685 16-channel driver | 1 |
-| Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 compact; PowerHD HD-1370A still supported | 5 |
-| Audio amp | MAX98357A I2S class-D (mono) | 1 |
-| Speaker | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 |
-| Display | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 |
-| Robot USB | Adafruit 5993 USB-C breakout (power + data) | 1 |
+| Role | Main control board (default) | Advanced breakouts | Qty |
+| --- | --- | --- | --- |
+| Controller | Waveshare ESP32-C3-Zero (plugs into board sockets) | same | 1 |
+| Servo PWM | PCA9685 on PCB | Adafruit PCA9685 breakout | 1 |
+| Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 compact; PowerHD HD-1370A still supported | same | 5 |
+| Audio amp | MAX98357A on PCB | MAX98357A breakout | 1 |
+| Speaker | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | same | 1 |
+| Display | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | same | 1 |
+| Robot USB | USB-C on PCB | Adafruit 5993 USB-C breakout | 1 |
 
-Full inventory: [components.md](components.md).
+Carts: [shopping.md](../shopping.md). Spec detail: [components.md](components.md). Connect: [main-control-board.md](main-control-board.md).
 
 ## Communication buses
 
@@ -93,35 +93,36 @@ Full inventory: [components.md](components.md).
 | I2C | GP0/SDA, GP1/SCL (Waveshare OLED **SCL**) | PCA9685 `0x40`, SSD1306 `0x3C` |
 | I2S | GP2/BCLK, GP3/LRC, GP4/DIN | MAX98357A |
 | Servo PWM | *(none on ESP32)* | PCA9685 channels 0–4 @ 50 Hz |
-| USB | Adafruit 5993 (VBUS/GND + D+/D− → GP19/GP18) | Power, flash, serial CDC |
+| USB | Board USB-C (VBUS/GND + D+/D− → GP19/GP18). Advanced path: 5993 — [wiring.md](wiring.md) | Power, flash, serial CDC |
 
 Details: [interfaces.md](interfaces.md), [pinout.md](pinout.md).
 
 ## Power architecture
 
-Single nominal **+5V** supply via the Adafruit 5993. ESP32 onboard LDO makes **3V3** for logic only. PCA9685 **V+** (servos) is electrically separate from PCA9685 **VCC** (logic).
+Single nominal **+5V** supply via the main control board USB-C. ESP32 onboard LDO makes **3V3** for logic only. PCA9685 **V+** (servos) is electrically separate from PCA9685 **VCC** (logic). The advanced path brings 5 V in through an Adafruit 5993 — [wiring.md](wiring.md).
 
-Adafruit 5993 CC resistors request **5 V / up to ~1.5 A**. Five stalled servos alone can approach that. Prefer a **5 V / ≥2 A** source with margin.
-
-Details: [power.md](power.md).
+Prefer a **5 V / ≥2 A** source with margin. Details: [power.md](power.md).
 
 ## Documentation map
 
 | File | Contents |
 | --- | --- |
-| [../shopping.md](../shopping.md) | Buyer cart (electronics, screws, supply) |
+| [../shopping.md](../shopping.md) | Default cart; advanced extra modules |
+| [main-control-board.md](main-control-board.md) | Default connect: ESP32, OLED, servos, speaker |
+| [order-main-control-board.md](order-main-control-board.md) | Order the PCB / PCBA (any fab; JLCPCB walkthrough) |
 | [components.md](components.md) | Inventory, voltages, limits |
 | [pinout.md](pinout.md) | GPIO map + allocation rules |
-| [wiring.md](wiring.md) | Every electrical connection |
+| [wiring.md](wiring.md) | Advanced: breakout harness |
+| [../3d/assembly-modular.md](../3d/assembly-modular.md) | Advanced: mount breakouts in the desk |
 | [power.md](power.md) | Budget, brownout symptoms, single-USB policy |
 | [servos.md](servos.md) | PWM, test limits, safe ranges |
 | [interfaces.md](interfaces.md) | I2C / I2S / PWM / USB |
 | [testing.md](testing.md) | Bring-up sequence, failures, what to check |
 
-Existing schematic sketch (not a substitute for the tables here): [`docs/wiring/Tiny Engineer.drawio`](../wiring/Tiny%20Engineer.drawio) / [PNG](../wiring/Tiny%20Engineer.drawio.png). KiCad PCB sources (when added) live in [`hardware/boards/`](../../hardware/README.md); contribution rules: [`docs/pcb.md`](../pcb.md). Until a board is merged, the wiring tables here remain the electrical source of truth.
+Modular schematic sketch: [`docs/wiring/Tiny Engineer.drawio`](../wiring/Tiny%20Engineer.drawio) / [PNG](../wiring/Tiny%20Engineer.drawio.png). KiCad: [`hardware/boards/`](../../hardware/README.md); contribution rules: [`docs/pcb.md`](../pcb.md).
 
 ## Source-of-truth order
 
 1. Repository firmware / `include/pins.h`
-2. This `docs/hardware/` set and `docs/wiring/`
+2. This `docs/hardware/` set; modular nets also in `docs/wiring/`; PCB nets via board expected-nets / netlist
 3. Component datasheets

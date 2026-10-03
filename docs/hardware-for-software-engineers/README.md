@@ -18,7 +18,7 @@ If you live in code, hardware docs can feel like a foreign API with no types and
 
 **What you'll get out of it:** read datasheets, schematics, and embedded docs without feeling like an outsider — whether you build this robot or the next board on your bench.
 
-**Honest expectation:** Tiny Engineer was never meant to be an entry-level electronics kit (no single-LED breadboard tutorial). Overall difficulty is **medium**. It can still be your **first hardware project** as a software engineer — if you read alongside the build, smoke-test the harness on the desk (wire + flash) before closing the shell, and don't treat "first" as "trivial." See [difficulty by area](#honest-difficulty-by-area) below.
+**Honest expectation:** Tiny Engineer was never meant to be an entry-level electronics kit (no single-LED breadboard tutorial). Overall difficulty is **medium**. It can still be your **first hardware project** as a software engineer — if you read alongside the build, smoke-test the main control board on the desk (connect + flash) before closing the shell, and don't treat "first" as "trivial." Harness examples later in this guide are the advanced path for extra modules — [wiring.md](../hardware/wiring.md). See [difficulty by area](#honest-difficulty-by-area) below.
 
 ---
 
@@ -48,7 +48,7 @@ Rough levels: **Easy** · **Medium** · **Medium–High** (for someone with no p
 | --- | --- | --- |
 | [Electricity & power domains](01-electricity-and-units.md) | Medium | Two voltage rails, common GND, VCC vs V+ — mistakes fry boards, not just fail tests |
 | [Microcontrollers & ESP32](02-microcontrollers-and-esp32.md) | Medium | Wi-Fi MCU, native USB, scarce GPIO, flash/LittleFS — more moving parts than Arduino Uno 101 |
-| [Wiring & schematics](03-wiring-craft-and-schematics.md) | Medium–High | Six-ish modules, many nets, classic traps (swapped I2C, speaker on GND) |
+| [Wiring & schematics](03-wiring-craft-and-schematics.md) | Medium–High | Default board is plug-in. The advanced harness is six-ish modules, many nets, classic traps (swapped I2C, speaker on GND) |
 | [Buses: I2C, I2S, PWM](04-buses-and-protocols.md) | Medium | Three protocol types in one device; standard hobby stack, but not "one wire one LED" |
 | [Servos & mechanical motion](05-servos-and-mechanical-motion.md) | Medium–High | Five joints, horn alignment, mechanical limits, binding/stall — software clamps can't fix physics |
 | [3D printing & mechanical build](06-3d-printing-and-mechanical-build.md) | Medium | Many printed parts, tolerances, partial assembly docs; optional Fusion edits add learning curve |
@@ -169,6 +169,6 @@ You've read enough when you can explain in plain language:
 
 **Minimum skim before power:** [Ch. 01](01-electricity-and-units.md) and [Ch. 07](07-power-budgets-and-safety.md) (3.3 V vs 5 V, VCC ≠ V+). This guide is **parallel reading**, not a prerequisite. Jump to one chapter from the shortcuts table if you only need that topic.
 
-Then open [getting-started.md](../getting-started.md) and work the checklist (shop → print → wire → flash → assemble → wizard → prove).
+Then open [getting-started.md](../getting-started.md) and work the checklist (shop → print → connect → flash → assemble → wizard → prove).
 
 **Reference:** [getting-started.md](../getting-started.md) · [hardware/README.md](../hardware/README.md) · [3d_models/README.md](../../3d_models/README.md)

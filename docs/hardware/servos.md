@@ -48,12 +48,10 @@ Verified in [`include/pins.h`](../../include/pins.h) and [`include/servos.h`](..
 
 On every boot (and after each flash reset):
 
-1. **OE** — `PCA9685_OE_WIRED` is false until a tested GP5→OE board exists; firmware skips the OE pin.
+1. **OE** — GP5 drives PCA9685 **OE** (active LOW). Firmware holds OE **HIGH** (outputs off) from early `setup`, then **LOW** after neutral PWM is written (`PCA9685_OE_WIRED = true` in [`include/pins.h`](../../include/pins.h)).
 2. **Early init** — PCA9685 is probed and configured immediately after `Wire.begin`, before OLED, settings, or Wi-Fi.
-3. **Neutral park** — all channels receive mid-pulse PWM (OE enable is skipped while unwired).
+3. **Neutral park** — all channels receive mid-pulse PWM while OE is still HIGH; then OE goes LOW.
 4. **Smooth boot moves** — `centerAllServos()` and sleep-inertia pose use `servoMoveAllSmoothTo()` at `SERVO_BOOT_SPEED_DEG_S` (35°/s), not instant snaps.
-
-GP5 → PCA9685 **OE** is planned, not implemented (`PCA9685_OE_WIRED = false` in [`include/pins.h`](../../include/pins.h)). OE is **active LOW** on the Adafruit breakout when that net exists.
 
 ## Idle and sleep PWM release
 
@@ -101,4 +99,4 @@ Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out
 
 See [robot-movement.md](../robot-movement.md) for layout, axis directions, and per-servo safe angles (`include/servos.h`).
 
-Related: [power.md](power.md), [wiring.md](wiring.md), [testing.md](testing.md).
+Related: [main-control-board.md](main-control-board.md), [power.md](power.md), [testing.md](testing.md). Advanced harness: [wiring.md](wiring.md).

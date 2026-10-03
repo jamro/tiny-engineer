@@ -2,11 +2,11 @@
 
 How to join the printed parts and seat the five micro servos. Use **M2 screws** that thread into the plastic — no glue, no heat-set inserts.
 
-Follow [getting-started.md](../getting-started.md) for overall build order; this file is the mechanical procedure. Start here **after** wiring and flashing.
+Follow [getting-started.md](../getting-started.md) for overall build order; this file is the mechanical procedure. Start here **after** connecting and flashing.
 
 Screw lengths called out below (M2×4 / ×8 / ×16) match the reference list. If you substitute nearby lengths, **test-fit** first. Totals: [3d_models/README.md → Screws](../../3d_models/README.md#screws). Buyer cart: [shopping.md](../shopping.md).
 
-**Before you start:** harness already on the desk, firmware on the board ([wiring.md](../hardware/wiring.md), [flash.md](../flash.md)). Print or order the set for your servo model ([3d_models/README.md](../../3d_models/README.md), [order-parts.md](order-parts.md)). All five servos are the same type; the printed pockets match that model.
+**Before you start:** the main control board is connected on the desk and firmware is flashed ([main-control-board.md](../hardware/main-control-board.md), then [flash.md](../flash.md)). Print or order the set for your servo model ([3d_models/README.md](../../3d_models/README.md), [order-parts.md](order-parts.md)). All five servos are the same type; the printed pockets match that model. Breakout modules: [assembly-modular.md](assembly-modular.md) replaces §12 and §13 below.
 
 **Left / right:** throughout this guide, “robot’s left” and “robot’s right” mean the **figure’s** sides — not your left/right as you face it.
 
@@ -37,9 +37,9 @@ Screw lengths called out below (M2×4 / ×8 / ×16) match the reference list. If
 
 ## 2a. Bench window (centering)
 
-Harness and firmware should already be done ([getting-started](../getting-started.md) wire + flash). If the board is not flashed yet, stop and do [flash.md](../flash.md) first. From here on you set each printed part on a servo that is already at **90°** (shaft center).
+Electronics and firmware should already be done ([getting-started](../getting-started.md) connect + flash). If the module is not flashed yet, stop and do [flash.md](../flash.md) first. From here on you set each printed part on a servo that is already at **90°** (shaft center).
 
-**Bench window:** keep the electronics on the desk — do **not** seat the full harness in the chest until [§12](#12-electronics-inside-the-desk).
+**Bench window:** keep the electronics on the desk — do **not** seat them in the chest until [§12](#12-electronics-inside-the-desk).
 
 > **Stop.** Join the setup AP only to press **Move all to 90°**. Do **not** finish the wizard (ranges, OLED, LED, speaker, home Wi-Fi) until [§20](#20-setup-wizard-and-first-boot-on-wi-fi).
 
@@ -148,38 +148,24 @@ This finishes the **main robot body**. Set it aside — next steps build the des
 
 ## 12. Electronics inside the desk
 
-By this point the boards should already be wired and soldered together as one harness ([wiring](../hardware/wiring.md)). This step only **mounts** that assembly into `Desk`.
+Seat the **main control board** in `Desk`. This step mounts what you already connected on the desk ([getting-started](../getting-started.md) connect + flash). Electrical plugs: [main-control-board.md](../hardware/main-control-board.md). Breakout modules: [assembly-modular.md](assembly-modular.md).
 
-**Leave disconnected for now:**
-
-- ESP32 — do not attach the gold-pin jumper cables to the ESP32 pins yet
-- PCA9685 — do not plug any servo connectors into the PCA9685 yet
-
-Everything else in the harness stays as already soldered and assembled.
-
-1. **USB-C breakout (Adafruit 5993)** — fasten with four longer M2 screws (M2×16 mm works) and secure with M2 nuts.
-2. **PCA9685** — fasten to the rails on the inside of the desk front with four short M2 screws (M2×4 mm works).
-3. **MAX98357A** — mount on the single rail on that same inner front wall with two M2 screws (M2×4 mm works).
-4. **Speaker** — stick it to an inner wall, or leave it loose inside the desk for now.
-
-Mount in that order — USB first, then PCA9685, then MAX98357A, then the speaker — so later boards are not in the way.
-
-![Desk](./assembly_visuals/electronics_1.jpg)
+1. Seat the board in the desk cavity.
+2. Leave servos and the OLED unplugged until [§15](#15-connect-servos-and-oled).
+3. **Speaker** — finish the board connector or the solder pads per the connect guide (one method only). Stick or tuck the speaker inside the desk as needed.
+4. Leave the ESP32 out until [§13](#13-esp32-powerap-smoke-test-and-lampbase) — it seats from above into the board headers through the desk-top cut.
 
 ## 13. ESP32, power/AP smoke test, and `LampBase`
 
-1. Seat the **ESP32-C3-Zero** in the opening in the desk top from above. The pins must pass through the holes in the top; the module should sit flush in the recess and not stick up above the desk surface.
-2. From underneath, connect the gold-pin jumper cables to the ESP32.
-3. **Power/AP smoke test** (optional but recommended) before locking the module in:
-   - Confirm every wire is on the correct pin ([wiring](../hardware/wiring.md)). You can ignore servo plugs and the OLED for now — those come later.
-   - Firmware should already be on the board (flashed before servo centering).
-   - Apply power. The ESP32 LED should light and the board should start the **setup access point** for configuration.
+1. Seat the **ESP32-C3-Zero** in the desk-top opening from above so its pins pass through the cut **into the board headers** underneath. Orient using the **USB** marking on the PCB ([main-control-board.md](../hardware/main-control-board.md)). The module should sit flush and not stick up above the desk surface.
+2. **Power/AP smoke test** (optional but recommended) before locking the module in:
+   - Confirm seating and orientation. Servo plugs and the OLED come in [§15](#15-connect-servos-and-oled).
+   - Firmware should already be on the module.
+   - Apply power on the **board USB-C**. The ESP32 LED should light and the board should start the **setup access point**.
    - If that looks good, **disconnect power**.
-4. Place the printed `LampButton` under `LampBase` so it can press the ESP32 **reset** button from above — keep that access easy.
-5. Orient `LampBase` so its opening sits over the ESP32 status LED.
-6. Fasten `LampBase` to the desk with **two M2 screws** (M2×8 mm works). This also holds the ESP32 from above.
-
-![Desk](./assembly_visuals/electronics_2.jpg)
+3. Place the printed `LampButton` under `LampBase` so it can press the ESP32 **reset** button from above.
+4. Orient `LampBase` so its opening sits over the ESP32 status LED.
+5. Fasten `LampBase` to the desk with **two M2 screws** (M2×8 mm works). This also holds the ESP32 from above.
 
 ## 14. Desk props — laptop, mug, bell
 
@@ -191,9 +177,9 @@ Mount in that order — USB first, then PCA9685, then MAX98357A, then the speake
 
 ## 15. Connect servos and OLED
 
-Easiest with the desk tipped onto its front wall so the PCA9685 plugs face up, and the seated robot body beside it.
+Easiest with the desk tipped onto its front wall so the servo headers face up, and the seated robot body beside it.
 
-1. Plug every servo lead and the OLED cable into the harness.
+1. Plug every servo lead and the OLED cable into the labeled board headers ([main-control-board.md](../hardware/main-control-board.md)). Breakout build: plug them into the PCA9685 and the harness — [assembly-modular.md](assembly-modular.md).
 2. Use the correct PCA9685 channel order ([pinout](../hardware/pinout.md#pca9685-channels-not-esp32-gpio)):
 
    | Channel | Joint |
@@ -226,9 +212,9 @@ Easiest with the desk tipped onto its front wall so the PCA9685 plugs face up, a
 
 ### Close the underside with `BottomCover`
 
-1. Finish the wiring and the six side screws joining `Chair` to `Desk` first. Power down, support the robot, and turn it over without loading the arms or desk props.
-2. Route the chair leads through the existing tunnel and into the desk cavity. Keep the harness inside the perimeter, away from all six cover screw paths; no wire should sit between the cover and the chair/desk mating surfaces.
-3. Use the updated `Chair` from the same servo folder: it has two reinforced blind pilot holes underneath its rear wall. An older chair without these holes must be reprinted for the six-point attachment; do not drill blindly near the existing side screws or wiring.
+1. Finish the servo and OLED cables and the six side screws joining `Chair` to `Desk` first. Power down, support the robot, and turn it over without loading the arms or desk props.
+2. Route the chair leads through the existing tunnel and into the desk cavity. Keep the cables inside the perimeter, away from all six cover screw paths; no wire should sit between the cover and the chair/desk mating surfaces.
+3. Use the updated `Chair` from the same servo folder: it has two reinforced blind pilot holes underneath its rear wall. An older chair without these holes must be reprinted for the six-point attachment; keep clear of the existing side screws and cables.
 4. Place the flat mating face of `BottomCover` against the desk and chair. Its stem follows the chair; the recessed pockets face outward. Align the four desk holes and the two rear chair holes.
 5. Fasten with **six M2×8 mm** pan/button-head screws — four into the desk and two into the chair. Heads no larger than **4.0 mm diameter × 2.0 mm high**. No nuts.
 6. Tighten until each head sits in its pocket and none sticks past the flat underside. No trapped wires. Set the robot upright.
@@ -290,4 +276,5 @@ Wi-Fi is not editable from the normal Config page later — factory reset to cha
 | Print or order parts | [getting-started §2](../getting-started.md#2-print-or-order) · [order-parts.md](order-parts.md) |
 | Different servo size / CAD params | [parametric-design.md](parametric-design.md) |
 | Servo axes and safe ranges | [robot-movement.md](../robot-movement.md) |
-| Wire and flash (before this page) | [hardware/wiring.md](../hardware/wiring.md) · [flash.md](../flash.md) |
+| Connect and flash (before this page) | [hardware/main-control-board.md](../hardware/main-control-board.md) · [flash.md](../flash.md) |
+| Extra modules (advanced) | [assembly-modular.md](assembly-modular.md) · [hardware/wiring.md](../hardware/wiring.md) |

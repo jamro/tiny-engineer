@@ -21,4 +21,4 @@ Phrase timing is the matching `.cue` (`abort.cue`, `attention.cue`, `error.cue`,
 
 ## Logo
 
-[`logo/tiny_engineer_logo.svg`](logo/tiny_engineer_logo.svg) — wordmark (Inkscape, 180×80 mm). Branding only; not copied to LittleFS.
+[`logo/tiny_engineer_logo.svg`](../../../assets/logo/tiny_engineer_logo.svg) — wordmark (Inkscape, 180×80 mm). Branding only; not copied to LittleFS.

@@ -49,4 +49,4 @@ UI labels change; follow the outcomes, not exact button names. The flow below ma
 
 ## Next steps
 
-Return to the [getting-started](../getting-started.md) checklist ([§2 Print or order](../getting-started.md#2-print-or-order) done). Next on that list is **wire**, then flash, then one assembly run. Part inventory and home-print notes: [3d_models/README.md](../../3d_models/README.md).
+Return to the [getting-started](../getting-started.md) checklist ([§2 Print or order](../getting-started.md#2-print-or-order) done). Next on that list is **connect**, then flash, then one assembly run. Part inventory and home-print notes: [3d_models/README.md](../../3d_models/README.md).

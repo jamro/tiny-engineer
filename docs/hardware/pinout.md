@@ -11,7 +11,7 @@ Source of truth: [`include/pins.h`](../../include/pins.h). This file must match 
 | I2S BCLK | **GPIO2** (diagram **GP2**) | `I2S_BCLK` | MAX98357A BCLK |
 | I2S LRCLK / WS | **GPIO3** (diagram **GP3**) | `I2S_LRC` | MAX98357A **LRC** |
 | I2S DATA OUT | **GPIO4** (diagram **GP4**) | `I2S_DIN` | MAX98357A DIN |
-| PCA9685 OE | **GPIO5** (diagram **GP5**) | `PCA9685_OE_PIN` | reserved for PCA9685 **OE**; net pending (`PCA9685_OE_WIRED`) |
+| PCA9685 OE | **GPIO5** (diagram **GP5**) | `PCA9685_OE_PIN` | PCA9685 **OE** (active LOW; `PCA9685_OE_WIRED`) |
 | Built-in WS2812 RGB | **GPIO10** | `RGB_LED_PIN` | onboard LED only |
 
 Logic level: **3.3 V**.
@@ -23,8 +23,8 @@ Logic level: **3.3 V**.
 | GPIO9 | **Reserved** | BOOT button / strapping. Do not pick casually for peripherals |
 | GPIO10 | **Occupied** | Onboard WS2812 |
 | GPIO12–GPIO17 | **Unavailable** | Stacked flash, not brought out |
-| GPIO18 | **Reserved** | Native USB D− (via Adafruit 5993 D−) |
-| GPIO19 | **Reserved** | Native USB D+ (via Adafruit 5993 D+) |
+| GPIO18 | **Reserved** | Native USB D− (main control board USB-C; advanced path: [5993](wiring.md#usb-connector-5993)) |
+| GPIO19 | **Reserved** | Native USB D+ (main control board USB-C; advanced path: [5993](wiring.md#usb-connector-5993)) |
 
 ## Free / default-function pads
 
@@ -59,7 +59,7 @@ Power pads (not GPIO): **5V**, **GND**, **3V3**.
 | `OLED_WIDTH` / `OLED_HEIGHT` | 128 / 32 | Display |
 | `SERVO_MIN_US` / `SERVO_MAX_US` | 800 / 2200 | Electrical PWM span |
 | `SERVO_BOOT_SPEED_DEG_S` | 35 | Boot centering / sleep-pose rate (deg/s) |
-| `PCA9685_OE_WIRED` | `false` | pending GP5 → PCA9685 OE (not on schematic/PCB yet) |
+| `PCA9685_OE_WIRED` | `true` | GP5 drives PCA9685 OE (active LOW). Set `false` only if OE is hard-tied off-chip |
 
 ## Pin allocation rules
 
@@ -70,9 +70,9 @@ New hardware **must not** pick pins ad-hoc.
 3. Update **both**:
    - [`include/pins.h`](../../include/pins.h)
    - this `pinout.md`
-4. Update [wiring.md](wiring.md) and [interfaces.md](interfaces.md) in the same change.
+4. Update [interfaces.md](interfaces.md) and, when the harness or the board plugs change, [main-control-board.md](main-control-board.md) and [wiring.md](wiring.md) in the same change.
 5. Stay in the **3.3 V** GPIO domain. Level-shift if a new device is 5 V-only.
 6. I2C devices need a unique address on the shared GPIO0/GPIO1 bus.
 7. After the edit, grep the repo for old GPIO numbers so comments and tests stay consistent.
 
-Related: [wiring.md](wiring.md), [interfaces.md](interfaces.md).
+Related: [main-control-board.md](main-control-board.md), [interfaces.md](interfaces.md). Advanced harness: [wiring.md](wiring.md).

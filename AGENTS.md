@@ -92,7 +92,7 @@ Truth order (do not skip ahead for connectivity claims):
 
 **Required:** netlist ↔ `expected-nets.yml` comparison for connectivity. No `kicad-cli` → say so and **skip** connectivity claims (layout/docs review only).
 
-Contribute/review process: [docs/pcb.md](docs/pcb.md). `expected-nets.yml`: [docs/pcb.md#expected-nets-yml](docs/pcb.md#expected-nets-yml).
+Contribute/review process: [docs/pcb.md](docs/pcb.md). `expected-nets.yml`: [docs/pcb.md#expected-netsyml](docs/pcb.md#expected-netsyml).
 
 ## Bench safety
 

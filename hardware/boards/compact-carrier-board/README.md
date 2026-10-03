@@ -138,10 +138,6 @@ at full-speed 12 Mbps.
 
 ## Mirrored socket map (boards in transit)
 
-That artwork is preserved as its own board, [`compact-carrier-board-pinside`](../compact-carrier-board-pinside/README.md),
-so the build the in-transit batch needs stays orderable and documented rather than
-living only in this section's prose.
-
 **The shipped boards (`carrier-fab-v3-replacement_Y5`) have the two socket
 rows the wrong way round.** Their pad map is the C3-Zero seen from its *pin
 side*, which is the correct drawing only for a socket on the opposite face;

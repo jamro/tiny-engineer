@@ -114,7 +114,7 @@ Command each joint through safe range ([robot-movement.md](../robot-movement.md)
 
 ### USB and service access
 
-Leave the USB-C breakout reachable for reflash. You'll flash again. Trust me.
+Leave the main control board USB-C reachable for reflash. You'll flash again. Trust me. The advanced path uses a 5993 in that same role — [wiring.md](../hardware/wiring.md).
 
 ### Antenna clearance
 
@@ -134,7 +134,7 @@ Part list: [3d_models/README.md](../../3d_models/README.md).
 
 ## Print while you wait — parallel path
 
-Electronics can ship slow. Start printing **structural parts** (chest, head, chair) while reading [Ch. 04](04-buses-and-protocols.md). Wire and smoke at checklist [§3–4](../getting-started.md#3-wire) — still on the desk — then one assembly run. Parallelism beats serial idle time.
+Electronics can ship slow. Start printing **structural parts** (chest, head, chair) while reading [Ch. 04](04-buses-and-protocols.md). Connect and smoke at checklist [§3–4](../getting-started.md#3-connect) — still on the desk — then one assembly run. Parallelism beats serial idle time.
 
 ---
 

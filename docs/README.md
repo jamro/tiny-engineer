@@ -7,13 +7,15 @@ Pick a path. Depth lives in the linked pages.
 | You want to… | Start here |
 | --- | --- |
 | **Build from scratch** (canonical checklist) | [getting-started.md](getting-started.md) |
-| **Buy parts** (one cart) | [shopping.md](shopping.md) |
+| **Buy parts** (main control board + cart) | [shopping.md](shopping.md) |
 | **Bridge into hardware/electronics** (software engineer background) | [hardware-for-software-engineers/README.md](hardware-for-software-engineers/README.md) — optional parallel reading; safety card lives on the checklist |
 | **Assemble printed parts** (mechanical procedure) | [3d/assembly.md](3d/assembly.md) |
 | **Flash firmware** | [flash.md](flash.md) |
-| **Wire / power detail** | [hardware/wiring.md](hardware/wiring.md) → [hardware/README.md](hardware/README.md) |
+| **Electronics** (main control board) | [shopping.md](shopping.md) → [hardware/main-control-board.md](hardware/main-control-board.md) → [hardware/README.md](hardware/README.md) |
+| **Extra modules** (advanced breakouts) | [shopping.md](shopping.md#advanced-extra-modules) → [hardware/wiring.md](hardware/wiring.md) → [3d/assembly-modular.md](3d/assembly-modular.md) |
 | **Print / parts inventory** | [../3d_models/README.md](../3d_models/README.md) |
 | **Order printed parts** (no 3D printer) | [3d/order-parts.md](3d/order-parts.md) |
+| **Order main control board** (PCB / PCBA) | [hardware/order-main-control-board.md](hardware/order-main-control-board.md) |
 | **Adapt CAD to a different servo** | [3d/parametric-design.md](3d/parametric-design.md) |
 | **Add a new CAD / printable part** | [3d/adding-parts.md](3d/adding-parts.md) |
 | **Optional mods** | [../mods/README.md](../mods/README.md) |

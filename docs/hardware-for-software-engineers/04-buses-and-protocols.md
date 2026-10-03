@@ -68,7 +68,7 @@ ESP32 is master: it generates clocks and **pushes**. The MAX98357A receives and 
 
 > **If you've written backend code…** I2C is REST. I2S is a one-way socket pumping PCM. While audio plays, samples go out at 44100 Hz until you stop.
 
-Firmware here: **44100 Hz**, 16-bit. Amp is mono; firmware writes the same sample to both stereo slots. Extra amp pins (GAIN, SD) are unwired — the breakout's defaults apply.
+Firmware here: **44100 Hz**, 16-bit. Amp is mono; firmware writes the same sample to both stereo slots. On the advanced breakout, GAIN and SD stay unwired and the module defaults apply — [wiring.md](../hardware/wiring.md). The main control board sets gain with a solder jumper.
 
 **Trap:** speaker connects **SPK+** to **SPK−** only. **SPK− is not GND.** Tying it to ground can damage the amp. #1 audio wiring mistake.
 
@@ -109,7 +109,7 @@ Joints and horns: [Ch. 05](05-servos-and-mechanical-motion.md).
 
 ## USB — one cable, two jobs
 
-USB-C (Adafruit 5993 breakout) does:
+The default robot USB-C is on the main control board. The advanced path uses an Adafruit 5993 on the same nets — [wiring.md](../hardware/wiring.md#usb-connector-5993). Either connector does:
 
 - **5 V power** — feeds the whole robot
 - **D+ / D−** — native USB to the ESP32 for flash and serial (`stdout`)
@@ -125,7 +125,7 @@ Not USB-PD conversion: it does **not** turn 9/12/20 V into 5 V. Feed a normal 5 
 | **I2C** | Request/response + addresses | PCA9685 + OLED (GP0, GP1) | Swapped SDA/SCL; OLED clock is SCL (clones may say SCK) |
 | **I2S** | Continuous PCM stream | Amp (GP2–GP4) | SPK− tied to GND |
 | **PWM** | HIGH pulse length = angle | PCA9685 → five servos | Powering servos from 3.3 V |
-| **USB** | Power + serial | 5993 → 5 V + flash | Charge-only cable; expecting PD |
+| **USB** | Power + serial | Board USB-C → 5 V + flash | Charge-only cable; expecting PD |
 
 You'll never route I2S to the OLED. Similar names, different jobs.
 

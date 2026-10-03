@@ -2,7 +2,7 @@
 
 You've read the pieces. This chapter closes the loop on the guide's goal — **from software-only to hardware-capable** — then hands you to the build checklist. Tiny Engineer is the capstone: one system where electricity, firmware, buses, print, and motion connect. The vocabulary you picked up travels with you to the next board.
 
-**Expect medium difficulty overall** — not an entry-level blinky kit, but a fair first hardware build for a software engineer who read the guide and validates electronics on the desk (wire + flash) before closing the chest. Hardest areas for most SWEs: wiring density, servo mechanics, power under load. Easiest: REST and Wi-Fi once that smoke check is solid.
+**Expect medium difficulty overall** — not an entry-level blinky kit, but a fair first hardware build for a software engineer who read the guide and validates electronics on the desk (connect + flash) before closing the chest. The default build is the main control board. Harness examples in this guide are the advanced path — [wiring.md](../hardware/wiring.md). Hardest areas for most SWEs: wiring density on that advanced path, servo mechanics, power under load. Easiest: REST and Wi-Fi once that smoke check is solid.
 
 ---
 
@@ -33,11 +33,11 @@ flowchart TB
 
 **Learn** — this guide. Enough to not fry boards.
 
-**Build** — [getting-started.md](../getting-started.md). Checklist: shop, print, wire, flash, assemble, wizard, prove.
+**Build** — [getting-started.md](../getting-started.md). Checklist: shop, print, connect, flash, assemble, wizard, prove.
 
 **Run** — Wi-Fi, `/anim`, Cursor hooks or your own integration.
 
-You can overlap phases (print while reading). Don't skip **desk smoke** (serial, PCA9685, one servo) before seating the harness in the chest.
+You can overlap phases (print while reading). Don't skip **desk smoke** (serial, PCA9685, one servo) before seating the board in the chest.
 
 ---
 
@@ -48,7 +48,7 @@ flowchart TB
   Agent["AI agent / curl / web UI"]
   Agent -->|HTTP Wi-Fi 2.4GHz| ESP["ESP32-C3-Zero"]
 
-  subgraph power [Power from USB-C 5993]
+  subgraph power [Power from board USB-C]
     V5[5V rail]
     V33[3.3V logic via LDO]
   end
@@ -92,7 +92,7 @@ flowchart TB
 | --- | --- | --- |
 | Volts, amps, GND, two domains | Ch. 01, 07 | [power.md](../hardware/power.md) |
 | ESP32-C3, GPIO, USB, antenna | Ch. 02 | [pinout.md](../hardware/pinout.md) |
-| Wires, schematic reading | Ch. 03 | [wiring.md](../hardware/wiring.md), [diagram](../wiring/Tiny%20Engineer.drawio.png) |
+| Wires, schematic reading | Ch. 03 | [main-control-board.md](../hardware/main-control-board.md). Advanced: [wiring.md](../hardware/wiring.md), [diagram](../wiring/Tiny%20Engineer.drawio.png) |
 | I2C, I2S, PWM | Ch. 04 | [interfaces.md](../hardware/interfaces.md) |
 | Servos, horns, joints | Ch. 05 | [robot-movement.md](../robot-movement.md), [servos.md](../hardware/servos.md) |
 | Print, PLA/PETG, Fusion | Ch. 06 | [3d_models/README.md](../../3d_models/README.md) |
@@ -106,9 +106,9 @@ flowchart TB
 
 Follow the checklist in [getting-started.md](../getting-started.md). Summary:
 
-1. **Shop** → [shopping.md](../shopping.md)
+1. **Shop** → [shopping.md](../shopping.md) (main control board)
 2. **Print or order** (can overlap with learning) → [3d_models](../../3d_models/README.md)
-3. **Wire** + **flash** on the desk → [wiring.md](../hardware/wiring.md), [flash.md](../flash.md)
+3. **Connect** + **flash** on the desk → [main-control-board.md](../hardware/main-control-board.md), then [flash.md](../flash.md). Extra modules: [wiring.md](../hardware/wiring.md)
 4. **Assemble** (one run: Head/Hat, centering, joins) → [assembly.md](../3d/assembly.md) §§1–19
 5. **Setup wizard** → assembly §20
 6. **Prove** (`/health`, `ring`) → [getting-started §7](../getting-started.md#7-prove-it)
@@ -126,12 +126,12 @@ Check these off — order matches the checklist:
 
 | # | Milestone | When | How you know |
 | --- | --- | --- | --- |
-| 1 | **Continuity sanity** | wire | No short 5V–GND; GND common (meter, power off) |
+| 1 | **Continuity sanity** | connect | No short 5V–GND; GND common (meter, power off) |
 | 2 | **Serial boot** | flash | `pio device monitor` shows boot log, dim green LED |
 | 3 | **PCA9685 detected** | flash | Serial OK; missing = 1 red blink, hang ([blink codes](../hardware/testing.md#boot-failure-blink-codes)) |
 | 4 | **One servo / 90°** | flash | Setup AP **Move all to 90°** or `/test/servo` moves a channel |
 | 5 | **Joints in safe range** | assembly §§1–19 | Each joint centered and joined; no stall buzz |
-| 6 | **Harness seated** | late assembly | Same electronics checks still pass after mounting in the chest |
+| 6 | **Board seated** | late assembly | Same electronics checks still pass after mounting in the chest |
 | 7 | **Wi-Fi stable** | after §20 wizard | `/health` over `tiny-engineer.local` or OLED IP |
 | 8 | **Audio + full anim** | prove it | e.g. `ring` — motion + sound (if silent → `uploadfs`) |
 | 9 | **Agent** | optional | Cursor hook or script triggers `/anim` |

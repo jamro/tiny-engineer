@@ -18,14 +18,14 @@ This build uses Dupont on **servos**, **OLED**, and **ESP32** so those parts unp
 
 **Breadboard** — spring clips, no solder. Great for blinking an LED. Wires pop out. Too bulky for this robot.
 
-**This project needs permanent wiring** — soldered joints that survive being stuffed into a small printed body. Vibration and tight space kill breadboard builds.
+The default build plugs the ESP32, OLED, servos, and speaker into the [main control board](../hardware/main-control-board.md). The soldered harness below is the **advanced** path — extra modules the board does not support ([wiring.md](../hardware/wiring.md), [shopping](../shopping.md#advanced-extra-modules)). Those joints have to survive a small printed body. Vibration and tight space kill breadboard builds.
 
-**Practical split:**
+**Practical split (modular):**
 - **Solder** the boards that stay in the robot: USB-C breakout, PCA9685 servo driver, audio amp, and the power/signal harness between them
 - **Dupont** to ESP32, OLED, and servos — replaceable without a soldering iron
-- Wire and **verify on the desk** (boot, I2C, one servo) **before** seating the harness in the chest. Debugging inside a closed chest is miserable
+- Wire and **verify on the desk** (boot, I2C, one servo) **before** seating the electronics in the chest. Debugging inside a closed chest is miserable
 
-The Waveshare **ESP32-C3-Zero** used here ships with **male pins already soldered**. You still solder everything else that doesn't come with headers you can plug into: USB socket/breakout, servo controller, audio board, and the wires that join those modules.
+The Waveshare **ESP32-C3-Zero** used here ships with **male pins already soldered**. On the modular path you still solder everything else that doesn't come with headers you can plug into: USB socket/breakout, servo controller, audio board, and the wires that join those modules.
 
 ---
 
@@ -78,20 +78,20 @@ Bad solder looks dull and grainy (cold joint). Good joint is shiny and concave. 
 - Don't connect MAX98357A **SPK−** to GND (bridge-tied load — see [Ch. 04](04-buses-and-protocols.md))
 - Don't force a tight 3D-printed pocket onto a servo — ream or reprint instead
 
-Assembly checks before first power: [wiring.md](../hardware/wiring.md) — read that when you're actually wiring, not this chapter.
+Assembly checks before first power: [main-control-board.md](../hardware/main-control-board.md). Advanced harness: [wiring.md](../hardware/wiring.md) — read that when you're actually wiring, not this chapter.
 
 ---
 
 ## In Tiny Engineer
 
-Use [Tiny Engineer.drawio.png](../wiring/Tiny%20Engineer.drawio.png) as your map and [wiring.md](../hardware/wiring.md) as your checklist. This guide doesn't duplicate the connection table.
+The default connect checklist is [main-control-board.md](../hardware/main-control-board.md). The drawio and the steps below are the advanced breakout harness: [Tiny Engineer.drawio.png](../wiring/Tiny%20Engineer.drawio.png) and [wiring.md](../hardware/wiring.md). This guide doesn't duplicate the connection table.
 
 **Desk smoke order** (wiring mindset — after wire + flash, before the mechanical run):
 1. USB power + GND only → ESP32 boots (LED, serial)
 2. Add I2C devices → serial shows PCA9685 found
 3. Add one servo on one channel → `/test/servo` or setup AP **Move all to 90°**
 4. Add audio and OLED as you wire the rest of the harness
-5. Then open [assembly.md](../3d/assembly.md) from §1 (one mechanical run). Seat the harness when that guide mounts electronics (§12).
+5. Then open [assembly.md](../3d/assembly.md) from §1 (one mechanical run). Seat the harness with [assembly-modular.md](../3d/assembly-modular.md), which replaces assembly §12–§13.
 
 **OLED naming trap:** this build uses the [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm), which labels the clock pad **SCL**. Many clone 0.91" boards print **SCK** on that same I2C clock pin — not SPI. The wiring PNG may still say **SCK**.
 
@@ -99,4 +99,4 @@ Use [Tiny Engineer.drawio.png](../wiring/Tiny%20Engineer.drawio.png) as your map
 
 **Next:** [Buses and protocols](04-buses-and-protocols.md)
 
-**Reference:** [hardware/wiring.md](../hardware/wiring.md) · [wiring/Tiny Engineer.drawio.png](../wiring/Tiny%20Engineer.drawio.png)
+**Reference:** [hardware/main-control-board.md](../hardware/main-control-board.md) · [hardware/wiring.md](../hardware/wiring.md) · [wiring/Tiny Engineer.drawio.png](../wiring/Tiny%20Engineer.drawio.png)

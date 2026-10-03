@@ -6,43 +6,33 @@
 
 **[Watch the demo](https://youtu.be/RX_QRxdXMjg)** · [Build your own](#build-your-own) · [Community builds](#community-builds) · [How it works](#how-it-works)
 
-- Looks around while the agent **reads**
-- **Types** while it writes code
-- Looks **up** while it thinks
-- **Rings the bell** when the task is done
+A small robot on your desk. It moves, changes its face, and rings a bell as your coding AI agent works.
 
-**Works with**
-
-- **Ready integrations:** [Claude Code](docs/integration.md#4-claude-code-dedicated-script) · [Cursor](docs/hooks.md) · [Antigravity](docs/integration.md#3-antigravity-cli-dedicated-script)
-- **Any agent with HTTP:** Codex, Windsurf, custom scripts, `POST /anim` on your LAN ([integration guide](docs/integration.md))
-
-## What it feels like
-
-| Your agent… | Tiny Engineer… |
+| Your agent… | The robot… |
 | --- | --- |
 | Reads files | Looks around |
-| Edits code | Types |
-| Thinks / waits | Looks up |
-| Finishes a task | Rings the bell |
+| Writes code | Types |
+| Thinks or waits | Looks up |
+| Finishes the task | Rings the bell |
 
-Open-source desk robot: 3D-printable body, Wi-Fi, and a small REST API so your tools can drive the poses.
+Open source. Print the body, plug the ESP32, servos, OLED, and speaker into the [main control board](docs/hardware/main-control-board.md), flash it, and it joins your Wi-Fi.
 
-## See it move
-
-**[YouTube demo](https://youtu.be/RX_QRxdXMjg)**
+**Works with** [Claude Code](docs/integration.md#4-claude-code-dedicated-script) · [Cursor](docs/hooks.md) · [Antigravity](docs/integration.md#3-antigravity-cli-dedicated-script) — or Codex, Windsurf, and any script that can POST ([integration guide](docs/integration.md)).
 
 ## Build your own
 
 | | |
 | --- | --- |
-| **Parts (electronics + 5× SG90 Servos)** | About **$50–70** [shopping list](docs/shopping.md) |
-| **Also budget for** | 3D printer + filament, or [order prints](docs/3d/order-parts.md); M2 screws; **5 V / ≥2 A** USB supply |
-| **Tools** | **Soldering required** (modules and harness wires) |
+| **Parts (electronics + 5× SG90 Servos)** | [shopping list](docs/shopping.md): [main control board](docs/hardware/order-main-control-board.md) plus ESP32, servos, OLED, and speaker |
+| **Also needed** | 3D printer + filament, or [order prints](docs/3d/order-parts.md); M2 screws; **5 V / ≥2 A** USB supply |
+| **Tools** | Plug in the ESP32, servos, OLED, and speaker on the [main control board](docs/hardware/main-control-board.md). Want to add extra modules? [advanced wiring](docs/hardware/wiring.md) |
 | **Difficulty** | **Medium** - fair first hardware project for a software engineer, not a one-LED kit. Optional primer: [From Code to Circuits](docs/hardware-for-software-engineers/README.md) |
 
-**Print → Wire → Flash → Assemble → Connect** - step-by-step: **[Getting started](docs/getting-started.md)**.
+[![Main control board](docs/pcb_banner.jpg)](https://github.com/jamro/tiny-engineer/discussions/50)
 
-> **Integrated PCB in progress** - a main board that replaces most breakout modules and wiring. [Interest check →](https://github.com/jamro/tiny-engineer/discussions/50)
+The default build uses the open-source main control board. Order it from any fab ([how to order](docs/hardware/order-main-control-board.md) · [KiCad](hardware/boards/main-control-board/)). A ~$15–20 assembled board would be easier to buy. [Vote here 👍 →](https://github.com/jamro/tiny-engineer/discussions/50)
+
+**Print → Connect → Flash → Assemble** - step-by-step: **[Getting started](docs/getting-started.md)**.
 
 ## Community builds
 
@@ -56,7 +46,6 @@ Finished builds, mods, and desk setups live in **[Show and tell](https://github.
 
 What we are building toward:
 
-- **Integrated PCB** - less wiring, faster builds
 - **More agent integrations** - one-command hooks for more IDEs and CLIs
 - **Simplified build process** - easier assembly and setup for quicker builds
 - **New characters / bodies** - alternate shells and mods
@@ -68,7 +57,7 @@ What we are building toward:
 
 ![How Tiny Engineer works](docs/how-it-works.jpg)
 
-Your agent (or a hook script) sends poses over HTTP. The ESP32-C3 on the robot runs the REST API, animations, and audio, then drives five servos, an OLED face, and a speaker.
+Your agent (or a hook script) sends poses over HTTP. The **ESP32-C3** is a small Wi-Fi computer on the robot — one chip that runs the program, joins your network, hosts REST API, and drives the servos, the face, and the speaker.
 
 **Clients**
 
@@ -81,25 +70,18 @@ Details: [Integrations](docs/integration.md) · [HTTP API](docs/api.md) · [Curs
 
 ## Documentation
 
-| Goal | Doc |
+| You want to… | Start here |
 | --- | --- |
-| Build end-to-end | [docs/getting-started.md](docs/getting-started.md) |
-| Flash firmware | [docs/flash.md](docs/flash.md) |
-| Parts / cart | [docs/shopping.md](docs/shopping.md) |
-| Wiring / power | [docs/hardware/README.md](docs/hardware/README.md) |
-| Printable parts | [3d_models/README.md](3d_models/README.md) |
-| Optional mods | [mods/README.md](mods/README.md) |
-| Assemble printed parts | [docs/3d/assembly.md](docs/3d/assembly.md) |
-| Resize CAD for another servo | [docs/3d/parametric-design.md](docs/3d/parametric-design.md) |
-| Servo axes / safe ranges | [docs/robot-movement.md](docs/robot-movement.md) |
-| HTTP API | [docs/api.md](docs/api.md) |
-| Settings | [docs/settings.md](docs/settings.md) |
-| Cursor hooks | [docs/hooks.md](docs/hooks.md) |
-| Any IDE / REST | [docs/integration.md](docs/integration.md) |
-| Firmware / package tests | [docs/testing.md](docs/testing.md) |
-| Full index | [docs/README.md](docs/README.md) |
+| Build the robot | [Getting started](docs/getting-started.md) |
+| Buy parts | [Shopping list](docs/shopping.md) |
+| Flash the board | [Flash](docs/flash.md) |
+| Assemble the prints | [Assembly](docs/3d/assembly.md) |
+| Print the parts | [3D models](3d_models/README.md) |
+| Hook up an agent | [Integrations](docs/integration.md) |
+| Call the HTTP API | [API](docs/api.md) |
+| Anything else | [Docs index](docs/README.md) |
 
-Print it, wire it, change the CAD, or hook up another agent. Issues and PRs welcome - especially new integrations. [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+Print it, connect it, change the CAD, or hook up another agent. Issues and PRs welcome - especially new integrations. [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## License
 
