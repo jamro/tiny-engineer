@@ -12,6 +12,7 @@ Tiny Engineer is an open-source ESP32-C3 Wi-Fi desk robot: 3D-printed mechanics,
 | --- | --- |
 | `src/`, `include/`, `lib/`, `data/` | Firmware (PlatformIO) |
 | `packages/` | HTTP / hook CLIs (Cursor, Antigravity, Claude Code, …) — scope `integrations` |
+| `skills/` | Agent skills shared by Claude Code, Cursor and Antigravity — scope `integrations` |
 | `3d_models/` | CAD and printables (CERN-OHL-S) |
 | `mods/` | Optional mods; models under `mods/<name>/3d_models/` (CERN-OHL-S) |
 | `hardware/` | KiCad boards (CERN-OHL-S) |
@@ -62,7 +63,7 @@ HTML index: one-line route descriptions only (except supported-parameter lists).
 Format: `type(scope): summary` (imperative, lowercase type, no trailing period; PR title same).
 
 Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `mods`, `pcb`, `docs`, `scripts`, `ci`.  
-`integrations` = anything under `packages/`. Do not add a new scope per package.  
+`integrations` = anything under `packages/` or `skills/`. Do not add a new scope per package.  
 `mods` = anything under `mods/`. Name the mod in the summary. Do not add a new scope per mod.
 
 Breaking rules, SemVer mapping, and examples: [CONTRIBUTING.md](CONTRIBUTING.md).

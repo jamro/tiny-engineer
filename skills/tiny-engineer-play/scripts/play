@@ -1,0 +1,25 @@
+#!/bin/sh
+# Usage: play <clip.wav> [talking|typing|reading|thinking|none]
+# Streams the clip to the robot's POST /play and prints its JSON reply; exits 1 on any error.
+set -u
+
+clip=${1:?usage: play <clip.wav> [animation]}
+name=${2:-}
+url=${TINY_ENGINEER_URL:-http://tiny-engineer.local}
+url=${url%/}/play${name:+/$name}
+
+[ -r "$clip" ] || { echo "cannot read $clip" >&2; exit 1; }
+
+set -- --silent --show-error --connect-timeout 5 --max-time 600 -X POST -H 'Content-Type: audio/wav' --data-binary "@$clip"
+[ -n "${TINY_ENGINEER_TOKEN:-}" ] && set -- "$@" -H "Authorization: Bearer $TINY_ENGINEER_TOKEN"
+
+reply=$(curl "$@" -w '\n%{http_code}' "$url") || { echo "robot unreachable at $url" >&2; exit 1; }
+status=${reply##*
+}
+body=${reply%
+*}
+
+case $status in
+  2??) echo "$body" ;;
+  *) echo "$body" >&2; exit 1 ;;
+esac
