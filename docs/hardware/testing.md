@@ -11,7 +11,7 @@ Firmware is [`src/main.cpp`](../../src/main.cpp). Boot **inits** hardware and st
 
 Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi credentials are saved in NVS and configured only in setup AP mode (first boot, or after factory reset + power-cycle). Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are also setup-AP-only; factory reset keeps them.
 
-Build/flash: [flash.md](../flash.md) (`pio run`, `pio run -t upload`, serial 115200). Physical board is **Waveshare ESP32-C3-Zero**; PlatformIO env name is `esp32-c3-devkitm-1`.
+Stock flash: **[Web flash](https://jamro.github.io/tiny-engineer/flash/)**. Build from source / serial (115200): [flash.md](../flash.md) (Advanced: PlatformIO — `pio run`, `pio run -t upload`). Physical board is **Waveshare ESP32-C3-Zero**; PlatformIO env name is `esp32-c3-devkitm-1`.
 
 ## What boot covers
 
@@ -19,7 +19,7 @@ Build/flash: [flash.md](../flash.md) (`pio run`, `pio run -t upload`, serial 115
 | --- | --- |
 | Built-in WS2812 | Green ready (GPIO10) |
 | I2C init | `Wire.begin` on GPIO0/GPIO1 |
-| PCA9685 | Probe `0x40` early; park neutral; OE skipped (`PCA9685_OE_WIRED` is false until GP5→OE is implemented) |
+| PCA9685 | Probe `0x40` early; OE HIGH during init, park neutral, then OE LOW (`PCA9685_OE_WIRED`) |
 | OLED | Probe `0x3C`, init (optional) |
 | Wi-Fi | STA connect from saved NVS credentials, or setup AP `TinyEngineer-XXXX` when unset/failed; mDNS `{hostname}.local` after STA connect |
 | MAX98357A / I2S | `I2S.begin` 22.05 kHz 16-bit stereo |
@@ -158,4 +158,4 @@ All five servos move together on `POST /test/movement`. A weak USB port often di
 - Speaker power rating vs max amp output
 - I2C at high speed
 
-Related: [pinout.md](pinout.md), [wiring.md](wiring.md), [servos.md](servos.md).
+Related: [main-control-board.md](main-control-board.md), [pinout.md](pinout.md), [servos.md](servos.md). Advanced harness: [wiring.md](wiring.md).

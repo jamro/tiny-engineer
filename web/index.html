@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tiny Engineer</title>
+  <meta name="description" content="Tiny Engineer — a desk robot for AI coding agents. Flash firmware in the browser.">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+</head>
+<body class="page-home">
+  <div class="wrap">
+    <header class="site-header">
+      <a class="brand" href="./">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Tiny Engineer
+      </a>
+      <nav class="nav" aria-label="Site">
+        <a href="flash/">Flash</a>
+        <a href="https://github.com/jamro/tiny-engineer">GitHub</a>
+        <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/getting-started.md">Build</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Desk robot · ESP32-C3</p>
+          <h1>Your smallest engineering teammate.</h1>
+          <p class="lede">
+            A physical companion for AI coding agents. Flash over USB, then let it act out the work.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="flash/">Flash firmware</a>
+            <a class="btn" href="https://github.com/jamro/tiny-engineer">GitHub</a>
+          </div>
+        </div>
+
+        <aside class="device-module" aria-label="Device module">
+          <div class="device-module-inner">
+            <div class="device-top">
+              <span class="status-row">
+                <span class="led led-ok led-pulse" aria-hidden="true"></span>
+                <span class="mono device-status">READY TO FLASH</span>
+              </span>
+              <span class="mono device-sku">TE · C3</span>
+            </div>
+
+            <div class="device-body">
+              <p class="device-title">Tiny Engineer</p>
+              <p class="device-sub">USB flash · stock audio · REST poses</p>
+
+              <div class="pin-row" aria-label="Hardware tags">
+                <span class="pin">ESP32-C3</span>
+                <span class="pin">PCA9685</span>
+                <span class="pin">I2S</span>
+                <span class="pin">OLED</span>
+              </div>
+
+              <div class="bus-line mono" aria-hidden="true">
+                ESP32-C3 <span class="bus-sep">──</span> I2C <span class="bus-sep">──</span> PCA9685
+              </div>
+            </div>
+
+            <dl class="meta-grid device-meta">
+              <dt>Bus</dt>
+              <dd>I2C · I2S · Wi-Fi</dd>
+              <dt>Flash</dt>
+              <dd><a href="flash/">/flash/</a></dd>
+            </dl>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Built because software engineers apparently needed another coworker.</p>
+    </footer>
+  </div>
+</body>
+</html>

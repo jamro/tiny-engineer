@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flash firmware · Tiny Engineer</title>
+  <meta name="description" content="Flash Tiny Engineer firmware from the browser over USB (Chrome or Edge).">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+</head>
+<body class="page-flash">
+  <div class="wrap">
+    <header class="site-header">
+      <a class="brand" href="../">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Tiny Engineer
+      </a>
+      <nav class="nav" aria-label="Site">
+        <a href="./" aria-current="page">Flash</a>
+        <a href="https://github.com/jamro/tiny-engineer">GitHub</a>
+        <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md">Docs</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="flash-intro">
+        <p class="eyebrow">Installer · ESP32-C3</p>
+        <h1>Flash firmware</h1>
+        <p class="lede">
+          Choose a release. Image map and install use that release’s mirrored bins — partition layout may differ by version.
+        </p>
+      </div>
+
+      <div class="hero">
+        <section class="panel">
+          <p class="panel-label">Install</p>
+          <div class="panel-body">
+            <label class="field-label" for="flash-release">Release</label>
+            <select id="flash-release" class="select mono" disabled>
+              <option value="">Loading releases…</option>
+            </select>
+
+            <div class="status-row">
+              <span id="flash-led" class="led led-warn" aria-hidden="true"></span>
+              <span class="mono">RELEASE <span id="flash-version">…</span></span>
+            </div>
+            <p id="flash-status" class="status-message">Loading flashable releases…</p>
+
+            <div id="flash-install" class="flash-install" hidden>
+              <esp-web-install-button manifest="">
+                <button slot="activate" class="btn btn-primary">Connect &amp; install</button>
+              </esp-web-install-button>
+            </div>
+          </div>
+          <div class="panel-foot">
+            <p class="callout">
+              <strong>Chrome or Edge only.</strong> USB-C <em>data</em> cable.
+              C3-Zero usually enters download mode alone; hold BOOT if the port is missing.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel panel-raised">
+          <p class="panel-label">Image map</p>
+          <div class="panel-body">
+            <p class="muted">Parts and offsets come from the selected release manifest.</p>
+            <table class="offset-table">
+              <thead>
+                <tr>
+                  <th>Part</th>
+                  <th>Offset</th>
+                </tr>
+              </thead>
+              <tbody id="flash-parts">
+                <tr>
+                  <td colspan="2" class="muted">Select a release…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-foot">
+            <dl class="meta-grid">
+              <dt>Manifest</dt>
+              <dd id="flash-manifest-url" class="mono">—</dd>
+              <dt>Alt path</dt>
+              <dd><a href="https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md">pio run -t upload</a></dd>
+            </dl>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>If this feels too easy, you can still solder something afterward.</p>
+      <p><a href="../">Home</a></p>
+    </footer>
+  </div>
+  <script src="../js/flash-status.js"></script>
+</body>
+</html>

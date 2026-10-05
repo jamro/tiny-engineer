@@ -83,9 +83,9 @@ Same filenames in each `parts/{servo_id}/3mf/` folder (and matching `stl/` / `st
 
 ## Next steps
 
-Return to the build checklist: [docs/getting-started.md](../docs/getting-started.md) ([§2 Print or order](../docs/getting-started.md#2-print-or-order) done). Wire and flash **before** opening the mechanical guide.
+Return to the build checklist: [docs/getting-started.md](../docs/getting-started.md) ([§2 Print or order](../docs/getting-started.md#2-print-or-order) done). Connect and flash **before** opening the mechanical guide.
 
-1. Wire, then flash: [docs/hardware/wiring.md](../docs/hardware/wiring.md), [docs/flash.md](../docs/flash.md)
+1. Connect, then flash: [docs/hardware/main-control-board.md](../docs/hardware/main-control-board.md), [docs/flash.md](../docs/flash.md). Extra modules: [docs/hardware/wiring.md](../docs/hardware/wiring.md)
 2. Assemble in one run: [docs/3d/assembly.md](../docs/3d/assembly.md)
 3. Servo axes and safe ranges: [docs/robot-movement.md](../docs/robot-movement.md)
 4. Bring-up and failures: [docs/hardware/testing.md](../docs/hardware/testing.md)

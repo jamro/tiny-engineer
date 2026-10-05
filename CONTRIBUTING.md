@@ -65,11 +65,11 @@ python3 scripts/check_pcb.py
 
 **Integrations.** Add or extend tests in the package you change. Raw REST examples belong in [docs/integration.md](docs/integration.md). Prefer short timeouts and ignore network errors so a missing robot does not stall the agent.
 
-**CAD.** Edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change. New parts: [docs/3d/adding-parts.md](docs/3d/adding-parts.md). Servo presets / add-in: [docs/3d/parametric-design.md](docs/3d/parametric-design.md).
+**CAD.** **Start a GitHub Discussion before modifying CAD files**, as they are difficult to merge. After discussion, edit [`3d_models/cad/TinyEngineer.f3d`](3d_models/cad/TinyEngineer.f3d) **and** export the affected [`3d_models/parts/{servo_id}/3mf/*.3mf`](3d_models/parts/). Keep CERN-OHL-S. Do not swap `AiEmblem.3mf` as a branding change. New parts: [docs/3d/adding-parts.md](docs/3d/adding-parts.md). Servo presets / add-in: [docs/3d/parametric-design.md](docs/3d/parametric-design.md).
 
 **Mods.** Optional add-ons under [`mods/<mod_name>/`](mods/README.md). Models live in `3d_models/{cad,parts}/`; other files sit beside that folder. Commit as `type(mods)` and name the mod in the summary. Do not add a scope per mod. `feat(mods)` / `fix(mods)` do not version the stock CAD revision.
 
-**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Run `python3 scripts/check_pcb.py` before opening a PCB PR. Keep [`expected-nets.yml`](docs/pcb.md#expected-nets-yml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
+**PCB.** Follow the [PCB checklist](docs/pcb.md#checklist). Run `python3 scripts/check_pcb.py` before opening a PCB PR. Keep [`expected-nets.yml`](docs/pcb.md#expected-netsyml) in sync. One board per `hardware/boards/<name>/`, KiCad 10, ERC and DRC reviewed, no generated Gerbers or other fab outputs. Keep CERN-OHL-S. New board paths need a matching `[[annotations]]` block in [REUSE.toml](REUSE.toml).
 
 **Motion.** Animations use −1..1 poses mapped to the saved min/max in [docs/robot-movement.md](docs/robot-movement.md). Stock defaults live in [`include/servos.h`](include/servos.h). Do not widen NVS servo clamps without testing on a real robot. Setup AP `POST /setup/servo` can use 0–180° to find limits; assembled motion must not.
 
@@ -97,7 +97,7 @@ Format: `type(scope): summary`
 | `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | MAJOR |
 | `docs`, `style`, `test`, `chore`, `ci`, `refactor` (unless breaking) | no bump |
 
-Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `mods`, `pcb`, `docs`, `scripts`, `ci`.
+Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `mods`, `pcb`, `docs`, `scripts`, `ci`, `web`.
 
 `integrations` is anything under `packages/` (Cursor, Antigravity, Claude Code, later agent CLIs). Do not add a new scope per package.
 
@@ -115,7 +115,9 @@ Robot builds bake `git describe --tags --always --dirty` into `FW_VERSION` via [
 - Dev build: `v0.1.0-<n>-g<sha>` (optional `-dirty`)
 - No git metadata: `unknown`
 
-A firmware tag does not bump the npm packages. CI (`.github/workflows/ci.yml`) builds with full git history and uploads `bootloader.bin`, `partitions.bin`, `firmware.bin`, and `littlefs.bin` as the `firmware-<sha>` Actions artifact on every PR and `main` push. Pushing a tag matching `v*` runs `.github/workflows/release.yml`, which attaches the same four bins as `tiny-engineer-<tag>-{bootloader,partitions,firmware,littlefs}.bin` (flash at `0x0`, `0x8000`, `0x10000`, `0x220000`) to a GitHub Release.
+A firmware tag does not bump the npm packages. CI (`.github/workflows/ci.yml`) builds with full git history and uploads `bootloader.bin`, `partitions.bin`, `firmware.bin`, and `littlefs.bin` as the `firmware-<sha>` Actions artifact on every PR and `main` push. Pushing a tag matching `v*` runs `.github/workflows/release.yml`, which attaches the same four bins as `tiny-engineer-<tag>-{bootloader,partitions,firmware,littlefs}.bin` plus a stable-name `manifest.json` (offsets from that tag’s `partitions.csv`). Pages deploy (`.github/workflows/pages.yml`) mirrors those assets via `scripts/build_flash_catalog.py` so the web flasher can install same-origin (Release CDN blocks browser CORS).
+
+Public site UI lives under [`web/`](web/) (GitHub Pages via `.github/workflows/pages.yml`). Follow [`web/STYLE.md`](web/STYLE.md) for visual changes.
 
 Examples:
 

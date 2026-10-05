@@ -21,7 +21,7 @@ mods/<mod_name>/
 
 Optional speaker replacements live in `mods/<mod_name>/assets/`. Format matches stock: **44100 Hz, mono, 16-bit PCM**; the build downsamples to 22050 Hz. Firmware still plays `/welcome.wav` and the other root names. The build overlay copies stock [`assets/`](../assets/) first, then overwrites any basename the mod ships. A missing file stays the stock clip.
 
-Set the mod in [`platformio.ini`](../platformio.ini) (`custom_audio_mod = halloween`) and flash with `pio run -t upload`. An empty option keeps the stock image. How to flash: [docs/flash.md](../docs/flash.md).
+Stock image (no mod): **[Web flash](https://jamro.github.io/tiny-engineer/flash/)**. Audio mods need PlatformIO: set `custom_audio_mod = halloween` in [`platformio.ini`](../platformio.ini), then `pio run -t upload`. Empty option keeps stock. Details: [docs/flash.md](../docs/flash.md) (Advanced: PlatformIO).
 
 Clips with phrase marks (`welcome`, `attention`, `error`, `abort`, `dead`) need a sibling `.cue` next to the replacement WAV. `bell` has no marks. A cue without its WAV is rejected. Lines are `key=ms` (`#` comments allowed). `end_ms` must be within 200 ms of the WAV duration, phases must increase, and a blink must sit inside its window. The pack step checks this before the image is built.
 

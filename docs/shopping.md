@@ -1,6 +1,6 @@
 # Shopping list
 
-Buy this before you print or wire. Electrical spec (voltages, limits, pin notes): [hardware/components.md](hardware/components.md). Screw lengths in assembly steps: [3d_models/README.md → Screws](../3d_models/README.md#screws). Build order: [getting-started.md](getting-started.md).
+Buy this before you print or connect. Electrical spec (voltages, limits, pin notes): [hardware/components.md](hardware/components.md). Screw lengths in assembly steps: [3d_models/README.md → Screws](../3d_models/README.md#screws). Build order: [getting-started.md](getting-started.md).
 
 ## Servo size (pick first)
 
@@ -16,21 +16,37 @@ Servo size sets the size of the **whole robot**. Buy five of **one** model, then
 
 Non-preset servo: measure it, add a preset, export parts — [parametric design](3d/parametric-design.md).
 
-## Buy this
+## Electronics
 
-### Electronics
+The default build uses the **main control board**. PCA9685, the audio amp, and USB-C are on that PCB. You plug in the ESP32, OLED, five servos, and the speaker.
+
+Order the open-source board from any fab: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). Connect it: [hardware/main-control-board.md](hardware/main-control-board.md). A cheaper assembled batch may show up later: [discussion #50](https://github.com/jamro/tiny-engineer/discussions/50). Fab lead time is part of ordering the board.
+
+### Default cart
+
+| Part | Qty | Link / notes |
+| --- | --- | --- |
+| Tiny Engineer main control board | 1 | KiCad in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/) ([CERN-OHL-S](../3d_models/LICENSE)). Order: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). |
+| Waveshare ESP32-C3-Zero | 1 | https://docs.waveshare.com/ESP32-C3-Zero |
+| Tower Pro SG90 (or equivalent 9 g analog micro) | 5 | Widely available hobby servo — no single canonical SKU |
+| [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 | https://www.adafruit.com/product/3923 |
+| [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 | https://www.waveshare.com/0.91inch-oled-module.htm |
+
+Compact build: swap the five SG90 for **Feetech FS0307** (same qty). Do not mix models.
+
+The board already includes the PCA9685, the MAX98357A, and USB-C.
+
+### Advanced: extra modules
+
+Use separate breakouts when you want modules the main control board does not support. Same firmware and printed Desk. More soldering and more boards in the cavity. Wiring: [hardware/wiring.md](hardware/wiring.md). Desk mounting: [3d/assembly-modular.md](3d/assembly-modular.md).
 
 | Part | Qty | Link |
 | --- | --- | --- |
-| Waveshare ESP32-C3-Zero | 1 | https://docs.waveshare.com/ESP32-C3-Zero |
 | Adafruit PCA9685 16-channel PWM servo driver | 1 | https://www.adafruit.com/product/815 |
-| Tower Pro SG90 (or equivalent 9 g analog micro) | 5 | Widely available hobby servo — no single canonical SKU |
 | MAX98357A I2S class-D mono amplifier | 1 | https://www.aliexpress.us/item/3256805196806369.html |
-| [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 | https://www.adafruit.com/product/3923 |
-| [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 | https://www.waveshare.com/0.91inch-oled-module.htm |
 | Adafruit 5993 USB-C breakout | 1 | https://www.adafruit.com/product/5993 |
 
-Compact build: swap the five SG90 for **Feetech FS0307** (same qty). Do not mix models.
+These three replace the main control board. You still buy the ESP32, servos, speaker, and OLED from the default cart.
 
 ### Fasteners
 

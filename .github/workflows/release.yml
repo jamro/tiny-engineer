@@ -44,6 +44,69 @@ jobs:
             "dist/tiny-engineer-${GITHUB_REF_NAME}-firmware.bin"
           cp .pio/build/esp32-c3-devkitm-1/littlefs.bin \
             "dist/tiny-engineer-${GITHUB_REF_NAME}-littlefs.bin"
+      - name: Write ESP Web Tools manifest
+        run: |
+          python3 - <<'PY'
+          import csv, json, os
+          from pathlib import Path
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          base = f"https://github.com/jamro/tiny-engineer/releases/download/{tag}"
+          version = tag[1:] if tag.startswith("v") else tag
+
+          def parse_offset(raw: str) -> int:
+              raw = raw.strip()
+              return int(raw, 16) if raw.lower().startswith("0x") else int(raw)
+
+          app_off = None
+          fs_off = None
+          with Path("partitions.csv").open(newline="", encoding="utf-8") as f:
+              for row in csv.reader(f):
+                  if not row or row[0].lstrip().startswith("#"):
+                      continue
+                  name = row[0].strip()
+                  if len(row) < 4:
+                      continue
+                  offset = parse_offset(row[3])
+                  subtype = row[2].strip() if len(row) > 2 else ""
+                  if name == "app0" or subtype == "ota_0":
+                      app_off = offset
+                  if name == "spiffs" or subtype == "spiffs":
+                      fs_off = offset
+
+          if app_off is None or fs_off is None:
+              raise SystemExit(
+                  f"partitions.csv missing app0/ota_0 or spiffs (app={app_off}, fs={fs_off})"
+              )
+
+          # ESP32-C3 image layout: bootloader @ 0x0, partition table @ 0x8000
+          boot_off = 0
+          part_off = 0x8000
+
+          manifest = {
+              "name": "Tiny Engineer",
+              "version": version,
+              "new_install_prompt_erase": True,
+              "builds": [
+                  {
+                      "chipFamily": "ESP32-C3",
+                      "parts": [
+                          {"path": f"{base}/tiny-engineer-{tag}-bootloader.bin", "offset": boot_off},
+                          {"path": f"{base}/tiny-engineer-{tag}-partitions.bin", "offset": part_off},
+                          {"path": f"{base}/tiny-engineer-{tag}-firmware.bin", "offset": app_off},
+                          {"path": f"{base}/tiny-engineer-{tag}-littlefs.bin", "offset": fs_off},
+                      ],
+                  }
+              ],
+          }
+          with open("dist/manifest.json", "w", encoding="utf-8") as f:
+              json.dump(manifest, f, indent=2)
+              f.write("\n")
+          print(
+              f"manifest offsets: boot=0x{boot_off:x} part=0x{part_off:x} "
+              f"app=0x{app_off:x} fs=0x{fs_off:x}"
+          )
+          PY
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -52,6 +115,7 @@ jobs:
             dist/tiny-engineer-${{ github.ref_name }}-partitions.bin
             dist/tiny-engineer-${{ github.ref_name }}-firmware.bin
             dist/tiny-engineer-${{ github.ref_name }}-littlefs.bin
+            dist/manifest.json
           generate_release_notes: true
           body: |
             ## Flash offsets (default USB layout)
@@ -63,4 +127,6 @@ jobs:
             | `tiny-engineer-${{ github.ref_name }}-firmware.bin` | `0x10000` |
             | `tiny-engineer-${{ github.ref_name }}-littlefs.bin` | `0x220000` |
 
-            All **four** files are required for a clean first flash or web install. App + LittleFS alone is enough only when bootloader and partition table are already on the chip. Usual path: clone the tagged commit and run `pio run -t upload` (see [docs/flash.md](https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md)). esptool users write each bin at the offset above.
+            All **four** files are required for a clean first flash or web install. App + LittleFS alone is enough only when bootloader and partition table are already on the chip.
+
+            Web flash: [jamro.github.io/tiny-engineer/flash/](https://jamro.github.io/tiny-engineer/flash/) — pick this tag (or any release that ships `manifest.json`). Offsets above match this tag’s `partitions.csv`. Usual path: clone the tagged commit and run `pio run -t upload` (see [docs/flash.md](https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md)).
