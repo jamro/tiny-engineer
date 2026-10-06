@@ -21,7 +21,7 @@ The servo driver, the speaker amplifier, and the USB-C connector are parts on th
 - A **TPS259571** eFuse (`U4`) sits between that 5 V rail and servo 5 V. Current limit is set by `R14` (1 kΩ ≈ 2 A). On fault the device auto-retries.
 - **OLED header** is for the SSD1306 display. Pin order, from pin 1: 3.3 V, ground, SDA, SCL.
 - A second header shares that I2C bus. Its pin order is different: ground, 3.3 V, SDA, SCL.
-- A spare 4-pin header is on the board for later use.
+- A **12-pin extension port** (`J4`) breaks out `SERVO_5V`, two grounds, `+3.3V`, I2S BCLK/LRC, and free GPIOs GP6–GP9 / GP20 / GP21.
 
 A solder jumper next to the amplifier is marked as a 6 dB gain limit.
 
