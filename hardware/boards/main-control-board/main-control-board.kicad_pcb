@@ -11981,7 +11981,7 @@
 	)
 	(gr_text "VCC\n"
 		(at 173.8 96.76 0)
-		(layer "F.SilkS")
+		(layer "F.SilkS" knockout)
 		(uuid "8fed1ddb-1051-4b00-bc58-460b28600c9a")
 		(effects
 			(font
@@ -12167,7 +12167,7 @@
 	)
 	(gr_text "5V+"
 		(at 131 90.44 0)
-		(layer "F.SilkS")
+		(layer "F.SilkS" knockout)
 		(uuid "5349ef14-b2eb-40b6-8637-8e4ca7c69221")
 		(effects
 			(font
@@ -12191,7 +12191,7 @@
 	)
 	(gr_text "+5V"
 		(at 162.56 90.1 0)
-		(layer "F.SilkS")
+		(layer "F.SilkS" knockout)
 		(uuid "a84d103d-53ef-47ef-ae20-7de78c982c8d")
 		(effects
 			(font
@@ -12227,7 +12227,7 @@
 	)
 	(gr_text "+3.3V"
 		(at 162.56 97.79 0)
-		(layer "F.SilkS")
+		(layer "F.SilkS" knockout)
 		(uuid "1a2a1b1a-1a16-4d9a-a861-8800bda4e15d")
 		(effects
 			(font
