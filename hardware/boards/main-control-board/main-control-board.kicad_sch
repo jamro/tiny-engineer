@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "TinyEngineer PCB")
-		(date "2026-09-24")
-		(rev "v2")
+		(date "2026-10-06")
+		(rev "v3")
 	)
 	(lib_symbols
 		(symbol "Connector:Conn_01x04_Pin"
@@ -1736,7 +1736,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 104.14) (xy 209.55 63.5)
+			(xy 212.09 104.14) (xy 212.09 63.5)
 		)
 		(stroke
 			(width 0)
@@ -1746,7 +1746,7 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 96.52) (xy 213.36 96.52)
+			(xy 186.69 96.52) (xy 219.71 96.52)
 		)
 		(stroke
 			(width 0)
@@ -1786,7 +1786,7 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 88.9) (xy 218.44 53.34)
+			(xy 224.79 88.9) (xy 224.79 53.34)
 		)
 		(stroke
 			(width 0)
@@ -1796,7 +1796,7 @@
 	)
 	(wire
 		(pts
-			(xy 213.36 55.88) (xy 209.55 55.88)
+			(xy 219.71 55.88) (xy 209.55 55.88)
 		)
 		(stroke
 			(width 0)
@@ -1876,7 +1876,7 @@
 	)
 	(wire
 		(pts
-			(xy 210.82 101.6) (xy 210.82 60.96)
+			(xy 214.63 101.6) (xy 214.63 60.96)
 		)
 		(stroke
 			(width 0)
@@ -1886,7 +1886,7 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 104.14) (xy 209.55 104.14)
+			(xy 186.69 104.14) (xy 212.09 104.14)
 		)
 		(stroke
 			(width 0)
@@ -1956,7 +1956,7 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 101.6) (xy 210.82 101.6)
+			(xy 186.69 101.6) (xy 214.63 101.6)
 		)
 		(stroke
 			(width 0)
@@ -1966,7 +1966,7 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 99.06) (xy 212.09 99.06)
+			(xy 186.69 99.06) (xy 217.17 99.06)
 		)
 		(stroke
 			(width 0)
@@ -1976,7 +1976,7 @@
 	)
 	(wire
 		(pts
-			(xy 219.71 86.36) (xy 219.71 50.8)
+			(xy 226.06 86.36) (xy 226.06 50.8)
 		)
 		(stroke
 			(width 0)
@@ -2016,7 +2016,7 @@
 	)
 	(wire
 		(pts
-			(xy 213.36 96.52) (xy 213.36 55.88)
+			(xy 219.71 96.52) (xy 219.71 55.88)
 		)
 		(stroke
 			(width 0)
@@ -2036,7 +2036,7 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 53.34) (xy 209.55 53.34)
+			(xy 224.79 53.34) (xy 209.55 53.34)
 		)
 		(stroke
 			(width 0)
@@ -2056,7 +2056,7 @@
 	)
 	(wire
 		(pts
-			(xy 210.82 60.96) (xy 209.55 60.96)
+			(xy 214.63 60.96) (xy 209.55 60.96)
 		)
 		(stroke
 			(width 0)
@@ -2126,7 +2126,7 @@
 	)
 	(wire
 		(pts
-			(xy 212.09 58.42) (xy 209.55 58.42)
+			(xy 217.17 58.42) (xy 209.55 58.42)
 		)
 		(stroke
 			(width 0)
@@ -2146,7 +2146,7 @@
 	)
 	(wire
 		(pts
-			(xy 212.09 99.06) (xy 212.09 58.42)
+			(xy 217.17 99.06) (xy 217.17 58.42)
 		)
 		(stroke
 			(width 0)
@@ -2183,6 +2183,16 @@
 			(type default)
 		)
 		(uuid "c6a19910-5340-4a7c-9bfa-7185f3c3eab2")
+	)
+	(wire
+		(pts
+			(xy 212.09 63.5) (xy 209.55 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c8929d80-d6d9-496f-8180-0db800db09ab")
 	)
 	(wire
 		(pts
@@ -2226,7 +2236,7 @@
 	)
 	(wire
 		(pts
-			(xy 219.71 50.8) (xy 209.55 50.8)
+			(xy 226.06 50.8) (xy 209.55 50.8)
 		)
 		(stroke
 			(width 0)
@@ -2256,7 +2266,7 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 88.9) (xy 218.44 88.9)
+			(xy 186.69 88.9) (xy 224.79 88.9)
 		)
 		(stroke
 			(width 0)
@@ -2286,7 +2296,7 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 86.36) (xy 219.71 86.36)
+			(xy 186.69 86.36) (xy 226.06 86.36)
 		)
 		(stroke
 			(width 0)
@@ -3631,6 +3641,50 @@
 			)
 		)
 		(property "KiLib_Generator" ""
+			(at 201.93 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC Part #" "C541855"
+			(at 201.93 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "PM254V-12-12-H85"
+			(at 201.93 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "XFCN"
+			(at 201.93 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "FT Rotation Offset" "90"
 			(at 201.93 55.88 0)
 			(hide yes)
 			(show_name no)
