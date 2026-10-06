@@ -14,6 +14,7 @@ test("play reads the WAV, animation name and URL", () => {
 test("play rejects bad arguments before contacting the robot", () => {
   assert.equal(parsePlayArgs(["--name", "talking"]).error, "play needs a WAV file");
   assert.equal(parsePlayArgs(["clip.wav", "--name"]).error, "--name requires a value");
+  assert.equal(parsePlayArgs(["clip.wav", "--name", "--url", "http://robot"]).error, "--name requires a value");
   assert.equal(parsePlayArgs(["a.wav", "b.wav"]).error, "Unknown argument: b.wav");
 });
 

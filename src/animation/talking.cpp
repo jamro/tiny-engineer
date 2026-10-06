@@ -59,13 +59,20 @@ void startTalking() {
 void updateTalking(uint32_t now) {
   updateAllServos();
 
-  if (hasPendingAnimation() && !g_poseFrozen) {
-    g_poseFrozen = true;
-    anim::parkForTransition();
+  if (hasPendingAnimation()) {
+    if (!g_poseFrozen) {
+      g_poseFrozen = true;
+      anim::parkForTransition();
+    }
+    return;
   }
 
   if (g_poseFrozen) {
-    return;
+    // The pending switch was cancelled (talking requested again): resume from here.
+    g_poseFrozen = false;
+    g_headPauseUntilMs = now;
+    g_neckNextMs = now;
+    g_gestureNextMs = now + randRangeMs(1500, 3500);
   }
 
   if (!servoAt(SERVO_HEAD).isMoving() && now >= g_headPauseUntilMs) {

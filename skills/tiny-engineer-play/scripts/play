@@ -6,6 +6,12 @@ set -u
 clip=${1:?usage: play <clip.wav> [animation]}
 name=${2:-}
 url=${TINY_ENGINEER_URL:-http://tiny-engineer.local}
+
+# Only a bare animation name may reach the URL path ("../settings/reset" must not).
+case $name in
+  *[!a-z]*) echo "animation name must be lowercase letters, e.g. talking" >&2; exit 1 ;;
+esac
+
 url=${url%/}/play${name:+/$name}
 
 [ -r "$clip" ] || { echo "cannot read $clip" >&2; exit 1; }

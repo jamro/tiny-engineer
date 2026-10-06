@@ -16,7 +16,7 @@ export function parsePlayArgs(argv) {
 
     if (arg === "--name" || arg === "--url") {
       const value = argv[++i];
-      if (!value) return { error: `${arg} requires a value` };
+      if (!value || value.startsWith("-")) return { error: `${arg} requires a value` };
       opts[arg.slice(2)] = value;
       continue;
     }

@@ -252,9 +252,9 @@ node packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js play /t
 To let an agent do this on its own, install the shared [`tiny-engineer-play`](../skills/tiny-engineer-play/SKILL.md) skill. It needs only `curl` and works the same in Claude Code, Cursor and Antigravity:
 
 ```bash
-ln -s "$PWD/skills/tiny-engineer-play" ~/.claude/skills/tiny-engineer-play            # Claude Code
-ln -s "$PWD/skills/tiny-engineer-play" ~/.cursor/skills/tiny-engineer-play            # Cursor
-ln -s "$PWD/skills/tiny-engineer-play" ~/.gemini/antigravity/skills/tiny-engineer-play  # Antigravity
+mkdir -p ~/.claude/skills && ln -s "$PWD/skills/tiny-engineer-play" ~/.claude/skills/                         # Claude Code
+mkdir -p ~/.cursor/skills && ln -s "$PWD/skills/tiny-engineer-play" ~/.cursor/skills/                         # Cursor
+mkdir -p ~/.gemini/antigravity/skills && ln -s "$PWD/skills/tiny-engineer-play" ~/.gemini/antigravity/skills/  # Antigravity
 ```
 
 Then ask the agent something like "have the robot tell me the build passed".
