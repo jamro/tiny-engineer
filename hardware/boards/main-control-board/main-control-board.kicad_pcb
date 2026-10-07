@@ -12327,7 +12327,7 @@
 			(justify left)
 		)
 	)
-	(gr_text "GP9"
+	(gr_text "BOOT"
 		(at 168.91 95.25 0)
 		(layer "F.SilkS")
 		(uuid "9c4c7dbd-1fe5-4ed4-ac01-774cb9e187db")
@@ -12339,7 +12339,7 @@
 			(justify left)
 		)
 	)
-	(gr_text "GP8"
+	(gr_text "GP8*"
 		(at 168.91 97.79 0)
 		(layer "F.SilkS")
 		(uuid "4be159a8-5bd8-4bb8-a0b3-f998ba60af99")
