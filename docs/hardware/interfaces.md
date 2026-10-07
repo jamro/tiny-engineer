@@ -41,7 +41,7 @@ Bring-up configuration in [`src/main.cpp`](../../src/main.cpp):
 
 Firmware writes identical samples to both stereo slots. MAX98357A is mono. On the main control board, gain is the solder jumper next to the amplifier ([board README](../../hardware/boards/main-control-board/README.md)). On the advanced breakout, **GAIN** and **SD** stay unwired (GAIN floating ≈ 9 dB, SD pulled up ≈ left channel) — [wiring.md](wiring.md).
 
-Amp **Vin** = USB **5V**. I2S wires are 3.3 V logic. Speaker connects to **SPK+** / **SPK−** — [main-control-board.md](main-control-board.md).
+On the main control board, amp **Vin** is **AUDIO_5V** (net-tied from **SERVO_5V** after the eFuse), not raw USB **+5V** — [power.md](power.md). On the advanced breakout, amp **Vin** is the shared USB **5V** rail — [wiring.md](wiring.md). I2S wires are 3.3 V logic. Speaker connects to **SPK+** / **SPK−** — [main-control-board.md](main-control-board.md).
 
 > [!WARNING]
 > MAX98357A SPK- is not ground.
@@ -69,9 +69,9 @@ Default on (`PCA9685_OE_WIRED = true` in [`include/pins.h`](../../include/pins.h
 
 Single USB-C on the robot: the **main control board**.
 
-| Net | Board USB-C | ESP32 |
+| Net | Board USB-C | ESP32 / loads |
 | --- | --- | --- |
-| VBUS | +5V rail | **5V** pad |
+| VBUS | through fuse → **+5V** | ESP32 **5V** pad; eFuse input → **SERVO_5V** (servos + amp) |
 | GND | common GND | **GND** |
 | D− | data | **GPIO18** |
 | D+ | data | **GPIO19** |
