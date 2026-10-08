@@ -1,9 +1,11 @@
 import { formatFileModifications } from "./files.js";
 import {
   applyInstall,
+  applyUninstall,
   configRelativePath,
   detect,
   planInstall,
+  planUninstall,
 } from "./install.js";
 import { animationForEvent, defaultResponseForHook } from "./map.js";
 
@@ -84,4 +86,6 @@ export const antigravity = {
   configRelativePath,
   planInstall,
   applyInstall,
+  planUninstall,
+  applyUninstall,
 };

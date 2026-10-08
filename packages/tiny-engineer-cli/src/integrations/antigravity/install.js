@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 export const ANTIGRAVITY_EVENTS = [
@@ -33,6 +33,20 @@ export function configRelativePath() {
  */
 export function commandForEvent(cliCommand, event) {
   return `${cliCommand} ${event}`;
+}
+
+/**
+ * @param {string} path
+ * @returns {object | null}
+ */
+function readConfig(path) {
+  if (!existsSync(path)) return null;
+  try {
+    const parsed = JSON.parse(readFileSync(path, "utf8"));
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -77,5 +91,37 @@ export function applyInstall(ctx, existing) {
   }
 
   root["tiny-engineer"] = block;
+  return root;
+}
+
+/**
+ * @param {string} projectRoot
+ * @returns {import("../types.js").UninstallPlan}
+ */
+export function planUninstall(projectRoot) {
+  const relativePath = configRelativePath();
+  const path = join(projectRoot, relativePath);
+  const existing = readConfig(path);
+  const has = Boolean(existing && Object.prototype.hasOwnProperty.call(existing, "tiny-engineer"));
+  return {
+    ide: "antigravity",
+    path,
+    relativePath,
+    removeCount: has ? 1 : 0,
+    detail: has ? 'key "tiny-engineer"' : "nothing to remove",
+  };
+}
+
+/**
+ * @param {object | null} existing
+ * @returns {object}
+ */
+export function applyUninstall(existing) {
+  if (!existing || typeof existing !== "object") {
+    return {};
+  }
+  /** @type {Record<string, unknown>} */
+  const root = structuredClone(existing);
+  delete root["tiny-engineer"];
   return root;
 }

@@ -31,6 +31,15 @@
  */
 
 /**
+ * @typedef {object} UninstallPlan
+ * @property {string} ide
+ * @property {string} path Absolute config path
+ * @property {string} relativePath
+ * @property {number} removeCount
+ * @property {string} detail
+ */
+
+/**
  * Integration plugin contract. Each IDE implements this shape and registers in registry.js.
  *
  * @typedef {object} Integration
@@ -45,6 +54,8 @@
  * @property {() => string} [configRelativePath]
  * @property {(ctx: InstallContext) => InstallPlan} [planInstall]
  * @property {(ctx: InstallContext, existing: object | null) => object} [applyInstall]
+ * @property {(projectRoot: string) => UninstallPlan} [planUninstall]
+ * @property {(existing: object | null) => object} [applyUninstall]
  */
 
 export {};

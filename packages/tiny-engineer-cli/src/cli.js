@@ -21,6 +21,7 @@ import { createStyle, detectColor } from "./util/style.js";
 import { readStdin } from "./util/stdin.js";
 import { runDoctor } from "./wizard/doctor.js";
 import { runSetup } from "./wizard/setup.js";
+import { runUninstall } from "./wizard/uninstall.js";
 
 function printHelp() {
   const integrations = listIntegrations().join(", ");
@@ -30,6 +31,7 @@ Unified CLI for the Tiny Engineer desk robot.
 
 Commands:
   setup [ide...]          Merge IDE hook configs into the current project
+  uninstall [ide...]      Remove Tiny Engineer hook entries (keeps other hooks)
   doctor                  Check URL, token, hook wiring, and /health
   hook <ide>              Read hook JSON from stdin, map to a pose, POST /anim
   anim <name> [--url]     POST /anim?name=<name>
@@ -55,11 +57,11 @@ Integrations (hook <ide>):
 
 Examples:
   tiny-engineer setup cursor --yes
-  tiny-engineer setup --all --yes --dry-run
+  tiny-engineer uninstall cursor --yes
+  tiny-engineer uninstall --all --yes --dry-run
   tiny-engineer doctor
   tiny-engineer anim ring
   echo '{"hook_event_name":"stop"}' | tiny-engineer hook cursor
-  echo '{}' | tiny-engineer hook antigravity PreToolUse
 `);
 }
 
@@ -241,6 +243,9 @@ export async function run(argv) {
   switch (command) {
     case "setup":
       await runSetup(out, rest);
+      return;
+    case "uninstall":
+      await runUninstall(out, rest);
       return;
     case "doctor":
       await runDoctor(out, rest);

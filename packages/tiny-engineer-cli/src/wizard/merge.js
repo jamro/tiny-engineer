@@ -64,3 +64,28 @@ export function mergeEnvUrl(envPath, url, { force = false } = {}) {
   writeFileSync(envPath, `${next.join("\n").replace(/\n+$/, "\n")}`, "utf8");
   return "updated";
 }
+
+const ENV_TE_LINE = /^\s*TINY_ENGINEER_(URL|TOKEN)\s*=/;
+
+/**
+ * Remove TINY_ENGINEER_URL / TINY_ENGINEER_TOKEN lines from `.env`.
+ * Leaves the file if other content remains; does not delete a non-empty file.
+ * @param {string} envPath
+ * @returns {"removed" | "absent" | "unchanged"}
+ */
+export function stripEnvTinyEngineer(envPath) {
+  if (!existsSync(envPath)) return "absent";
+  const raw = readFileSync(envPath, "utf8");
+  const lines = raw.split(/\r?\n/);
+  const kept = lines.filter((line) => !ENV_TE_LINE.test(line));
+  if (kept.length === lines.length) return "unchanged";
+
+  // Trim trailing empty lines but keep a final newline when content remains.
+  while (kept.length > 0 && kept[kept.length - 1] === "") kept.pop();
+  if (kept.length === 0) {
+    writeFileSync(envPath, "", "utf8");
+  } else {
+    writeFileSync(envPath, `${kept.join("\n")}\n`, "utf8");
+  }
+  return "removed";
+}
