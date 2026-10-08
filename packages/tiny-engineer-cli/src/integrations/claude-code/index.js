@@ -1,4 +1,10 @@
 import { formatFileModifications } from "./files.js";
+import {
+  applyInstall,
+  configRelativePath,
+  detect,
+  planInstall,
+} from "./install.js";
 import { animationForEvent } from "./map.js";
 
 /**
@@ -73,4 +79,9 @@ export const claudeCode = {
 
   // Claude Code adds SessionStart / UserPromptSubmit stdout to the model context.
   respond() {},
+
+  detect,
+  configRelativePath,
+  planInstall,
+  applyInstall,
 };

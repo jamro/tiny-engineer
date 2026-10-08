@@ -1,4 +1,10 @@
 import { formatFileModifications } from "./files.js";
+import {
+  applyInstall,
+  configRelativePath,
+  detect,
+  planInstall,
+} from "./install.js";
 import { animationForEvent, defaultResponseForHook } from "./map.js";
 
 /**
@@ -73,4 +79,9 @@ export const antigravity = {
     const hookType = ctx.input?.event ?? "unknown";
     console.log(JSON.stringify(defaultResponseForHook(hookType)));
   },
+
+  detect,
+  configRelativePath,
+  planInstall,
+  applyInstall,
 };

@@ -1,4 +1,10 @@
 import { formatFileModifications } from "./files.js";
+import {
+  applyInstall,
+  configRelativePath,
+  detect,
+  planInstall,
+} from "./install.js";
 import { animationForEvent } from "./map.js";
 
 /**
@@ -70,4 +76,9 @@ export const cursor = {
 
   // Cursor has no stdout contract; stay silent.
   respond() {},
+
+  detect,
+  configRelativePath,
+  planInstall,
+  applyInstall,
 };

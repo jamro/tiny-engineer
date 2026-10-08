@@ -19,6 +19,8 @@ import {
 import { createOutput } from "./util/output.js";
 import { createStyle, detectColor } from "./util/style.js";
 import { readStdin } from "./util/stdin.js";
+import { runDoctor } from "./wizard/doctor.js";
+import { runSetup } from "./wizard/setup.js";
 
 function printHelp() {
   const integrations = listIntegrations().join(", ");
@@ -27,6 +29,8 @@ function printHelp() {
 Unified CLI for the Tiny Engineer desk robot.
 
 Commands:
+  setup [ide...]          Merge IDE hook configs into the current project
+  doctor                  Check URL, token, hook wiring, and /health
   hook <ide>              Read hook JSON from stdin, map to a pose, POST /anim
   anim <name> [--url]     POST /anim?name=<name>
   play <clip.wav> [opts]  POST /play (16-bit mono PCM WAV)
@@ -50,11 +54,11 @@ Integrations (hook <ide>):
   ${integrations || "(none)"}
 
 Examples:
+  tiny-engineer setup cursor --yes
+  tiny-engineer setup --all --yes --dry-run
+  tiny-engineer doctor
   tiny-engineer anim ring
-  tiny-engineer -q anim ring
-  tiny-engineer play hello.wav --name talking
   echo '{"hook_event_name":"stop"}' | tiny-engineer hook cursor
-  echo '{"hook_event_name":"Stop"}' | tiny-engineer hook claude-code
   echo '{}' | tiny-engineer hook antigravity PreToolUse
 `);
 }
@@ -235,6 +239,12 @@ export async function run(argv) {
   const [command, ...rest] = args;
 
   switch (command) {
+    case "setup":
+      await runSetup(out, rest);
+      return;
+    case "doctor":
+      await runDoctor(out, rest);
+      return;
     case "hook":
       await runHook(out, rest, global.quiet);
       return;
