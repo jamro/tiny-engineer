@@ -32,6 +32,8 @@ Prerequisites: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer
 
 Package: [`packages/tiny-engineer-cli`](../packages/tiny-engineer-cli/). Bin name: **`tiny-engineer`**.
 
+Supported IDEs: **Cursor**, **Claude Code**, **Antigravity** — one CLI (`tiny-engineer setup` / `hook <ide>`). No separate per-IDE packages for new installs.
+
 Maps IDE hook events to poses and POSTs `/anim`. Also installs/uninstalls hook entries, checks wiring (`doctor`), and can `anim` / `play` without writing your own HTTP client.
 
 ### Install / run
@@ -177,17 +179,9 @@ Full route list (tests, servo, web UI, `/play`): [`api.md`](api.md).
 
 ---
 
-## Deprecated: per-IDE packages
+## Deprecated bins
 
-These packages still work but are **deprecated**. Prefer `tiny-engineer` (above). Migrate with `tiny-engineer setup`, then remove old entries (`tiny-engineer uninstall` strips Tiny Engineer commands by marker).
-
-| Package | Bin | Notes |
-|---|---|---|
-| [`packages/tiny-engineer-cursor`](../packages/tiny-engineer-cursor/) | `tiny-engineer-cursor` | Superseded by `tiny-engineer hook cursor` |
-| [`packages/tiny-engineer-antigravity`](../packages/tiny-engineer-antigravity/) | `tiny-engineer-antigravity` | Superseded by `tiny-engineer hook antigravity` |
-| [`packages/tiny-engineer-claude-code`](../packages/tiny-engineer-claude-code/) | `tiny-engineer-claude-code` | Superseded by `tiny-engineer hook claude-code` |
-
-For custom mapping beyond the unified CLI, use the [REST API](#2-rest-api-advanced--custom) instead of forking the old packages.
+The old bins `tiny-engineer-cursor`, `tiny-engineer-antigravity`, and `tiny-engineer-claude-code` still run but are **deprecated**. Prefer `tiny-engineer` above. Migrate with `tiny-engineer setup`, then `tiny-engineer uninstall` to strip leftover hook entries. For custom mapping, use the [REST API](#2-rest-api-advanced--custom).
 
 ---
 

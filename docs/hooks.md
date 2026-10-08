@@ -1,10 +1,8 @@
 # Cursor hooks
 
-Project hooks drive Tiny Engineer poses from Cursor agent events. Config lives in [`.cursor/hooks.json`](../.cursor/hooks.json).
+Cursor is one IDE supported by the unified **`tiny-engineer` CLI**. Project hooks drive poses from Cursor agent events. Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Install / overview: [`integration.md`](integration.md) (`tiny-engineer setup cursor`).
 
-**Default path:** unified CLI [`packages/tiny-engineer-cli`](../packages/tiny-engineer-cli/) — `tiny-engineer hook cursor`. Big picture: [`integration.md`](integration.md).
-
-The older [`packages/tiny-engineer-cursor`](../packages/tiny-engineer-cursor/) bin is **deprecated**; migrate with `tiny-engineer setup cursor`.
+Command used by hooks: `tiny-engineer hook cursor` ([`packages/tiny-engineer-cli`](../packages/tiny-engineer-cli/)).
 
 ## Setup (this repo)
 

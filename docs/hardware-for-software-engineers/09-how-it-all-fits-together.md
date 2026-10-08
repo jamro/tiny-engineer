@@ -98,7 +98,7 @@ flowchart TB
 | Print, PLA/PETG, Fusion | Ch. 06 | [3d_models/README.md](../../3d_models/README.md) |
 | Supply sizing, brownout | Ch. 07 | [power.md](../hardware/power.md) |
 | pio, serial, bisect debug | Ch. 08 | [testing.md](../hardware/testing.md) |
-| HTTP API, agents | — (after hardware) | [api.md](../api.md), [integration.md](../integration.md), [hooks.md](../hooks.md) |
+| HTTP API, agents | — (after hardware) | [integration.md](../integration.md) (`tiny-engineer` CLI), [api.md](../api.md), Cursor detail: [hooks.md](../hooks.md) |
 
 ---
 
@@ -112,7 +112,7 @@ Follow the checklist in [getting-started.md](../getting-started.md). Summary:
 4. **Assemble** (one run: Head/Hat, centering, joins) → [assembly.md](../3d/assembly.md) §§1–19
 5. **Setup wizard** → assembly §20
 6. **Prove** (`/health`, `ring`) → [getting-started §7](../getting-started.md#7-prove-it)
-7. **Agent hooks** → [hooks.md](../hooks.md) / [integration.md](../integration.md)
+7. **Agent hooks** → [integration.md](../integration.md) (`tiny-engineer setup`); Cursor detail: [hooks.md](../hooks.md)
 
 **Desk smoke is first:** with boards still on the desk, confirm serial boot, PCA9685 OK, and one servo via `/test/servo` or setup AP **Move all to 90°**. Then one mechanical run. Do not finish the wizard until §20.
 
