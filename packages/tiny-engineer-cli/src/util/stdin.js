@@ -17,17 +17,27 @@ export function readStdin({ timeoutMs = STDIN_TIMEOUT_MS, stream = process.stdin
 
     const chunks = [];
     let settled = false;
-    const finish = (value) => {
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let timer;
+
+    const onData = (c) => chunks.push(c);
+    const onEnd = () => finish(chunks.join(""));
+    const onError = () => finish("");
+
+    function finish(value) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      stream.off("data", onData);
+      stream.off("end", onEnd);
+      stream.off("error", onError);
       resolve(value);
-    };
+    }
 
-    const timer = setTimeout(() => finish(chunks.join("")), timeoutMs);
+    timer = setTimeout(() => finish(chunks.join("")), timeoutMs);
     stream.setEncoding("utf8");
-    stream.on("data", (c) => chunks.push(c));
-    stream.on("end", () => finish(chunks.join("")));
-    stream.on("error", () => finish(""));
+    stream.on("data", onData);
+    stream.on("end", onEnd);
+    stream.on("error", onError);
   });
 }

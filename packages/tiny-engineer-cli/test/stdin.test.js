@@ -9,6 +9,9 @@ test("readStdin resolves with chunks when pipe never ends", async () => {
   stream.write('{"a":1}');
   const text = await pending;
   assert.equal(text, '{"a":1}');
+  assert.equal(stream.listenerCount("data"), 0);
+  assert.equal(stream.listenerCount("end"), 0);
+  assert.equal(stream.listenerCount("error"), 0);
   stream.destroy();
 });
 
@@ -19,6 +22,9 @@ test("readStdin resolves on end before timeout", async () => {
   stream.end();
   const text = await pending;
   assert.equal(text, '{"hook_event_name":"stop"}');
+  assert.equal(stream.listenerCount("data"), 0);
+  assert.equal(stream.listenerCount("end"), 0);
+  assert.equal(stream.listenerCount("error"), 0);
 });
 
 test("readStdin returns empty string for TTY", async () => {
