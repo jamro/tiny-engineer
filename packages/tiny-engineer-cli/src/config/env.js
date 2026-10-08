@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
 
 const TOKEN_KEY = "TINY_ENGINEER_TOKEN";
 const URL_KEY = "TINY_ENGINEER_URL";
@@ -31,16 +32,16 @@ function parseLine(line) {
 }
 
 /**
- * Load `<dir>/.env` into process.env for keys not already set.
- * Missing file / read errors are ignored.
+ * Load one `.env` file into process.env for keys not already set.
  * A token already in the process env must not be sent to a URL from project
- * `.env`, so `.env` skips `TINY_ENGINEER_URL` when a token was inherited.
- * @param {string} [dir]
+ * `.env`, so the file skips `TINY_ENGINEER_URL` when a token was inherited.
+ * Missing file / read errors are ignored.
+ * @param {string} filePath
  */
-export function loadDotEnv(dir = process.cwd()) {
+export function loadDotEnvFile(filePath) {
   let raw;
   try {
-    raw = readFileSync(join(dir, ".env"), "utf8");
+    raw = readFileSync(filePath, "utf8");
   } catch {
     return;
   }
@@ -56,6 +57,31 @@ export function loadDotEnv(dir = process.cwd()) {
       process.env[key] = value;
     }
   }
+}
+
+/**
+ * Load env from cwd, Claude project dir (if set), and Antigravity global config.
+ * @param {string} [cwd]
+ */
+export function loadDotEnv(cwd = process.cwd()) {
+  const loaded = new Set();
+
+  /**
+   * @param {string} dir
+   */
+  function loadDir(dir) {
+    const abs = resolve(dir);
+    if (loaded.has(abs)) return;
+    loaded.add(abs);
+    loadDotEnvFile(join(abs, ".env"));
+  }
+
+  loadDir(cwd);
+
+  const claudeRoot = process.env.CLAUDE_PROJECT_DIR?.trim();
+  if (claudeRoot) loadDir(claudeRoot);
+
+  loadDotEnvFile(join(homedir(), ".gemini", "config", ".env"));
 }
 
 /**

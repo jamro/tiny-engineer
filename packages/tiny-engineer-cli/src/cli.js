@@ -42,8 +42,8 @@ Auth:
 
 Output:
   Colors/icons when stdout/stderr is a TTY (disabled by NO_COLOR or TERM=dumb).
-  hook                    Logs file edits on stderr (Cursor afterFileEdit).
-                          Swallows robot/network errors (exit 0). Bad CLI args exit 1.
+  hook                    File touches on stderr; robot errors swallowed (exit 0).
+                          Antigravity always prints decision JSON on stdout.
   anim / play             Friendly one-line success; exit 1 on errors.
 
 Integrations (hook <ide>):
@@ -54,6 +54,8 @@ Examples:
   tiny-engineer -q anim ring
   tiny-engineer play hello.wav --name talking
   echo '{"hook_event_name":"stop"}' | tiny-engineer hook cursor
+  echo '{"hook_event_name":"Stop"}' | tiny-engineer hook claude-code
+  echo '{}' | tiny-engineer hook antigravity PreToolUse
 `);
 }
 
@@ -110,7 +112,13 @@ async function runHook(out, argv, quietGlobal) {
     localOut.info(line);
   }
 
-  integration.respond?.({ animPosted: Boolean(anim), anim });
+  integration.respond?.({ animPosted: Boolean(anim), anim, input });
+
+  // Claude Code async hooks have no timeout; exit so undici connect attempts
+  // cannot linger ~10s after a timed-out POST.
+  if (integration.hardExitAfterPost && anim) {
+    process.exit(0);
+  }
   process.exitCode = 0;
 }
 
