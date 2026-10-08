@@ -38,45 +38,45 @@ Maps IDE hook events to poses and POSTs `/anim`. Also installs/uninstalls hook e
 
 ### Install / run
 
-**This firmware repo (local):**
+Published on npm as [`tiny-engineer`](https://www.npmjs.com/package/tiny-engineer) (no repo clone).
 
 ```bash
-node packages/tiny-engineer-cli/bin/tiny-engineer.js --help
+npx -y tiny-engineer --help
+npx -y tiny-engineer setup
+npx -y tiny-engineer setup cursor --yes
+npx -y tiny-engineer doctor
+```
+
+- Cold `npx` can be slow: `setup` writes hook **`timeout` ≥ 30**.
+- Optional: `--url http://192.168.x.x` (default `TINY_ENGINEER_URL`, else `http://tiny-engineer.local`).
+- Auth: if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`.
+- Prefer registry `npx` over `npx github:…` (SSH often fails in IDE hooks).
+
+**This firmware repo (local CLI development):**
+
+```bash
 node packages/tiny-engineer-cli/bin/tiny-engineer.js setup
 node packages/tiny-engineer-cli/bin/tiny-engineer.js doctor
 ```
 
-**Any project (HTTPS tarball — not `github:…` SSH):**
-
-```bash
-npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer --help
-npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer setup cursor --yes
-```
-
-- HTTPS **tarball** (not `github:…` — that often fails in IDE hooks with no SSH agent).
-- Bin name `tiny-engineer` required after `--package=…`.
-- Cold `npx` can be slow: use hook **`timeout` ≥ 30** when the command is `npx …`.
-- Optional: `--url http://192.168.x.x` (default `TINY_ENGINEER_URL`, else `http://tiny-engineer.local`).
-- Auth: if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`.
-
 ### Setup wizard
 
 ```bash
-tiny-engineer setup                  # interactive: pick IDEs
-tiny-engineer setup cursor --yes
-tiny-engineer setup --all --yes --url http://192.168.1.10
-tiny-engineer doctor
-tiny-engineer uninstall cursor --yes # remove only Tiny Engineer hook entries
+npx -y tiny-engineer setup                  # interactive: pick IDEs
+npx -y tiny-engineer setup cursor --yes
+npx -y tiny-engineer setup --all --yes --url http://192.168.1.10
+npx -y tiny-engineer doctor
+npx -y tiny-engineer uninstall cursor --yes # remove only Tiny Engineer hook entries
 ```
 
-`setup` merges hook commands into the project (Cursor `.cursor/hooks.json`, Claude Code `.claude/settings.json`, Antigravity `.agents/hooks.json`) and can write `TINY_ENGINEER_URL` into `.env`. It does not delete foreign hooks.
+`setup` merges hook commands into the project (Cursor `.cursor/hooks.json`, Claude Code `.claude/settings.json`, Antigravity `.agents/hooks.json`) using `npx -y tiny-engineer hook <ide>`, and can write `TINY_ENGINEER_URL` into `.env`. It does not delete foreign hooks.
 
-This firmware repo already ships those configs pointing at the local CLI bin.
+This firmware repo already ships configs pointing at the **local** CLI bin for developing the package.
 
 ### Hook smoke test
 
 ```bash
-echo '{"hook_event_name":"stop"}' | node packages/tiny-engineer-cli/bin/tiny-engineer.js hook cursor
+echo '{"hook_event_name":"stop"}' | npx -y tiny-engineer hook cursor
 ```
 
 Cursor deep dive (event table, sample `hooks.json`): [`hooks.md`](hooks.md).

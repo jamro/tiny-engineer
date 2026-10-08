@@ -80,7 +80,8 @@ test("runSetup --yes writes cursor hooks", async () => {
       projectRoot: dir,
     });
     const hooks = JSON.parse(readFileSync(join(dir, ".cursor", "hooks.json"), "utf8"));
-    assert.ok(hooks.hooks.stop[0].command.includes("hook cursor"));
+    assert.equal(hooks.hooks.stop[0].command, "npx -y tiny-engineer hook cursor");
+    assert.equal(hooks.hooks.stop[0].timeout, 30);
     const env = readFileSync(join(dir, ".env"), "utf8");
     assert.ok(env.includes("TINY_ENGINEER_URL=http://robot.test"));
   } finally {

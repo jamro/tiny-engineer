@@ -6,7 +6,8 @@ import { hookCommandFor } from "./cliPath.js";
 import { mergeEnvUrl, readJsonFile, writeJsonFile } from "./merge.js";
 import { ask, confirm, multiSelect } from "./prompt.js";
 
-const DEFAULT_TIMEOUT = 5;
+/** Cold `npx` can exceed a few seconds; keep hook timeout comfortable. */
+const DEFAULT_TIMEOUT = 30;
 
 /**
  * @param {string[]} argv
@@ -254,13 +255,14 @@ Options:
   --dry-run          Print plan without writing files
   --url <base>       Robot URL; also merge into project .env when unset
   --force-url        Overwrite existing TINY_ENGINEER_URL in .env
-  --command <prefix> Override CLI launcher (default: node <abs-bin>)
+  --command <prefix> Override CLI launcher (default: npx -y tiny-engineer)
   -h, --help         Show this help
 
 Examples:
-  tiny-engineer setup
-  tiny-engineer setup cursor --yes
-  tiny-engineer setup --all --yes --url http://192.168.1.10
+  npx -y tiny-engineer setup
+  npx -y tiny-engineer setup cursor --yes
+  npx -y tiny-engineer setup --all --yes --url http://192.168.1.10
   tiny-engineer setup --dry-run
+  tiny-engineer setup cursor --yes --command 'node packages/tiny-engineer-cli/bin/tiny-engineer.js'
 `);
 }

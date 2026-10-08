@@ -1,8 +1,8 @@
 # Cursor hooks
 
-Cursor is one IDE supported by the unified **`tiny-engineer` CLI**. Project hooks drive poses from Cursor agent events. Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Install / overview: [`integration.md`](integration.md) (`tiny-engineer setup cursor`).
+Cursor is one IDE supported by the unified **`tiny-engineer` CLI**. Project hooks drive poses from Cursor agent events. Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Install / overview: [`integration.md`](integration.md) (`npx -y tiny-engineer setup cursor`).
 
-Command used by hooks: `tiny-engineer hook cursor` ([`packages/tiny-engineer-cli`](../packages/tiny-engineer-cli/)).
+Published package: [`tiny-engineer` on npm](https://www.npmjs.com/package/tiny-engineer). Hook command: `npx -y tiny-engineer hook cursor`.
 
 ## Setup (this repo)
 
@@ -11,7 +11,7 @@ Command used by hooks: `tiny-engineer hook cursor` ([`packages/tiny-engineer-cli
 3. Enable **Hooks** in Cursor settings if they are off.
 4. Use **Node.js 18+**.
 
-Hooks in this repo call the local unified CLI:
+Hooks in this repo call the **local** unified CLI (so CLI changes apply without waiting on npm):
 
 ```text
 node packages/tiny-engineer-cli/bin/tiny-engineer.js hook cursor
@@ -24,25 +24,30 @@ echo '{"hook_event_name":"stop"}' | node packages/tiny-engineer-cli/bin/tiny-eng
 node packages/tiny-engineer-cli/bin/tiny-engineer.js --help
 ```
 
-Or run the wizard: `node packages/tiny-engineer-cli/bin/tiny-engineer.js setup cursor --yes`.
+Or run the wizard with an explicit local command:
+
+```bash
+node packages/tiny-engineer-cli/bin/tiny-engineer.js setup cursor --yes \
+  --command 'node packages/tiny-engineer-cli/bin/tiny-engineer.js'
+```
 
 Cursor reloads `.cursor/hooks.json` on save. If a hook never fires, restart Cursor and check the **Hooks** output channel.
 
 ## Use in any Cursor project
 
-Robot on Wi-Fi + Node 18+. Easiest: run setup from a checkout (or via HTTPS tarball `npx`):
+Robot on Wi-Fi + Node 18+. Easiest:
 
 ```bash
-npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer setup cursor --yes
+npx -y tiny-engineer setup cursor --yes
 ```
 
 Or hand-edit that project’s `.cursor/hooks.json`. Use this command for every anim hook:
 
 ```text
-npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor
+npx -y tiny-engineer hook cursor
 ```
 
-Use `timeout` **≥ 30** (cold `npx` download can exceed 2s).
+Use `timeout` **≥ 30** (cold `npx` can exceed 2s).
 
 ```json
 {
@@ -50,61 +55,61 @@ Use `timeout` **≥ 30** (cold `npx` download can exceed 2s).
   "hooks": {
     "sessionStart": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ],
     "beforeSubmitPrompt": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ],
     "afterAgentThought": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ],
     "preCompact": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ],
     "preToolUse": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ],
     "beforeReadFile": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ],
     "beforeShellExecution": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ],
     "subagentStart": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ],
     "afterFileEdit": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ],
     "stop": [
       {
-        "command": "npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor",
+        "command": "npx -y tiny-engineer hook cursor",
         "timeout": 30
       }
     ]
@@ -117,23 +122,21 @@ Same command every time — no animation args. Cursor pipes event JSON on stdin;
 Smoke test / help:
 
 ```bash
-npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer --help
-echo '{"hook_event_name":"stop"}' | npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor
+npx -y tiny-engineer --help
+echo '{"hook_event_name":"stop"}' | npx -y tiny-engineer hook cursor
 ```
 
 Optional robot URL:
 
 ```bash
-npx -y --package=https://github.com/jamro/tiny-engineer/archive/refs/heads/main.tar.gz tiny-engineer hook cursor --url http://192.168.1.10
+npx -y tiny-engineer hook cursor --url http://192.168.1.10
 ```
 
-`-y` skips the install prompt. First run downloads the tarball; later runs use the npx cache.
+`-y` skips the install prompt. First run downloads from the npm registry; later runs use the npx cache.
 
 ### Why not `npx -y github:jamro/tiny-engineer`?
 
-That shorthand makes npm fetch via **SSH** (`git@github.com:…`). Cursor hooks often have **no SSH agent** → exit 128, silent fail. Also npm 10 needs the **bin name** after `--package=…` (`tiny-engineer`), and a **2s** hook timeout is too short for cold install.
-
-HTTPS **tarball** URL avoids SSH and works in hooks.
+That shorthand makes npm fetch via **SSH** (`git@github.com:…`). Cursor hooks often have **no SSH agent** → exit 128, silent fail. Use the published package: `npx -y tiny-engineer`.
 
 ## What ships in this repo
 
@@ -165,5 +168,4 @@ Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Event logging (separate):
 - Animation API holds each pose ≥1s and keeps only the latest pending switch — see [`api.md`](api.md).
 - The onboard RGB LED follows the active animation (white for typing/reading/thinking/welcome/ring/wakeup, pulsing red for attention/error/dead, solid red for abort, off for `none`/`sleep`) with 1 s fades between non-pulse states — see [RGB LED](api.md#rgb-led).
 - To change the map, edit [`packages/tiny-engineer-cli/src/integrations/cursor/map.js`](../packages/tiny-engineer-cli/src/integrations/cursor/map.js).
-- Root `package.json` wraps the **unified CLI** for HTTPS-tarball / `npx`. Firmware stays PlatformIO; do not put build tooling in that package.
-- Custom agents or non-Cursor IDEs: call the [REST API](integration.md#2-rest-api-advanced--custom) instead of adding another Node package.
+- Custom agents or non-Cursor IDEs: call the [REST API](integration.md#2-rest-api-advanced--custom).

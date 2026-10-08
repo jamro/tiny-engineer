@@ -1,7 +1,7 @@
 {
   "name": "tiny-engineer",
   "version": "0.1.0",
-  "description": "Unified Tiny Engineer CLI (setup, hooks, anim, play). Root package wraps packages/tiny-engineer-cli for HTTPS-tarball / local npx. Deprecated tiny-engineer-cursor bin kept for compat — see docs/integration.md.",
+  "description": "Monorepo root for local/tarball npx. Prefer the published npm package tiny-engineer (packages/tiny-engineer-cli). Deprecated tiny-engineer-cursor bin kept for compat — see docs/integration.md.",
   "type": "module",
   "bin": {
     "tiny-engineer": "./packages/tiny-engineer-cli/bin/tiny-engineer.js",
