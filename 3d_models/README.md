@@ -14,7 +14,7 @@ Individual parts are exported under [`parts/{servo_id}/`](parts/). Match the fol
 
 Two ways to get the mechanical set (same place in the build path):
 
-- **Print yourself** — use the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, or **`parts/hd1370a/3mf/`**. Ready to print in an orientation that does not need supports. **PLA** or **PETG**. Start with [Print first](#print-first).
+- **Print yourself** — use the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, **`parts/es9051/3mf/`**, or **`parts/hd1370a/3mf/`**. Ready to print in an orientation that does not need supports. **PLA** or **PETG**. Start with [Print first](#print-first).
 - **No printer?** — order the aggregated sets from a third-party service: [order printed parts](../docs/3d/order-parts.md). Orders are at your own risk; fit can vary by provider and design revision.
 
 ### Print first
@@ -30,7 +30,7 @@ Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — n
 
 **Spec:** M2 thread-forming (self-tapping) screws for plastic, **pan-head or button-head** — heads normally sit on the plastic surface. `BottomCover` has recessed head pockets; use heads no larger than **4.0 mm diameter × 2.0 mm high** so the underside rests flat. CAD default pilot is **2.1 mm** (Fusion user parameter `screw_thread_diameter`); if your `ScrewSizingTest` winner differs, re-export at that diameter before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
 
-**One BOM for every servo preset** (`parts/sg90/`, `parts/fs0307/`, `parts/hd1370a/`, …). Printed parts scale with the servo choice, but the lengths below are the reference list for all of them — including smaller models for smaller servos. Buy quantities: [docs/shopping.md](../docs/shopping.md). Pilots are cut as deep as practical so nearby lengths often work too; if you already have different M2 lengths, test-fit before buying a full set. Per-step placement: [assembly guide](../docs/3d/assembly.md).
+**One BOM for every servo preset** (`parts/sg90/`, `parts/fs0307/`, `parts/es9051/`, `parts/hd1370a/`, …). Printed parts scale with the servo choice, but the lengths below are the reference list for all of them — including smaller models for smaller servos. Buy quantities: [docs/shopping.md](../docs/shopping.md). Pilots are cut as deep as practical so nearby lengths often work too; if you already have different M2 lengths, test-fit before buying a full set. Per-step placement: [assembly guide](../docs/3d/assembly.md).
 
 **Per robot (qty is source of truth):**
 

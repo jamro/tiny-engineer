@@ -78,7 +78,7 @@ Speaker **SPK+/SPK-**: [main-control-board.md](main-control-board.md). The modul
 | --- | --- | --- | --- |
 | Controller | Waveshare ESP32-C3-Zero (plugs into board sockets) | same | 1 |
 | Servo PWM | PCA9685 on PCB | Adafruit PCA9685 breakout | 1 |
-| Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 compact; PowerHD HD-1370A still supported | same | 5 |
+| Actuators | Analog micro servos — **Tower Pro SG90 recommended**; Feetech FS0307 / EMAX ES9051 compact; PowerHD HD-1370A still supported | same | 5 |
 | Audio amp | MAX98357A on PCB | MAX98357A breakout | 1 |
 | Speaker | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | same | 1 |
 | Display | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | same | 1 |

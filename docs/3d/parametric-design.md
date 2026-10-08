@@ -23,11 +23,12 @@ Built-in presets in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/ser
 | --- | --- | --- |
 | **Tower Pro SG90** (recommended) | `sg90` | Easiest to buy. Bigger desk — electronics are easier to fit and assemble. |
 | **Feetech FS0307** | `fs0307` | More compact. Looks better if you want a smaller robot. |
+| **EMAX ES9051** | `es9051` | Compact — similar footprint to FS0307, slightly taller body. |
 | **PowerHD HD-1370A** | `hd1370a` | Still supported for backward compatibility. Not the pick for a new build. |
 
 A non-standard servo is fine: measure it, add a preset, run the configurator ([Add a new servo](#add-a-new-servo)). Print parts that match that `servo_id`.
 
-Print matching `parts/{servo_id}/3mf/`: [`sg90`](../../3d_models/parts/sg90/3mf/), [`fs0307`](../../3d_models/parts/fs0307/3mf/), [`hd1370a`](../../3d_models/parts/hd1370a/3mf/).
+Print matching `parts/{servo_id}/3mf/`: [`sg90`](../../3d_models/parts/sg90/3mf/), [`fs0307`](../../3d_models/parts/fs0307/3mf/), [`es9051`](../../3d_models/parts/es9051/3mf/), [`hd1370a`](../../3d_models/parts/hd1370a/3mf/).
 
 ## Servo parameters
 
@@ -75,7 +76,7 @@ Each preset in `servos.json` is a map of Fusion user-parameter names to expressi
 
 | Parameter | Meaning |
 | --- | --- |
-| `servo_id` | Short lowercase folder id (`hd1370a`, `fs0307`, `sg90`). The configurator writes it; the exporter uses it. |
+| `servo_id` | Short lowercase folder id (`hd1370a`, `fs0307`, `sg90`, `es9051`). The configurator writes it; the exporter uses it. |
 
 ## M2 screw holes
 
