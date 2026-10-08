@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { DEFAULT_URL, getBaseUrl } from "../config/env.js";
@@ -225,6 +226,11 @@ export async function runSetup(out, argv, { projectRoot = process.cwd() } = {}) 
     const rel = integration.configRelativePath();
     const abs = join(projectRoot, rel);
     const existing = readJsonFile(abs);
+    if (existing === null && existsSync(abs)) {
+      out.error(`${rel} is not valid JSON; fix it before running setup`);
+      process.exitCode = 1;
+      return;
+    }
     const merged = integration.applyInstall(ctx, existing);
     writeJsonFile(abs, merged);
     out.ok(`wrote ${rel}`);

@@ -90,6 +90,30 @@ test("runSetup --yes writes cursor hooks", async () => {
   }
 });
 
+test("runSetup aborts when hooks.json is invalid JSON", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
+  mkdirSync(join(dir, ".cursor"), { recursive: true });
+  const hooksPath = join(dir, ".cursor", "hooks.json");
+  writeFileSync(hooksPath, "{", "utf8");
+  /** @type {string[]} */
+  const errs = [];
+  const out = createOutput({
+    quiet: false,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: (m) => errs.push(String(m)),
+  });
+  try {
+    await runSetup(out, ["cursor", "--yes"], { projectRoot: dir });
+    assert.equal(process.exitCode, 1);
+    assert.equal(readFileSync(hooksPath, "utf8"), "{");
+    assert.ok(errs.some((e) => e.includes("not valid JSON")));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
 test("mergeEnvUrl respects force flag", () => {
   const dir = mkdtempSync(join(tmpdir(), "te-env-"));
   const envPath = join(dir, ".env");
