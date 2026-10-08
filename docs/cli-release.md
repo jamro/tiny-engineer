@@ -9,7 +9,7 @@ Firmware tags (`v*`) build flash artifacts via `.github/workflows/release.yml`. 
 | Artefact | Where the version lives | Git tag |
 |---|---|---|
 | Firmware / web flash | `git describe` → `FW_VERSION` | `v0.2.0` (existing release flow) |
-| npm CLI | `packages/tiny-engineer-cli/package.json` → `"version"` | optional `cli-v0.1.0` |
+| npm CLI | `packages/tiny-engineer-cli/package.json` → `"version"` | optional `cli-v<version>` |
 
 Use **SemVer** only for the CLI surface users depend on:
 
