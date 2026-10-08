@@ -12,6 +12,7 @@ Servo size sets the size of the **whole robot**. Buy five of **one** model, then
 | --- | --- | --- |
 | **Tower Pro SG90** (recommended) | Default. Bigger desk — electronics are easier to fit | [`parts/sg90/`](../3d_models/parts/sg90/3mf/) |
 | **Feetech FS0307** | Compact robot | [`parts/fs0307/`](../3d_models/parts/fs0307/3mf/) |
+| **EMAX ES9051** | Compact — similar footprint to FS0307, slightly taller | [`parts/es9051/`](../3d_models/parts/es9051/3mf/) |
 | **PowerHD HD-1370A** | Backward compatibility only — skip for a new build | [`parts/hd1370a/`](../3d_models/parts/hd1370a/3mf/) |
 
 Non-preset servo: measure it, add a preset, export parts — [parametric design](3d/parametric-design.md).
@@ -32,7 +33,7 @@ Order the open-source board from any fab: [hardware/order-main-control-board.md]
 | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 | https://www.adafruit.com/product/3923 |
 | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 | https://www.waveshare.com/0.91inch-oled-module.htm |
 
-Compact build: swap the five SG90 for **Feetech FS0307** (same qty). Do not mix models.
+Compact build: swap the five SG90 for **Feetech FS0307** or **EMAX ES9051** (same qty). Do not mix models.
 
 The board already includes the PCA9685, the MAX98357A, and USB-C.
 

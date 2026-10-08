@@ -14,6 +14,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 | Adafruit PCA9685 breakout (advanced path) | https://www.adafruit.com/product/815 |
 | Tower Pro SG90 (or equivalent) | Widely available hobby servo — no single canonical SKU |
 | Feetech FS0307 | See vendor listing for FS0307 analog micro |
+| EMAX ES9051 | See vendor listing for ES9051 analog micro |
 | PowerHD HD-1370A (backward compatibility) | https://www.chd.hk/Product_Detail.aspx?id=30 |
 | MAX98357A breakout (advanced path) | https://www.aliexpress.us/item/3256805196806369.html |
 | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | https://www.adafruit.com/product/3923 |
@@ -86,7 +87,7 @@ Easiest to buy. Larger body → larger printed robot; electronics are easier to 
 | --- | --- |
 | Exact model | Tower Pro SG90 analog micro (or equivalent 9 g class) |
 | `servo_id` | `sg90` |
-| Size | Larger than FS0307 / HD-1370A — see [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) |
+| Size | Larger than FS0307 / ES9051 / HD-1370A — see [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) |
 
 Print [`3d_models/parts/sg90/3mf/`](../../3d_models/parts/sg90/3mf/).
 
@@ -100,6 +101,17 @@ More compact. Use this if you want a smaller robot that looks tighter on the des
 | `servo_id` | `fs0307` |
 
 Print [`3d_models/parts/fs0307/3mf/`](../../3d_models/parts/fs0307/3mf/).
+
+### EMAX ES9051
+
+Compact — similar footprint to FS0307, slightly taller body.
+
+| Field | Value |
+| --- | --- |
+| Exact model | EMAX ES9051 analog micro servo |
+| `servo_id` | `es9051` |
+
+Print [`3d_models/parts/es9051/3mf/`](../../3d_models/parts/es9051/3mf/).
 
 ### PowerHD HD-1370A (backward compatibility)
 
