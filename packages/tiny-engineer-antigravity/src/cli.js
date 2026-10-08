@@ -35,6 +35,16 @@ function defaultResponseForHook(hookType) {
  * @param {string[]} argv
  */
 export async function run(argv) {
+  if (argv.includes("-h") || argv.includes("--help")) {
+    console.log(`Usage: tiny-engineer-antigravity <HookType>
+
+Deprecated: use \`tiny-engineer hook antigravity <HookType>\` (packages/tiny-engineer-cli).
+For custom agents, call the REST API (docs/api.md / docs/integration.md).
+`);
+    process.exitCode = 0;
+    return;
+  }
+
   loadDotEnv();
 
   const hookType = argv[2] || "unknown";

@@ -7,6 +7,9 @@ const DEFAULT_URL = "http://tiny-engineer.local";
 function printHelp() {
   console.log(`Usage: tiny-engineer-cursor [options]
 
+Deprecated: use \`tiny-engineer hook cursor\` (packages/tiny-engineer-cli).
+For custom agents, call the REST API (docs/api.md / docs/integration.md).
+
 Cursor hook helper: read event JSON from stdin, pick an animation, POST to the robot.
 
 Options:

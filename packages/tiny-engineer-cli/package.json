@@ -1,7 +1,7 @@
 {
   "name": "tiny-engineer-cli",
   "version": "0.1.0",
-  "description": "Unified CLI for Tiny Engineer robot animations and IDE hook integrations",
+  "description": "Default Tiny Engineer integration: setup/uninstall IDE hooks, map agent events to poses, anim/play over HTTP. For custom agents use the REST API (docs/api.md).",
   "type": "module",
   "bin": {
     "tiny-engineer": "./bin/tiny-engineer.js"

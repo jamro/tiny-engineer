@@ -565,7 +565,7 @@ curl -X POST http://tiny-engineer.local/play/thinking -H 'Content-Type: audio/wa
 { "ok": true, "played_ms": 3000 }
 ```
 
-The Claude Code CLI wraps this for agents: `tiny-engineer-claude-code play clip.wav [--name thinking]` ([integration.md](integration.md#4-claude-code-dedicated-script)).
+The unified CLI wraps this for agents: `tiny-engineer play clip.wav [--name thinking]` ([integration.md](integration.md#1-unified-cli-default)).
 
 Errors arrive before any audio plays:
 

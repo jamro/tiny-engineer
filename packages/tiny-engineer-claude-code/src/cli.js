@@ -9,6 +9,9 @@ function printHelp() {
   console.log(`Usage: tiny-engineer-claude-code [options]
        tiny-engineer-claude-code play <clip.wav> [--name <animation>] [--url <base>]
 
+Deprecated: use \`tiny-engineer hook claude-code\` / \`tiny-engineer play\` (packages/tiny-engineer-cli).
+For custom agents, call the REST API (docs/api.md / docs/integration.md).
+
 Claude Code hook helper: read event JSON from stdin, pick an animation, POST to the robot.
 
 Options:

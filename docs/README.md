@@ -19,7 +19,7 @@ Pick a path. Depth lives in the linked pages.
 | **Adapt CAD to a different servo** | [3d/parametric-design.md](3d/parametric-design.md) |
 | **Add a new CAD / printable part** | [3d/adding-parts.md](3d/adding-parts.md) |
 | **Optional mods** | [../mods/README.md](../mods/README.md) |
-| **Use with an agent** (robot already on Wi-Fi) | [integration.md](integration.md) · Cursor: [hooks.md](hooks.md) |
+| **Use with an agent** (robot already on Wi-Fi) | [integration.md](integration.md) (`tiny-engineer` CLI or REST) · Cursor: [hooks.md](hooks.md) |
 
 ### Reference and contribute
 
@@ -27,7 +27,7 @@ Pick a path. Depth lives in the linked pages.
 | --- | --- |
 | **Contribute a PCB** (KiCad) | [pcb.md](pcb.md) → [`hardware/`](../hardware/README.md) |
 | **HTTP API / settings** | [api.md](api.md); add a setting: [settings.md](settings.md) |
-| **Any IDE / scripts** | [integration.md](integration.md) |
+| **CLI setup / REST for any IDE** | [integration.md](integration.md) |
 | **Firmware / package tests** | [testing.md](testing.md) |
 | **AI coding agents (repo rules)** | [AGENTS.md](../AGENTS.md) |
 | **Contribute / report a vuln** | [CONTRIBUTING.md](../CONTRIBUTING.md); [SECURITY.md](../SECURITY.md) |

@@ -1,7 +1,8 @@
 {
   "name": "tiny-engineer-cursor",
   "version": "0.1.0",
-  "description": "Cursor hooks CLI that drives Tiny Engineer robot animations over HTTP",
+  "description": "Deprecated: use tiny-engineer-cli (bin: tiny-engineer). Cursor hooks CLI that drives Tiny Engineer robot animations over HTTP",
+  "deprecated": "Use tiny-engineer-cli (bin: tiny-engineer). See docs/integration.md. For custom agents use the REST API (docs/api.md).",
   "type": "module",
   "bin": {
     "tiny-engineer-cursor": "./bin/tiny-engineer-cursor.js"

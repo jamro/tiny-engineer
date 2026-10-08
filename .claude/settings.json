@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -49,7 +49,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -60,7 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -71,7 +71,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -82,7 +82,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -93,7 +93,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -104,7 +104,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -115,7 +115,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -126,7 +126,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]
@@ -137,7 +137,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-claude-code/bin/tiny-engineer-claude-code.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/packages/tiny-engineer-cli/bin/tiny-engineer.js\" hook claude-code",
             "async": true
           }
         ]

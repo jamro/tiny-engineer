@@ -2,7 +2,7 @@
   "tiny-engineer": {
     "PreInvocation": [
       {
-        "command": "tiny-engineer-antigravity PreInvocation",
+        "command": "node packages/tiny-engineer-cli/bin/tiny-engineer.js hook antigravity PreInvocation",
         "timeout": 3
       }
     ],
@@ -11,7 +11,7 @@
         "matcher": "*",
         "hooks": [
           {
-            "command": "tiny-engineer-antigravity PreToolUse",
+            "command": "node packages/tiny-engineer-cli/bin/tiny-engineer.js hook antigravity PreToolUse",
             "timeout": 3
           }
         ]
@@ -22,7 +22,7 @@
         "matcher": "*",
         "hooks": [
           {
-            "command": "tiny-engineer-antigravity PostToolUse",
+            "command": "node packages/tiny-engineer-cli/bin/tiny-engineer.js hook antigravity PostToolUse",
             "timeout": 3
           }
         ]
@@ -30,7 +30,7 @@
     ],
     "Stop": [
       {
-        "command": "tiny-engineer-antigravity Stop",
+        "command": "node packages/tiny-engineer-cli/bin/tiny-engineer.js hook antigravity Stop",
         "timeout": 3
       }
     ]

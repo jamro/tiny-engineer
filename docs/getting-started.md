@@ -85,7 +85,7 @@ curl -X POST "http://tiny-engineer.local/anim?name=ring"
 
 ### 8. Agent hooks
 
-- **Open:** [hooks.md](hooks.md) (Cursor) or [integration.md](integration.md) (Antigravity, Claude Code, raw REST).
+- **Open:** [integration.md](integration.md) — `tiny-engineer setup` (default) or REST for custom agents. Cursor details: [hooks.md](hooks.md).
 - **Until:** optional — an agent event triggers an animation.
 - Done.
 
@@ -102,6 +102,6 @@ curl -X POST "http://tiny-engineer.local/anim?name=ring"
 | `.local` slow or fails | OLED IP; `curl -4 http://…` |
 | OLED shows join AP / `192.168.4.1` | Wi-Fi not saved or STA failed — finish [assembly §20](3d/assembly.md#20-setup-wizard-and-first-boot-on-wi-fi) |
 | Welcome / ring silent (servos move) | Re-install the same release from [Web flash](https://jamro.github.io/tiny-engineer/flash/) (stock image includes audio). Advanced: [flash.md](flash.md) |
-| Hooks never move the robot | Node 18+, hook `timeout` ≥ 30, HTTPS tarball `npx` — see [hooks.md](hooks.md) |
+| Hooks never move the robot | Node 18+, `tiny-engineer doctor`, hook `timeout` ≥ 30 for cold `npx` — see [integration.md](integration.md) / [hooks.md](hooks.md) |
 | Servos twitch / board resets on motion | Power budget — [hardware/power.md](hardware/power.md) |
 | Other boot / I2C / audio failures | [hardware/testing.md](hardware/testing.md) |

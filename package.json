@@ -1,12 +1,16 @@
 {
-  "name": "tiny-engineer-cursor",
+  "name": "tiny-engineer",
   "version": "0.1.0",
-  "description": "Cursor hooks CLI that drives Tiny Engineer robot animations over HTTP. Root package wraps packages/tiny-engineer-cursor for HTTPS-tarball / local npx (see docs/hooks.md; avoid npx github:… in hooks).",
+  "description": "Unified Tiny Engineer CLI (setup, hooks, anim, play). Root package wraps packages/tiny-engineer-cli for HTTPS-tarball / local npx. Deprecated tiny-engineer-cursor bin kept for compat — see docs/integration.md.",
   "type": "module",
   "bin": {
+    "tiny-engineer": "./packages/tiny-engineer-cli/bin/tiny-engineer.js",
     "tiny-engineer-cursor": "./packages/tiny-engineer-cursor/bin/tiny-engineer-cursor.js"
   },
   "files": [
+    "packages/tiny-engineer-cli/bin",
+    "packages/tiny-engineer-cli/src",
+    "packages/tiny-engineer-cli/package.json",
     "packages/tiny-engineer-cursor/bin",
     "packages/tiny-engineer-cursor/src",
     "packages/tiny-engineer-cursor/package.json"

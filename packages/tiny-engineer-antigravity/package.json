@@ -2,7 +2,8 @@
   "name": "@tiny-engineer/antigravity",
   "version": "0.1.0",
   "type": "module",
-  "description": "Antigravity CLI lifecycle hook helper for Tiny Engineer robot animations",
+  "description": "Deprecated: use tiny-engineer-cli (bin: tiny-engineer). Antigravity CLI lifecycle hook helper for Tiny Engineer robot animations",
+  "deprecated": "Use tiny-engineer-cli (bin: tiny-engineer). See docs/integration.md. For custom agents use the REST API (docs/api.md).",
   "main": "src/cli.js",
   "bin": {
     "tiny-engineer-antigravity": "./bin/tiny-engineer-antigravity.js"
