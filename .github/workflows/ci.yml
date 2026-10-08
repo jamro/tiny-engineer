@@ -78,6 +78,8 @@ jobs:
           npm ci --prefix ui
           npm run lint --prefix ui
           npm test --prefix ui
+      - name: Unified CLI package tests
+        run: npm test --prefix packages/tiny-engineer-cli
       - name: Cursor package tests
         run: npm test --prefix packages/tiny-engineer-cursor
       - name: Antigravity package tests

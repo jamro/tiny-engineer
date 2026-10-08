@@ -1,0 +1,21 @@
+{
+  "name": "tiny-engineer-cli",
+  "version": "0.1.0",
+  "description": "Unified CLI for Tiny Engineer robot animations and IDE hook integrations",
+  "type": "module",
+  "bin": {
+    "tiny-engineer": "./bin/tiny-engineer.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["tiny-engineer", "robot", "hooks", "cli"],
+  "license": "MIT"
+}

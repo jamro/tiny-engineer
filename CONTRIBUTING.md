@@ -47,6 +47,7 @@ pio run -e expression-demo
 pio test -e native
 node scripts/expressions/generate.js --check
 node scripts/expressions/test-assets.js
+npm test --prefix packages/tiny-engineer-cli
 npm test --prefix packages/tiny-engineer-cursor
 npm test --prefix packages/tiny-engineer-antigravity
 npm test --prefix packages/tiny-engineer-claude-code
