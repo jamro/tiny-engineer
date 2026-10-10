@@ -11,15 +11,18 @@ Published package: [`tiny-engineer` on npm](https://www.npmjs.com/package/tiny-e
 3. Enable **Hooks** in Cursor settings if they are off.
 4. Use **Node.js 18+**.
 
-Hooks in this repo call the **local** unified CLI (so CLI changes apply without waiting on npm):
+Hooks in this repo call the **local** unified CLI via a portable wrapper (so CLI changes apply without waiting on npm, and without putting a machine-specific Node path in git):
 
 ```text
-node packages/tiny-engineer-cli/bin/tiny-engineer.js hook cursor
+.cursor/hooks/tiny-engineer-cursor.sh
 ```
+
+Cursor’s hook runner often has a thin `PATH` that omits nvm. Bare `node …` then fails with exit **127** / `command not found: node` while other hooks (e.g. [`log-event.sh`](../.cursor/hooks/log-event.sh)) still succeed. The wrapper sources nvm when needed, then falls back to common Homebrew/Volta locations, and `exec`s `packages/tiny-engineer-cli/bin/tiny-engineer.js hook cursor`.
 
 Optional smoke test (robot should ring):
 
 ```bash
+echo '{"hook_event_name":"stop"}' | .cursor/hooks/tiny-engineer-cursor.sh
 echo '{"hook_event_name":"stop"}' | node packages/tiny-engineer-cli/bin/tiny-engineer.js hook cursor
 node packages/tiny-engineer-cli/bin/tiny-engineer.js --help
 ```
@@ -31,7 +34,7 @@ node packages/tiny-engineer-cli/bin/tiny-engineer.js setup cursor --yes \
   --command 'node packages/tiny-engineer-cli/bin/tiny-engineer.js'
 ```
 
-Cursor reloads `.cursor/hooks.json` on save. If a hook never fires, restart Cursor and check the **Hooks** output channel.
+Cursor reloads `.cursor/hooks.json` on save. If a hook never fires or the robot stays still while event logging works, restart Cursor and check the **Hooks** output channel for exit 127 / `command not found: node`.
 
 ## Use in any Cursor project
 
@@ -160,7 +163,7 @@ Each anim hook runs the same command with **no animation args**. Cursor pipes ev
 
 If the robot has an `access_token` set, put the same value in `TINY_ENGINEER_TOKEN` (system/process env, or project-root `.env`). The CLI then sends `Authorization: Bearer <token>`. Without a token, no auth header is sent.
 
-Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Event logging (separate): [`.cursor/hooks/log-event.sh`](../.cursor/hooks/log-event.sh).
+Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Local anim hook: [`.cursor/hooks/tiny-engineer-cursor.sh`](../.cursor/hooks/tiny-engineer-cursor.sh). Event logging (separate): [`.cursor/hooks/log-event.sh`](../.cursor/hooks/log-event.sh).
 
 ## Notes
 
