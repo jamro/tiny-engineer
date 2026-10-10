@@ -72,7 +72,7 @@ Firmware uses two complementary control paths:
 
 Helpers live in [`src/animation/util.cpp`](../../src/animation/util.cpp). Blocking test moves (`moveTo`) also use cubic easing.
 
-`SERVO_MAX_SPEED_DEG_S` (140°/s) is ~28% of PowerHD HD-1370A unloaded max (~500°/s @ 4.8 V) — smoother under load while staying responsive for hand taps. Other presets (SG90, FS0307) still use this firmware cap.
+`SERVO_MAX_SPEED_DEG_S` (140°/s) is ~28% of PowerHD HD-1370A unloaded max (~500°/s @ 4.8 V) — smoother under load while staying responsive for hand taps. Other presets (SG90, FS0307, ES9051) still use this firmware cap.
 
 Bring-up motion (`runServoTest`): each joint uses its **saved** min/max (`n` in −1..1):
 
