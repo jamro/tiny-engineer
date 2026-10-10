@@ -2339,10 +2339,6 @@
 		(uuid "33d7abfc-8524-4df5-ae15-b3f63e57ed4b")
 	)
 	(no_connect
-		(at 55.88 121.92)
-		(uuid "37d259cc-7d9b-4839-a241-7dd4c83c922a")
-	)
-	(no_connect
 		(at 219.71 107.95)
 		(uuid "beeaad81-344c-4d85-ac63-ce69f031a723")
 	)
@@ -2916,6 +2912,16 @@
 	)
 	(wire
 		(pts
+			(xy 55.88 121.92) (xy 52.07 121.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8d151c2b-c064-4599-9f4c-2596effbd1ea")
+	)
+	(wire
+		(pts
 			(xy 158.75 87.63) (xy 158.75 97.79)
 		)
 		(stroke
@@ -3213,6 +3219,16 @@
 			(type default)
 		)
 		(uuid "eaf06554-ea77-496b-9bd8-7b475c97be39")
+	)
+	(wire
+		(pts
+			(xy 52.07 121.92) (xy 52.07 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ecadabfa-a30e-4ab8-9b94-ac2a721be00b")
 	)
 	(wire
 		(pts
@@ -3634,6 +3650,132 @@
 			(project "main-control-board"
 				(path "/82a78d11-58ff-455c-a94e-f7463ce9fc2e/9ca8381d-c51d-4172-aff4-163dcd982dc8"
 					(reference "#PWR018")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 52.07 106.68 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0f92a767-424d-466b-8fb1-c1e9da6f2338")
+		(property "Reference" "C6"
+			(at 55.88 105.4099 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "100nF"
+			(at 55.88 107.9499 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 51.1048 102.87 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 52.07 106.68 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 52.07 106.68 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC Part #" "C14663"
+			(at 52.07 106.68 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "KiLib_Generator" ""
+			(at 52.07 106.68 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CC0603KRX7R9BB104"
+			(at 52.07 106.68 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "YAGEO"
+			(at 52.07 106.68 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "092ae18f-885b-423b-b3c3-e0530e5578f8")
+		)
+		(pin "1"
+			(uuid "19a0074d-cc66-4044-90b8-68a61806cc26")
+		)
+		(instances
+			(project "main-control-board"
+				(path "/82a78d11-58ff-455c-a94e-f7463ce9fc2e/9ca8381d-c51d-4172-aff4-163dcd982dc8"
+					(reference "C6")
 					(unit 1)
 				)
 			)
@@ -5968,6 +6110,84 @@
 			(project "main-control-board"
 				(path "/82a78d11-58ff-455c-a94e-f7463ce9fc2e/9ca8381d-c51d-4172-aff4-163dcd982dc8"
 					(reference "C5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 52.07 102.87 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a8bc166d-d0a8-4aee-87d8-02ad1807a6ea")
+		(property "Reference" "#PWR012"
+			(at 52.07 96.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 52.07 97.79 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 52.07 102.87 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 52.07 102.87 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 52.07 102.87 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "41b0c7d9-046d-466f-9b6e-9e142d4a86c7")
+		)
+		(instances
+			(project "main-control-board"
+				(path "/82a78d11-58ff-455c-a94e-f7463ce9fc2e/9ca8381d-c51d-4172-aff4-163dcd982dc8"
+					(reference "#PWR012")
 					(unit 1)
 				)
 			)
