@@ -54,7 +54,7 @@
       <div class="cards">
         <a class="card" href="/animations"
           ><h3>Animations</h3>
-          <p>Pick a gesture &mdash; typing, reading, thinking, and more.</p></a
+          <p>Pick a gesture &mdash; typing, reading, thinking, talking, and more.</p></a
         >
         <a class="card" href="/servo"
           ><h3>Servo control</h3>
@@ -368,7 +368,7 @@
           </tr>
           <tr>
             <td><code>talking</code></td>
-            <td>Speaking gesture</td>
+            <td>Speaking gesture; soft torso shifts (audio-reactive during <code>/play</code>)</td>
           </tr>
           <tr>
             <td><code>ring</code></td>
@@ -418,7 +418,7 @@
         <tbody>
           <tr>
             <td><code>talking</code></td>
-            <td>Default</td>
+            <td>Default; motion follows speech energy</td>
           </tr>
           <tr>
             <td><code>typing</code></td>
@@ -575,6 +575,9 @@
         </button>
         <button type="button" class="btn" data-anim="thinking">
           <span class="btn-title">Thinking</span><span class="btn-hint">Continuous</span>
+        </button>
+        <button type="button" class="btn" data-anim="talking">
+          <span class="btn-title">Talking</span><span class="btn-hint">Continuous</span>
         </button>
         <button type="button" class="btn" data-anim="ring">
           <span class="btn-title">Bell</span><span class="btn-hint">One-shot</span>
@@ -918,7 +921,7 @@
           <div class="form-group">
             <label for="config-continuous">Continuous anim timeout (minutes)</label>
             <input type="number" id="config-continuous" min="1" max="1440" step="1" required />
-            <p class="hint">Max time for typing / reading / thinking</p>
+            <p class="hint">Max time for typing / reading / thinking / talking</p>
           </div>
         </div>
         <div class="config-section">

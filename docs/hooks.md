@@ -169,6 +169,6 @@ Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Local anim hook: [`.curso
 
 - Robot offline → hook still exits 0; no agent stall.
 - Animation API holds each pose ≥1s and keeps only the latest pending switch — see [`api.md`](api.md).
-- The onboard RGB LED follows the active animation (white for typing/reading/thinking/welcome/ring/wakeup, pulsing red for attention/error/dead, solid red for abort, off for `none`/`sleep`) with 1 s fades between non-pulse states — see [RGB LED](api.md#rgb-led).
+- The onboard RGB LED follows the active animation (white for typing/reading/thinking/talking/welcome/ring/wakeup, pulsing red for attention/error/dead, solid red for abort, off for `none`/`sleep`) with 1 s fades between non-pulse states — see [RGB LED](api.md#rgb-led).
 - To change the map, edit [`packages/tiny-engineer-cli/src/integrations/cursor/map.js`](../packages/tiny-engineer-cli/src/integrations/cursor/map.js).
 - Custom agents or non-Cursor IDEs: call the [REST API](integration.md#2-rest-api-advanced--custom).

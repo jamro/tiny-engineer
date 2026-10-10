@@ -7,6 +7,7 @@
 
 #include "animation.h"
 #include "audio/audio.h"
+#include "audio/audio_motion.h"
 #include "audio/wav_parser.h"
 #include "http/json.h"
 #include "pins.h"
@@ -70,6 +71,9 @@ public:
     serialLogPrintln(playedMs());
 
     if (started_) {
+      if (animation_ == AnimationId::Talking) {
+        audioMotionEnd(millis());
+      }
       setAnimationImmediately(animationIsContinuous(previous_) ? previous_ : AnimationId::None);
     }
   }
@@ -91,15 +95,24 @@ public:
   }
 
   void onPcm(const int16_t* samples, size_t count) override {
+    const uint32_t now = millis();
+
     if (!started_) {
       // The format is known good by now, so the robot only moves for clips it can play.
       started_ = true;
       previous_ = getAnimation();
+      if (animation_ == AnimationId::Talking) {
+        audioMotionBegin(now);
+      }
       setAnimationImmediately(animation_);
     }
 
+    if (animation_ == AnimationId::Talking) {
+      audioMotionFeed(samples, count, now);
+    }
+
     writeMonoToSpeaker(samples, count);
-    noteActivity(millis());
+    noteActivity(now);
     tickRobot();
   }
 

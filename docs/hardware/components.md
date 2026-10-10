@@ -33,7 +33,7 @@ Constants cited below match [`include/pins.h`](../../include/pins.h).
 | USB | Native USB on GPIO18/19 — reached via the main control board USB-C (onboard USB-C unused when assembled). Advanced path: Adafruit 5993 — [wiring.md](wiring.md#usb-connector-5993) |
 | Flash | 4 MB stacked flash on GPIO12–GPIO17 (those GPIOs are **not exposed**) |
 | Onboard RGB | WS2812 on **GPIO10** |
-| Firmware notes | Boot: dim green status. Animations: white (typing/reading/thinking/welcome/ring/wakeup), pulsing red (attention/error/dead), solid red (abort), off (idle/sleep). 1 s fade between non-pulse states. Fatal init errors: hang and blink red (1 = PCA9685, 2 = I2S). See [blink codes](testing.md#boot-failure-blink-codes) and [`docs/api.md`](../api.md#rgb-led) |
+| Firmware notes | Boot: dim green status. Animations: white (typing/reading/thinking/talking/welcome/ring/wakeup), pulsing red (attention/error/dead), solid red (abort), off (idle/sleep). 1 s fade between non-pulse states. Fatal init errors: hang and blink red (1 = PCA9685, 2 = I2S). See [blink codes](testing.md#boot-failure-blink-codes) and [`docs/api.md`](../api.md#rgb-led) |
 | BOOT | Button / strapping on **GPIO9** |
 | RESET | Separate RESET button (CHIP_EN), not a GPIO |
 | UART0 silkscreen | TX = GPIO21, RX = GPIO20 |
