@@ -1,5 +1,10 @@
 import { $, $$ } from "../dom.js";
-import { cloneRanges, DEFAULT_SERVO_RANGES, servoRanges } from "../servo-ranges.js";
+import {
+  cloneRanges,
+  DEFAULT_SERVO_RANGES,
+  onServoRangesChange,
+  servoRanges,
+} from "../servo-ranges.js";
 import { clearStatus, isBusy, perform, setStatus } from "../status.js";
 
 const JOINT_COPY = [
@@ -119,6 +124,10 @@ export const calibration = {
     this.showAngle();
   },
 };
+
+onServoRangesChange(() => {
+  calibration.ranges = cloneRanges(servoRanges);
+});
 
 $("#setup-move-90").addEventListener("click", async () => {
   const result = await postSetupServo({ all: CENTER });

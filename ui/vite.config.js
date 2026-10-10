@@ -1,5 +1,6 @@
 import { minify } from "html-minifier-terser";
 import { defineConfig } from "vite";
+import { viteSingleFile } from "vite-plugin-singlefile";
 
 const robot = process.env.TINY_ENGINEER_URL || "http://tiny-engineer.local";
 // Anchored so page routes such as /animations and /tests stay on the dev server.
@@ -21,14 +22,9 @@ const minifyHtml = {
     minify(html, { collapseWhitespace: true, removeComments: true, minifyCSS: true }),
 };
 
-export default defineConfig(({ command }) => ({
-  // The firmware serves the built files from LittleFS under /ui/.
-  base: command === "build" ? "/ui/" : "/",
-  plugins: [minifyHtml],
-  build: {
-    outDir: "dist",
-    emptyOutDir: true,
-  },
+export default defineConfig({
+  // One self-contained page: the firmware embeds it gzipped and serves it as-is.
+  plugins: [viteSingleFile(), minifyHtml],
   test: {
     environment: "jsdom",
   },
@@ -36,4 +32,4 @@ export default defineConfig(({ command }) => ({
     host: "127.0.0.1",
     proxy: Object.fromEntries(apiRoutes.map((route) => [route, robot])),
   },
-}));
+});

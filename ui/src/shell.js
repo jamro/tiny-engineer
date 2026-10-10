@@ -155,7 +155,7 @@ export async function boot() {
   let auth;
 
   try {
-    auth = await (await fetch("/auth")).json();
+    auth = await apiGetJson("/auth");
   } catch {
     enterApp();
 

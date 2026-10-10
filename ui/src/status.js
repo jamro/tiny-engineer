@@ -3,6 +3,7 @@ import { $, $$ } from "./dom.js";
 
 const statusBar = $("#status");
 let busy = false;
+let lockedControls = [];
 
 export const isBusy = () => busy;
 
@@ -16,10 +17,15 @@ export function clearStatus() {
   statusBar.textContent = "";
 }
 
+// Re-enables only what it disabled, so controls that were already disabled for their own reasons stay that way.
 function setBusy(on) {
   busy = on;
 
-  for (const control of $$(".btn, [type=submit]")) {
+  if (on) {
+    lockedControls = [...$$(".btn, [type=submit]")].filter((control) => !control.disabled);
+  }
+
+  for (const control of lockedControls) {
     control.disabled = on;
   }
 }

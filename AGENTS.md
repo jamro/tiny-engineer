@@ -11,7 +11,7 @@ Tiny Engineer is an open-source ESP32-C3 Wi-Fi desk robot: 3D-printed mechanics,
 | Path | Role |
 | --- | --- |
 | `src/`, `include/`, `lib/`, `data/` | Firmware (PlatformIO) |
-| `ui/` | Web control panel (Vite + ES modules); `pio run` builds, minifies and gzips it onto LittleFS |
+| `ui/` | Web control panel (Vite + ES modules); `pio run` builds it into one minified page and embeds it gzipped in the firmware |
 | `packages/` | HTTP / hook CLIs (Cursor, Antigravity, Claude Code, …) — scope `integrations` |
 | `skills/` | Agent skills shared by Claude Code, Cursor and Antigravity — scope `integrations` |
 | `3d_models/` | CAD and printables (CERN-OHL-S) |

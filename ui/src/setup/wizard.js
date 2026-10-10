@@ -1,8 +1,7 @@
 import { postQuietly } from "../api.js";
 import { device } from "../device.js";
 import { $ } from "../dom.js";
-import { refreshServoPage } from "../servo.js";
-import { applyServoRanges, cloneRanges, servoRanges } from "../servo-ranges.js";
+import { applyServoRanges, rangesToParams } from "../servo-ranges.js";
 import { syncSetupUi } from "../shell.js";
 import { clearStatus, isBusy, perform, setStatus } from "../status.js";
 import { calibration } from "./calibration.js";
@@ -28,6 +27,12 @@ function goTo(id) {
 
 function previewOled() {
   postQuietly("/setup/oled", { rotate_180: oledRotate180 ? 1 : 0 });
+}
+
+function applyOledRotation(settings) {
+  if (typeof settings.oled_rotate_180 === "boolean") {
+    oledRotate180 = settings.oled_rotate_180;
+  }
 }
 
 function saveSettings(params, pending) {
@@ -87,12 +92,7 @@ export function resetWizard() {
 export function applyWizardSettings(settings) {
   $("#config-wifi-hostname").value = settings.hostname || "";
   ledMapping.applySavedOrder(settings.rgb_order);
-
-  if (typeof settings.oled_rotate_180 === "boolean") {
-    oledRotate180 = settings.oled_rotate_180;
-  }
-
-  calibration.ranges = cloneRanges(servoRanges);
+  applyOledRotation(settings);
 
   if (device.inSetup) {
     renderWizard();
@@ -105,21 +105,13 @@ const advance = {
       return;
     }
 
-    const result = await saveSettings(
-      {
-        servo_mins: calibration.ranges.map(([min]) => min).join(","),
-        servo_maxs: calibration.ranges.map(([, max]) => max).join(","),
-      },
-      "Saving servo ranges…",
-    );
+    const result = await saveSettings(rangesToParams(calibration.ranges), "Saving servo ranges…");
 
     if (!result?.ok) {
       return;
     }
 
     applyServoRanges(result.data);
-    calibration.ranges = cloneRanges(servoRanges);
-    refreshServoPage();
     goTo("oled");
     previewOled();
     clearStatus();
@@ -135,9 +127,7 @@ const advance = {
       return;
     }
 
-    if (typeof result.data.oled_rotate_180 === "boolean") {
-      oledRotate180 = result.data.oled_rotate_180;
-    }
+    applyOledRotation(result.data);
 
     goTo("led");
     clearStatus();
@@ -193,7 +183,6 @@ nextButton.addEventListener("click", async () => {
   }
 
   await advance[currentStep().id]?.();
-  // perform() re-enables every button, so restore this step's Next state.
   renderWizard();
 });
 
@@ -228,8 +217,6 @@ $("#setup-audio-play").addEventListener("click", async () => {
   if (result?.ok) {
     setStatus("Done.", "ok");
   }
-
-  renderWizard();
 });
 
 $("#config-wifi-password-toggle").addEventListener("click", (event) => {

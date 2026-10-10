@@ -106,7 +106,6 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | Method | Path | Body |
 | --- | --- | --- |
 | `GET` | `/` | HTML endpoint index |
-| `GET` | `/ui/*` | Web UI assets from LittleFS (gzip) |
 | `GET` | `/auth` | Auth status (`ok`, `required`, `wifi_configured`, `provisioning`) — always public |
 | `GET` | `/health` | Health JSON — full field list in [api.md](../api.md#get-health) |
 | `GET` / `POST` | `/anim` | Current animation / start one (`name`, optional `interrupt`) — full params in [api.md](../api.md#post-anim) |

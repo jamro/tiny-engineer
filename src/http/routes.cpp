@@ -109,6 +109,5 @@ void registerHttpRoutes() {
   });
   registerHttpTestRoutes(server);
   registerHttpSetupRoutes(server);
-  registerUiAssetRoutes(server);
   server.onNotFound(handleNotFound);
 }

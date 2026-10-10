@@ -1,7 +1,6 @@
 .DS_Store
 __pycache__/
 data/*.*
-data/ui/
 artifacts/
 
 # Cursor hook event log

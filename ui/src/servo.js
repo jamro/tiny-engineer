@@ -1,5 +1,5 @@
 import { $ } from "./dom.js";
-import { servoRanges } from "./servo-ranges.js";
+import { onServoRangesChange, servoRanges } from "./servo-ranges.js";
 import { perform, setStatus } from "./status.js";
 
 const servoSelect = $("#servo-index");
@@ -9,6 +9,12 @@ const rangeHint = $("#servo-range-hint");
 
 const currentRange = () => servoRanges[Number(servoSelect.value)] ?? servoRanges[0];
 
+function inRange(angle) {
+  const [min, max] = currentRange();
+
+  return angle >= min && angle <= max;
+}
+
 function currentMid() {
   const [min, max] = currentRange();
 
@@ -17,13 +23,12 @@ function currentMid() {
 
 function updateRangeHint() {
   const [min, max] = currentRange();
-  const angle = parseFloat(angleInput.value);
-  const inRange = angle >= min && angle <= max;
+  const safe = inRange(parseFloat(angleInput.value));
 
-  rangeHint.textContent = inRange
+  rangeHint.textContent = safe
     ? `Safe range: ${min}–${max}°`
     : `Outside safe range — firmware clamps to ${min}–${max}°`;
-  rangeHint.classList.toggle("warn", !inRange);
+  rangeHint.classList.toggle("warn", !safe);
 }
 
 function setAngle(angle) {
@@ -32,7 +37,7 @@ function setAngle(angle) {
   updateRangeHint();
 }
 
-export function refreshServoPage() {
+function refreshServoPage() {
   const [min, max] = currentRange();
 
   for (const input of [slider, angleInput]) {
@@ -42,7 +47,7 @@ export function refreshServoPage() {
 
   const angle = parseFloat(angleInput.value);
 
-  setAngle(angle >= min && angle <= max ? angle : currentMid());
+  setAngle(inRange(angle) ? angle : currentMid());
   $("#servo-scale-min").textContent = `${min}°`;
   $("#servo-scale-mid").textContent = `${Math.round(currentMid())}°`;
   $("#servo-scale-max").textContent = `${max}°`;
@@ -80,3 +85,6 @@ $("#servo-form").addEventListener("submit", (event) => {
   event.preventDefault();
   moveServo();
 });
+
+onServoRangesChange(refreshServoPage);
+refreshServoPage();

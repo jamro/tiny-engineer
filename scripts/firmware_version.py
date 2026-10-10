@@ -35,5 +35,3 @@ project_dir = Path(env.subst("$PROJECT_DIR"))
 version = _sanitize(_git_describe(project_dir))
 print(f"Firmware version: {version}")
 env.Append(CPPDEFINES=[("FW_VERSION", '\\"%s\\"' % version)])
-# copy_assets.py stamps the web UI with the same string so the firmware can detect a mismatched filesystem.
-env.Replace(TE_FW_VERSION=version)

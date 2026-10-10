@@ -46,6 +46,7 @@ void httpSendJson(WebServer& server, int code, const char* body) {
 
 void httpSendHtml(WebServer& server, int code, const char* body) {
   sendCorsHeaders(server);
+  // send() copies into Arduino String and fails on the large panel.
   server.send_P(code, "text/html; charset=utf-8", body);
 }
 

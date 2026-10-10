@@ -41,7 +41,7 @@ Firmware is Arduino on [PlatformIO](https://platformio.org/) ([pioarduino](https
 ### Install and connect
 
 1. Install [PlatformIO Core](https://docs.platformio.org/en/latest/core/installation.html) (or the PlatformIO IDE extension).
-   Also install [Node.js](https://nodejs.org/) 20.19+ on 20.x, or 22.12+: `pio run` builds the web UI in [`ui/`](../ui/) with npm.
+   Also install [Node.js](https://nodejs.org/) 20.19+ on 20.x, or 22.12+: `pio run` builds the web UI in [`ui/`](../ui/) with npm and embeds it in the firmware.
 2. Use a USB-C **data** cable. Charge-only cables fail upload and serial.
 3. Plug the data cable into the **main control board USB-C** once the ESP32 is seated on its headers. Advanced breakout build: use the Adafruit 5993, or the C3-Zero onboard USB-C before that breakout is wired — [hardware/wiring.md](hardware/wiring.md).
 
@@ -55,7 +55,7 @@ pio run -t upload       # flash firmware + LittleFS
 pio device monitor      # serial (115200)
 ```
 
-After firmware upload, a post-script also uploads **LittleFS** ([`scripts/upload_fs_after_upload.py`](../scripts/upload_fs_after_upload.py)) so the web UI and WAV assets (`welcome`, `bell`, and friends) land on the board. If the web page says the UI is missing, or animations move but stay silent, run `pio run -t uploadfs` once.
+After firmware upload, a post-script also uploads **LittleFS** ([`scripts/upload_fs_after_upload.py`](../scripts/upload_fs_after_upload.py)) so WAV assets (`welcome`, `bell`, and friends) land on the board. If animations move but stay silent, run `pio run -t uploadfs` once.
 
 Several serial ports:
 
@@ -119,16 +119,15 @@ After that, with the robot on your home Wi-Fi:
 ```bash
 export TINY_ENGINEER_URL=http://192.168.x.x   # default: tiny-engineer.local
 export TINY_ENGINEER_TOKEN=...                # only if access_token is set
-pio run -e ota -t ota       # LittleFS (web UI, WAV assets), then firmware
+pio run -e ota -t ota       # firmware
+pio run -e ota -t otafs     # LittleFS (WAV assets)
 ```
-
-Firmware and filesystem are one release: the web UI is stamped with the firmware version it was built with, and the firmware refuses to serve a UI from another build (`/` returns **503** naming both versions). `-t ota` therefore uploads the filesystem first, waits for the robot to reboot, then uploads the firmware. `pio run -e ota -t otafs` uploads the filesystem alone, for recovery.
 
 These are the same variables the agent integrations read ([integration.md](integration.md)). OTA listens on UDP/TCP port 3232 and only runs while connected to home Wi-Fi, not in setup AP mode. When `access_token` is set it is also the OTA password; changing it applies to OTA without a reboot.
 
 An update is written to the inactive slot and booted once; it becomes permanent only after it connects to Wi-Fi and starts its OTA listener. Firmware that never gets that far is rolled back to the previous slot on the next reset or power cycle. A firmware that hangs needs that power cycle to recover.
 
-A filesystem update that fails midway reboots the robot; re-run `pio run -e ota -t ota` or fall back to `pio run -e ota -t upload` over USB.
+A filesystem update that fails midway reboots the robot; re-run `pio run -e ota -t otafs` or fall back to `pio run -e ota -t uploadfs` over USB.
 
 Partition changes, including a switch back to the default build, cannot be applied over the air. Flash those with `pio run -t upload` over USB.
 

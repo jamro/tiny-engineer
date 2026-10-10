@@ -6,7 +6,7 @@ Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `htt
 
 Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). `Content-Type: application/json`. CORS: `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization`.
 
-When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/ui/*`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`) stay available on the setup AP.
+When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`) stay available on the setup AP.
 
 If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a five-step setup wizard at `/config` (servo calibration, OLED orientation, RGB LED, speaker test, then Wi-Fi). If saved credentials fail, it reopens setup AP mode. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
@@ -24,11 +24,7 @@ Open in a browser:
 curl http://tiny-engineer.local/
 ```
 
-Returns `Content-Type: text/html; charset=utf-8`, gzip-encoded. The page is served from LittleFS (`/ui/index.html.gz`); if the filesystem image is missing, or its `/ui/version.txt` does not match the firmware version, it returns **503** with flashing instructions.
-
-### `GET /ui/*`
-
-Web UI assets from LittleFS, gzip-encoded. Bundled files under `/ui/assets/` have content-hashed names and are sent with `Cache-Control: max-age=31536000, immutable`; anything else under `/ui/` is `no-cache`. Always public. Source lives in [`ui/`](../ui/); `pio run` builds it with Vite and gzips the output into `data/ui/`.
+Returns `Content-Type: text/html; charset=utf-8`, gzip-encoded. The page is built from [`ui/`](../ui/) with Vite and embedded in the firmware, so it always matches the API the firmware serves.
 
 ### `GET /auth`
 
