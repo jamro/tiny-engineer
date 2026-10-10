@@ -151,6 +151,7 @@ void setup() {
     setAnimation(AnimationId::Welcome);
   } else if (wifiConnected() && !settingsWelcomeEnabled()) {
     anim::parkHands(anim::TRANSITION_HAND_SPEED_DEG_S);
+    setRgbForAnimation(AnimationId::None, millis());
   } else if (wifiProvisioningMode()) {
     setRgb(0, 0, 64);
   } else {
