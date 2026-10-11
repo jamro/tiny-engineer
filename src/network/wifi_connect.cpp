@@ -97,7 +97,19 @@ void startMdns(const char* hostname) {
   }
 }
 
-void startCaptiveDns() {
+// Phones open the setup page on their own: DHCP option 114 names the portal
+// URL, and the catch-all DNS sends connectivity probes to the web server.
+void openSetupAp(wifi_mode_t mode) {
+  buildApSsid();
+
+  WiFi.persistent(false);
+  WiFi.mode(mode);
+  WiFi.softAP(apSsid);
+
+  if (!WiFi.AP.enableDhcpCaptivePortal()) {
+    serialLogPrintln("ERROR: DHCP captive portal option failed");
+  }
+
   if (dnsStarted) {
     return;
   }
@@ -174,11 +186,7 @@ bool connectSta(
 }
 
 void startProvisioningAp() {
-  buildApSsid();
-
-  WiFi.persistent(false);
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(apSsid);
+  openSetupAp(WIFI_AP);
 
   const IPAddress apIp = WiFi.softAPIP();
   storeIp(apIp);
@@ -195,8 +203,6 @@ void startProvisioningAp() {
   provisioning = true;
   staConnected = false;
   ipText[0] = '\0';
-
-  startCaptiveDns();
 
   serialLogPrint("AP setup SSID: ");
   serialLogPrintln(apSsid);
@@ -272,11 +278,7 @@ bool wifiTestCredentials(
   serialLogPrintln("WIFI TEST (provisioning)");
   serialLogPrintln("==========================");
 
-  buildApSsid();
-  WiFi.persistent(false);
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(apSsid);
-  startCaptiveDns();
+  openSetupAp(WIFI_AP_STA);
 
   if (!connectSta(ssid, password, hostname)) {
     wifiRestoreProvisioningAp();
