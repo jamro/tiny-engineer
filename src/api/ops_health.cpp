@@ -33,8 +33,18 @@ void apiOpHealthGet(const ApiRequest& /*req*/, ApiResponse& resp) {
   // Integer tenths avoids newlib dtoa (heavy stack) on loopTask.
   char tempFrag[24];
   if (tempOk) {
-    const int tenths = static_cast<int>(tempC * 10.0f + 0.5f);
-    std::snprintf(tempFrag, sizeof(tempFrag), "%d.%d", tenths / 10, tenths % 10);
+    // Round away from zero; format sign apart from abs tenths so negatives
+    // (incl. (-1, 0)) stay valid JSON numbers — not e.g. "0.-5".
+    const int tenths = static_cast<int>(tempC * 10.0f + (tempC >= 0.0f ? 0.5f : -0.5f));
+    const int absTenths = tenths < 0 ? -tenths : tenths;
+    std::snprintf(
+      tempFrag,
+      sizeof(tempFrag),
+      "%s%d.%d",
+      tenths < 0 ? "-" : "",
+      absTenths / 10,
+      absTenths % 10
+    );
   } else {
     std::snprintf(tempFrag, sizeof(tempFrag), "null");
   }
