@@ -68,6 +68,11 @@ void updateAllServos();
 bool anyServoMoving();
 void ensureAllServoOutputs();
 void releaseAllServoOutputs();
+// True when settings servo_hold is on or POST /servos/park armed hold until reboot.
+bool servoOutputsHoldActive();
+void setServoParkHoldUntilReboot(bool hold);
+void flushServoPoseToNvs();
+void pollServoPoseSave();
 float clampElectricalAngle(float angle);
 float clampServoAngle(int index, float angle);
 float servoRuntimeMid(int index);

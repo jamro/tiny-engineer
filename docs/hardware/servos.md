@@ -48,14 +48,28 @@ Verified in [`include/pins.h`](../../include/pins.h) and [`include/servos.h`](..
 
 On every boot (and after each flash reset):
 
-1. **OE** — GP5 drives PCA9685 **OE** (active LOW). Firmware holds OE **HIGH** (outputs off) from early `setup`, then **LOW** after neutral PWM is written (`PCA9685_OE_WIRED = true` in [`include/pins.h`](../../include/pins.h)).
-2. **Early init** — PCA9685 is probed and configured immediately after `Wire.begin`, before OLED, settings, or Wi-Fi.
-3. **Neutral park** — all channels receive mid-pulse PWM while OE is still HIGH; then OE goes LOW.
+1. **OE** — GP5 drives PCA9685 **OE** (active LOW). Firmware holds OE **HIGH** (outputs off) from early `setup`, then **LOW** after PWM is written (`PCA9685_OE_WIRED = true` in [`include/pins.h`](../../include/pins.h)).
+2. **Early init** — PCA9685 is probed and configured immediately after `Wire.begin`, before OLED / Wi-Fi (settings already loaded).
+3. **Last-pose restore** — NVS key `spose` (namespace `te`) holds the last commanded angles (5× degrees). While OE is still HIGH, firmware writes those pulses (mid fallback if missing), then OE goes LOW. That cuts the common flash snap when the robot was already near the saved pose.
 4. **Smooth boot moves** — `centerAllServos()` and sleep-inertia pose use `servoMoveAllSmoothTo()` at `SERVO_BOOT_SPEED_DEG_S` (35°/s), not instant snaps.
+
+### Flash-safe park
+
+Rapid flash/upload can still yank joints if the body drooped after PWM limp (software pose ≠ physical). Mitigations:
+
+| Tool | Role |
+| --- | --- |
+| `POST /servos/park` | Smooth mid, flush `spose`, keep PWM until reboot |
+| PlatformIO `pre:upload` | [`scripts/park_servos_before_upload.py`](../../scripts/park_servos_before_upload.py) calls park over serial; warns and continues if the robot is offline |
+| Setting `servo_hold` | Skip idle/sleep PWM full-off so the pose does not limp between flashes |
+| `welcome=0` | Quieter post-boot motion while iterating (optional) |
+| Unplug servo **5 V / V+** | Absolute safety when pose is unknown |
 
 ## Idle and sleep PWM release
 
 Analog servos hunt while a 50 Hz pulse is present. Firmware does **not** use OE for this: after animation `none` parks (awake rest or device-sleep chin-down) and every joint is still for `SERVO_PWM_RELEASE_DELAY_MS` (**2000** ms), it writes PCA9685 full-off (`setPWM(channel, 0, 4096)`) on channels 0–4. SIG stays low; the servo goes **limp** (no holding torque). Head pitch can droop; hands-down usually rests on the desk.
+
+Skipped when `servo_hold` is on, when `POST /servos/park` armed a until-reboot hold, or in setup AP.
 
 The next animation, `/test/servo`, or `/setup/servo` rewrite the last commanded pulse before moving. Leaving `none` restores all five channels at their last angles first.
 

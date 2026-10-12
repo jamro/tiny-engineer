@@ -11,6 +11,7 @@ constexpr const char* kKeyHost = "host";
 constexpr const char* kKeyVolume = "vol";
 constexpr const char* kKeyWelcome = "welcome";
 constexpr const char* kKeySerialLog = "serial_log";
+constexpr const char* kKeyServoHold = "srv_hold";
 constexpr const char* kKeyContTo = "cont_to";
 constexpr const char* kKeyLoading = "loading";
 constexpr const char* kKeyEyesStyle = "eyes_sty";
@@ -49,6 +50,7 @@ void settingsNvsPutAll(
   uint8_t volume,
   bool welcome,
   bool serialLog,
+  bool servoHold,
   uint32_t continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,
@@ -65,6 +67,7 @@ bool writeAllToNvs(
   uint8_t volume,
   bool welcome,
   bool serialLog,
+  bool servoHold,
   uint32_t continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,

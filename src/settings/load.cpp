@@ -55,6 +55,7 @@ void initSettings() {
   g_volume = SETTINGS_DEFAULT_VOLUME;
   g_welcome = SETTINGS_DEFAULT_WELCOME;
   g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
+  g_servoHold = SETTINGS_DEFAULT_SERVO_HOLD;
   g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
   setEyesStyleCache(g_eyesStyle, SETTINGS_DEFAULT_EYES_STYLE);
@@ -98,6 +99,7 @@ void initSettings() {
 
   g_welcome = g_settingsPrefs.getBool(kKeyWelcome, SETTINGS_DEFAULT_WELCOME);
   g_serialLog = g_settingsPrefs.getBool(kKeySerialLog, SETTINGS_DEFAULT_SERIAL_LOG);
+  g_servoHold = g_settingsPrefs.getBool(kKeyServoHold, SETTINGS_DEFAULT_SERVO_HOLD);
 
   g_continuousTimeoutMin = g_settingsPrefs.getUInt(
     kKeyContTo,

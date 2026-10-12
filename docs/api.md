@@ -8,7 +8,7 @@ Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `htt
 
 Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). `Content-Type: application/json`. CORS: `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization`.
 
-When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`) stay available on the setup AP.
+When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/servos/park`) stay available on the setup AP.
 
 If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a five-step setup wizard at `/config` (servo calibration, OLED orientation, RGB LED, speaker test, then Wi-Fi). If saved credentials fail, it reopens setup AP mode. The setup AP acts as a captive portal: DHCP sends the portal URL (option 114) and DNS answers every name with the AP IP, so a phone that joins the network opens the wizard on its own. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
@@ -18,7 +18,7 @@ Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s
 
 ### `GET /`
 
-HTML endpoint index. Lists all routes plus supported parameters for `/anim`, `/settings`, `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, and `/setup/oled`. Safe, no hardware side effects. Always public (no Bearer required).
+HTML endpoint index. Lists all routes plus supported parameters for `/anim`, `/settings`, `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, and `/servos/park`. Safe, no hardware side effects. Always public (no Bearer required).
 
 Open in a browser:
 
@@ -112,6 +112,7 @@ curl http://tiny-engineer.local/settings
   "volume": 70,
   "welcome": true,
   "serial_log": false,
+  "servo_hold": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -132,6 +133,7 @@ curl http://tiny-engineer.local/settings
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
+| `servo_hold` | Keep PWM after idle/sleep park instead of limp full-off (default **false**). Reduces droop before flash; use with [`POST /servos/park`](#post-servospark) for flash-safe centering |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
@@ -145,7 +147,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`) are also **setup AP only**; they apply immediately to motion clamps. Outside setup AP → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) is **setup AP only** and applies immediately to the onboard LED. Outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation (`oled_rotate_180`) is **setup AP only** and applies immediately to the display. Outside setup AP → **400** `oled setup only in AP mode`. Requires Bearer when auth is enabled.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `servo_hold`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`) are also **setup AP only**; they apply immediately to motion clamps. Outside setup AP → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) is **setup AP only** and applies immediately to the onboard LED. Outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation (`oled_rotate_180`) is **setup AP only** and applies immediately to the display. Outside setup AP → **400** `oled setup only in AP mode`. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
@@ -153,6 +155,7 @@ curl -X POST "http://tiny-engineer.local/settings?hostname=desk-bot"
 curl -X POST "http://tiny-engineer.local/settings?volume=40"
 curl -X POST "http://tiny-engineer.local/settings?welcome=0"
 curl -X POST "http://tiny-engineer.local/settings?serial_log=1"
+curl -X POST "http://tiny-engineer.local/settings?servo_hold=1"
 curl -X POST "http://tiny-engineer.local/settings?continuous_timeout=10"
 curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
 curl -X POST "http://tiny-engineer.local/settings?eyes_style=kaomoji"
@@ -172,6 +175,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
   "volume": 70,
   "welcome": true,
   "serial_log": false,
+  "servo_hold": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -193,6 +197,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
 | `volume` | integer | 0–100 percent |
 | `welcome` | integer | `0` or `1` (boot welcome animation) |
 | `serial_log` | integer | `0` or `1` (USB serial debug logging) |
+| `servo_hold` | integer | `0` or `1` (skip idle/sleep PWM limp) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
@@ -241,6 +246,7 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "volume": 70,
   "welcome": true,
   "serial_log": false,
+  "servo_hold": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -432,6 +438,20 @@ Wrong params return **400**:
 
 Save with `POST /settings?oled_rotate_180=1` (setup AP only). The saved value applies immediately and on the next boot.
 
+### `POST /servos/park`
+
+Flash-safe park. Smoothly moves all five joints to mid of the saved min/max at boot speed (`SERVO_BOOT_SPEED_DEG_S`), persists those angles to NVS (`spose`), and keeps PWM on until the next reboot (RAM hold; also skips idle limp for this boot). Does **not** require Wi-Fi credentials. No query params. Requires Bearer when auth is enabled. Used by PlatformIO `pre:upload` ([`scripts/park_servos_before_upload.py`](../scripts/park_servos_before_upload.py)).
+
+```bash
+curl -X POST "http://tiny-engineer.local/servos/park"
+```
+
+```json
+{ "ok": true, "park": "servos", "hold": true }
+```
+
+Handler blocks until the move finishes. For absolute mechanical safety when pose is unknown, unplug servo **5 V / V+** before flashing — see [hardware/servos.md](hardware/servos.md).
+
 ### `POST /test/servo`
 
 Smoothly move one servo to an angle at **~140°/s** (`SERVO_MAX_SPEED_DEG_S`) from its last commanded position. Query params required. Handler blocks until the move finishes.
@@ -511,7 +531,7 @@ Durations and quoted lines below are the stock clips in [`assets/`](../assets/).
 
 | `name` | Behavior |
 | --- | --- |
-| `none` | Head/neck/body → mid; hands down (right `min`, left `max` — inverted scales). After all joints still for 2 s, PCA9685 PWM is full-off (servos limp; head may droop). Setup AP does not release PWM. |
+| `none` | Head/neck/body → mid; hands down (right `min`, left `max` — inverted scales). After all joints still for 2 s, PCA9685 PWM is full-off (servos limp; head may droop), unless `servo_hold` is on or `POST /servos/park` armed a until-reboot hold. Setup AP does not release PWM. |
 | `typing` | **Continuous.** Alternating hands with randomness (15° band from hand limits). Head nods slowly on lowest 10° of head limits. Body sways ±5° around mid; neck counters opposite so head stays put. Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
 | `reading` | **Continuous.** Hands/body park as in `none`. Head nods on same lowest 10° band as typing, but slower. Neck sweeps ±10° around mid; right (angle down) slower than left (angle up). Occasional right-hand down-arrow bursts (1–3 presses, same 15° band as typing). Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
 | `thinking` | **Continuous.** Hands/body park as in `none`. Head (pitch) and neck (yaw) ease from the current pose into thinking poses (up + slight left/right). Move → pause → optional micro-adjust (sometimes chained) → pause; nearby pose drift with occasional larger shifts after ~2.2 s, more often over time. Axes stagger start/duration; no periodic sway. Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
@@ -597,7 +617,7 @@ Errors arrive before any audio plays:
 | `401` | `{"ok":false,"error":"unauthorized"}` | Access token configured and `Authorization: Bearer` missing or wrong |
 | `404` | `{"ok":false,"error":"not found"}` | Unknown path |
 | `415` | `{"ok":false,"error":"..."}` | `/play` body is not a supported WAV |
-| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/settings`, `/settings/reset`, `/settings/wifi`, `/anim`, `/play`, or `/auth` path |
+| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/servos/park`, `/settings`, `/settings/reset`, `/settings/wifi`, `/anim`, `/play`, or `/auth` path |
 
 Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET** (read) and **POST** (set). `/auth` is **GET** only and always public.
 

@@ -21,6 +21,7 @@ bool factoryResetSettings(bool* rebootRequired) {
   g_volume = SETTINGS_DEFAULT_VOLUME;
   g_welcome = SETTINGS_DEFAULT_WELCOME;
   g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
+  g_servoHold = SETTINGS_DEFAULT_SERVO_HOLD;
   g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
   setEyesStyleCache(g_eyesStyle, SETTINGS_DEFAULT_EYES_STYLE);
@@ -41,6 +42,7 @@ bool factoryResetSettings(bool* rebootRequired) {
     g_volume,
     g_welcome,
     g_serialLog,
+    g_servoHold,
     g_continuousTimeoutMin,
     g_loading,
     g_eyesStyle,

@@ -10,6 +10,7 @@ constexpr const char* SETTINGS_DEFAULT_HOSTNAME = "tiny-engineer";
 constexpr uint8_t SETTINGS_DEFAULT_VOLUME = 70;
 constexpr bool SETTINGS_DEFAULT_WELCOME = true;
 constexpr bool SETTINGS_DEFAULT_SERIAL_LOG = false;
+constexpr bool SETTINGS_DEFAULT_SERVO_HOLD = false;
 constexpr uint32_t SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN = 5;
 constexpr const char* SETTINGS_DEFAULT_LOADING = "progress";
 constexpr const char* SETTINGS_DEFAULT_EYES_STYLE = "classic";
@@ -42,6 +43,7 @@ const char* settingsHostname();
 uint8_t settingsVolume();
 bool settingsWelcomeEnabled();
 bool settingsSerialLogEnabled();
+bool settingsServoHold();
 uint32_t settingsContinuousTimeoutMin();
 const char* settingsLoading();
 const char* settingsEyesStyle();
@@ -81,6 +83,7 @@ bool saveSettings(
   const uint8_t* volume,
   const bool* welcome,
   const bool* serialLog,
+  const bool* servoHold,
   const uint32_t* continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,

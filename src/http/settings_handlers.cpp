@@ -138,5 +138,6 @@ bool isSettingsOrAnimPath(const String& uri) {
   return uri == "/anim" || uri == "/play" || uri.startsWith("/play/") ||
          uri == "/settings" || uri == "/settings/reset" ||
          uri == "/settings/wifi" ||
-         uri == "/auth" || uri == "/setup/servo";
+         uri == "/auth" || uri == "/setup/servo" ||
+         uri == "/servos/park";
 }

@@ -78,6 +78,7 @@ Prefix `L` + space + message + `\n`. Multi-part log prints share one `L ` at the
 | `POST /setup/led` | Setup AP only |
 | `POST /setup/audio` | Setup AP only |
 | `POST /setup/oled` | Setup AP only |
+| `POST /servos/park` | No Wi-Fi gate; smooth mid + pose persist + hold PWM until reboot |
 | `POST /play` | Begin JSON must include `len`; then raw WAV (same format as HTTP). Requires Wi-Fi credentials saved |
 | `POST /play/<name>` | Same; `name` = `talking`\|`typing`\|`reading`\|`thinking`\|`none` |
 

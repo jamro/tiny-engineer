@@ -29,9 +29,14 @@ bool isSetupPath(const char* path) {
          pathEq(path, "/setup/audio") || pathEq(path, "/setup/oled");
 }
 
+bool isServosPath(const char* path) {
+  return pathEq(path, "/servos/park");
+}
+
 bool isKnownPath(const char* path) {
   return pathEq(path, "/auth") || pathEq(path, "/health") || isAnimPath(path) ||
-         isSettingsPath(path) || isTestPath(path) || isSetupPath(path);
+         isSettingsPath(path) || isTestPath(path) || isSetupPath(path) ||
+         isServosPath(path);
 }
 
 }  // namespace
@@ -182,6 +187,15 @@ void apiDispatch(const ApiRequest& req, ApiResponse& resp) {
       return;
     }
     apiOpSetupOled(req, resp);
+    return;
+  }
+
+  if (pathEq(req.path, "/servos/park")) {
+    if (req.method != ApiMethod::Post) {
+      resp.setError(405, "method not allowed");
+      return;
+    }
+    apiOpServosPark(req, resp);
     return;
   }
 

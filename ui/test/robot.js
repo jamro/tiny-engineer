@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS = {
   volume: 70,
   welcome: true,
   serial_log: false,
+  servo_hold: false,
   loading: "progress",
   eyes_style: "classic",
   access_token_set: false,
@@ -34,7 +35,12 @@ function applySettingsParams(settings, params) {
       next[key] = value.split(",").map(Number);
     } else if (key === "access_token") {
       next.access_token_set = value !== "";
-    } else if (key === "welcome" || key === "serial_log" || key === "oled_rotate_180") {
+    } else if (
+      key === "welcome" ||
+      key === "serial_log" ||
+      key === "servo_hold" ||
+      key === "oled_rotate_180"
+    ) {
       next[key] = value === "1";
     } else if (/^\d+$/.test(value)) {
       next[key] = Number(value);

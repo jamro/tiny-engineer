@@ -227,6 +227,11 @@
             <td><code>/setup/oled</code></td>
             <td>Setup AP only: preview OLED 180&deg; rotation (see parameters below)</td>
           </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/servos/park</code></td>
+            <td>Smooth mid park, persist pose, hold PWM until reboot (flash-safe)</td>
+          </tr>
         </tbody>
       </table>
       <p>POST <code>/settings</code> &mdash; query params (at least one required):</p>
@@ -263,6 +268,11 @@
             <td><code>serial_log</code></td>
             <td>integer</td>
             <td>0 or 1 (USB serial debug logging)</td>
+          </tr>
+          <tr>
+            <td><code>servo_hold</code></td>
+            <td>integer</td>
+            <td>0 or 1 (skip idle/sleep PWM limp)</td>
           </tr>
           <tr>
             <td><code>continuous_timeout</code></td>
@@ -325,9 +335,10 @@
         one. In setup AP mode the robot tests the first network before saving. During setup
         (credentials not saved), control APIs return <strong>503</strong>
         <code>wifi not configured</code>; <code>POST /setup/servo</code>,
-        <code>POST /setup/led</code>, <code>POST /setup/audio</code>, and
-        <code>POST /setup/oled</code> stay available. Servo ranges, RGB mapping, and screen rotation
-        survive factory reset and can be retuned in the setup wizard.
+        <code>POST /setup/led</code>, <code>POST /setup/audio</code>,
+        <code>POST /setup/oled</code>, and <code>POST /servos/park</code> stay available. Servo
+        ranges, RGB mapping, and screen rotation survive factory reset and can be retuned in the
+        setup wizard.
       </p>
       <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
       <table>
@@ -1013,6 +1024,15 @@
             <div class="toggle-row">
               <input type="checkbox" id="config-serial-log" />
               <label for="config-serial-log">Log to USB serial</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="field-head">
+              <span>Hold servo PWM</span><span class="apply-badge apply-now">Immediate</span>
+            </div>
+            <div class="toggle-row">
+              <input type="checkbox" id="config-servo-hold" />
+              <label for="config-servo-hold">Keep torque after idle (no limp)</label>
             </div>
           </div>
         </div>

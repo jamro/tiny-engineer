@@ -58,6 +58,7 @@ void apiFillSettingsResponse(
   doc["volume"] = settingsVolume();
   doc["welcome"] = settingsWelcomeEnabled();
   doc["serial_log"] = settingsSerialLogEnabled();
+  doc["servo_hold"] = settingsServoHold();
   doc["continuous_timeout"] = settingsContinuousTimeoutMin();
   doc["loading"] = settingsLoading();
   doc["eyes_style"] = settingsEyesStyle();
@@ -112,6 +113,7 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
   const bool hasVolume = req.hasArg("volume");
   const bool hasWelcome = req.hasArg("welcome");
   const bool hasSerialLog = req.hasArg("serial_log");
+  const bool hasServoHold = req.hasArg("servo_hold");
   const bool hasContTo = req.hasArg("continuous_timeout");
   const bool hasLoading = req.hasArg("loading");
   const bool hasEyesStyle = req.hasArg("eyes_style");
@@ -122,12 +124,13 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
   const bool hasOledRotate180 = req.hasArg("oled_rotate_180");
 
   if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasSerialLog &&
+      !hasServoHold &&
       !hasContTo && !hasLoading && !hasEyesStyle && !hasAccessToken &&
       !hasServoMins && !hasServoMaxs &&
       !hasRgbOrder && !hasOledRotate180) {
     resp.setError(
       400,
-      "missing sleep_timeout, hostname, volume, welcome, serial_log, continuous_timeout, loading, eyes_style, access_token, servo_mins, servo_maxs, rgb_order, or oled_rotate_180"
+      "missing sleep_timeout, hostname, volume, welcome, serial_log, servo_hold, continuous_timeout, loading, eyes_style, access_token, servo_mins, servo_maxs, rgb_order, or oled_rotate_180"
     );
     return;
   }
@@ -141,6 +144,8 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
   const bool* welcomePtr = nullptr;
   bool serialLog = false;
   const bool* serialLogPtr = nullptr;
+  bool servoHold = false;
+  const bool* servoHoldPtr = nullptr;
   uint32_t continuousTimeoutMin = 0;
   const uint32_t* contToPtr = nullptr;
   const char* loadingPtr = nullptr;
@@ -222,6 +227,19 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
     }
     serialLog = parsed == 1;
     serialLogPtr = &serialLog;
+  }
+
+  if (hasServoHold) {
+    const char* servoHoldArg = req.arg("servo_hold");
+    char* end = nullptr;
+    const unsigned long parsed = strtoul(servoHoldArg, &end, 10);
+
+    if (end == servoHoldArg || *end != '\0' || parsed > 1) {
+      resp.setError(400, "invalid servo_hold");
+      return;
+    }
+    servoHold = parsed == 1;
+    servoHoldPtr = &servoHold;
   }
 
   if (hasContTo) {
@@ -332,6 +350,7 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
         volumePtr,
         welcomePtr,
         serialLogPtr,
+        servoHoldPtr,
         contToPtr,
         loadingPtr,
         eyesStylePtr,

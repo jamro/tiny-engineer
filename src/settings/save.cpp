@@ -11,6 +11,7 @@ bool saveSettings(
   const uint8_t* volume,
   const bool* welcome,
   const bool* serialLog,
+  const bool* servoHold,
   const uint32_t* continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,
@@ -30,6 +31,7 @@ bool saveSettings(
       volume == nullptr &&
       welcome == nullptr &&
       serialLog == nullptr &&
+      servoHold == nullptr &&
       continuousTimeoutMin == nullptr &&
       loading == nullptr &&
       eyesStyle == nullptr &&
@@ -47,6 +49,7 @@ bool saveSettings(
   uint8_t nextVolume = g_volume;
   bool nextWelcome = g_welcome;
   bool nextSerialLog = g_serialLog;
+  bool nextServoHold = g_servoHold;
   uint32_t nextContTo = g_continuousTimeoutMin;
   char nextLoading[SETTINGS_LOADING_MAX_LEN + 1];
   setLoadingCache(nextLoading, g_loading);
@@ -92,6 +95,10 @@ bool saveSettings(
 
   if (serialLog != nullptr) {
     nextSerialLog = *serialLog;
+  }
+
+  if (servoHold != nullptr) {
+    nextServoHold = *servoHold;
   }
 
   if (continuousTimeoutMin != nullptr) {
@@ -157,6 +164,7 @@ bool saveSettings(
         nextVolume,
         nextWelcome,
         nextSerialLog,
+        nextServoHold,
         nextContTo,
         nextLoading,
         nextEyesStyle,
@@ -174,6 +182,7 @@ bool saveSettings(
   g_volume = nextVolume;
   g_welcome = nextWelcome;
   g_serialLog = nextSerialLog;
+  g_servoHold = nextServoHold;
   g_continuousTimeoutMin = nextContTo;
   setLoadingCache(g_loading, nextLoading);
   setEyesStyleCache(g_eyesStyle, nextEyesStyle);

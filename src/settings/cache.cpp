@@ -10,6 +10,7 @@ char g_bootHostname[SETTINGS_HOSTNAME_MAX_LEN + 1] = {};
 uint8_t g_volume = SETTINGS_DEFAULT_VOLUME;
 bool g_welcome = SETTINGS_DEFAULT_WELCOME;
 bool g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
+bool g_servoHold = SETTINGS_DEFAULT_SERVO_HOLD;
 uint32_t g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
 char g_loading[SETTINGS_LOADING_MAX_LEN + 1] = {};
 char g_eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1] = {};
@@ -62,6 +63,8 @@ void logSettingsSnapshot(const char* prefix) {
   serialLogPrint(g_welcome ? "on" : "off");
   serialLogPrint(" serial_log=");
   serialLogPrint(g_serialLog ? "on" : "off");
+  serialLogPrint(" servo_hold=");
+  serialLogPrint(g_servoHold ? "on" : "off");
   serialLogPrint(" continuous_timeout=");
   serialLogPrint(g_continuousTimeoutMin);
   serialLogPrint("min loading=");

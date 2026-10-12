@@ -58,6 +58,7 @@ void putAll(
   uint8_t volume,
   bool welcome,
   bool serialLog,
+  bool servoHold,
   uint32_t continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,
@@ -75,6 +76,7 @@ void putAll(
   g_settingsPrefs.putUInt(kKeyVolume, volume);
   g_settingsPrefs.putBool(kKeyWelcome, welcome);
   g_settingsPrefs.putBool(kKeySerialLog, serialLog);
+  g_settingsPrefs.putBool(kKeyServoHold, servoHold);
   g_settingsPrefs.putUInt(kKeyContTo, continuousTimeoutMin);
   g_settingsPrefs.putString(kKeyLoading, loading);
   g_settingsPrefs.putString(kKeyEyesStyle, eyesStyle);
@@ -92,6 +94,7 @@ bool writeAllToNvs(
   uint8_t volume,
   bool welcome,
   bool serialLog,
+  bool servoHold,
   uint32_t continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,
@@ -112,6 +115,7 @@ bool writeAllToNvs(
     volume,
     welcome,
     serialLog,
+    servoHold,
     continuousTimeoutMin,
     loading,
     eyesStyle,
@@ -131,6 +135,7 @@ void settingsNvsPutAll(
   uint8_t volume,
   bool welcome,
   bool serialLog,
+  bool servoHold,
   uint32_t continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,
@@ -146,6 +151,7 @@ void settingsNvsPutAll(
     volume,
     welcome,
     serialLog,
+    servoHold,
     continuousTimeoutMin,
     loading,
     eyesStyle,

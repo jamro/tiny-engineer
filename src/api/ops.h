@@ -30,3 +30,5 @@ void apiOpSetupServo(const ApiRequest& req, ApiResponse& resp);
 void apiOpSetupLed(const ApiRequest& req, ApiResponse& resp);
 void apiOpSetupAudio(const ApiRequest& req, ApiResponse& resp);
 void apiOpSetupOled(const ApiRequest& req, ApiResponse& resp);
+
+void apiOpServosPark(const ApiRequest& req, ApiResponse& resp);

@@ -4,6 +4,7 @@
 #include <WebServer.h>
 #include <uri/UriBraces.h>
 
+#include "api/http_bridge.h"
 #include "http/anim_handlers.h"
 #include "http/health_handlers.h"
 #include "http/index_page.h"
@@ -112,5 +113,8 @@ void registerHttpRoutes() {
   });
   registerHttpTestRoutes(server);
   registerHttpSetupRoutes(server);
+  server.on("/servos/park", HTTP_POST, []() {
+    httpWithApiAuth(httpServer(), httpDispatchApi);
+  });
   server.onNotFound(handleNotFound);
 }

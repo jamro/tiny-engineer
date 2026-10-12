@@ -19,7 +19,7 @@ Stock flash: **[Web flash](https://jamro.github.io/tiny-engineer/flash/)**. Buil
 | --- | --- |
 | Built-in WS2812 | Green ready (GPIO10) |
 | I2C init | `Wire.begin` on GPIO0/GPIO1 |
-| PCA9685 | Probe `0x40` early; OE HIGH during init, park neutral, then OE LOW (`PCA9685_OE_WIRED`) |
+| PCA9685 | Probe `0x40` early; OE HIGH during init, restore last pose (`spose`) or mid, then OE LOW (`PCA9685_OE_WIRED`) |
 | OLED | Probe `0x3C`, init (optional) |
 | Wi-Fi | STA connect from saved NVS credentials, or setup AP `TinyEngineer-XXXX` when unset/failed; mDNS `{hostname}.local` after STA connect |
 | MAX98357A / I2S | `I2S.begin` 22.05 kHz 16-bit stereo |
@@ -110,7 +110,7 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | `GET` | `/health` | Health JSON — full field list in [api.md](../api.md#get-health) |
 | `GET` / `POST` | `/anim` | Current animation / start one (`name`, optional `interrupt`) — full params in [api.md](../api.md#post-anim) |
 | `POST` | `/play` | Stream a WAV while `talking` (or `/play/{name}`) runs; answers when the clip ends — full params in [api.md](../api.md#post-play) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `servo_hold`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
 | `POST` | `/settings?...` | Update NVS settings; `reboot_required` if hostname changed |
 | `POST` | `/settings?...&servo_mins=&servo_maxs=` | Servo min/max comma lists; setup-AP-only |
 | `POST` | `/settings?...&rgb_order=` | WS2812 byte order (`RGB`/`RBG`/`GRB`/`GBR`/`BRG`/`BGR`); setup-AP-only; default `GRB` |
@@ -127,8 +127,9 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | `POST` | `/setup/led?color=R` / `G` / `B` or `?byte=0` / `1` / `2` / `off` | Setup AP only; light logical RGB or one WS2812 wire byte, or release hold |
 | `POST` | `/setup/audio` | Setup AP only; play `welcome.wav` (`playWelcome()`) |
 | `POST` | `/setup/oled?rotate_180=0` / `1` | Setup AP only; preview OLED 180° rotation (`THIS WAY UP`); omit param to restore provisioning text |
+| `POST` | `/servos/park` | Smooth mid park, persist `spose`, hold PWM until reboot (no Wi-Fi gate) |
 
-GET on a test path returns `405`. Bad `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, or `/settings` params return `400`. Missing/wrong Bearer when auth enabled returns `401`. Control APIs return `503` when WiFi credentials are not saved (`/setup/servo`, `/setup/led`, `/setup/audio`, and `/setup/oled` stay available). Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
+GET on a test path returns `405`. Bad `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, or `/settings` params return `400`. Missing/wrong Bearer when auth enabled returns `401`. Control APIs return `503` when WiFi credentials are not saved (`/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, and `/servos/park` stay available). Unknown path returns `404`. JSON `Content-Type`. Handlers block until the test finishes; the OLED returns to `ROBOT READY` after.
 
 HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisioning.
 

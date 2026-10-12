@@ -55,6 +55,8 @@ pio run -t upload       # flash firmware + LittleFS
 pio device monitor      # serial (115200)
 ```
 
+Before upload, a pre-script tries **`POST /servos/park`** over serial ([`scripts/park_servos_before_upload.py`](../scripts/park_servos_before_upload.py)) so joints sit at mid with PWM held — fewer snaps into the printed parts. If the board is cold or CDC is busy, the script warns and upload continues. For absolute safety, unplug servo **5 V / V+** first. Details: [hardware/servos.md](hardware/servos.md#flash-safe-park).
+
 After firmware upload, a post-script also uploads **LittleFS** ([`scripts/upload_fs_after_upload.py`](../scripts/upload_fs_after_upload.py)) so WAV assets (`welcome`, `bell`, and friends) land on the board. If animations move but stay silent, run `pio run -t uploadfs` once.
 
 Several serial ports:

@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include <Adafruit_PWMServoDriver.h>
+#include <Preferences.h>
+#include <cmath>
+#include <cstring>
 
 #include "animation/util.h"
 #include "pins.h"
@@ -12,7 +15,16 @@ Adafruit_PWMServoDriver pwm(PCA9685_ADDRESS);
 
 // PCA9685 LEDn_OFF full-off bit. Do not use (4096, 0) — that is full-on HIGH.
 constexpr uint16_t kPca9685FullOff = 4096;
+constexpr const char* kPoseNs = "te";
+constexpr const char* kPoseKey = "spose";
+constexpr uint32_t kPoseSaveDebounceMs = 500;
+
 static bool g_allOutputsReleased = false;
+static bool g_parkHoldUntilReboot = false;
+static bool g_poseDirty = false;
+static uint32_t g_poseDirtySinceMs = 0;
+static uint8_t g_lastSavedPose[SERVO_COUNT] = {};
+static bool g_lastSavedPoseValid = false;
 
 ServoWrapper g_servos[SERVO_COUNT] = {
   ServoWrapper(SERVO_HEAD),
@@ -113,6 +125,115 @@ void enableServoOutputs() {
   digitalWrite(PCA9685_OE_PIN, LOW);
 }
 
+namespace {
+
+void fillDefaultPose(uint8_t out[SERVO_COUNT]) {
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    out[i] = static_cast<uint8_t>(lroundf(servoRuntimeMid(i)));
+  }
+}
+
+bool loadPoseFromNvs(uint8_t out[SERVO_COUNT]) {
+  Preferences prefs;
+
+  if (!prefs.begin(kPoseNs, true)) {
+    return false;
+  }
+
+  uint8_t blob[SERVO_COUNT] = {};
+  const size_t n = prefs.getBytes(kPoseKey, blob, SERVO_COUNT);
+  prefs.end();
+
+  if (n != static_cast<size_t>(SERVO_COUNT)) {
+    return false;
+  }
+
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    out[i] = static_cast<uint8_t>(lroundf(clampServoAngle(i, blob[i])));
+  }
+
+  return true;
+}
+
+bool writePoseBlobToNvs(const uint8_t blob[SERVO_COUNT]) {
+  Preferences prefs;
+
+  if (!prefs.begin(kPoseNs, false)) {
+    serialLogPrintln("[servo] pose NVS open failed");
+    return false;
+  }
+
+  const size_t written = prefs.putBytes(kPoseKey, blob, SERVO_COUNT);
+  prefs.end();
+
+  if (written != static_cast<size_t>(SERVO_COUNT)) {
+    serialLogPrintln("[servo] pose NVS write failed");
+    return false;
+  }
+
+  memcpy(g_lastSavedPose, blob, SERVO_COUNT);
+  g_lastSavedPoseValid = true;
+  g_poseDirty = false;
+  return true;
+}
+
+void markPoseDirty() {
+  uint8_t blob[SERVO_COUNT];
+
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    blob[i] = static_cast<uint8_t>(lroundf(clampServoAngle(i, g_servos[i].angle())));
+  }
+
+  if (g_lastSavedPoseValid &&
+      memcmp(blob, g_lastSavedPose, SERVO_COUNT) == 0) {
+    g_poseDirty = false;
+    return;
+  }
+
+  if (!g_poseDirty) {
+    g_poseDirty = true;
+    g_poseDirtySinceMs = millis();
+  }
+}
+
+}  // namespace
+
+void flushServoPoseToNvs() {
+  uint8_t blob[SERVO_COUNT];
+
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    blob[i] = static_cast<uint8_t>(lroundf(clampServoAngle(i, g_servos[i].angle())));
+  }
+
+  if (g_lastSavedPoseValid &&
+      memcmp(blob, g_lastSavedPose, SERVO_COUNT) == 0) {
+    g_poseDirty = false;
+    return;
+  }
+
+  writePoseBlobToNvs(blob);
+}
+
+void pollServoPoseSave() {
+  if (!g_poseDirty) {
+    return;
+  }
+
+  if (millis() - g_poseDirtySinceMs < kPoseSaveDebounceMs) {
+    return;
+  }
+
+  flushServoPoseToNvs();
+}
+
+bool servoOutputsHoldActive() {
+  return g_parkHoldUntilReboot || settingsServoHold();
+}
+
+void setServoParkHoldUntilReboot(bool hold) {
+  g_parkHoldUntilReboot = hold;
+}
+
 void initServoPwmDriver() {
   disableServoOutputs();
 
@@ -120,9 +241,22 @@ void initServoPwmDriver() {
   pwm.setPWMFreq(50);
   delay(100);
 
-  for (int i = 0; i < SERVO_COUNT; i++) {
-    g_servos[i].setPosition(servoRuntimeMid(i));
+  uint8_t pose[SERVO_COUNT];
+  fillDefaultPose(pose);
+
+  if (loadPoseFromNvs(pose)) {
+    serialLogPrintln("[servo] restore last pose");
+  } else {
+    serialLogPrintln("[servo] no saved pose; using mid");
   }
+
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    g_servos[i].setPosition(static_cast<float>(pose[i]));
+  }
+
+  memcpy(g_lastSavedPose, pose, SERVO_COUNT);
+  g_lastSavedPoseValid = true;
+  g_poseDirty = false;
 
   delay(10);
   enableServoOutputs();
@@ -241,6 +375,12 @@ void releaseAllServoOutputs() {
     return;
   }
 
+  if (servoOutputsHoldActive()) {
+    return;
+  }
+
+  flushServoPoseToNvs();
+
   for (int i = 0; i < SERVO_COUNT; i++) {
     g_servos[i].releaseServoOutput();
   }
@@ -311,6 +451,7 @@ void ServoWrapper::writeAngle(float angle, bool log, bool electrical) {
   }
 
   angle_ = angle;
+  markPoseDirty();
 }
 
 void ServoWrapper::snapTo(float angle) {

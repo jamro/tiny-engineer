@@ -14,6 +14,7 @@ const volumeField = $("#config-volume");
 const volumeSlider = $("#config-volume-slider");
 const welcomeToggle = $("#config-welcome");
 const serialLogToggle = $("#config-serial-log");
+const servoHoldToggle = $("#config-servo-hold");
 const loadingSelect = $("#config-loading");
 const eyesStyleSelect = $("#config-eyes-style");
 
@@ -104,6 +105,7 @@ export function applyConfigSettings(
   setVolume(settings.volume ?? fallback.volume);
   welcomeToggle.checked = settings.welcome !== false;
   serialLogToggle.checked = Boolean(settings.serial_log);
+  servoHoldToggle.checked = Boolean(settings.servo_hold);
   loadingSelect.value = loadingMode(settings);
   eyesStyleSelect.value = EYES_STYLES.includes(settings.eyes_style)
     ? settings.eyes_style
@@ -142,6 +144,7 @@ async function saveConfig() {
     volume: volumeField.value,
     welcome: welcomeToggle.checked ? 1 : 0,
     serial_log: serialLogToggle.checked ? 1 : 0,
+    servo_hold: servoHoldToggle.checked ? 1 : 0,
     continuous_timeout: continuousField.value,
     loading: loadingSelect.value,
     eyes_style: eyesStyleSelect.value,
