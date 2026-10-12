@@ -41,9 +41,10 @@ npm run format --prefix ui   # apply Prettier
 
 ## Packages
 
-Node 18+. No robot.
+Node 18+. No robot. `tiny-engineer-cli` needs a local install (`serialport`); other packages have no deps.
 
 ```bash
+npm ci --prefix packages/tiny-engineer-cli
 npm test --prefix packages/tiny-engineer-cli
 npm test --prefix packages/tiny-engineer-cursor
 npm test --prefix packages/tiny-engineer-antigravity
