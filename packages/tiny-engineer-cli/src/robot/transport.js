@@ -10,17 +10,17 @@ import { serialRequest } from "./serial.js";
  */
 
 /**
- * Resolve CLI transport. Flag `--serial` / env serial beat HTTP.
+ * Resolve CLI transport.
  * Passing both `--url` and `--serial` is an error (caller checks flags).
  *
- * Precedence: explicit serial (including `"auto"`) → TINY_ENGINEER_SERIAL → HTTP.
+ * Precedence: explicit serial (including `"auto"`) → explicit url →
+ * TINY_ENGINEER_SERIAL → HTTP (TINY_ENGINEER_URL / default).
  *
  * @param {{ url?: string, serial?: string }} opts
  * @returns {Promise<Transport>}
  */
 export async function resolveTransport({ url, serial } = {}) {
-  const envSerial = getSerialPath();
-  const serialSpec = serial ?? envSerial ?? undefined;
+  const serialSpec = serial ?? (url ? undefined : getSerialPath()) ?? undefined;
 
   if (serialSpec) {
     if (serialSpec === "auto") {

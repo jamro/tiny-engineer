@@ -203,8 +203,7 @@ export async function serialRequest(path, opts) {
         autoOpen: false,
       });
     } catch (err) {
-      clearTimeout(timer);
-      resolve({
+      finish({
         ok: false,
         error: `robot unreachable: ${err instanceof Error ? err.message : String(err)}`,
       });
@@ -320,8 +319,7 @@ export async function serialPlay(path, opts) {
         autoOpen: false,
       });
     } catch (err) {
-      clearTimeout(timer);
-      resolve({
+      finish({
         ok: false,
         error: `robot unreachable: ${err instanceof Error ? err.message : String(err)}`,
       });

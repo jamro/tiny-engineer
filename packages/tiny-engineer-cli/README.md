@@ -24,9 +24,9 @@ Interactive `setup` asks **HTTP vs Serial**, then writes one key to project `.en
 | Mode | How |
 | --- | --- |
 | HTTP (default) | `--url` / `TINY_ENGINEER_URL` / `http://tiny-engineer.local` |
-| Serial | `--serial <path>`, bare `--serial` / `--serial=auto`, or `TINY_ENGINEER_SERIAL` (wins over URL when set) |
+| Serial | `--serial <path>`, bare `--serial` / `--serial=auto`, or `TINY_ENGINEER_SERIAL` (when `--url` absent) |
 
-Auto-detect: Espressif USB filter (VID / manufacturer / PID `1001`) + parallel `GET /health` probe on macOS `cu.*`, Linux `ttyACM*`, Windows `COMn`; requires exactly one match. Last good path is cached in `~/.cache/tiny-engineer/serial-port.json` and cleared when serial becomes unreachable.
+Auto-detect: Espressif USB filter (VID / manufacturer / PID `1001`) on macOS `cu.*`, Linux `ttyACM*`, Windows `COMn`. Reuses last good path in `~/.cache/tiny-engineer/serial-port.json` when still listed and `GET /health` succeeds (cleared when serial becomes unreachable); otherwise parallel health probe and requires exactly one match.
 
 Do not pass both `--url` and `--serial`. `anim` and `play` both work on HTTP or serial. Serial framing: [serial-api.md](https://github.com/jamro/tiny-engineer/blob/main/docs/serial-api.md).
 

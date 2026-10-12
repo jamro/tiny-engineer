@@ -47,7 +47,7 @@ Options (most commands):
   -h, --help              Show this help
 
 Transport:
-  Prefer --serial / TINY_ENGINEER_SERIAL when set; otherwise HTTP.
+  Precedence: --serial → --url → TINY_ENGINEER_SERIAL → HTTP.
   TINY_ENGINEER_SERIAL=auto also triggers detection.
   Do not pass both --url and --serial.
 

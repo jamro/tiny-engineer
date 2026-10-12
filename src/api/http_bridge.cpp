@@ -5,7 +5,7 @@
 #include "api/dispatch.h"
 #include "http/json.h"
 
-void apiRequestFromWebServer(WebServer& server, ApiRequest& req) {
+bool apiRequestFromWebServer(WebServer& server, ApiRequest& req) {
   req.clear();
 
   switch (server.method()) {
@@ -34,8 +34,11 @@ void apiRequestFromWebServer(WebServer& server, ApiRequest& req) {
     if (name == "plain") {
       continue;
     }
-    req.addQuery(name.c_str(), server.arg(i).c_str());
+    if (!req.addQuery(name.c_str(), server.arg(i).c_str())) {
+      return false;
+    }
   }
+  return true;
 }
 
 void apiSendHttpResponse(WebServer& server, const ApiResponse& resp) {
@@ -45,7 +48,11 @@ void apiSendHttpResponse(WebServer& server, const ApiResponse& resp) {
 void httpDispatchApi(WebServer& server) {
   ApiRequest req;
   ApiResponse resp;
-  apiRequestFromWebServer(server, req);
+  if (!apiRequestFromWebServer(server, req)) {
+    resp.setError(400, "query too large");
+    apiSendHttpResponse(server, resp);
+    return;
+  }
   apiDispatch(req, resp);
   apiSendHttpResponse(server, resp);
 }

@@ -111,7 +111,7 @@ tiny-engineer play clip.wav --serial=auto
 TINY_ENGINEER_SERIAL=auto tiny-engineer doctor
 ```
 
-Auto-detect prefers Espressif USB devices (VID `303A`, manufacturer / Windows friendly name, PID `1001` USB-Serial/JTAG ranked first). Path norms: macOS `tty.*` → `cu.*` for open; Linux `/dev/ttyACM*`; Windows `COMn`. Candidates without a clear Espressif ID fall back to CDC-like paths only. Probes in parallel with `GET /health` (~800 ms each) and requires exactly one match. Last good path: `~/.cache/tiny-engineer/serial-port.json` (cleared when serial RPC is unreachable).
+Auto-detect prefers Espressif USB devices (VID `303A`, manufacturer / Windows friendly name, PID `1001` USB-Serial/JTAG ranked first). Path norms: macOS `tty.*` → `cu.*` for open; Linux `/dev/ttyACM*`; Windows `COMn`. Candidates without a clear Espressif ID fall back to CDC-like paths only. Last good path (`~/.cache/tiny-engineer/serial-port.json`) is reused when still listed and `GET /health` succeeds (cleared when serial RPC is unreachable). Otherwise probes candidates in parallel with `GET /health` (~800 ms each) and requires exactly one match.
 
 ## Host tips
 

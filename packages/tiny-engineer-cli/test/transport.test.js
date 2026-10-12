@@ -21,13 +21,27 @@ test("resolveTransport prefers --serial over env URL", async () => {
   }
 });
 
-test("resolveTransport uses TINY_ENGINEER_SERIAL before HTTP", async () => {
+test("resolveTransport uses TINY_ENGINEER_SERIAL when url absent", async () => {
   const prevSerial = process.env.TINY_ENGINEER_SERIAL;
   process.env.TINY_ENGINEER_SERIAL = "/dev/cu.env";
   try {
-    assert.deepEqual(await resolveTransport({ url: "http://ignored" }), {
+    assert.deepEqual(await resolveTransport({}), {
       type: "serial",
       path: "/dev/cu.env",
+    });
+  } finally {
+    if (prevSerial === undefined) delete process.env.TINY_ENGINEER_SERIAL;
+    else process.env.TINY_ENGINEER_SERIAL = prevSerial;
+  }
+});
+
+test("resolveTransport prefers explicit url over TINY_ENGINEER_SERIAL", async () => {
+  const prevSerial = process.env.TINY_ENGINEER_SERIAL;
+  process.env.TINY_ENGINEER_SERIAL = "/dev/cu.env";
+  try {
+    assert.deepEqual(await resolveTransport({ url: "http://robot.test" }), {
+      type: "http",
+      baseUrl: "http://robot.test",
     });
   } finally {
     if (prevSerial === undefined) delete process.env.TINY_ENGINEER_SERIAL;

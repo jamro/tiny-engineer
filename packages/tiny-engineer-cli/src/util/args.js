@@ -37,7 +37,7 @@ export function looksLikeSerialPath(value) {
   if (!value || value.startsWith("-")) return false;
   if (value === "auto") return false;
   const lower = value.toLowerCase();
-  if (lower.startsWith("com") && /^com\d+/i.test(value)) return true;
+  if (/^com\d+$/i.test(value)) return true;
   if (value.startsWith("/")) return true;
   if (lower.includes("cu.") || lower.includes("tty.")) return true;
   if (lower.includes("ttyacm") || lower.includes("ttyusb")) return true;

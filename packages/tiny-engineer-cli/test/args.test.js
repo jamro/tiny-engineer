@@ -1,11 +1,20 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  looksLikeSerialPath,
   parseAnimArgs,
   parseCommonArgs,
   parsePlayArgs,
   stripGlobalFlags,
 } from "../src/util/args.js";
+
+test("looksLikeSerialPath matches COM ports but not COM-prefixed poses", () => {
+  assert.equal(looksLikeSerialPath("COM3"), true);
+  assert.equal(looksLikeSerialPath("com12"), true);
+  assert.equal(looksLikeSerialPath("com1x"), false);
+  assert.equal(looksLikeSerialPath("comedy"), false);
+  assert.equal(looksLikeSerialPath("/dev/cu.usbmodem1"), true);
+});
 
 test("parseCommonArgs extracts --url and rest", () => {
   assert.deepEqual(parseCommonArgs(["--url", "http://x", "cursor"]), {

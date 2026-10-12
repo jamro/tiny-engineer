@@ -5,7 +5,8 @@
 #include "api/request.h"
 
 // Fill method/path/query from the active HTTP request.
-void apiRequestFromWebServer(WebServer& server, ApiRequest& req);
+// Returns false if any query key/value is rejected by ApiRequest::addQuery.
+bool apiRequestFromWebServer(WebServer& server, ApiRequest& req);
 
 // Send resp.status + resp.body as application/json (+ CORS).
 void apiSendHttpResponse(WebServer& server, const ApiResponse& resp);
