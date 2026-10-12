@@ -8,9 +8,9 @@ Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `htt
 
 Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). `Content-Type: application/json`. CORS: `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization`.
 
-When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/servos/park`) stay available on the setup AP.
+Setting `wifi_enabled=0` (reboot required) boots with the Wi-Fi radio off: no STA, no setup AP, no HTTP/OTA. Control is USB CDC only — see [`serial-api.md`](serial-api.md). Setup calibration ops (`/setup/*` and setup-only settings fields) are allowed in that mode over serial.
 
-If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a five-step setup wizard at `/config` (servo calibration, OLED orientation, RGB LED, speaker test, then Wi-Fi). If saved credentials fail, it reopens setup AP mode. The setup AP acts as a captive portal: DHCP sends the portal URL (option 114) and DNS answers every name with the AP IP, so a phone that joins the network opens the wizard on its own. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
+If `wifi_enabled` is on (default) and boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a five-step setup wizard at `/config` (servo calibration, OLED orientation, RGB LED, speaker test, then Wi-Fi). If saved credentials fail, it reopens setup AP mode. The setup AP acts as a captive portal: DHCP sends the portal URL (option 114) and DNS answers every name with the AP IP, so a phone that joins the network opens the wizard on its own. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
 Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s on a missing AAAA. If a client still pauses on the hostname, force IPv4 (`curl -4`). The IP on the OLED skips DNS entirely.
 
@@ -37,7 +37,7 @@ curl http://tiny-engineer.local/auth
 ```
 
 ```json
-{ "ok": true, "required": false, "wifi_configured": true, "provisioning": false }
+{ "ok": true, "required": false, "wifi_configured": true, "wifi_enabled": true, "provisioning": false }
 ```
 
 | Field | Meaning |
@@ -45,6 +45,7 @@ curl http://tiny-engineer.local/auth
 | `ok` | Always `true` on this route |
 | `required` | `true` when a non-empty access token is configured |
 | `wifi_configured` | `true` when WiFi credentials are saved in NVS |
+| `wifi_enabled` | `true` when Wi-Fi is enabled in settings (radio used at next boot) |
 | `provisioning` | `true` when the setup AP is active |
 
 ### `GET /health`
@@ -71,6 +72,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
     "hostname": "tiny-engineer.local"
   },
   "wifi_configured": true,
+  "wifi_enabled": true,
   "provisioning": false,
   "setup_ap_ssid": "",
   "setup_ap_ip": "",
@@ -91,6 +93,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
 | `wifi.rssi` | dBm, or `0` if down |
 | `wifi.hostname` | mDNS name from settings (`{hostname}.local`, default `tiny-engineer.local`) |
 | `wifi_configured` | `true` when WiFi credentials are saved in NVS |
+| `wifi_enabled` | Current settings value; boot uses the frozen boot copy (`settingsBootWifiEnabled`) |
 | `provisioning` | `true` when setup AP mode is active |
 | `setup_ap_ssid` | Setup AP SSID when `provisioning` is true, else `""` |
 | `setup_ap_ip` | Setup AP IP when `provisioning` is true (usually `192.168.4.1`), else `""` |
@@ -113,6 +116,7 @@ curl http://tiny-engineer.local/settings
   "welcome": true,
   "serial_log": false,
   "servo_hold": false,
+  "wifi_enabled": true,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -131,9 +135,10 @@ curl http://tiny-engineer.local/settings
 | `sleep_timeout` | Minutes of continuous animation `none` before OLED blanks (default **10**). Any non-idle animation keeps the device awake and restarts the idle clock when returning to `none`. Other APIs do not affect the timer. |
 | `hostname` | DHCP/mDNS label without `.local` (default **`tiny-engineer`**) |
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
-| `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
+| `welcome` | Play welcome animation on boot when STA connects or when Wi-Fi is disabled (serial-only) (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
 | `servo_hold` | Keep PWM after idle/sleep park instead of limp full-off (default **false**). Reduces droop before flash; use with [`POST /servos/park`](#post-servospark) for flash-safe centering |
+| `wifi_enabled` | When **false**, next boot turns the Wi-Fi radio off (no STA/AP/HTTP/OTA); USB serial is the only control path (default **true**). Applies on **next reboot** |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
@@ -147,7 +152,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `servo_hold`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`) are also **setup AP only**; they apply immediately to motion clamps. Outside setup AP → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) is **setup AP only** and applies immediately to the onboard LED. Outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation (`oled_rotate_180`) is **setup AP only** and applies immediately to the display. Outside setup AP → **400** `oled setup only in AP mode`. Requires Bearer when auth is enabled.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `servo_hold`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname`, `loading`, or `wifi_enabled` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`) are **setup AP only** (or allowed when booted with `wifi_enabled=0`); they apply immediately to motion clamps. Outside those modes → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) follow the same rule. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
@@ -156,6 +161,7 @@ curl -X POST "http://tiny-engineer.local/settings?volume=40"
 curl -X POST "http://tiny-engineer.local/settings?welcome=0"
 curl -X POST "http://tiny-engineer.local/settings?serial_log=1"
 curl -X POST "http://tiny-engineer.local/settings?servo_hold=1"
+curl -X POST "http://tiny-engineer.local/settings?wifi_enabled=0"
 curl -X POST "http://tiny-engineer.local/settings?continuous_timeout=10"
 curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
 curl -X POST "http://tiny-engineer.local/settings?eyes_style=kaomoji"
@@ -176,6 +182,7 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
   "welcome": true,
   "serial_log": false,
   "servo_hold": false,
+  "wifi_enabled": true,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -198,16 +205,17 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
 | `welcome` | integer | `0` or `1` (boot welcome animation) |
 | `serial_log` | integer | `0` or `1` (USB serial debug logging) |
 | `servo_hold` | integer | `0` or `1` (skip idle/sleep PWM limp) |
+| `wifi_enabled` | integer | `0` or `1` (Wi-Fi radio; applies on next reboot) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
 | `access_token` | string | 0–64 printable ASCII; empty string clears the token and disables auth |
-| `servo_mins` | string | Five comma-separated integers `0`–`180` (`head,neck,left,right,body`); setup AP only; must be sent with `servo_maxs` |
-| `servo_maxs` | string | Five comma-separated integers `0`–`180`; setup AP only; each value must be greater than the matching min |
-| `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR`; setup AP only; default `GRB` |
-| `oled_rotate_180` | integer | `0` or `1`; setup AP only; default `0` |
+| `servo_mins` | string | Five comma-separated integers `0`–`180` (`head,neck,left,right,body`); setup AP or serial-only boot; must be sent with `servo_maxs` |
+| `servo_maxs` | string | Five comma-separated integers `0`–`180`; setup AP or serial-only boot; each value must be greater than the matching min |
+| `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR`; setup AP or serial-only boot; default `GRB` |
+| `oled_rotate_180` | integer | `0` or `1`; setup AP or serial-only boot; default `0` |
 
-At least one param required. Invalid or missing-all → **400**. Servo range params outside setup AP → **400** `servo setup only in AP mode`. RGB order outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation outside setup AP → **400** `oled setup only in AP mode`. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot.
+At least one param required. Invalid or missing-all → **400**. Servo/RGB/OLED setup params outside setup AP (and not in serial-only boot) → **400**. `reboot_required` is present and `true` when the saved hostname or `wifi_enabled` differs from the value used at this boot.
 
 ### `PUT /settings/wifi`
 
@@ -230,7 +238,7 @@ The list must hold 1 to 5 networks, so the robot always has one to try; factory 
 
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname, loading screen, or saved WiFi differed from defaults before reset.
+Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname, loading screen, `wifi_enabled`, or saved WiFi differed from defaults before reset.
 
 The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup wizard. It does not poll for reconnect.
 
@@ -247,6 +255,7 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "welcome": true,
   "serial_log": false,
   "servo_hold": false,
+  "wifi_enabled": true,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -394,7 +403,7 @@ Wrong params return **400** and do not change hold state except `off` / omitted 
 | `invalid byte` | `byte` present but not an integer and not `off` |
 | `byte out of range` | Integer `byte` outside `0`–`2` |
 
-Save the labeled permutation with `POST /settings?rgb_order=GRB` (setup AP only). The saved order applies immediately to animation colors, boot status, halt blinks, and `POST /test/led`.
+Save the labeled permutation with `POST /settings?rgb_order=GRB` (setup AP or serial-only boot). The saved order applies immediately to animation colors, boot status, halt blinks, and `POST /test/led`.
 
 ### `POST /setup/audio`
 
@@ -436,7 +445,7 @@ Wrong params return **400**:
 | `setup oled only in AP mode` | Not in setup AP |
 | `invalid rotate_180` | `rotate_180` present but not `0` or `1` |
 
-Save with `POST /settings?oled_rotate_180=1` (setup AP only). The saved value applies immediately and on the next boot.
+Save with `POST /settings?oled_rotate_180=1` (setup AP or serial-only boot). The saved value applies immediately and on the next boot.
 
 ### `POST /servos/park`
 

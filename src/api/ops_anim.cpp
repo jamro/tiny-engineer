@@ -3,17 +3,8 @@
 #include <cstdio>
 
 #include "animation.h"
-#include "settings/settings.h"
 
 namespace {
-
-bool requireWifiConfigured(ApiResponse& resp) {
-  if (settingsWifiConfigured()) {
-    return true;
-  }
-  resp.setError(503, "wifi not configured");
-  return false;
-}
 
 void sendAnimationJson(ApiResponse& resp) {
   char body[64];
@@ -29,17 +20,10 @@ void sendAnimationJson(ApiResponse& resp) {
 }  // namespace
 
 void apiOpAnimGet(const ApiRequest& /*req*/, ApiResponse& resp) {
-  if (!requireWifiConfigured(resp)) {
-    return;
-  }
   sendAnimationJson(resp);
 }
 
 void apiOpAnimPost(const ApiRequest& req, ApiResponse& resp) {
-  if (!requireWifiConfigured(resp)) {
-    return;
-  }
-
   if (!req.hasArg("name")) {
     resp.setError(400, "missing name");
     return;

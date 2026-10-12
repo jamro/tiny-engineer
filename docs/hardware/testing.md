@@ -106,15 +106,15 @@ curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
 | Method | Path | Body |
 | --- | --- | --- |
 | `GET` | `/` | HTML endpoint index |
-| `GET` | `/auth` | Auth status (`ok`, `required`, `wifi_configured`, `provisioning`) — always public |
+| `GET` | `/auth` | Auth status (`ok`, `required`, `wifi_configured`, `wifi_enabled`, `provisioning`) — always public |
 | `GET` | `/health` | Health JSON — full field list in [api.md](../api.md#get-health) |
 | `GET` / `POST` | `/anim` | Current animation / start one (`name`, optional `interrupt`) — full params in [api.md](../api.md#post-anim) |
 | `POST` | `/play` | Stream a WAV while `talking` (or `/play/{name}`) runs; answers when the clip ends — full params in [api.md](../api.md#post-play) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `servo_hold`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
-| `POST` | `/settings?...` | Update NVS settings; `reboot_required` if hostname changed |
-| `POST` | `/settings?...&servo_mins=&servo_maxs=` | Servo min/max comma lists; setup-AP-only |
-| `POST` | `/settings?...&rgb_order=` | WS2812 byte order (`RGB`/`RBG`/`GRB`/`GBR`/`BRG`/`BGR`); setup-AP-only; default `GRB` |
-| `POST` | `/settings?...&oled_rotate_180=` | OLED 180° rotation (`0`/`1`); setup-AP-only; default `0` |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `servo_hold`, `wifi_enabled`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
+| `POST` | `/settings?...` | Update NVS settings; `reboot_required` if hostname or `wifi_enabled` changed vs boot |
+| `POST` | `/settings?...&servo_mins=&servo_maxs=` | Servo min/max comma lists; setup-AP or serial-only boot |
+| `POST` | `/settings?...&rgb_order=` | WS2812 byte order (`RGB`/`RBG`/`GRB`/`GBR`/`BRG`/`BGR`); setup-AP or serial-only; default `GRB` |
+| `POST` | `/settings?...&oled_rotate_180=` | OLED 180° rotation (`0`/`1`); setup-AP or serial-only; default `0` |
 | `PUT` | `/settings/wifi` | Replace the saved WiFi networks (JSON array of 1 to 5); first one tested in setup AP mode |
 | `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges, RGB mapping, and screen rotation); power-cycle to reopen setup AP |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |

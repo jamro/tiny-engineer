@@ -11,9 +11,12 @@ bool factoryResetSettings(bool* rebootRequired) {
   const bool loadingReboot =
     strcmp(g_loading, SETTINGS_DEFAULT_LOADING) != 0;
   const bool wifiReboot = g_wifiNetworks.count() > 0;
+  const bool wifiEnabledReboot =
+    g_bootWifiEnabled != SETTINGS_DEFAULT_WIFI_ENABLED;
 
   if (rebootRequired != nullptr) {
-    *rebootRequired = hostReboot || loadingReboot || wifiReboot;
+    *rebootRequired =
+      hostReboot || loadingReboot || wifiReboot || wifiEnabledReboot;
   }
 
   g_sleepTimeoutMin = SETTINGS_DEFAULT_SLEEP_TIMEOUT_MIN;
@@ -22,6 +25,7 @@ bool factoryResetSettings(bool* rebootRequired) {
   g_welcome = SETTINGS_DEFAULT_WELCOME;
   g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
   g_servoHold = SETTINGS_DEFAULT_SERVO_HOLD;
+  g_wifiEnabled = SETTINGS_DEFAULT_WIFI_ENABLED;
   g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
   setEyesStyleCache(g_eyesStyle, SETTINGS_DEFAULT_EYES_STYLE);
@@ -43,6 +47,7 @@ bool factoryResetSettings(bool* rebootRequired) {
     g_welcome,
     g_serialLog,
     g_servoHold,
+    g_wifiEnabled,
     g_continuousTimeoutMin,
     g_loading,
     g_eyesStyle,

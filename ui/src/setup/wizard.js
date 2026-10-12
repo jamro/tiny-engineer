@@ -2,7 +2,7 @@ import { postQuietly } from "../api.js";
 import { device } from "../device.js";
 import { $ } from "../dom.js";
 import { applyServoRanges, rangesToParams } from "../servo-ranges.js";
-import { syncSetupUi } from "../shell.js";
+import { REBOOT_GATE, showRebootGate, syncSetupUi } from "../shell.js";
 import { clearStatus, isBusy, perform, setStatus } from "../status.js";
 import { wifiNetworks } from "../wifi-networks.js";
 import { calibration } from "./calibration.js";
@@ -295,4 +295,24 @@ $("#config-wifi-connect").addEventListener("click", async () => {
       : "WiFi connected. Rejoin your home network.",
     "ok",
   );
+});
+
+$("#setup-serial-only").addEventListener("click", async () => {
+  if (isBusy()) {
+    return;
+  }
+
+  const result = await perform({
+    path: "/settings",
+    params: { wifi_enabled: 0 },
+    pending: "Saving serial-only mode…",
+    failure: "Could not disable Wi-Fi",
+  });
+
+  if (!result?.ok) {
+    return;
+  }
+
+  clearStatus();
+  showRebootGate(true, REBOOT_GATE.serialOnly);
 });

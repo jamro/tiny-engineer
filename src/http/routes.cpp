@@ -81,10 +81,10 @@ void registerHttpRoutes() {
     httpWithApiAuth(httpServer(), handleHealth);
   });
   server.on("/anim", HTTP_GET, []() {
-    httpWithWifiAndApiAuth(httpServer(), handleAnimGet);
+    httpWithApiAuth(httpServer(), handleAnimGet);
   });
   server.on("/anim", HTTP_POST, []() {
-    httpWithWifiAndApiAuth(httpServer(), handleAnimPost);
+    httpWithApiAuth(httpServer(), handleAnimPost);
   });
   // /play runs `talking`; /play/<name> picks another animation for the clip.
   server.on(

@@ -9,7 +9,6 @@
 #include "audio/audio_motion.h"
 #include "pins.h"
 #include "robot_tick.h"
-#include "settings/settings.h"
 #include "serial_log.h"
 #include "sleep.h"
 
@@ -55,11 +54,6 @@ void PlaySession::reject(int code, const char* message) {
 
 void PlaySession::begin(const char* animName) {
   clear();
-
-  if (!settingsWifiConfigured()) {
-    reject(503, "wifi not configured");
-    return;
-  }
 
   const char* name = (animName != nullptr && animName[0] != '\0') ? animName : "talking";
 

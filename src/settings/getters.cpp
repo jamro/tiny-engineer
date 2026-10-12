@@ -39,6 +39,14 @@ bool settingsServoHold() {
   return g_servoHold;
 }
 
+bool settingsWifiEnabled() {
+  return g_wifiEnabled;
+}
+
+bool settingsBootWifiEnabled() {
+  return g_bootWifiEnabled;
+}
+
 uint32_t settingsContinuousTimeoutMin() {
   return g_continuousTimeoutMin;
 }

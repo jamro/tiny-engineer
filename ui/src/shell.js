@@ -19,7 +19,26 @@ const authGate = $("#auth-gate");
 const authError = $("#auth-error");
 const authTokenField = $("#auth-token");
 const rebootGate = $("#reboot-gate");
+const rebootGateTitle = $("#reboot-gate-title");
+const rebootGateBody = $("#reboot-gate-body");
 let unlocked = false;
+
+export const REBOOT_GATE = {
+  factoryReset: {
+    title: "Factory reset done",
+    paragraphs: [
+      "Settings and WiFi credentials are cleared. Servo ranges, RGB LED mapping, and screen rotation stay. Power-cycle or press the device reset button.",
+      "Then join the robot WiFi shown on the OLED and open the setup page to configure home WiFi. You can retune servo ranges, screen rotation, and LED mapping there.",
+    ],
+  },
+  serialOnly: {
+    title: "Wi-Fi disabled",
+    paragraphs: [
+      "Power-cycle or press the device reset button. After reboot the Wi-Fi radio stays off — no setup AP and no HTTP panel.",
+      "Control the robot over USB serial (CLI --serial or the serial JSON API).",
+    ],
+  },
+};
 
 function showPage(path) {
   if (!unlocked) {
@@ -61,7 +80,7 @@ export function showAuthGate(show) {
   authTokenField.focus();
 }
 
-export function showRebootGate(show) {
+export function showRebootGate(show, content = REBOOT_GATE.factoryReset) {
   rebootGate.classList.toggle("show", show);
   authGate.classList.remove("show");
   document.body.classList.toggle("locked", show);
@@ -69,6 +88,15 @@ export function showRebootGate(show) {
   if (!show) {
     return;
   }
+
+  rebootGateTitle.textContent = content.title;
+  rebootGateBody.replaceChildren(
+    ...content.paragraphs.map((text) => {
+      const p = document.createElement("p");
+      p.textContent = text;
+      return p;
+    }),
+  );
 
   unlocked = false;
   stopHealthPolling();
@@ -90,7 +118,7 @@ export async function syncSetupUi() {
     document.body.classList.toggle("setup-mode", inSetup);
     $("#config-page-title").textContent = inSetup ? "WiFi setup" : "Config";
     $("#config-page-desc").textContent = inSetup
-      ? "Calibrate servos, set screen orientation, check the LED and speaker, then enter a device name and your home WiFi network. The robot tests the connection before saving."
+      ? "Calibrate servos, set screen orientation, check the LED and speaker, then join Wi-Fi or choose USB serial only. The robot tests Wi-Fi before saving."
       : "Saved to flash. Most changes apply right away.";
 
     if (inSetup) {

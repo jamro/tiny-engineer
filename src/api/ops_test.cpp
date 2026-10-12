@@ -10,17 +10,8 @@
 #include "hardware/pca9685_servos.h"
 #include "hardware/rgb.h"
 #include "servos.h"
-#include "settings/settings.h"
 
 namespace {
-
-bool requireWifiConfigured(ApiResponse& resp) {
-  if (settingsWifiConfigured()) {
-    return true;
-  }
-  resp.setError(503, "wifi not configured");
-  return false;
-}
 
 void restoreReadyScreen() {
   showIdleScreen();
@@ -73,18 +64,12 @@ bool isValidFloatArg(const char* s) {
 }  // namespace
 
 void apiOpTestAudio(const ApiRequest& /*req*/, ApiResponse& resp) {
-  if (!requireWifiConfigured(resp)) {
-    return;
-  }
   runSoundTest();
   restoreReadyScreen();
   resp.set(200, "{\"ok\":true,\"test\":\"audio\"}");
 }
 
 void apiOpTestBell(const ApiRequest& /*req*/, ApiResponse& resp) {
-  if (!requireWifiConfigured(resp)) {
-    return;
-  }
   if (!playBell()) {
     restoreReadyScreen();
     resp.setError(500, "bell playback failed");
@@ -95,27 +80,18 @@ void apiOpTestBell(const ApiRequest& /*req*/, ApiResponse& resp) {
 }
 
 void apiOpTestScreen(const ApiRequest& /*req*/, ApiResponse& resp) {
-  if (!requireWifiConfigured(resp)) {
-    return;
-  }
   runOledTest();
   restoreReadyScreen();
   resp.set(200, "{\"ok\":true,\"test\":\"screen\"}");
 }
 
 void apiOpTestMovement(const ApiRequest& /*req*/, ApiResponse& resp) {
-  if (!requireWifiConfigured(resp)) {
-    return;
-  }
   runServoTest();
   restoreReadyScreen();
   resp.set(200, "{\"ok\":true,\"test\":\"movement\"}");
 }
 
 void apiOpTestLed(const ApiRequest& /*req*/, ApiResponse& resp) {
-  if (!requireWifiConfigured(resp)) {
-    return;
-  }
   runRgbTest();
   setRgbForAnimation(getAnimation(), millis());
   restoreReadyScreen();
@@ -123,10 +99,6 @@ void apiOpTestLed(const ApiRequest& /*req*/, ApiResponse& resp) {
 }
 
 void apiOpTestServo(const ApiRequest& req, ApiResponse& resp) {
-  if (!requireWifiConfigured(resp)) {
-    return;
-  }
-
   if (!req.hasArg("index") || !req.hasArg("angle")) {
     resp.setError(400, "missing index or angle");
     return;

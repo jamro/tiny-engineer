@@ -2,9 +2,9 @@
 
 Persistent settings live in NVS (namespace `te`) under [`src/settings/`](../src/settings/). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
-**HTTP / JSON** (query params and `GET /settings` fields — see [api.md](api.md)): `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `servo_hold`, `continuous_timeout`, `loading`, `eyes_style`, `access_token`, `servo_mins` / `servo_maxs`, `rgb_order`, `oled_rotate_180`. WiFi networks have their own endpoint, `PUT /settings/wifi`, and show as `wifi_networks`.
+**HTTP / JSON** (query params and `GET /settings` fields — see [api.md](api.md)): `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `servo_hold`, `wifi_enabled`, `continuous_timeout`, `loading`, `eyes_style`, `access_token`, `servo_mins` / `servo_maxs`, `rgb_order`, `oled_rotate_180`. WiFi networks have their own endpoint, `PUT /settings/wifi`, and show as `wifi_networks`.
 
-**NVS keys** (≤15 chars; defined in [`nvs.h`](../src/settings/nvs.h)): `sleep_m`, `host`, `vol`, `welcome`, `serial_log`, `srv_hold`, `cont_to`, `loading`, `eyes_sty`, `access_tok`, `wifi_nets` (blob of up to 5 networks; replaces the older single-network `wifi_ssid` / `wifi_pass`, which are migrated on load), `sranges`, `rgb_ord`, `oled_rot`. Last commanded servo angles live in the same namespace as key `spose` (internal; not a settings API field). Add new short keys there — do not reuse HTTP names as NVS keys unless they already fit the length limit.
+**NVS keys** (≤15 chars; defined in [`nvs.h`](../src/settings/nvs.h)): `sleep_m`, `host`, `vol`, `welcome`, `serial_log`, `srv_hold`, `wifi_en`, `cont_to`, `loading`, `eyes_sty`, `access_tok`, `wifi_nets` (blob of up to 5 networks; replaces the older single-network `wifi_ssid` / `wifi_pass`, which are migrated on load), `sranges`, `rgb_ord`, `oled_rot`. Last commanded servo angles live in the same namespace as key `spose` (internal; not a settings API field). Add new short keys there — do not reuse HTTP names as NVS keys unless they already fit the length limit.
 
 Follow the same pattern for a new setting.
 
@@ -16,7 +16,7 @@ Follow the same pattern for a new setting.
 | RAM | Cached in a module-static after `initSettings()`; callers use getters |
 | Update API | Nullable pointer args to `saveSettings(...)` — only non-null fields change |
 | HTTP | Query params on `POST /settings`; at least one param required |
-| Apply timing | Prefer immediate apply. If boot-only (like hostname), set `reboot_required` and document it. WiFi networks live in a `WifiNetworkList` saved with `saveWifiNetworks()`, outside `saveSettings(...)`; they are tested before save only in setup AP mode. Servo min/max (`servo_mins` / `servo_maxs`), RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are setup-AP-only and apply immediately |
+| Apply timing | Prefer immediate apply. If boot-only (like hostname / `wifi_enabled`), set `reboot_required` and document it. WiFi networks live in a `WifiNetworkList` saved with `saveWifiNetworks()`, outside `saveSettings(...)`; they are tested before save only in setup AP mode. Servo min/max (`servo_mins` / `servo_maxs`), RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are setup-AP-only (or serial-only when `wifi_enabled=0` at boot) and apply immediately |
 | Types | Prefer small integers / short strings; validate before any NVS write |
 
 ## Checklist

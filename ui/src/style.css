@@ -1034,3 +1034,15 @@ body:not(.setup-mode) #setup-wizard {
 #config-wifi-connect {
   margin-top: 0;
 }
+
+.setup-network-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.setup-network-actions .btn {
+  margin-top: 0;
+}

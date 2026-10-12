@@ -23,15 +23,8 @@
     </div>
     <div id="reboot-gate" class="gate">
       <div class="gate-box">
-        <h1>Factory reset done</h1>
-        <p>
-          Settings and WiFi credentials are cleared. Servo ranges, RGB LED mapping, and screen
-          rotation stay. Power-cycle or press the device reset button.
-        </p>
-        <p>
-          Then join the robot WiFi shown on the OLED and open the setup page to configure home WiFi.
-          You can retune servo ranges, screen rotation, and LED mapping there.
-        </p>
+        <h1 id="reboot-gate-title"></h1>
+        <div id="reboot-gate-body"></div>
       </div>
     </div>
     <nav>
@@ -275,6 +268,11 @@
             <td>0 or 1 (skip idle/sleep PWM limp)</td>
           </tr>
           <tr>
+            <td><code>wifi_enabled</code></td>
+            <td>integer</td>
+            <td>0 or 1 (Wi-Fi radio; next reboot; 0 = serial-only)</td>
+          </tr>
+          <tr>
             <td><code>continuous_timeout</code></td>
             <td>integer</td>
             <td>1&ndash;1440 minutes</td>
@@ -329,15 +327,16 @@
         </tbody>
       </table>
       <p>
-        Servo min/max, RGB LED mapping, and OLED rotation can only be set in setup AP mode.
+        Servo min/max, RGB LED mapping, and OLED rotation can be set in setup AP mode, or over
+        serial when <code>wifi_enabled=0</code> (serial-only boot).
         <code>PUT /settings/wifi</code> takes a JSON array of 1&ndash;5
         <code>{"ssid", "password"}</code> objects; leave out <code>password</code> to keep a saved
-        one. In setup AP mode the robot tests the first network before saving. During setup
-        (credentials not saved), control APIs return <strong>503</strong>
-        <code>wifi not configured</code>; <code>POST /setup/servo</code>,
-        <code>POST /setup/led</code>, <code>POST /setup/audio</code>, <code>POST /setup/oled</code>,
-        and <code>POST /servos/park</code> stay available. Servo ranges, RGB mapping, and screen
-        rotation survive factory reset and can be retuned in the setup wizard.
+        one. In setup AP mode the robot tests the first network before saving.
+        <code>POST /setup/servo</code>, <code>POST /setup/led</code>,
+        <code>POST /setup/audio</code>, <code>POST /setup/oled</code>, and
+        <code>POST /servos/park</code> stay available during setup AP (and setup over serial when
+        Wi-Fi is off). Servo ranges, RGB mapping, and screen rotation survive factory reset and can
+        be retuned in the setup wizard.
       </p>
       <p>POST <code>/anim</code> &mdash; query param <code>name</code>:</p>
       <table>
@@ -877,9 +876,18 @@
                 />
                 <p class="hint">Letters, digits, hyphen &mdash; no .local</p>
               </div>
-              <button type="button" id="config-wifi-connect" class="btn btn-primary">
-                Connect to WiFi
-              </button>
+              <div class="setup-network-actions">
+                <button type="button" id="config-wifi-connect" class="btn btn-primary">
+                  Connect to WiFi
+                </button>
+                <button type="button" id="setup-serial-only" class="btn">
+                  Use USB serial only
+                </button>
+              </div>
+              <p class="hint">
+                Serial-only skips Wi-Fi: after reboot the radio stays off and you drive the robot
+                over USB (CLI <code>--serial</code> or the serial JSON API).
+              </p>
             </div>
           </div>
         </div>
@@ -1013,7 +1021,7 @@
             </div>
             <div class="toggle-row">
               <input type="checkbox" id="config-welcome" checked />
-              <label for="config-welcome">Play welcome when Wi-Fi connects</label>
+              <label for="config-welcome">Play welcome on boot (Wi-Fi or serial-only)</label>
             </div>
           </div>
           <div class="form-group">
@@ -1032,6 +1040,15 @@
             <div class="toggle-row">
               <input type="checkbox" id="config-servo-hold" />
               <label for="config-servo-hold">Keep torque after idle (no limp)</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="field-head">
+              <span>Wi-Fi</span><span class="apply-badge apply-reboot">After reboot</span>
+            </div>
+            <div class="toggle-row">
+              <input type="checkbox" id="config-wifi-enabled" checked />
+              <label for="config-wifi-enabled">Enable Wi-Fi (off = USB serial only)</label>
             </div>
           </div>
         </div>

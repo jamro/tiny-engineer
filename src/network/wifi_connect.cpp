@@ -331,6 +331,15 @@ void runWifiSetup() {
 
   connectError[0] = '\0';
 
+  if (!settingsBootWifiEnabled()) {
+    serialLogPrintln("WiFi disabled; radio off (serial-only)");
+    WiFi.persistent(false);
+    WiFi.mode(WIFI_OFF);
+    provisioning = false;
+    delay(500);
+    return;
+  }
+
   if (settingsWifiConfigured()) {
     serialLogPrintln("Trying saved WiFi credentials");
 

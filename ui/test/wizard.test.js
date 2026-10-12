@@ -127,6 +127,18 @@ describe("setup wizard", () => {
     expect($("#status").textContent).toContain("WiFi connected");
   });
 
+  it("finishes setup as USB serial only without joining Wi-Fi", async () => {
+    const robot = fakeRobot({ provisioning: true });
+
+    await loadApp("/");
+    await click("#setup-serial-only");
+
+    expect(robot.lastPost("/settings").params).toEqual({ wifi_enabled: "0" });
+    expect($("#reboot-gate").classList.contains("show")).toBe(true);
+    expect($("#reboot-gate-title").textContent).toBe("Wi-Fi disabled");
+    expect(document.body.classList.contains("locked")).toBe(true);
+  });
+
   it("blocks a color mapping that uses a color twice", async () => {
     const robot = await startCalibration();
 

@@ -11,6 +11,8 @@ uint8_t g_volume = SETTINGS_DEFAULT_VOLUME;
 bool g_welcome = SETTINGS_DEFAULT_WELCOME;
 bool g_serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
 bool g_servoHold = SETTINGS_DEFAULT_SERVO_HOLD;
+bool g_wifiEnabled = SETTINGS_DEFAULT_WIFI_ENABLED;
+bool g_bootWifiEnabled = SETTINGS_DEFAULT_WIFI_ENABLED;
 uint32_t g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
 char g_loading[SETTINGS_LOADING_MAX_LEN + 1] = {};
 char g_eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1] = {};
@@ -65,6 +67,8 @@ void logSettingsSnapshot(const char* prefix) {
   serialLogPrint(g_serialLog ? "on" : "off");
   serialLogPrint(" servo_hold=");
   serialLogPrint(g_servoHold ? "on" : "off");
+  serialLogPrint(" wifi_enabled=");
+  serialLogPrint(g_wifiEnabled ? "on" : "off");
   serialLogPrint(" continuous_timeout=");
   serialLogPrint(g_continuousTimeoutMin);
   serialLogPrint("min loading=");

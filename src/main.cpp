@@ -78,11 +78,16 @@ void setup() {
     bootSnapSleepPose();
   }
 
-  bootShowProgress(2, kBootSteps, "WiFi...");
+  bootShowProgress(
+    2,
+    kBootSteps,
+    settingsBootWifiEnabled() ? "WiFi..." : "WiFi off"
+  );
   runWifiSetup();
   bootShowProgress(
     2,
     kBootSteps,
+    !settingsBootWifiEnabled() ? "WiFi off" :
     wifiConnected() ? "WiFi OK" :
     wifiProvisioningMode() ? "WiFi setup" : "WiFi failed"
   );
@@ -133,6 +138,10 @@ void setup() {
     bootShowProgress(kBootSteps, kBootSteps, "Ready");
     if (wifiProvisioningMode()) {
       showProvisioningOled("Join this WiFi", wifiApSsid());
+    } else if (!settingsBootWifiEnabled()) {
+      showOledText("Serial only", "WiFi off");
+      delay(2000);
+      showIdleScreen();
     } else {
       showBootIp(wifiConnected() ? wifiIpText() : "");
       delay(3000);
@@ -142,6 +151,8 @@ void setup() {
     bootRunSleepInertia();
     if (wifiProvisioningMode()) {
       showProvisioningOled("Join this WiFi", wifiApSsid());
+    } else if (!settingsBootWifiEnabled()) {
+      showIdleScreen();
     }
   }
 
@@ -150,13 +161,16 @@ void setup() {
   serialLogPrintln("ROBOT READY");
   serialLogPrintln("==========================");
 
-  if (wifiConnected() && settingsWelcomeEnabled()) {
+  if (wifiProvisioningMode()) {
+    setRgb(0, 0, 64);
+  } else if (
+    settingsWelcomeEnabled() &&
+    (wifiConnected() || !settingsBootWifiEnabled())
+  ) {
     setAnimation(AnimationId::Welcome);
-  } else if (wifiConnected() && !settingsWelcomeEnabled()) {
+  } else if (wifiConnected() || !settingsBootWifiEnabled()) {
     anim::parkHands(anim::TRANSITION_HAND_SPEED_DEG_S);
     setRgbForAnimation(AnimationId::None, millis());
-  } else if (wifiProvisioningMode()) {
-    setRgb(0, 0, 64);
   } else {
     setRgbForAnimation(AnimationId::None, millis());
   }

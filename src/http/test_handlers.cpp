@@ -16,31 +16,31 @@ void registerHttpTestRoutes(WebServer& server) {
   server.on(
     "/test/audio",
     HTTP_POST,
-    [&server]() { httpWithWifiAndApiAuth(server, httpDispatchApi); }
+    [&server]() { httpWithApiAuth(server, httpDispatchApi); }
   );
   server.on(
     "/test/audio/bell",
     HTTP_POST,
-    [&server]() { httpWithWifiAndApiAuth(server, httpDispatchApi); }
+    [&server]() { httpWithApiAuth(server, httpDispatchApi); }
   );
   server.on(
     "/test/screen",
     HTTP_POST,
-    [&server]() { httpWithWifiAndApiAuth(server, httpDispatchApi); }
+    [&server]() { httpWithApiAuth(server, httpDispatchApi); }
   );
   server.on(
     "/test/movement",
     HTTP_POST,
-    [&server]() { httpWithWifiAndApiAuth(server, httpDispatchApi); }
+    [&server]() { httpWithApiAuth(server, httpDispatchApi); }
   );
   server.on(
     "/test/led",
     HTTP_POST,
-    [&server]() { httpWithWifiAndApiAuth(server, httpDispatchApi); }
+    [&server]() { httpWithApiAuth(server, httpDispatchApi); }
   );
   server.on(
     "/test/servo",
     HTTP_POST,
-    [&server]() { httpWithWifiAndApiAuth(server, httpDispatchApi); }
+    [&server]() { httpWithApiAuth(server, httpDispatchApi); }
   );
 }

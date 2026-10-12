@@ -1,6 +1,6 @@
 import { token } from "./api.js";
 import { $ } from "./dom.js";
-import { showRebootGate } from "./shell.js";
+import { REBOOT_GATE, showRebootGate } from "./shell.js";
 import { clearStatus, perform, setStatus } from "./status.js";
 import { wifiNetworks } from "./wifi-networks.js";
 
@@ -15,6 +15,7 @@ const volumeSlider = $("#config-volume-slider");
 const welcomeToggle = $("#config-welcome");
 const serialLogToggle = $("#config-serial-log");
 const servoHoldToggle = $("#config-servo-hold");
+const wifiEnabledToggle = $("#config-wifi-enabled");
 const loadingSelect = $("#config-loading");
 const eyesStyleSelect = $("#config-eyes-style");
 
@@ -95,6 +96,13 @@ function updateWelcomeMotionHint() {
 const loadingMode = (settings) =>
   settings.loading === "sleep_inertia" ? "sleep_inertia" : "progress";
 
+// Last values applied from the robot (not live form edits).
+const applied = {
+  hostname: "",
+  loading: "progress",
+  wifiEnabled: true,
+};
+
 export function applyConfigSettings(
   settings,
   fallback = { hostname: "", continuous_timeout: 5, volume: DEFAULT_VOLUME },
@@ -106,37 +114,59 @@ export function applyConfigSettings(
   welcomeToggle.checked = settings.welcome !== false;
   serialLogToggle.checked = Boolean(settings.serial_log);
   servoHoldToggle.checked = Boolean(settings.servo_hold);
+  wifiEnabledToggle.checked = settings.wifi_enabled !== false;
   loadingSelect.value = loadingMode(settings);
   eyesStyleSelect.value = EYES_STYLES.includes(settings.eyes_style)
     ? settings.eyes_style
     : "classic";
   accessToken.loadFromServer(settings.access_token_set);
+  applied.hostname = hostnameField.value;
+  applied.loading = loadingSelect.value;
+  applied.wifiEnabled = wifiEnabledToggle.checked;
   updateWelcomeMotionHint();
 }
 
-function saveMessage(previousHost, previousLoading, saved) {
-  const hostChanged =
-    (saved.hostname || previousHost) !== previousHost || Boolean(saved.reboot_required);
-  const loadingChanged = loadingMode(saved) !== previousLoading;
+function saveMessage(before, saved) {
+  const hostChanged = (saved.hostname || before.hostname) !== before.hostname;
+  const loadingChanged = loadingMode(saved) !== before.loading;
+  const wifiEnabledChanged = (saved.wifi_enabled !== false) !== before.wifiEnabled;
 
-  if (hostChanged && loadingChanged) {
-    return "Saved. Hostname and loading screen apply after reboot.";
-  }
-
+  const parts = [];
   if (hostChanged) {
-    return "Saved. Hostname applies after reboot.";
+    parts.push("hostname");
   }
-
   if (loadingChanged) {
-    return "Saved. Loading screen applies after reboot.";
+    parts.push("loading screen");
+  }
+  if (wifiEnabledChanged) {
+    parts.push("Wi-Fi mode");
   }
 
-  return "Settings saved.";
+  if (parts.length === 0) {
+    return "Settings saved.";
+  }
+
+  if (parts.length === 1) {
+    const label =
+      parts[0] === "hostname"
+        ? "Hostname"
+        : parts[0] === "loading screen"
+          ? "Loading screen"
+          : "Wi-Fi mode";
+    return `Saved. ${label} applies after reboot.`;
+  }
+
+  if (parts.length === 2) {
+    const first = parts[0] === "hostname" ? "Hostname" : parts[0];
+    return `Saved. ${first} and ${parts[1]} apply after reboot.`;
+  }
+
+  return "Saved. Hostname, loading screen, and Wi-Fi mode apply after reboot.";
 }
 
 async function saveConfig() {
   const host = hostnameField.value.trim();
-  const previousLoading = loadingSelect.value;
+  const before = { ...applied };
   const newToken = accessToken.pendingValue;
   const params = {
     sleep_timeout: sleepField.value,
@@ -145,6 +175,7 @@ async function saveConfig() {
     welcome: welcomeToggle.checked ? 1 : 0,
     serial_log: serialLogToggle.checked ? 1 : 0,
     servo_hold: servoHoldToggle.checked ? 1 : 0,
+    wifi_enabled: wifiEnabledToggle.checked ? 1 : 0,
     continuous_timeout: continuousField.value,
     loading: loadingSelect.value,
     eyes_style: eyesStyleSelect.value,
@@ -160,6 +191,10 @@ async function saveConfig() {
     pending: "Saving…",
     failure: "Save failed",
     onSuccess: async (saved) => {
+      const wifiEnabledChanged =
+        (saved.wifi_enabled !== false) !== before.wifiEnabled;
+      const statusText = saveMessage(before, saved);
+
       applyConfigSettings(saved, {
         hostname: host,
         continuous_timeout: params.continuous_timeout,
@@ -179,9 +214,16 @@ async function saveConfig() {
         return;
       }
 
+      if (wifiEnabledChanged && saved.wifi_enabled === false) {
+        clearStatus();
+        showRebootGate(true, REBOOT_GATE.serialOnly);
+
+        return;
+      }
+
       const wifiNote = wifiChanged ? " WiFi networks apply after reboot." : "";
 
-      setStatus(saveMessage(host, previousLoading, saved) + wifiNote, "ok");
+      setStatus(statusText + wifiNote, "ok");
     },
   });
 }
@@ -208,7 +250,7 @@ async function factoryReset() {
   token.clear();
   accessToken.loadFromServer(false);
   clearStatus();
-  showRebootGate(true);
+  showRebootGate(true, REBOOT_GATE.factoryReset);
 }
 
 volumeSlider.addEventListener("input", () => setVolume(volumeSlider.value));

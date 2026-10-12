@@ -11,6 +11,7 @@ constexpr uint8_t SETTINGS_DEFAULT_VOLUME = 70;
 constexpr bool SETTINGS_DEFAULT_WELCOME = true;
 constexpr bool SETTINGS_DEFAULT_SERIAL_LOG = false;
 constexpr bool SETTINGS_DEFAULT_SERVO_HOLD = false;
+constexpr bool SETTINGS_DEFAULT_WIFI_ENABLED = true;
 constexpr uint32_t SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN = 5;
 constexpr const char* SETTINGS_DEFAULT_LOADING = "progress";
 constexpr const char* SETTINGS_DEFAULT_EYES_STYLE = "classic";
@@ -44,6 +45,7 @@ uint8_t settingsVolume();
 bool settingsWelcomeEnabled();
 bool settingsSerialLogEnabled();
 bool settingsServoHold();
+bool settingsWifiEnabled();
 uint32_t settingsContinuousTimeoutMin();
 const char* settingsLoading();
 const char* settingsEyesStyle();
@@ -58,6 +60,8 @@ bool settingsOledRotate180();
 
 // Hostname used at boot for Wi-Fi/mDNS (frozen after initSettings).
 const char* settingsBootHostname();
+// Wi-Fi enable flag used at boot for STA/AP (frozen after initSettings).
+bool settingsBootWifiEnabled();
 
 bool settingsValidateSleepTimeout(uint32_t sleepTimeoutMin);
 bool settingsValidateHostname(const char* hostname);
@@ -84,6 +88,7 @@ bool saveSettings(
   const bool* welcome,
   const bool* serialLog,
   const bool* servoHold,
+  const bool* wifiEnabled,
   const uint32_t* continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,

@@ -12,6 +12,7 @@ bool saveSettings(
   const bool* welcome,
   const bool* serialLog,
   const bool* servoHold,
+  const bool* wifiEnabled,
   const uint32_t* continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,
@@ -32,6 +33,7 @@ bool saveSettings(
       welcome == nullptr &&
       serialLog == nullptr &&
       servoHold == nullptr &&
+      wifiEnabled == nullptr &&
       continuousTimeoutMin == nullptr &&
       loading == nullptr &&
       eyesStyle == nullptr &&
@@ -50,6 +52,7 @@ bool saveSettings(
   bool nextWelcome = g_welcome;
   bool nextSerialLog = g_serialLog;
   bool nextServoHold = g_servoHold;
+  bool nextWifiEnabled = g_wifiEnabled;
   uint32_t nextContTo = g_continuousTimeoutMin;
   char nextLoading[SETTINGS_LOADING_MAX_LEN + 1];
   setLoadingCache(nextLoading, g_loading);
@@ -99,6 +102,10 @@ bool saveSettings(
 
   if (servoHold != nullptr) {
     nextServoHold = *servoHold;
+  }
+
+  if (wifiEnabled != nullptr) {
+    nextWifiEnabled = *wifiEnabled;
   }
 
   if (continuousTimeoutMin != nullptr) {
@@ -165,6 +172,7 @@ bool saveSettings(
         nextWelcome,
         nextSerialLog,
         nextServoHold,
+        nextWifiEnabled,
         nextContTo,
         nextLoading,
         nextEyesStyle,
@@ -183,6 +191,7 @@ bool saveSettings(
   g_welcome = nextWelcome;
   g_serialLog = nextSerialLog;
   g_servoHold = nextServoHold;
+  g_wifiEnabled = nextWifiEnabled;
   g_continuousTimeoutMin = nextContTo;
   setLoadingCache(g_loading, nextLoading);
   setEyesStyleCache(g_eyesStyle, nextEyesStyle);
@@ -192,9 +201,11 @@ bool saveSettings(
   setRgbOrderCache(g_rgbOrder, nextRgbOrder);
   g_oledRotate180 = nextOledRotate180;
 
-  if (rebootRequired != nullptr &&
-      strcmp(g_hostname, g_bootHostname) != 0) {
-    *rebootRequired = true;
+  if (rebootRequired != nullptr) {
+    if (strcmp(g_hostname, g_bootHostname) != 0 ||
+        g_wifiEnabled != g_bootWifiEnabled) {
+      *rebootRequired = true;
+    }
   }
 
   logSettingsSnapshot("Settings saved:");

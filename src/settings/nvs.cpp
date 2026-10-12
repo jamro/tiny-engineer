@@ -59,6 +59,7 @@ void putAll(
   bool welcome,
   bool serialLog,
   bool servoHold,
+  bool wifiEnabled,
   uint32_t continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,
@@ -77,6 +78,7 @@ void putAll(
   g_settingsPrefs.putBool(kKeyWelcome, welcome);
   g_settingsPrefs.putBool(kKeySerialLog, serialLog);
   g_settingsPrefs.putBool(kKeyServoHold, servoHold);
+  g_settingsPrefs.putBool(kKeyWifiEn, wifiEnabled);
   g_settingsPrefs.putUInt(kKeyContTo, continuousTimeoutMin);
   g_settingsPrefs.putString(kKeyLoading, loading);
   g_settingsPrefs.putString(kKeyEyesStyle, eyesStyle);
@@ -95,6 +97,7 @@ bool writeAllToNvs(
   bool welcome,
   bool serialLog,
   bool servoHold,
+  bool wifiEnabled,
   uint32_t continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,
@@ -116,6 +119,7 @@ bool writeAllToNvs(
     welcome,
     serialLog,
     servoHold,
+    wifiEnabled,
     continuousTimeoutMin,
     loading,
     eyesStyle,
@@ -136,6 +140,7 @@ void settingsNvsPutAll(
   bool welcome,
   bool serialLog,
   bool servoHold,
+  bool wifiEnabled,
   uint32_t continuousTimeoutMin,
   const char* loading,
   const char* eyesStyle,
@@ -152,6 +157,7 @@ void settingsNvsPutAll(
     welcome,
     serialLog,
     servoHold,
+    wifiEnabled,
     continuousTimeoutMin,
     loading,
     eyesStyle,

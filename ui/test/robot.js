@@ -16,6 +16,7 @@ const DEFAULT_SETTINGS = {
   welcome: true,
   serial_log: false,
   servo_hold: false,
+  wifi_enabled: true,
   loading: "progress",
   eyes_style: "classic",
   access_token_set: false,
@@ -39,6 +40,7 @@ function applySettingsParams(settings, params) {
       key === "welcome" ||
       key === "serial_log" ||
       key === "servo_hold" ||
+      key === "wifi_enabled" ||
       key === "oled_rotate_180"
     ) {
       next[key] = value === "1";
@@ -49,7 +51,9 @@ function applySettingsParams(settings, params) {
     }
   }
 
-  next.reboot_required = next.hostname !== settings.hostname;
+  next.reboot_required =
+    next.hostname !== settings.hostname ||
+    Boolean(next.wifi_enabled) !== Boolean(settings.wifi_enabled);
 
   return next;
 }

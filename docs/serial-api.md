@@ -1,6 +1,6 @@
 # Serial API
 
-USB CDC transport for the same JSON control ops as the [HTTP API](api.md). Wi-Fi remains mandatory for a configured robot; serial is an **additional** always-on channel (trusted — no Bearer auth).
+USB CDC transport for the same JSON control ops as the [HTTP API](api.md). Always on (trusted — no Bearer auth). With `wifi_enabled=0` after reboot, serial is the **only** control path (Wi-Fi radio off, no HTTP). With Wi-Fi on, serial is an additional channel beside HTTP.
 
 Source: [`src/serial/serial_api.cpp`](../src/serial/serial_api.cpp), shared dispatch in [`src/api/`](../src/api/). Baud **115200** (same as `monitor_speed` / `Serial.begin`).
 
@@ -65,23 +65,23 @@ Prefix `L` + space + message + `\n`. Multi-part log prints share one `L ` at the
 | --- | --- |
 | `GET /auth` | Public on HTTP; same JSON here |
 | `GET /health` | |
-| `GET /anim` | Requires Wi-Fi credentials saved (else **503**) |
-| `POST /anim` | Query `name`; requires Wi-Fi credentials saved |
+| `GET /anim` | |
+| `POST /anim` | Query `name` |
 | `GET /settings` | |
-| `POST /settings` | Query params as HTTP |
+| `POST /settings` | Query params as HTTP (incl. `wifi_enabled`) |
 | `POST /settings/reset` | |
-| `POST /test/audio` | Requires Wi-Fi credentials saved |
-| `POST /test/audio/bell` | Requires Wi-Fi credentials saved |
-| `POST /test/screen` | Requires Wi-Fi credentials saved |
-| `POST /test/movement` | Requires Wi-Fi credentials saved |
-| `POST /test/led` | Requires Wi-Fi credentials saved |
-| `POST /test/servo` | Query `index`, `angle`; requires Wi-Fi credentials saved |
-| `POST /setup/servo` | Setup AP only (else **400**) |
-| `POST /setup/led` | Setup AP only |
-| `POST /setup/audio` | Setup AP only |
-| `POST /setup/oled` | Setup AP only |
-| `POST /servos/park` | No Wi-Fi gate; smooth mid + pose persist + hold PWM until reboot |
-| `POST /play` | Begin JSON must include `len`; then raw WAV (same format as HTTP). Requires Wi-Fi credentials saved |
+| `POST /test/audio` | |
+| `POST /test/audio/bell` | |
+| `POST /test/screen` | |
+| `POST /test/movement` | |
+| `POST /test/led` | |
+| `POST /test/servo` | Query `index`, `angle` |
+| `POST /setup/servo` | Setup AP or serial-only boot (else **400**) |
+| `POST /setup/led` | Setup AP or serial-only boot |
+| `POST /setup/audio` | Setup AP or serial-only boot |
+| `POST /setup/oled` | Setup AP or serial-only boot |
+| `POST /servos/park` | Smooth mid + pose persist + hold PWM until reboot |
+| `POST /play` | Begin JSON must include `len`; then raw WAV (same format as HTTP) |
 | `POST /play/<name>` | Same; `name` = `talking`\|`typing`\|`reading`\|`thinking`\|`none` |
 
 Unknown `op` → **404** `{"ok":false,"error":"not found"}`. Wrong method for a known path → **405** `method not allowed`.

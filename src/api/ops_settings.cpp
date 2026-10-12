@@ -59,6 +59,7 @@ void apiFillSettingsResponse(
   doc["welcome"] = settingsWelcomeEnabled();
   doc["serial_log"] = settingsSerialLogEnabled();
   doc["servo_hold"] = settingsServoHold();
+  doc["wifi_enabled"] = settingsWifiEnabled();
   doc["continuous_timeout"] = settingsContinuousTimeoutMin();
   doc["loading"] = settingsLoading();
   doc["eyes_style"] = settingsEyesStyle();
@@ -114,6 +115,7 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
   const bool hasWelcome = req.hasArg("welcome");
   const bool hasSerialLog = req.hasArg("serial_log");
   const bool hasServoHold = req.hasArg("servo_hold");
+  const bool hasWifiEnabled = req.hasArg("wifi_enabled");
   const bool hasContTo = req.hasArg("continuous_timeout");
   const bool hasLoading = req.hasArg("loading");
   const bool hasEyesStyle = req.hasArg("eyes_style");
@@ -124,13 +126,13 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
   const bool hasOledRotate180 = req.hasArg("oled_rotate_180");
 
   if (!hasSleep && !hasHost && !hasVolume && !hasWelcome && !hasSerialLog &&
-      !hasServoHold &&
+      !hasServoHold && !hasWifiEnabled &&
       !hasContTo && !hasLoading && !hasEyesStyle && !hasAccessToken &&
       !hasServoMins && !hasServoMaxs &&
       !hasRgbOrder && !hasOledRotate180) {
     resp.setError(
       400,
-      "missing sleep_timeout, hostname, volume, welcome, serial_log, servo_hold, continuous_timeout, loading, eyes_style, access_token, servo_mins, servo_maxs, rgb_order, or oled_rotate_180"
+      "missing sleep_timeout, hostname, volume, welcome, serial_log, servo_hold, wifi_enabled, continuous_timeout, loading, eyes_style, access_token, servo_mins, servo_maxs, rgb_order, or oled_rotate_180"
     );
     return;
   }
@@ -146,6 +148,8 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
   const bool* serialLogPtr = nullptr;
   bool servoHold = false;
   const bool* servoHoldPtr = nullptr;
+  bool wifiEnabled = false;
+  const bool* wifiEnabledPtr = nullptr;
   uint32_t continuousTimeoutMin = 0;
   const uint32_t* contToPtr = nullptr;
   const char* loadingPtr = nullptr;
@@ -242,6 +246,19 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
     servoHoldPtr = &servoHold;
   }
 
+  if (hasWifiEnabled) {
+    const char* wifiEnabledArg = req.arg("wifi_enabled");
+    char* end = nullptr;
+    const unsigned long parsed = strtoul(wifiEnabledArg, &end, 10);
+
+    if (end == wifiEnabledArg || *end != '\0' || parsed > 1) {
+      resp.setError(400, "invalid wifi_enabled");
+      return;
+    }
+    wifiEnabled = parsed == 1;
+    wifiEnabledPtr = &wifiEnabled;
+  }
+
   if (hasContTo) {
     const char* contArg = req.arg("continuous_timeout");
     char* end = nullptr;
@@ -285,7 +302,7 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
   }
 
   if (hasServoMins || hasServoMaxs) {
-    if (!wifiProvisioningMode()) {
+    if (!wifiProvisioningMode() && settingsBootWifiEnabled()) {
       resp.setError(400, "servo setup only in AP mode");
       return;
     }
@@ -311,7 +328,7 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
   }
 
   if (hasRgbOrder) {
-    if (!wifiProvisioningMode()) {
+    if (!wifiProvisioningMode() && settingsBootWifiEnabled()) {
       resp.setError(400, "rgb setup only in AP mode");
       return;
     }
@@ -324,7 +341,7 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
   }
 
   if (hasOledRotate180) {
-    if (!wifiProvisioningMode()) {
+    if (!wifiProvisioningMode() && settingsBootWifiEnabled()) {
       resp.setError(400, "oled setup only in AP mode");
       return;
     }
@@ -351,6 +368,7 @@ void apiOpSettingsPost(const ApiRequest& req, ApiResponse& resp) {
         welcomePtr,
         serialLogPtr,
         servoHoldPtr,
+        wifiEnabledPtr,
         contToPtr,
         loadingPtr,
         eyesStylePtr,

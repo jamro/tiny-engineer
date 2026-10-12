@@ -12,6 +12,8 @@ extern uint8_t g_volume;
 extern bool g_welcome;
 extern bool g_serialLog;
 extern bool g_servoHold;
+extern bool g_wifiEnabled;
+extern bool g_bootWifiEnabled;
 extern uint32_t g_continuousTimeoutMin;
 extern char g_loading[SETTINGS_LOADING_MAX_LEN + 1];
 extern char g_eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1];

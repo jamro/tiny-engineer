@@ -15,9 +15,10 @@ void apiOpAuthGet(const ApiRequest& /*req*/, ApiResponse& resp) {
   std::snprintf(
     resp.body,
     ApiResponse::kBodyMax,
-    "{\"ok\":true,\"required\":%s,\"wifi_configured\":%s,\"provisioning\":%s}",
+    "{\"ok\":true,\"required\":%s,\"wifi_configured\":%s,\"wifi_enabled\":%s,\"provisioning\":%s}",
     settingsAccessTokenSet() ? "true" : "false",
     settingsWifiConfigured() ? "true" : "false",
+    settingsWifiEnabled() ? "true" : "false",
     wifiProvisioningMode() ? "true" : "false"
   );
   resp.status = 200;
@@ -66,6 +67,7 @@ void apiOpHealthGet(const ApiRequest& /*req*/, ApiResponse& resp) {
     "\"hostname\":\"%s\""
     "},"
     "\"wifi_configured\":%s,"
+    "\"wifi_enabled\":%s,"
     "\"provisioning\":%s,"
     "\"setup_ap_ssid\":\"%s\","
     "\"setup_ap_ip\":\"%s\","
@@ -81,6 +83,7 @@ void apiOpHealthGet(const ApiRequest& /*req*/, ApiResponse& resp) {
     wifiOk ? (int)WiFi.RSSI() : 0,
     httpMdnsHostname(),
     settingsWifiConfigured() ? "true" : "false",
+    settingsWifiEnabled() ? "true" : "false",
     wifiProvisioningMode() ? "true" : "false",
     wifiProvisioningMode() ? wifiApSsid() : "",
     wifiProvisioningMode() ? wifiApIpText() : "",

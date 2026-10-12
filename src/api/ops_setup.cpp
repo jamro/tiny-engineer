@@ -61,7 +61,7 @@ bool isValidFloatArg(const char* s) {
 }  // namespace
 
 void apiOpSetupServo(const ApiRequest& req, ApiResponse& resp) {
-  if (!wifiProvisioningMode()) {
+  if (!wifiProvisioningMode() && settingsBootWifiEnabled()) {
     resp.setError(400, "setup servo only in AP mode");
     return;
   }
@@ -124,7 +124,7 @@ void apiOpSetupServo(const ApiRequest& req, ApiResponse& resp) {
 }
 
 void apiOpSetupLed(const ApiRequest& req, ApiResponse& resp) {
-  if (!wifiProvisioningMode()) {
+  if (!wifiProvisioningMode() && settingsBootWifiEnabled()) {
     resp.setError(400, "setup led only in AP mode");
     return;
   }
@@ -208,7 +208,7 @@ void apiOpSetupLed(const ApiRequest& req, ApiResponse& resp) {
 }
 
 void apiOpSetupAudio(const ApiRequest& /*req*/, ApiResponse& resp) {
-  if (!wifiProvisioningMode()) {
+  if (!wifiProvisioningMode() && settingsBootWifiEnabled()) {
     resp.setError(400, "setup audio only in AP mode");
     return;
   }
@@ -224,7 +224,7 @@ void apiOpSetupAudio(const ApiRequest& /*req*/, ApiResponse& resp) {
 }
 
 void apiOpSetupOled(const ApiRequest& req, ApiResponse& resp) {
-  if (!wifiProvisioningMode()) {
+  if (!wifiProvisioningMode() && settingsBootWifiEnabled()) {
     resp.setError(400, "setup oled only in AP mode");
     return;
   }

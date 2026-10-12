@@ -29,6 +29,7 @@ describe("config page", () => {
       volume: "70",
       welcome: "1",
       serial_log: "0",
+      wifi_enabled: "1",
       loading: "progress",
       eyes_style: "classic",
     });
@@ -44,6 +45,18 @@ describe("config page", () => {
     await submit("#config-form");
 
     expect($("#status").textContent).toBe("Saved. Hostname applies after reboot.");
+  });
+
+  it("shows the serial-only reboot gate when Wi-Fi is disabled", async () => {
+    fakeRobot();
+    await loadApp("/config");
+
+    $("#config-wifi-enabled").checked = false;
+    await submit("#config-form");
+
+    expect($("#reboot-gate").classList.contains("show")).toBe(true);
+    expect($("#reboot-gate-title").textContent).toBe("Wi-Fi disabled");
+    expect(document.body.classList.contains("locked")).toBe(true);
   });
 
   it("sends an empty token to remove it and forgets the stored copy", async () => {
