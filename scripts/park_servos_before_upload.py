@@ -129,36 +129,39 @@ def park_servos(source, target, env):
         return
 
     try:
-        time.sleep(0.1)
-        probe = _serial_rpc(ser, 1, "GET /health", _PROBE_TIMEOUT_S)
-        if probe is None:
-            _warn(
-                "no serial API on %s (%.1fs); skip park"
-                % (port, _PROBE_TIMEOUT_S)
-            )
-            return
+        try:
+            time.sleep(0.1)
+            probe = _serial_rpc(ser, 1, "GET /health", _PROBE_TIMEOUT_S)
+            if probe is None:
+                _warn(
+                    "no serial API on %s (%.1fs); skip park"
+                    % (port, _PROBE_TIMEOUT_S)
+                )
+                return
 
-        if probe.get("status") != 200:
-            _warn(
-                "health status=%s on %s; skip park"
-                % (probe.get("status"), port)
-            )
-            return
+            if probe.get("status") != 200:
+                _warn(
+                    "health status=%s on %s; skip park"
+                    % (probe.get("status"), port)
+                )
+                return
 
-        reply = _serial_rpc(ser, 2, "POST /servos/park", _PARK_TIMEOUT_S)
-        if reply is None:
-            _warn("park timeout on %s; upload continues" % port)
-            return
+            reply = _serial_rpc(ser, 2, "POST /servos/park", _PARK_TIMEOUT_S)
+            if reply is None:
+                _warn("park timeout on %s; upload continues" % port)
+                return
 
-        body = reply.get("body") or {}
-        if reply.get("status") == 200 and body.get("ok") is True:
-            print("park_servos_before_upload: parked on %s" % port)
-            time.sleep(0.3)
-        else:
-            _warn(
-                "park failed status=%s body=%s; upload continues"
-                % (reply.get("status"), body)
-            )
+            body = reply.get("body") or {}
+            if reply.get("status") == 200 and body.get("ok") is True:
+                print("park_servos_before_upload: parked on %s" % port)
+                time.sleep(0.3)
+            else:
+                _warn(
+                    "park failed status=%s body=%s; upload continues"
+                    % (reply.get("status"), body)
+                )
+        except Exception as exc:
+            _warn("serial I/O on %s failed (%s); skip park" % (port, exc))
     finally:
         try:
             ser.close()

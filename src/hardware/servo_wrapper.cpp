@@ -190,15 +190,13 @@ void markPoseDirty() {
     return;
   }
 
-  if (!g_poseDirty) {
-    g_poseDirty = true;
-    g_poseDirtySinceMs = millis();
-  }
+  g_poseDirty = true;
+  g_poseDirtySinceMs = millis();
 }
 
 }  // namespace
 
-void flushServoPoseToNvs() {
+bool flushServoPoseToNvs() {
   uint8_t blob[SERVO_COUNT];
 
   for (int i = 0; i < SERVO_COUNT; i++) {
@@ -208,10 +206,10 @@ void flushServoPoseToNvs() {
   if (g_lastSavedPoseValid &&
       memcmp(blob, g_lastSavedPose, SERVO_COUNT) == 0) {
     g_poseDirty = false;
-    return;
+    return true;
   }
 
-  writePoseBlobToNvs(blob);
+  return writePoseBlobToNvs(blob);
 }
 
 void pollServoPoseSave() {

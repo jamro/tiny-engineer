@@ -10,8 +10,13 @@ void apiOpServosPark(const ApiRequest& /*req*/, ApiResponse& resp) {
   setAnimationImmediately(AnimationId::None);
   ensureAllServoOutputs();
   centerAllServos();
-  flushServoPoseToNvs();
+  const bool poseSaved = flushServoPoseToNvs();
   setServoParkHoldUntilReboot(true);
+
+  if (!poseSaved) {
+    resp.setError(400, "pose save failed");
+    return;
+  }
 
   resp.set(200, "{\"ok\":true,\"park\":\"servos\",\"hold\":true}");
 }

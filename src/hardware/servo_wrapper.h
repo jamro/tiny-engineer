@@ -71,7 +71,9 @@ void releaseAllServoOutputs();
 // True when settings servo_hold is on or POST /servos/park armed hold until reboot.
 bool servoOutputsHoldActive();
 void setServoParkHoldUntilReboot(bool hold);
-void flushServoPoseToNvs();
+// Persists current angles to NVS. Returns false only when an NVS write was
+// attempted and failed; already-matching saved pose counts as success.
+bool flushServoPoseToNvs();
 void pollServoPoseSave();
 float clampElectricalAngle(float angle);
 float clampServoAngle(int index, float angle);

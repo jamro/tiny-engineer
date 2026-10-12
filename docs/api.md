@@ -450,6 +450,8 @@ curl -X POST "http://tiny-engineer.local/servos/park"
 { "ok": true, "park": "servos", "hold": true }
 ```
 
+NVS write failure → **400** `{"ok":false,"error":"pose save failed"}`. Servos stay parked and held either way.
+
 Handler blocks until the move finishes. For absolute mechanical safety when pose is unknown, unplug servo **5 V / V+** before flashing — see [hardware/servos.md](hardware/servos.md).
 
 ### `POST /test/servo`
@@ -613,7 +615,7 @@ Errors arrive before any audio plays:
 
 | Status | Body | When |
 | --- | --- | --- |
-| `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/anim`, or `/play` params (see tables above) |
+| `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/anim`, or `/play` params (see tables above); `/servos/park` pose NVS write failure (`pose save failed`) |
 | `401` | `{"ok":false,"error":"unauthorized"}` | Access token configured and `Authorization: Bearer` missing or wrong |
 | `404` | `{"ok":false,"error":"not found"}` | Unknown path |
 | `415` | `{"ok":false,"error":"..."}` | `/play` body is not a supported WAV |
