@@ -17,6 +17,7 @@
 #include "network/ota.h"
 #include "http/http_server.h"
 #include "settings/settings.h"
+#include "serial/serial_api.h"
 #include "serial_log.h"
 #include "sleep.h"
 #include "robot_tick.h"
@@ -169,6 +170,7 @@ void setup() {
 }
 
 void loop() {
+  pollSerialApi();
   pollHttpServer();
   pollOta();
   tickRobot();

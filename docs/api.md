@@ -2,6 +2,8 @@
 
 JSON HTTP server on the ESP32-C3. Source: [`src/http/http_server.cpp`](../src/http/http_server.cpp) and handlers under [`src/http/`](../src/http/), test routes in [`src/http/test_handlers.cpp`](../src/http/test_handlers.cpp).
 
+**Serial transport:** the same JSON control ops are also available over USB CDC (always on, no Bearer). Framing and supported ops: [`serial-api.md`](serial-api.md).
+
 Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `http://192.168.4.1/`. Base URL is the board IP (OLED / serial) or `http://tiny-engineer.local` (mDNS, 2.4 GHz only).
 
 Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). `Content-Type: application/json`. CORS: `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization`.

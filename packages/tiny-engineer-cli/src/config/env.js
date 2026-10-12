@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 
 const TOKEN_KEY = "TINY_ENGINEER_TOKEN";
 const URL_KEY = "TINY_ENGINEER_URL";
+const SERIAL_KEY = "TINY_ENGINEER_SERIAL";
 export const DEFAULT_URL = "http://tiny-engineer.local";
 
 /**
@@ -102,4 +103,14 @@ export function getBaseUrl() {
   if (value === undefined) return DEFAULT_URL;
   const trimmed = value.trim().replace(/\/+$/, "");
   return trimmed || DEFAULT_URL;
+}
+
+/**
+ * @returns {string | null} trimmed TINY_ENGINEER_SERIAL path, or null if unset/empty
+ */
+export function getSerialPath() {
+  const value = process.env[SERIAL_KEY];
+  if (value === undefined) return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
 }

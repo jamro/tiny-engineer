@@ -1,13 +1,14 @@
 # Integrating Tiny Engineer
 
-Tiny Engineer is a Wi-Fi desk robot. Prefer the unified **`tiny-engineer` CLI** for Cursor, Claude Code, and Antigravity hooks. For custom agents, other IDEs, or scripts, call the **REST API** directly.
+Tiny Engineer is a Wi-Fi desk robot. Prefer the unified **`tiny-engineer` CLI** for Cursor, Claude Code, and Antigravity hooks. For custom agents, other IDEs, or scripts, call the **REST API** directly (or the [serial CDC API](serial-api.md)).
 
-Robot must be on the same network. Base URL: `http://tiny-engineer.local` (or the IP shown on the OLED). Full HTTP reference: [`api.md`](api.md).
+Robot must be on the same network for HTTP. Base URL: `http://tiny-engineer.local` (or the IP shown on the OLED). Full HTTP reference: [`api.md`](api.md). USB serial is an always-on extra transport for the same JSON control ops.
 
 | Path | Best for | How |
 |---|---|---|
-| **`tiny-engineer` CLI** (default) | Cursor, Claude Code, Antigravity hooks | `tiny-engineer setup` → `hook <ide>` → `POST /anim` |
+| **`tiny-engineer` CLI** (default) | Cursor, Claude Code, Antigravity hooks | `tiny-engineer setup` → `hook <ide>` → `/anim` (HTTP or serial) |
 | **REST API** (advanced) | Custom agents, other IDEs, CI, one-off scripts | `POST /anim?name=…` ([`api.md`](api.md)) |
+| **Serial API** | USB cable, flaky mDNS, bench | NDJSON over CDC ([`serial-api.md`](serial-api.md)); CLI `--serial` / `TINY_ENGINEER_SERIAL` |
 
 ```mermaid
 flowchart TB
@@ -19,12 +20,14 @@ flowchart TB
   end
   subgraph advanced [Advanced / custom]
     Script[Any script or IDE] --> Rest["POST /anim REST"]
+    Script --> Serial["serial NDJSON"]
   end
-  Anim --> Robot[Tiny Engineer on Wi-Fi]
+  Anim --> Robot[Tiny Engineer]
   Rest --> Robot
+  Serial --> Robot
 ```
 
-Prerequisites: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer.local/health` (or the OLED IP) responds.
+Prerequisites: flash firmware, join 2.4 GHz Wi-Fi, confirm `http://tiny-engineer.local/health` (or the OLED IP) responds. Serial works whenever CDC is up (including setup AP), but Wi-Fi credentials are still required for `/anim` and `/test/*`.
 
 ---
 
@@ -49,7 +52,9 @@ npx -y tiny-engineer doctor
 
 - Cold `npx` can be slow: `setup` writes hook **`timeout` ≥ 30**.
 - Optional: `--url http://192.168.x.x` (default `TINY_ENGINEER_URL`, else `http://tiny-engineer.local`).
-- Auth: if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`.
+- Optional serial: `--serial /dev/cu.usbmodem…` or `TINY_ENGINEER_SERIAL` (takes precedence over URL). List paths with `tiny-engineer ports`. Protocol: [`serial-api.md`](serial-api.md).
+- Do not pass both `--url` and `--serial`. `play` is HTTP-only (unset serial for WAV upload).
+- Auth (HTTP): if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`. Serial skips Bearer (trusted USB).
 - Prefer registry `npx` over `npx github:…` (SSH often fails in IDE hooks).
 
 **This firmware repo (local CLI development):**

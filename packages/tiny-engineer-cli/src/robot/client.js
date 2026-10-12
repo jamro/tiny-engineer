@@ -1,3 +1,8 @@
+import { robotFetch } from "./http.js";
+import { request } from "./transport.js";
+
+export { robotFetch };
+
 /** Allowed POST /anim?name= values (firmware allow-list). */
 export const ANIM_NAMES = new Set([
   "none",
@@ -90,46 +95,24 @@ function unreachableMessage(err) {
 }
 
 /**
- * fetch() against the robot: joins base URL and path and adds the Bearer token when set.
- * @param {string} baseUrl
- * @param {string} path
- * @param {RequestInit} init
- * @param {string | null} [token]
- */
-export function robotFetch(baseUrl, path, init, token = null) {
-  const headers = { ...init.headers };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  return fetch(`${baseUrl.replace(/\/+$/, "")}${path}`, { ...init, headers });
-}
-
-/**
  * POST /anim?name=…. Never throws — returns a RobotResult.
- * @param {string} baseUrl
+ * @param {string | import("./transport.js").Transport} baseUrlOrTransport
  * @param {string} animName
  * @param {string | null} [token]
  * @returns {Promise<RobotResult>}
  */
-export async function postAnim(baseUrl, animName, token = null) {
-  try {
-    const response = await robotFetch(
-      baseUrl,
-      `/anim?name=${encodeURIComponent(animName)}`,
-      { method: "POST", signal: AbortSignal.timeout(2000) },
-      token,
-    );
-    const body = await response.text();
-    if (response.ok) {
-      return { ok: true, status: response.status, body };
-    }
-    return {
-      ok: false,
-      status: response.status,
-      body,
-      error: errorFromBody(body, response.status),
-    };
-  } catch (err) {
-    return { ok: false, error: unreachableMessage(err) };
-  }
+export async function postAnim(baseUrlOrTransport, animName, token = null) {
+  const transport =
+    typeof baseUrlOrTransport === "string"
+      ? { type: /** @type {const} */ ("http"), baseUrl: baseUrlOrTransport }
+      : baseUrlOrTransport;
+  return request(transport, {
+    method: "POST",
+    path: "/anim",
+    query: { name: animName },
+    token,
+    timeoutMs: 2000,
+  });
 }
 
 // The robot answers once the clip has finished playing.

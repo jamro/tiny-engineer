@@ -32,13 +32,15 @@ export function stripGlobalFlags(argv) {
  * Parse shared flags from argv. Flags may appear before or after positionals
  * (e.g. `hook cursor -q`). Non-flag tokens go to `rest` in order.
  * @param {string[]} argv
- * @returns {{ help: boolean, quiet: boolean, url?: string, rest: string[], error?: string }}
+ * @returns {{ help: boolean, quiet: boolean, url?: string, serial?: string, rest: string[], error?: string }}
  */
 export function parseCommonArgs(argv) {
   let help = false;
   let quiet = false;
   /** @type {string | undefined} */
   let url;
+  /** @type {string | undefined} */
+  let serial;
   /** @type {string[]} */
   const rest = [];
 
@@ -54,30 +56,52 @@ export function parseCommonArgs(argv) {
     }
     if (arg === "--url") {
       const next = argv[++i];
-      if (!next) return { help, quiet, url, rest, error: "--url requires a value" };
+      if (!next) return { help, quiet, url, serial, rest, error: "--url requires a value" };
       url = next;
       continue;
     }
     if (arg.startsWith("--url=")) {
       url = arg.slice("--url=".length);
-      if (!url) return { help, quiet, url, rest, error: "--url requires a value" };
+      if (!url) return { help, quiet, url, serial, rest, error: "--url requires a value" };
+      continue;
+    }
+    if (arg === "--serial") {
+      const next = argv[++i];
+      if (!next) return { help, quiet, url, serial, rest, error: "--serial requires a value" };
+      serial = next;
+      continue;
+    }
+    if (arg.startsWith("--serial=")) {
+      serial = arg.slice("--serial=".length);
+      if (!serial) return { help, quiet, url, serial, rest, error: "--serial requires a value" };
       continue;
     }
     if (arg.startsWith("-")) {
-      return { help, quiet, url, rest, error: `Unknown argument: ${arg}` };
+      return { help, quiet, url, serial, rest, error: `Unknown argument: ${arg}` };
     }
     rest.push(arg);
   }
 
-  return { help, quiet, url, rest };
+  if (url && serial) {
+    return {
+      help,
+      quiet,
+      url,
+      serial,
+      rest,
+      error: "use either --url or --serial, not both",
+    };
+  }
+
+  return { help, quiet, url, serial, rest };
 }
 
 /**
  * @param {string[]} argv arguments after `play`
- * @returns {{ wavPath?: string, name?: string, url?: string, quiet: boolean, error?: string }}
+ * @returns {{ wavPath?: string, name?: string, url?: string, serial?: string, quiet: boolean, error?: string }}
  */
 export function parsePlayArgs(argv) {
-  /** @type {{ wavPath?: string, name?: string, url?: string, quiet: boolean }} */
+  /** @type {{ wavPath?: string, name?: string, url?: string, serial?: string, quiet: boolean }} */
   const opts = { quiet: false };
 
   for (let i = 0; i < argv.length; i++) {
@@ -87,10 +111,20 @@ export function parsePlayArgs(argv) {
       opts.quiet = true;
       continue;
     }
-    if (arg === "--name" || arg === "--url") {
+    if (arg === "--name" || arg === "--url" || arg === "--serial") {
       const value = argv[++i];
       if (!value || value.startsWith("-")) return { quiet: opts.quiet, error: `${arg} requires a value` };
       opts[arg.slice(2)] = value;
+      continue;
+    }
+    if (arg.startsWith("--url=")) {
+      opts.url = arg.slice("--url=".length);
+      if (!opts.url) return { quiet: opts.quiet, error: "--url requires a value" };
+      continue;
+    }
+    if (arg.startsWith("--serial=")) {
+      opts.serial = arg.slice("--serial=".length);
+      if (!opts.serial) return { quiet: opts.quiet, error: "--serial requires a value" };
       continue;
     }
     if (arg.startsWith("-") || opts.wavPath) {
@@ -99,19 +133,24 @@ export function parsePlayArgs(argv) {
     opts.wavPath = arg;
   }
 
+  if (opts.url && opts.serial) {
+    return { quiet: opts.quiet, error: "use either --url or --serial, not both" };
+  }
   if (!opts.wavPath) return { quiet: opts.quiet, error: "play needs a WAV file" };
   return opts;
 }
 
 /**
  * @param {string[]} argv arguments after `anim`
- * @returns {{ name?: string, url?: string, help: boolean, quiet: boolean, error?: string }}
+ * @returns {{ name?: string, url?: string, serial?: string, help: boolean, quiet: boolean, error?: string }}
  */
 export function parseAnimArgs(argv) {
   let help = false;
   let quiet = false;
   /** @type {string | undefined} */
   let url;
+  /** @type {string | undefined} */
+  let serial;
   /** @type {string | undefined} */
   let name;
 
@@ -136,11 +175,25 @@ export function parseAnimArgs(argv) {
       if (!url) return { help, quiet, error: "--url requires a value" };
       continue;
     }
+    if (arg === "--serial") {
+      const next = argv[++i];
+      if (!next) return { help, quiet, error: "--serial requires a value" };
+      serial = next;
+      continue;
+    }
+    if (arg.startsWith("--serial=")) {
+      serial = arg.slice("--serial=".length);
+      if (!serial) return { help, quiet, error: "--serial requires a value" };
+      continue;
+    }
     if (arg.startsWith("-")) return { help, quiet, error: `Unknown argument: ${arg}` };
     if (name) return { help, quiet, error: `Unexpected argument: ${arg}` };
     name = arg;
   }
 
+  if (url && serial) {
+    return { help, quiet, error: "use either --url or --serial, not both" };
+  }
   if (!help && !name) return { help, quiet, error: "anim needs a pose name" };
-  return { help, quiet, name, url };
+  return { help, quiet, name, url, serial };
 }

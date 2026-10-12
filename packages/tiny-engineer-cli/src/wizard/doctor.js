@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { DEFAULT_URL, getBaseUrl, getToken } from "../config/env.js";
+import { DEFAULT_URL, getBaseUrl, getSerialPath, getToken } from "../config/env.js";
 import { all as allIntegrations } from "../integrations/registry.js";
-import { robotFetch } from "../robot/client.js";
+import { request, resolveTransport, transportLabel } from "../robot/transport.js";
+import { parseCommonArgs } from "../util/args.js";
 import { readJsonFile } from "./merge.js";
 
 /**
@@ -33,25 +34,20 @@ export function configHasHook(projectRoot, ideId, relativePath) {
 }
 
 /**
- * @param {string} baseUrl
+ * @param {import("../robot/transport.js").Transport} transport
  * @returns {Promise<{ ok: boolean, detail: string }>}
  */
-export async function checkHealth(baseUrl) {
-  try {
-    const res = await robotFetch(
-      baseUrl,
-      "/health",
-      { method: "GET", signal: AbortSignal.timeout(2000) },
-      getToken(),
-    );
-    const body = await res.text();
-    if (res.ok) return { ok: true, detail: body.trim() || `HTTP ${res.status}` };
-    return { ok: false, detail: body.trim() || `HTTP ${res.status}` };
-  } catch (err) {
-    const detail =
-      err instanceof Error ? err.message : String(err);
-    return { ok: false, detail };
+export async function checkHealth(transport) {
+  const result = await request(transport, {
+    method: "GET",
+    path: "/health",
+    token: getToken(),
+    timeoutMs: 2000,
+  });
+  if (result.ok) {
+    return { ok: true, detail: (result.body ?? "").trim() || `HTTP ${result.status}` };
   }
+  return { ok: false, detail: result.error || result.body || "health failed" };
 }
 
 /**
@@ -60,26 +56,35 @@ export async function checkHealth(baseUrl) {
  * @param {{ projectRoot?: string }} [opts]
  */
 export async function runDoctor(out, argv, { projectRoot = process.cwd() } = {}) {
-  for (const arg of argv) {
-    if (arg === "-h" || arg === "--help") {
-      console.log(`Usage: tiny-engineer doctor
+  const opts = parseCommonArgs(argv);
+  if (opts.error) {
+    out.error(opts.error);
+    process.exitCode = 1;
+    return;
+  }
+  if (opts.help) {
+    console.log(`Usage: tiny-engineer doctor [--url <base>|--serial <path>]
 
-Report robot URL/token, detected IDE configs, and /health.
+Report robot transport, token, detected IDE configs, and /health.
 `);
-      return;
-    }
-    if (arg.startsWith("-")) {
-      out.error(`Unknown argument: ${arg}`);
-      process.exitCode = 1;
-      return;
-    }
+    return;
+  }
+  if (opts.rest.length > 0) {
+    out.error(`Unknown argument: ${opts.rest[0]}`);
+    process.exitCode = 1;
+    return;
   }
 
-  const url = getBaseUrl() || DEFAULT_URL;
+  const transport = resolveTransport({ url: opts.url, serial: opts.serial });
   const token = getToken();
 
-  out.ok(`url: ${url}`);
-  out.info(`token: ${token ? "set" : "not set"}`);
+  out.ok(`transport: ${transport.type} (${transportLabel(transport)})`);
+  if (transport.type === "http") {
+    out.info(`url default: ${getBaseUrl() || DEFAULT_URL}`);
+  } else {
+    out.info(`serial env: ${getSerialPath() ? "set" : "not set"}`);
+  }
+  out.info(`token: ${token ? "set" : "not set"} (HTTP Bearer; unused on serial)`);
 
   for (const integration of allIntegrations()) {
     const detected = Boolean(integration.detect?.(projectRoot));
@@ -97,13 +102,11 @@ Report robot URL/token, detected IDE configs, and /health.
     out.info(".env: absent");
   }
 
-  const health = await checkHealth(url);
+  const health = await checkHealth(transport);
   if (health.ok) {
     out.ok(`health: ok (${health.detail.slice(0, 80)})`);
   } else {
     out.error(`health: ${health.detail}`);
-    // Non-fatal for doctor — still exit 0 unless user expects otherwise.
-    // Plan: print ok/fail (not fatal).
   }
   process.exitCode = 0;
 }

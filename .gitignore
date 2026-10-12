@@ -4,6 +4,8 @@ data/*.*
 data/*/
 artifacts/
 
+node_modules/
+
 # Cursor hook event log
 cursor_events.log
 

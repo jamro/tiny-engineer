@@ -34,7 +34,7 @@ test("checkHealth returns ok on 200", async () => {
       text: async () => '{"ok":true}',
     });
   try {
-    const result = await checkHealth("http://robot.test");
+    const result = await checkHealth({ type: "http", baseUrl: "http://robot.test" });
     assert.equal(result.ok, true);
   } finally {
     globalThis.fetch = original;
@@ -47,7 +47,7 @@ test("checkHealth returns fail on throw", async () => {
     throw new Error("offline");
   };
   try {
-    const result = await checkHealth("http://robot.test");
+    const result = await checkHealth({ type: "http", baseUrl: "http://robot.test" });
     assert.equal(result.ok, false);
     assert.ok(result.detail.includes("offline"));
   } finally {
@@ -58,6 +58,8 @@ test("checkHealth returns fail on throw", async () => {
 test("runDoctor prints without throwing", async () => {
   const dir = mkdtempSync(join(tmpdir(), "te-doc-"));
   const original = globalThis.fetch;
+  const prevSerial = process.env.TINY_ENGINEER_SERIAL;
+  delete process.env.TINY_ENGINEER_SERIAL;
   globalThis.fetch = async () => {
     throw new Error("offline");
   };
@@ -71,10 +73,12 @@ test("runDoctor prints without throwing", async () => {
   });
   try {
     await runDoctor(out, [], { projectRoot: dir });
-    assert.ok(lines.some((l) => l.includes("url:")));
+    assert.ok(lines.some((l) => l.includes("transport:")));
     assert.ok(lines.some((l) => l.includes("cursor:")));
   } finally {
     globalThis.fetch = original;
+    if (prevSerial === undefined) delete process.env.TINY_ENGINEER_SERIAL;
+    else process.env.TINY_ENGINEER_SERIAL = prevSerial;
     rmSync(dir, { recursive: true, force: true });
     process.exitCode = 0;
   }

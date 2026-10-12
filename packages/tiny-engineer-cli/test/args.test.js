@@ -12,14 +12,33 @@ test("parseCommonArgs extracts --url and rest", () => {
     help: false,
     quiet: false,
     url: "http://x",
+    serial: undefined,
     rest: ["cursor"],
   });
   assert.deepEqual(parseCommonArgs(["--url=http://y", "cursor", "extra"]), {
     help: false,
     quiet: false,
     url: "http://y",
+    serial: undefined,
     rest: ["cursor", "extra"],
   });
+});
+
+test("parseCommonArgs extracts --serial", () => {
+  assert.deepEqual(parseCommonArgs(["--serial", "/dev/cu.usbmodem1", "cursor"]), {
+    help: false,
+    quiet: false,
+    url: undefined,
+    serial: "/dev/cu.usbmodem1",
+    rest: ["cursor"],
+  });
+});
+
+test("parseCommonArgs rejects --url and --serial together", () => {
+  assert.equal(
+    parseCommonArgs(["--url", "http://x", "--serial", "/dev/tty"]).error,
+    "use either --url or --serial, not both",
+  );
 });
 
 test("parseCommonArgs help and missing --url value", () => {
@@ -42,6 +61,7 @@ test("parseAnimArgs requires name", () => {
     quiet: false,
     name: "ring",
     url: "http://x",
+    serial: undefined,
   });
 });
 

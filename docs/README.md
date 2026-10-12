@@ -26,7 +26,7 @@ Pick a path. Depth lives in the linked pages.
 | You want to… | Start here |
 | --- | --- |
 | **Contribute a PCB** (KiCad) | [pcb.md](pcb.md) → [`hardware/`](../hardware/README.md) |
-| **HTTP API / settings** | [api.md](api.md); add a setting: [settings.md](settings.md) |
+| **HTTP API / settings** | [api.md](api.md); serial CDC: [serial-api.md](serial-api.md); add a setting: [settings.md](settings.md) |
 | **CLI setup / REST for any IDE** | [integration.md](integration.md) |
 | **Publish npm CLI** (`tiny-engineer`) | [cli-release.md](cli-release.md) |
 | **Firmware / package tests** | [testing.md](testing.md) |

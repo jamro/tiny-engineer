@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 
-import { DEFAULT_URL, getBaseUrl, getToken, loadDotEnv } from "./config/env.js";
+import { DEFAULT_URL, getToken, loadDotEnv } from "./config/env.js";
 import { get as getIntegration, list as listIntegrations } from "./integrations/registry.js";
 import {
   formatRobotError,
@@ -10,6 +10,8 @@ import {
   validateAnimName,
   validatePlayAnimName,
 } from "./robot/client.js";
+import { listSerialPorts } from "./robot/serial.js";
+import { resolveTransport, transportLabel } from "./robot/transport.js";
 import {
   parseAnimArgs,
   parseCommonArgs,
@@ -32,19 +34,26 @@ Unified CLI for the Tiny Engineer desk robot.
 Commands:
   setup [ide...]          Merge IDE hook configs into the current project
   uninstall [ide...]      Remove Tiny Engineer hook entries (keeps other hooks)
-  doctor                  Check URL, token, hook wiring, and /health
+  doctor                  Check URL/serial, token, hook wiring, and /health
+  ports                   List serial port paths (for --serial / TINY_ENGINEER_SERIAL)
   hook <ide>              Read hook JSON from stdin, map to a pose, POST /anim
-  anim <name> [--url]     POST /anim?name=<name>
-  play <clip.wav> [opts]  POST /play (16-bit mono PCM WAV)
+  anim <name> [--url|--serial]  POST /anim?name=<name>
+  play <clip.wav> [opts]  POST /play (16-bit mono PCM WAV; HTTP only)
 
 Options (most commands):
   --url <base>            Robot base URL (default: TINY_ENGINEER_URL, else ${DEFAULT_URL})
+  --serial <path>         USB CDC serial API (default: TINY_ENGINEER_SERIAL if set)
   -q, --quiet, --silent   Suppress success/info lines; errors still print
   -h, --help              Show this help
 
-Auth:
+Transport:
+  Prefer --serial / TINY_ENGINEER_SERIAL when set; otherwise HTTP.
+  Do not pass both --url and --serial. play requires HTTP (unset serial).
+
+Auth (HTTP only):
   If TINY_ENGINEER_TOKEN is set (process env or project-root .env), requests
   send Authorization: Bearer <token>. Must match the device access_token.
+  Serial is a trusted local channel (no Bearer).
 
 Output:
   Colors/icons when stdout/stderr is a TTY (disabled by NO_COLOR or TERM=dumb).
@@ -60,7 +69,9 @@ Examples:
   tiny-engineer uninstall cursor --yes
   tiny-engineer uninstall --all --yes --dry-run
   tiny-engineer doctor
+  tiny-engineer ports
   tiny-engineer anim ring
+  tiny-engineer anim ring --serial /dev/cu.usbmodem14101
   echo '{"hook_event_name":"stop"}' | tiny-engineer hook cursor
 `);
 }
@@ -109,8 +120,9 @@ async function runHook(out, argv, quietGlobal) {
 
   const anim = integration.mapToAnim(input);
   if (anim) {
+    const transport = resolveTransport({ url: opts.url, serial: opts.serial });
     // Fail-open: ignore result so an offline robot never stalls the agent.
-    await postAnim(opts.url ?? getBaseUrl(), anim, getToken());
+    await postAnim(transport, anim, getToken());
   }
 
   const fileLines = integration.describeFiles?.(input, localOut.style) ?? [];
@@ -156,14 +168,14 @@ async function runAnim(out, argv, quietGlobal) {
     return;
   }
 
-  const baseUrl = opts.url ?? getBaseUrl();
-  const result = await postAnim(baseUrl, name, getToken());
+  const transport = resolveTransport({ url: opts.url, serial: opts.serial });
+  const result = await postAnim(transport, name, getToken());
   if (!result.ok) {
     localOut.error(formatRobotError(result));
     process.exitCode = 1;
     return;
   }
-  localOut.ok(`animation ${name} → ${localOut.style.dim(baseUrl)}`);
+  localOut.ok(`animation ${name} → ${localOut.style.dim(transportLabel(transport))}`);
   process.exitCode = 0;
 }
 
@@ -179,6 +191,13 @@ async function runPlay(out, argv, quietGlobal) {
 
   if (opts.error) {
     localOut.error(opts.error);
+    process.exitCode = 1;
+    return;
+  }
+
+  const transport = resolveTransport({ url: opts.url, serial: opts.serial });
+  if (transport.type === "serial") {
+    localOut.error("play requires HTTP; unset TINY_ENGINEER_SERIAL and do not pass --serial");
     process.exitCode = 1;
     return;
   }
@@ -201,7 +220,7 @@ async function runPlay(out, argv, quietGlobal) {
     return;
   }
 
-  const baseUrl = opts.url ?? getBaseUrl();
+  const baseUrl = transport.baseUrl;
   const pose = opts.name ?? "talking";
   const result = await postPlay({
     baseUrl,
@@ -217,6 +236,40 @@ async function runPlay(out, argv, quietGlobal) {
   localOut.ok(
     `played ${basename(/** @type {string} */ (opts.wavPath))} (${pose}) → ${localOut.style.dim(baseUrl)}`,
   );
+  process.exitCode = 0;
+}
+
+/**
+ * @param {import("./util/output.js").Output} out
+ * @param {string[]} argv
+ */
+async function runPorts(out, argv) {
+  for (const arg of argv) {
+    if (arg === "-h" || arg === "--help") {
+      console.log(`Usage: tiny-engineer ports
+
+List USB serial device paths for --serial / TINY_ENGINEER_SERIAL.
+`);
+      return;
+    }
+    if (arg.startsWith("-")) {
+      out.error(`Unknown argument: ${arg}`);
+      process.exitCode = 1;
+      return;
+    }
+  }
+
+  const ports = await listSerialPorts();
+  if (ports.length === 0) {
+    out.info("no serial ports found");
+    process.exitCode = 0;
+    return;
+  }
+
+  for (const p of ports) {
+    const extra = [p.manufacturer, p.friendlyName].filter(Boolean).join(" · ");
+    out.ok(extra ? `${p.path}  ${out.style.dim(extra)}` : p.path);
+  }
   process.exitCode = 0;
 }
 
@@ -249,6 +302,9 @@ export async function run(argv) {
       return;
     case "doctor":
       await runDoctor(out, rest);
+      return;
+    case "ports":
+      await runPorts(out, rest);
       return;
     case "hook":
       await runHook(out, rest, global.quiet);
