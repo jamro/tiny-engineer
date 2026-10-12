@@ -51,10 +51,9 @@ npx -y tiny-engineer doctor
 ```
 
 - Cold `npx` can be slow: `setup` writes hook **`timeout` ≥ 30**.
-- Optional: `--url http://192.168.x.x` (default `TINY_ENGINEER_URL`, else `http://tiny-engineer.local`).
-- Optional serial: `--serial /dev/cu.usbmodem…`, bare `--serial` / `--serial=auto` / `TINY_ENGINEER_SERIAL=auto` (auto-detect), or an explicit `TINY_ENGINEER_SERIAL` path (takes precedence over URL). List paths with `tiny-engineer ports`. Protocol: [`serial-api.md`](serial-api.md).
+- Transport: interactive `setup` asks **HTTP (Wi-Fi)** vs **Serial (USB)** and writes one of `TINY_ENGINEER_URL` or `TINY_ENGINEER_SERIAL` into `.env` (clears the other). Non-interactive: `--url http://192.168.x.x` or `--serial` / `--serial=auto` / `--serial <path>` (not both). Runtime flags override the same way. List paths with `tiny-engineer ports`. Protocol: [`serial-api.md`](serial-api.md).
 - Auto-detect caches the last good port under `~/.cache/tiny-engineer/`; cache clears when the port stops responding.
-- Do not pass both `--url` and `--serial`. `play` is HTTP-only (unset serial for WAV upload).
+- `play` is HTTP-only (unset serial for WAV upload).
 - Auth (HTTP): if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`. Serial skips Bearer (trusted USB).
 - Prefer registry `npx` over `npx github:…` (SSH often fails in IDE hooks).
 
@@ -68,14 +67,15 @@ node packages/tiny-engineer-cli/bin/tiny-engineer.js doctor
 ### Setup wizard
 
 ```bash
-npx -y tiny-engineer setup                  # interactive: pick IDEs
+npx -y tiny-engineer setup                  # interactive: pick IDEs + HTTP vs serial
 npx -y tiny-engineer setup cursor --yes
 npx -y tiny-engineer setup --all --yes --url http://192.168.1.10
+npx -y tiny-engineer setup cursor --yes --serial=auto
 npx -y tiny-engineer doctor
 npx -y tiny-engineer uninstall cursor --yes # remove only Tiny Engineer hook entries
 ```
 
-`setup` merges hook commands into the project (Cursor `.cursor/hooks.json`, Claude Code `.claude/settings.json`, Antigravity `.agents/hooks.json`) using `npx -y tiny-engineer hook <ide>`, and can write `TINY_ENGINEER_URL` into `.env`. It does not delete foreign hooks.
+`setup` merges hook commands into the project (Cursor `.cursor/hooks.json`, Claude Code `.claude/settings.json`, Antigravity `.agents/hooks.json`) using `npx -y tiny-engineer hook <ide>`, and writes **either** `TINY_ENGINEER_URL` or `TINY_ENGINEER_SERIAL` into `.env` (exclusive). It does not delete foreign hooks.
 
 This firmware repo already ships configs pointing at the **local** CLI bin for developing the package.
 

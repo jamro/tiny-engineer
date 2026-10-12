@@ -6,7 +6,8 @@ Unified CLI for the [Tiny Engineer](https://github.com/jamro/tiny-engineer) desk
 
 ```bash
 npx -y tiny-engineer setup
-npx -y tiny-engineer setup cursor --yes
+npx -y tiny-engineer setup cursor --yes --url http://192.168.1.10
+npx -y tiny-engineer setup cursor --yes --serial=auto
 npx -y tiny-engineer doctor
 npx -y tiny-engineer anim ring
 npx -y tiny-engineer ports
@@ -14,6 +15,8 @@ npx -y tiny-engineer anim ring --serial /dev/cu.usbmodem14101
 ```
 
 Supported IDEs: **Cursor**, **Claude Code**, **Antigravity**.
+
+Interactive `setup` asks **HTTP vs Serial**, then writes one key to project `.env` (and clears the other).
 
 ### Transport
 

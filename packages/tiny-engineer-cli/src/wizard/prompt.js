@@ -30,6 +30,31 @@ export async function confirm(question, defaultYes = true) {
 }
 
 /**
+ * Numbered single-select. Empty enter keeps defaultId (or first option).
+ * @param {string} title
+ * @param {{ id: string, label: string }[]} options
+ * @param {string} [defaultId]
+ * @returns {Promise<string>} selected id
+ */
+export async function choose(title, options, defaultId) {
+  if (options.length === 0) return defaultId ?? "";
+  const fallback =
+    defaultId && options.some((o) => o.id === defaultId) ? defaultId : options[0].id;
+  console.log(title);
+  options.forEach((opt, i) => {
+    const mark = opt.id === fallback ? " (default)" : "";
+    console.log(`  ${i + 1}) ${opt.label}${mark}`);
+  });
+  const raw = await ask("Select number", "");
+  if (!raw) return fallback;
+  const n = Number(raw);
+  if (Number.isInteger(n) && n >= 1 && n <= options.length) {
+    return options[n - 1].id;
+  }
+  return fallback;
+}
+
+/**
  * Numbered multi-select. Empty enter selects all.
  * @param {string} title
  * @param {{ id: string, label: string }[]} options
