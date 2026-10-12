@@ -69,7 +69,7 @@ test("play with --serial does not reject as HTTP-only", async () => {
     assert.equal(process.exitCode, 1);
     const joined = errors.join("\n");
     assert.ok(!joined.includes("play requires HTTP"));
-    assert.ok(joined.includes("robot unreachable") || joined.includes("cannot open") || joined.length > 0);
+    assert.match(joined, /robot unreachable/);
   } finally {
     console.error = originalError;
     if (prev === undefined) delete process.env.TINY_ENGINEER_SERIAL;

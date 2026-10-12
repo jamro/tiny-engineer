@@ -20,6 +20,8 @@ constexpr size_t kBinaryChunk = 256;
 constexpr size_t kRxRingSize = 8192;
 // Feed at most this much PCM path per poll (~45 ms @ 22050 stereo path).
 constexpr size_t kMaxFeedPerPoll = 2048;
+// Max pause between /play body bytes (documented in docs/serial-api.md).
+constexpr uint32_t kBinaryPlayIdleMs = 30000;
 
 char lineBuf[kLineMax];
 size_t lineLen = 0;
@@ -32,12 +34,14 @@ uint8_t g_rxRing[kRxRingSize];
 size_t g_rxHead = 0;
 size_t g_rxCount = 0;
 
-enum class Mode : uint8_t { Line, BinaryPlay };
+enum class Mode : uint8_t { Line, BinaryPlay, BinaryDrain };
 
 Mode mode = Mode::Line;
 unsigned long binaryId = 0;
 uint32_t binaryRemaining = 0;  // body bytes not yet fed/discarded
 bool binaryDiscard = false;
+bool binaryReplySent = false;
+uint32_t binaryLastByteMs = 0;
 PlaySession playSession;
 
 void rxRingClear() {
@@ -108,19 +112,51 @@ void rejectBadRequest(unsigned long id, const char* error) {
   writeReply(id, g_resp);
 }
 
-void finishBinaryPlay() {
-  playSession.end();
-  writeReply(binaryId, playSession.statusCode(), playSession.bodyJson());
+void clearBinaryState() {
   setSerialBinaryBusy(false);
   mode = Mode::Line;
   binaryRemaining = 0;
   binaryDiscard = false;
+  binaryReplySent = false;
   rxRingClear();
+}
+
+void sendBinaryPlayReply() {
+  if (binaryReplySent) {
+    return;
+  }
+  playSession.end();
+  writeReply(binaryId, playSession.statusCode(), playSession.bodyJson());
+  binaryReplySent = true;
+}
+
+void finishBinaryPlay() {
+  sendBinaryPlayReply();
+  clearBinaryState();
+}
+
+// Host stopped (or stalled) before len bytes. Reply, then drain leftover body
+// if it still arrives; a second idle gives up and returns to line mode.
+void abortIncompleteBinaryPlay() {
+  if (!playSession.rejected()) {
+    playSession.reject(408, "play body incomplete");
+  }
+  sendBinaryPlayReply();
+  binaryDiscard = true;
+  if (binaryRemaining == 0) {
+    clearBinaryState();
+    return;
+  }
+  mode = Mode::BinaryDrain;
+  binaryLastByteMs = millis();
+  setSerialBinaryBusy(true);
 }
 
 void startBinaryPlay(unsigned long id, uint32_t len, const char* animName) {
   binaryId = id;
   binaryRemaining = len;
+  binaryReplySent = false;
+  binaryLastByteMs = millis();
   rxRingClear();
   playSession.begin(animName);
   binaryDiscard = playSession.rejected();
@@ -132,11 +168,12 @@ void startBinaryPlay(unsigned long id, uint32_t len, const char* animName) {
   }
 }
 
-void pollBinaryPlay() {
+void pollBinaryBody() {
   // Pull USB into ring first (no I2S wait).
   rxRingPushFromSerial();
 
   size_t fed = 0;
+  bool gotAny = false;
   while (binaryRemaining > 0 && fed < kMaxFeedPerPoll) {
     rxRingPushFromSerial();
     if (g_rxCount == 0) {
@@ -156,6 +193,7 @@ void pollBinaryPlay() {
       break;
     }
 
+    gotAny = true;
     if (!binaryDiscard) {
       // May block in I2S ≈ realtime for these samples.
       playSession.feed(g_binaryChunk, got);
@@ -167,8 +205,29 @@ void pollBinaryPlay() {
     rxRingPushFromSerial();
   }
 
+  if (gotAny) {
+    binaryLastByteMs = millis();
+  }
+
   if (binaryRemaining == 0) {
-    finishBinaryPlay();
+    if (mode == Mode::BinaryPlay) {
+      finishBinaryPlay();
+    } else {
+      clearBinaryState();
+    }
+    return;
+  }
+
+  if (millis() - binaryLastByteMs < kBinaryPlayIdleMs) {
+    return;
+  }
+
+  if (mode == Mode::BinaryPlay) {
+    abortIncompleteBinaryPlay();
+  } else {
+    // Drain idle: remaining declared bytes will not arrive. Back to line;
+    // host must not send leftover body after the abort reply (reopen if unsure).
+    clearBinaryState();
   }
 }
 
@@ -266,8 +325,8 @@ void handleLine(char* line) {
 }  // namespace
 
 void pollSerialApi() {
-  if (mode == Mode::BinaryPlay) {
-    pollBinaryPlay();
+  if (mode == Mode::BinaryPlay || mode == Mode::BinaryDrain) {
+    pollBinaryBody();
     return;
   }
 
@@ -281,8 +340,8 @@ void pollSerialApi() {
       lineBuf[lineLen] = '\0';
       handleLine(lineBuf);
       lineLen = 0;
-      if (mode == Mode::BinaryPlay) {
-        pollBinaryPlay();
+      if (mode == Mode::BinaryPlay || mode == Mode::BinaryDrain) {
+        pollBinaryBody();
         return;
       }
       continue;

@@ -28,6 +28,8 @@ One JSON object per line (max **1024** bytes):
 
 Most ops are JSON-only. **`POST /play`** is hybrid: after the begin line, the host sends exactly `len` raw WAV bytes (no base64), then waits for one `R` reply. On error the device still drains remaining bytes so the stream stays in sync. `serial_log` `L` lines are suppressed while those bytes are received.
 
+**Body idle abort:** if no `/play` body byte arrives for **30 seconds** while `len` is still outstanding, the device ends the play session and sends one `R` reply with status **408** and `error` `play body incomplete` (or the earlier reject status if the session was already rejected). It then discards any further body bytes that still arrive. A second 30-second idle with declared bytes still outstanding drops the remainder and returns to line mode. After an abort reply, the host must not send the rest of that body; reopen the serial port before further requests if a leftover transfer may still be in flight.
+
 Oversized line, invalid JSON, or `v` ≠ 1 → reply with `status` **400** and no dispatch.
 
 ### Device → host
@@ -94,6 +96,14 @@ Unknown `op` → **404** `{"ok":false,"error":"not found"}`. Wrong method for a 
 R{"v":1,"id":42,"status":200,"body":{"ok":true,"played_ms":3000}}\n
 ```
 
+Incomplete body (host stops or stalls longer than the 30-second idle limit):
+
+```text
+R{"v":1,"id":42,"status":408,"body":{"ok":false,"error":"play body incomplete"}}\n
+```
+
+Pauses between body bytes are allowed up to that idle limit; there is no shorter undocumented timeout.
+
 ## Example
 
 ```bash
@@ -117,8 +127,8 @@ Auto-detect prefers Espressif USB devices (VID `303A`, manufacturer / Windows fr
 
 1. Open the port at 115200.
 2. Write one request line ending in `\n`.
-3. For `/play`, write exactly `len` WAV bytes next (no extra framing). Pace about realtime (~44 KB/s for 16-bit mono 22050 Hz). Much faster overflows CDC during `I2S.write`; much slower stretches speech with gaps.
+3. For `/play`, write exactly `len` WAV bytes next (no extra framing). Pace about realtime (~44 KB/s for 16-bit mono 22050 Hz). Much faster overflows CDC during `I2S.write`; much slower stretches speech with gaps. Do not pause longer than **30 seconds** between body bytes (device idle abort).
 4. Read lines until an `R` line whose JSON `id` matches; ignore `L` and other noise.
-5. Parse `status` and `body` like an HTTP response.
+5. Parse `status` and `body` like an HTTP response. On **408** `play body incomplete`, stop sending that body and reopen the port before the next request if unsure the stream is still synced.
 
 Blocking test/setup/`/play` ops hold the device until motion/audio finishes (same as HTTP).

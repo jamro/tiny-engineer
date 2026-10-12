@@ -119,7 +119,8 @@ void handleSettingsWifiPut(WebServer& server) {
     return;
   }
 
-  ApiResponse resp;
+  // Static: ApiResponse is ~3KB; keep it off the ~8KB loopTask stack.
+  static ApiResponse resp;
   apiFillSettingsResponse(resp, false, tested);
   httpSendJson(server, resp.status, resp.body);
 

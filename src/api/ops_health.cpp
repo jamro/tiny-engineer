@@ -12,16 +12,15 @@
 #include "settings/settings.h"
 
 void apiOpAuthGet(const ApiRequest& /*req*/, ApiResponse& resp) {
-  char body[128];
   std::snprintf(
-    body,
-    sizeof(body),
+    resp.body,
+    ApiResponse::kBodyMax,
     "{\"ok\":true,\"required\":%s,\"wifi_configured\":%s,\"provisioning\":%s}",
     settingsAccessTokenSet() ? "true" : "false",
     settingsWifiConfigured() ? "true" : "false",
     wifiProvisioningMode() ? "true" : "false"
   );
-  resp.set(200, body);
+  resp.status = 200;
 }
 
 void apiOpHealthGet(const ApiRequest& /*req*/, ApiResponse& resp) {
@@ -31,17 +30,18 @@ void apiOpHealthGet(const ApiRequest& /*req*/, ApiResponse& resp) {
 
   float tempC = 0.0f;
   const bool tempOk = chipTempCelsius(&tempC);
+  // Integer tenths avoids newlib dtoa (heavy stack) on loopTask.
   char tempFrag[24];
   if (tempOk) {
-    std::snprintf(tempFrag, sizeof(tempFrag), "%.1f", tempC);
+    const int tenths = static_cast<int>(tempC * 10.0f + 0.5f);
+    std::snprintf(tempFrag, sizeof(tempFrag), "%d.%d", tenths / 10, tenths % 10);
   } else {
     std::snprintf(tempFrag, sizeof(tempFrag), "null");
   }
 
-  char body[768];
   std::snprintf(
-    body,
-    sizeof(body),
+    resp.body,
+    ApiResponse::kBodyMax,
     "{"
     "\"ok\":true,"
     "\"version\":\"%s\","
@@ -76,6 +76,5 @@ void apiOpHealthGet(const ApiRequest& /*req*/, ApiResponse& resp) {
     wifiProvisioningMode() ? wifiApIpText() : "",
     oledAvailable ? "true" : "false"
   );
-
-  resp.set(200, body);
+  resp.status = 200;
 }

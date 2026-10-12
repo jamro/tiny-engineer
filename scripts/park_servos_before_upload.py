@@ -123,7 +123,7 @@ def park_servos(source, target, env):
         baud = 115200
 
     try:
-        ser = serial.Serial(port, baudrate=baud, timeout=0.2)
+        ser = serial.Serial(port, baudrate=baud, timeout=0.2, write_timeout=0.2)
     except Exception as exc:
         _warn("open %s failed (%s); skip park" % (port, exc))
         return

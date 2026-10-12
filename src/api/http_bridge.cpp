@@ -5,6 +5,15 @@
 #include "api/dispatch.h"
 #include "http/json.h"
 
+namespace {
+
+// Keep large buffers off the ~8KB loopTask stack (stack protection faults).
+// Same pattern as serial_api.cpp — HTTP handlers run on loopTask too.
+ApiRequest g_httpReq;
+ApiResponse g_httpResp;
+
+}  // namespace
+
 bool apiRequestFromWebServer(WebServer& server, ApiRequest& req) {
   req.clear();
 
@@ -46,13 +55,11 @@ void apiSendHttpResponse(WebServer& server, const ApiResponse& resp) {
 }
 
 void httpDispatchApi(WebServer& server) {
-  ApiRequest req;
-  ApiResponse resp;
-  if (!apiRequestFromWebServer(server, req)) {
-    resp.setError(400, "query too large");
-    apiSendHttpResponse(server, resp);
+  if (!apiRequestFromWebServer(server, g_httpReq)) {
+    g_httpResp.setError(400, "query too large");
+    apiSendHttpResponse(server, g_httpResp);
     return;
   }
-  apiDispatch(req, resp);
-  apiSendHttpResponse(server, resp);
+  apiDispatch(g_httpReq, g_httpResp);
+  apiSendHttpResponse(server, g_httpResp);
 }
