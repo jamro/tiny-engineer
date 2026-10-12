@@ -1,6 +1,15 @@
 import { SerialPort } from "serialport";
+import { clearSerialCache } from "./serial-cache.js";
 
 /** @typedef {import("./client.js").RobotResult} RobotResult */
+
+/**
+ * @param {RobotResult} result
+ * @returns {boolean}
+ */
+function isUnreachable(result) {
+  return Boolean(result.error?.startsWith("robot unreachable:"));
+}
 
 let nextId = 1;
 
@@ -70,11 +79,18 @@ function errorFromBody(body, status) {
 
 /**
  * @param {string} path
- * @param {{ method: string, path: string, query?: Record<string, string | undefined>, timeoutMs?: number }} opts
+ * @param {{
+ *   method: string,
+ *   path: string,
+ *   query?: Record<string, string | undefined>,
+ *   timeoutMs?: number,
+ *   clearCacheOnUnreachable?: boolean,
+ * }} opts
  * @returns {Promise<RobotResult>}
  */
 export async function serialRequest(path, opts) {
   const timeoutMs = opts.timeoutMs ?? 2000;
+  const clearOnFail = opts.clearCacheOnUnreachable !== false;
   const { id, line } = encodeSerialRequest({
     method: opts.method,
     path: opts.path,
@@ -91,6 +107,9 @@ export async function serialRequest(path, opts) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      if (clearOnFail && isUnreachable(result)) {
+        clearSerialCache();
+      }
       if (port?.isOpen) {
         port.close(() => resolve(result));
       } else {
@@ -176,7 +195,13 @@ export async function serialRequest(path, opts) {
 }
 
 /**
- * @returns {Promise<{ path: string, manufacturer?: string, friendlyName?: string }[]>}
+ * @returns {Promise<{
+ *   path: string,
+ *   manufacturer?: string,
+ *   friendlyName?: string,
+ *   vendorId?: string,
+ *   productId?: string,
+ * }[]>}
  */
 export async function listSerialPorts() {
   const ports = await SerialPort.list();
@@ -184,5 +209,7 @@ export async function listSerialPorts() {
     path: p.path,
     manufacturer: p.manufacturer,
     friendlyName: p.friendlyName,
+    vendorId: p.vendorId,
+    productId: p.productId,
   }));
 }

@@ -20,7 +20,9 @@ Supported IDEs: **Cursor**, **Claude Code**, **Antigravity**.
 | Mode | How |
 | --- | --- |
 | HTTP (default) | `--url` / `TINY_ENGINEER_URL` / `http://tiny-engineer.local` |
-| Serial | `--serial <path>` or `TINY_ENGINEER_SERIAL` (wins over URL when set) |
+| Serial | `--serial <path>`, bare `--serial` / `--serial=auto`, or `TINY_ENGINEER_SERIAL` (wins over URL when set) |
+
+Auto-detect: Espressif USB filter (VID / manufacturer / PID `1001`) + parallel `GET /health` probe on macOS `cu.*`, Linux `ttyACM*`, Windows `COMn`; requires exactly one match. Last good path is cached in `~/.cache/tiny-engineer/serial-port.json` and cleared when serial becomes unreachable.
 
 Do not pass both `--url` and `--serial`. `play` requires HTTP (WAV body). Serial framing: [serial-api.md](https://github.com/jamro/tiny-engineer/blob/main/docs/serial-api.md).
 

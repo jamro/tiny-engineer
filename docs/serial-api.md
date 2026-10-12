@@ -94,7 +94,11 @@ Or with the CLI:
 ```bash
 TINY_ENGINEER_SERIAL=/dev/cu.usbmodemXXXX tiny-engineer anim thinking
 tiny-engineer doctor --serial /dev/cu.usbmodemXXXX
+tiny-engineer anim thinking --serial          # auto-detect (VID + health probe)
+TINY_ENGINEER_SERIAL=auto tiny-engineer doctor
 ```
+
+Auto-detect prefers Espressif USB devices (VID `303A`, manufacturer / Windows friendly name, PID `1001` USB-Serial/JTAG ranked first). Path norms: macOS `tty.*` → `cu.*` for open; Linux `/dev/ttyACM*`; Windows `COMn`. Candidates without a clear Espressif ID fall back to CDC-like paths only. Probes in parallel with `GET /health` (~800 ms each) and requires exactly one match. Last good path: `~/.cache/tiny-engineer/serial-port.json` (cleared when serial RPC is unreachable).
 
 ## Host tips
 

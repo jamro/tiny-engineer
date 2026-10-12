@@ -75,14 +75,25 @@ Report robot transport, token, detected IDE configs, and /health.
     return;
   }
 
-  const transport = resolveTransport({ url: opts.url, serial: opts.serial });
+  /** @type {import("../robot/transport.js").Transport} */
+  let transport;
+  try {
+    transport = await resolveTransport({ url: opts.url, serial: opts.serial });
+  } catch (err) {
+    out.error(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+    return;
+  }
   const token = getToken();
 
   out.ok(`transport: ${transport.type} (${transportLabel(transport)})`);
   if (transport.type === "http") {
     out.info(`url default: ${getBaseUrl() || DEFAULT_URL}`);
   } else {
-    out.info(`serial env: ${getSerialPath() ? "set" : "not set"}`);
+    const envSerial = getSerialPath();
+    out.info(
+      `serial env: ${envSerial ? envSerial : "not set"} (auto cache: ~/.cache/tiny-engineer/serial-port.json)`,
+    );
   }
   out.info(`token: ${token ? "set" : "not set"} (HTTP Bearer; unused on serial)`);
 

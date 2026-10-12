@@ -29,6 +29,48 @@ export function stripGlobalFlags(argv) {
 }
 
 /**
+ * True if token looks like a serial device path (not a pose name).
+ * @param {string} value
+ * @returns {boolean}
+ */
+export function looksLikeSerialPath(value) {
+  if (!value || value.startsWith("-")) return false;
+  if (value === "auto") return false;
+  const lower = value.toLowerCase();
+  if (lower.startsWith("com") && /^com\d+/i.test(value)) return true;
+  if (value.startsWith("/")) return true;
+  if (lower.includes("cu.") || lower.includes("tty.")) return true;
+  if (lower.includes("ttyacm") || lower.includes("ttyusb")) return true;
+  return false;
+}
+
+/**
+ * Parse `--serial` / `--serial=` into a path or the `"auto"` sentinel.
+ * @param {string[]} argv
+ * @param {number} i index of `--serial` or `--serial=…`
+ * @returns {{ serial: string, nextIndex: number } | { error: string }}
+ */
+export function takeSerialFlag(argv, i) {
+  const arg = argv[i];
+  if (arg.startsWith("--serial=")) {
+    const value = arg.slice("--serial=".length);
+    if (!value || value === "auto") return { serial: "auto", nextIndex: i };
+    return { serial: value, nextIndex: i };
+  }
+
+  // bare --serial
+  const next = argv[i + 1];
+  if (!next || next.startsWith("-")) {
+    return { serial: "auto", nextIndex: i };
+  }
+  if (looksLikeSerialPath(next) || next === "auto") {
+    return { serial: next === "auto" ? "auto" : next, nextIndex: i + 1 };
+  }
+  // Pose name or other positional — leave it for the caller.
+  return { serial: "auto", nextIndex: i };
+}
+
+/**
  * Parse shared flags from argv. Flags may appear before or after positionals
  * (e.g. `hook cursor -q`). Non-flag tokens go to `rest` in order.
  * @param {string[]} argv
@@ -65,15 +107,13 @@ export function parseCommonArgs(argv) {
       if (!url) return { help, quiet, url, serial, rest, error: "--url requires a value" };
       continue;
     }
-    if (arg === "--serial") {
-      const next = argv[++i];
-      if (!next) return { help, quiet, url, serial, rest, error: "--serial requires a value" };
-      serial = next;
-      continue;
-    }
-    if (arg.startsWith("--serial=")) {
-      serial = arg.slice("--serial=".length);
-      if (!serial) return { help, quiet, url, serial, rest, error: "--serial requires a value" };
+    if (arg === "--serial" || arg.startsWith("--serial=")) {
+      const taken = takeSerialFlag(argv, i);
+      if ("error" in taken) {
+        return { help, quiet, url, serial, rest, error: taken.error };
+      }
+      serial = taken.serial;
+      i = taken.nextIndex;
       continue;
     }
     if (arg.startsWith("-")) {
@@ -111,10 +151,16 @@ export function parsePlayArgs(argv) {
       opts.quiet = true;
       continue;
     }
-    if (arg === "--name" || arg === "--url" || arg === "--serial") {
+    if (arg === "--name") {
       const value = argv[++i];
-      if (!value || value.startsWith("-")) return { quiet: opts.quiet, error: `${arg} requires a value` };
-      opts[arg.slice(2)] = value;
+      if (!value || value.startsWith("-")) return { quiet: opts.quiet, error: "--name requires a value" };
+      opts.name = value;
+      continue;
+    }
+    if (arg === "--url") {
+      const value = argv[++i];
+      if (!value || value.startsWith("-")) return { quiet: opts.quiet, error: "--url requires a value" };
+      opts.url = value;
       continue;
     }
     if (arg.startsWith("--url=")) {
@@ -122,9 +168,11 @@ export function parsePlayArgs(argv) {
       if (!opts.url) return { quiet: opts.quiet, error: "--url requires a value" };
       continue;
     }
-    if (arg.startsWith("--serial=")) {
-      opts.serial = arg.slice("--serial=".length);
-      if (!opts.serial) return { quiet: opts.quiet, error: "--serial requires a value" };
+    if (arg === "--serial" || arg.startsWith("--serial=")) {
+      const taken = takeSerialFlag(argv, i);
+      if ("error" in taken) return { quiet: opts.quiet, error: taken.error };
+      opts.serial = taken.serial;
+      i = taken.nextIndex;
       continue;
     }
     if (arg.startsWith("-") || opts.wavPath) {
@@ -175,15 +223,11 @@ export function parseAnimArgs(argv) {
       if (!url) return { help, quiet, error: "--url requires a value" };
       continue;
     }
-    if (arg === "--serial") {
-      const next = argv[++i];
-      if (!next) return { help, quiet, error: "--serial requires a value" };
-      serial = next;
-      continue;
-    }
-    if (arg.startsWith("--serial=")) {
-      serial = arg.slice("--serial=".length);
-      if (!serial) return { help, quiet, error: "--serial requires a value" };
+    if (arg === "--serial" || arg.startsWith("--serial=")) {
+      const taken = takeSerialFlag(argv, i);
+      if ("error" in taken) return { help, quiet, error: taken.error };
+      serial = taken.serial;
+      i = taken.nextIndex;
       continue;
     }
     if (arg.startsWith("-")) return { help, quiet, error: `Unknown argument: ${arg}` };

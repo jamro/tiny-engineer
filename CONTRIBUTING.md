@@ -98,7 +98,7 @@ Format: `type(scope): summary`
 | `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | MAJOR |
 | `docs`, `style`, `test`, `chore`, `ci`, `refactor` (unless breaking) | no bump |
 
-Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `mods`, `pcb`, `docs`, `scripts`, `ci`, `web`.
+Scopes: `firmware`, `http`, `serial`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `mods`, `pcb`, `docs`, `scripts`, `ci`, `web`.
 
 `integrations` is anything under `packages/` (Cursor, Antigravity, Claude Code, later agent CLIs). Do not add a new scope per package.
 

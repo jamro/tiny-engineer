@@ -52,7 +52,8 @@ npx -y tiny-engineer doctor
 
 - Cold `npx` can be slow: `setup` writes hook **`timeout` ≥ 30**.
 - Optional: `--url http://192.168.x.x` (default `TINY_ENGINEER_URL`, else `http://tiny-engineer.local`).
-- Optional serial: `--serial /dev/cu.usbmodem…` or `TINY_ENGINEER_SERIAL` (takes precedence over URL). List paths with `tiny-engineer ports`. Protocol: [`serial-api.md`](serial-api.md).
+- Optional serial: `--serial /dev/cu.usbmodem…`, bare `--serial` / `--serial=auto` / `TINY_ENGINEER_SERIAL=auto` (auto-detect), or an explicit `TINY_ENGINEER_SERIAL` path (takes precedence over URL). List paths with `tiny-engineer ports`. Protocol: [`serial-api.md`](serial-api.md).
+- Auto-detect caches the last good port under `~/.cache/tiny-engineer/`; cache clears when the port stops responding.
 - Do not pass both `--url` and `--serial`. `play` is HTTP-only (unset serial for WAV upload).
 - Auth (HTTP): if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`. Serial skips Bearer (trusted USB).
 - Prefer registry `npx` over `npx github:…` (SSH often fails in IDE hooks).

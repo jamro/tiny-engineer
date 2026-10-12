@@ -3,13 +3,13 @@ import assert from "node:assert/strict";
 import { resolveTransport } from "../src/robot/transport.js";
 import { encodeSerialRequest, parseSerialReply } from "../src/robot/serial.js";
 
-test("resolveTransport prefers --serial over env URL", () => {
+test("resolveTransport prefers --serial over env URL", async () => {
   const prevSerial = process.env.TINY_ENGINEER_SERIAL;
   const prevUrl = process.env.TINY_ENGINEER_URL;
   delete process.env.TINY_ENGINEER_SERIAL;
   process.env.TINY_ENGINEER_URL = "http://from-env";
   try {
-    assert.deepEqual(resolveTransport({ serial: "/dev/cu.test" }), {
+    assert.deepEqual(await resolveTransport({ serial: "/dev/cu.test" }), {
       type: "serial",
       path: "/dev/cu.test",
     });
@@ -21,11 +21,11 @@ test("resolveTransport prefers --serial over env URL", () => {
   }
 });
 
-test("resolveTransport uses TINY_ENGINEER_SERIAL before HTTP", () => {
+test("resolveTransport uses TINY_ENGINEER_SERIAL before HTTP", async () => {
   const prevSerial = process.env.TINY_ENGINEER_SERIAL;
   process.env.TINY_ENGINEER_SERIAL = "/dev/cu.env";
   try {
-    assert.deepEqual(resolveTransport({ url: "http://ignored" }), {
+    assert.deepEqual(await resolveTransport({ url: "http://ignored" }), {
       type: "serial",
       path: "/dev/cu.env",
     });
@@ -35,11 +35,11 @@ test("resolveTransport uses TINY_ENGINEER_SERIAL before HTTP", () => {
   }
 });
 
-test("resolveTransport falls back to HTTP", () => {
+test("resolveTransport falls back to HTTP", async () => {
   const prevSerial = process.env.TINY_ENGINEER_SERIAL;
   delete process.env.TINY_ENGINEER_SERIAL;
   try {
-    assert.deepEqual(resolveTransport({ url: "http://robot.test" }), {
+    assert.deepEqual(await resolveTransport({ url: "http://robot.test" }), {
       type: "http",
       baseUrl: "http://robot.test",
     });

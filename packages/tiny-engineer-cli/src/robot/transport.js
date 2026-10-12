@@ -1,5 +1,6 @@
 import { getBaseUrl, getSerialPath } from "../config/env.js";
 import { robotFetch } from "./http.js";
+import { detectSerialPort } from "./serial-detect.js";
 import { serialRequest } from "./serial.js";
 
 /** @typedef {import("./client.js").RobotResult} RobotResult */
@@ -9,22 +10,26 @@ import { serialRequest } from "./serial.js";
  */
 
 /**
- * Resolve CLI transport. Flag `--serial` / env serial beat HTTP unless only `--url` is set
- * without serial. Passing both `--url` and `--serial` is an error (caller checks flags).
+ * Resolve CLI transport. Flag `--serial` / env serial beat HTTP.
+ * Passing both `--url` and `--serial` is an error (caller checks flags).
  *
- * Precedence: explicit serialPath → TINY_ENGINEER_SERIAL → HTTP (url / env / default).
+ * Precedence: explicit serial (including `"auto"`) → TINY_ENGINEER_SERIAL → HTTP.
  *
  * @param {{ url?: string, serial?: string }} opts
- * @returns {Transport}
+ * @returns {Promise<Transport>}
  */
-export function resolveTransport({ url, serial } = {}) {
-  if (serial) {
-    return { type: "serial", path: serial };
-  }
+export async function resolveTransport({ url, serial } = {}) {
   const envSerial = getSerialPath();
-  if (envSerial) {
-    return { type: "serial", path: envSerial };
+  const serialSpec = serial ?? envSerial ?? undefined;
+
+  if (serialSpec) {
+    if (serialSpec === "auto") {
+      const path = await detectSerialPort();
+      return { type: "serial", path };
+    }
+    return { type: "serial", path: serialSpec };
   }
+
   return { type: "http", baseUrl: url ?? getBaseUrl() };
 }
 

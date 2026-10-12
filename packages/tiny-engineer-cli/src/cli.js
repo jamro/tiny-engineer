@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 
-import { DEFAULT_URL, getToken, loadDotEnv } from "./config/env.js";
+import { DEFAULT_URL, getSerialPath, getToken, loadDotEnv } from "./config/env.js";
 import { get as getIntegration, list as listIntegrations } from "./integrations/registry.js";
 import {
   formatRobotError,
@@ -42,12 +42,13 @@ Commands:
 
 Options (most commands):
   --url <base>            Robot base URL (default: TINY_ENGINEER_URL, else ${DEFAULT_URL})
-  --serial <path>         USB CDC serial API (default: TINY_ENGINEER_SERIAL if set)
+  --serial [path|auto]    USB CDC serial API (bare/--serial=auto = detect; caches under ~/.cache/tiny-engineer/)
   -q, --quiet, --silent   Suppress success/info lines; errors still print
   -h, --help              Show this help
 
 Transport:
   Prefer --serial / TINY_ENGINEER_SERIAL when set; otherwise HTTP.
+  TINY_ENGINEER_SERIAL=auto also triggers detection.
   Do not pass both --url and --serial. play requires HTTP (unset serial).
 
 Auth (HTTP only):
@@ -71,9 +72,24 @@ Examples:
   tiny-engineer doctor
   tiny-engineer ports
   tiny-engineer anim ring
+  tiny-engineer anim ring --serial
   tiny-engineer anim ring --serial /dev/cu.usbmodem14101
   echo '{"hook_event_name":"stop"}' | tiny-engineer hook cursor
 `);
+}
+
+/**
+ * @param {import("./util/output.js").Output} out
+ * @param {{ url?: string, serial?: string }} opts
+ */
+async function resolveOrFail(out, opts) {
+  try {
+    return await resolveTransport(opts);
+  } catch (err) {
+    out.error(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+    return null;
+  }
 }
 
 /**
@@ -120,9 +136,14 @@ async function runHook(out, argv, quietGlobal) {
 
   const anim = integration.mapToAnim(input);
   if (anim) {
-    const transport = resolveTransport({ url: opts.url, serial: opts.serial });
-    // Fail-open: ignore result so an offline robot never stalls the agent.
-    await postAnim(transport, anim, getToken());
+    const transport = await resolveOrFail(localOut, {
+      url: opts.url,
+      serial: opts.serial,
+    });
+    if (transport) {
+      // Fail-open: ignore result so an offline robot never stalls the agent.
+      await postAnim(transport, anim, getToken());
+    }
   }
 
   const fileLines = integration.describeFiles?.(input, localOut.style) ?? [];
@@ -168,7 +189,12 @@ async function runAnim(out, argv, quietGlobal) {
     return;
   }
 
-  const transport = resolveTransport({ url: opts.url, serial: opts.serial });
+  const transport = await resolveOrFail(localOut, {
+    url: opts.url,
+    serial: opts.serial,
+  });
+  if (!transport) return;
+
   const result = await postAnim(transport, name, getToken());
   if (!result.ok) {
     localOut.error(formatRobotError(result));
@@ -195,12 +221,18 @@ async function runPlay(out, argv, quietGlobal) {
     return;
   }
 
-  const transport = resolveTransport({ url: opts.url, serial: opts.serial });
-  if (transport.type === "serial") {
+  // Reject before auto-detect so play does not open serial ports.
+  if (opts.serial || getSerialPath()) {
     localOut.error("play requires HTTP; unset TINY_ENGINEER_SERIAL and do not pass --serial");
     process.exitCode = 1;
     return;
   }
+
+  const transport = await resolveOrFail(localOut, {
+    url: opts.url,
+    serial: opts.serial,
+  });
+  if (!transport) return;
 
   if (opts.name) {
     const invalid = validatePlayAnimName(opts.name);
@@ -267,7 +299,10 @@ List USB serial device paths for --serial / TINY_ENGINEER_SERIAL.
   }
 
   for (const p of ports) {
-    const extra = [p.manufacturer, p.friendlyName].filter(Boolean).join(" · ");
+    const ids = [p.vendorId && `VID ${p.vendorId}`, p.productId && `PID ${p.productId}`]
+      .filter(Boolean)
+      .join(" ");
+    const extra = [p.manufacturer, p.friendlyName, ids].filter(Boolean).join(" · ");
     out.ok(extra ? `${p.path}  ${out.style.dim(extra)}` : p.path);
   }
   process.exitCode = 0;

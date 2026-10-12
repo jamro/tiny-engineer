@@ -34,6 +34,19 @@ test("parseCommonArgs extracts --serial", () => {
   });
 });
 
+test("parseCommonArgs bare --serial is auto", () => {
+  assert.deepEqual(parseCommonArgs(["--serial", "cursor"]), {
+    help: false,
+    quiet: false,
+    url: undefined,
+    serial: "auto",
+    rest: ["cursor"],
+  });
+  assert.equal(parseCommonArgs(["--serial"]).serial, "auto");
+  assert.equal(parseCommonArgs(["--serial=auto"]).serial, "auto");
+  assert.equal(parseCommonArgs(["--serial="]).serial, "auto");
+});
+
 test("parseCommonArgs rejects --url and --serial together", () => {
   assert.equal(
     parseCommonArgs(["--url", "http://x", "--serial", "/dev/tty"]).error,
@@ -62,6 +75,16 @@ test("parseAnimArgs requires name", () => {
     name: "ring",
     url: "http://x",
     serial: undefined,
+  });
+});
+
+test("parseAnimArgs --serial before name is auto", () => {
+  assert.deepEqual(parseAnimArgs(["--serial", "ring"]), {
+    help: false,
+    quiet: false,
+    name: "ring",
+    url: undefined,
+    serial: "auto",
   });
 });
 
