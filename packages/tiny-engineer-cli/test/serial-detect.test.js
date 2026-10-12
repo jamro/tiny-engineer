@@ -238,6 +238,16 @@ test("detectSerialPort errors on zero or multiple matches", async () => {
         listFn: async () => [{ path: "/dev/cu.usbmodem-x", vendorId: "303A" }],
         requestFn: async () => ({ ok: false, error: "robot unreachable: x" }),
       }),
+    /no Tiny Engineer reply on/,
+  );
+
+  await assert.rejects(
+    () =>
+      detectSerialPort({
+        skipCache: true,
+        listFn: async () => [],
+        requestFn: async () => ({ ok: false, error: "x" }),
+      }),
     /no Tiny Engineer serial port found/,
   );
 

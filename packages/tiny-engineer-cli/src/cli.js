@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 
-import { DEFAULT_URL, getSerialPath, getToken, loadDotEnv } from "./config/env.js";
+import { DEFAULT_URL, getToken, loadDotEnv } from "./config/env.js";
 import { get as getIntegration, list as listIntegrations } from "./integrations/registry.js";
 import {
   formatRobotError,
@@ -10,7 +10,7 @@ import {
   validateAnimName,
   validatePlayAnimName,
 } from "./robot/client.js";
-import { listSerialPorts } from "./robot/serial.js";
+import { listSerialPorts, serialPlay } from "./robot/serial.js";
 import { resolveTransport, transportLabel } from "./robot/transport.js";
 import {
   parseAnimArgs,
@@ -38,7 +38,7 @@ Commands:
   ports                   List serial port paths (for --serial / TINY_ENGINEER_SERIAL)
   hook <ide>              Read hook JSON from stdin, map to a pose, POST /anim
   anim <name> [--url|--serial]  POST /anim?name=<name>
-  play <clip.wav> [opts]  POST /play (16-bit mono PCM WAV; HTTP only)
+  play <clip.wav> [opts]  POST /play (16-bit mono PCM WAV; HTTP or serial)
 
 Options (most commands):
   --url <base>            Robot base URL (default: TINY_ENGINEER_URL, else ${DEFAULT_URL})
@@ -49,7 +49,7 @@ Options (most commands):
 Transport:
   Prefer --serial / TINY_ENGINEER_SERIAL when set; otherwise HTTP.
   TINY_ENGINEER_SERIAL=auto also triggers detection.
-  Do not pass both --url and --serial. play requires HTTP (unset serial).
+  Do not pass both --url and --serial.
 
 Auth (HTTP only):
   If TINY_ENGINEER_TOKEN is set (process env or project-root .env), requests
@@ -74,6 +74,7 @@ Examples:
   tiny-engineer anim ring
   tiny-engineer anim ring --serial
   tiny-engineer anim ring --serial /dev/cu.usbmodem14101
+  tiny-engineer play clip.wav --serial=auto
   echo '{"hook_event_name":"stop"}' | tiny-engineer hook cursor
 `);
 }
@@ -221,13 +222,6 @@ async function runPlay(out, argv, quietGlobal) {
     return;
   }
 
-  // Reject before auto-detect so play does not open serial ports.
-  if (opts.serial || getSerialPath()) {
-    localOut.error("play requires HTTP; unset TINY_ENGINEER_SERIAL and do not pass --serial");
-    process.exitCode = 1;
-    return;
-  }
-
   const transport = await resolveOrFail(localOut, {
     url: opts.url,
     serial: opts.serial,
@@ -252,21 +246,26 @@ async function runPlay(out, argv, quietGlobal) {
     return;
   }
 
-  const baseUrl = transport.baseUrl;
   const pose = opts.name ?? "talking";
-  const result = await postPlay({
-    baseUrl,
-    wav,
-    name: opts.name,
-    token: getToken(),
-  });
+  /** @type {import("./robot/client.js").RobotResult} */
+  let result;
+  if (transport.type === "serial") {
+    result = await serialPlay(transport.path, { wav, name: opts.name });
+  } else {
+    result = await postPlay({
+      baseUrl: transport.baseUrl,
+      wav,
+      name: opts.name,
+      token: getToken(),
+    });
+  }
   if (!result.ok) {
     localOut.error(formatRobotError(result));
     process.exitCode = 1;
     return;
   }
   localOut.ok(
-    `played ${basename(/** @type {string} */ (opts.wavPath))} (${pose}) → ${localOut.style.dim(baseUrl)}`,
+    `played ${basename(/** @type {string} */ (opts.wavPath))} (${pose}) → ${localOut.style.dim(transportLabel(transport))}`,
   );
   process.exitCode = 0;
 }

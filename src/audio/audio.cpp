@@ -98,8 +98,8 @@ bool initAudioStorage() {
 
 void writeMonoToSpeaker(const int16_t* samples, size_t count) {
   constexpr size_t FRAMES = 256;
-
-  int16_t buffer[FRAMES * 2];
+  // Static: avoids ~1KB stack use on the tight loopTask during /play streaming.
+  static int16_t buffer[FRAMES * 2];
 
   const uint8_t volume = settingsVolume();
 

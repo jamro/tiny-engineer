@@ -11,6 +11,13 @@ inline bool& atLineStart() {
   return flag;
 }
 
+// True while serial API drains a binary /play body — skip L lines so TX
+// cannot interleave with the host's framing expectations mid-transfer.
+inline bool& binaryBusy() {
+  static bool busy = false;
+  return busy;
+}
+
 inline void ensurePrefix() {
   if (atLineStart()) {
     Serial.print("L ");
@@ -18,10 +25,18 @@ inline void ensurePrefix() {
   }
 }
 
+inline bool loggingActive() {
+  return settingsSerialLogEnabled() && !binaryBusy();
+}
+
 }  // namespace serial_log_detail
 
+inline void setSerialBinaryBusy(bool busy) {
+  serial_log_detail::binaryBusy() = busy;
+}
+
 inline void serialLogPrintln() {
-  if (settingsSerialLogEnabled()) {
+  if (serial_log_detail::loggingActive()) {
     serial_log_detail::ensurePrefix();
     Serial.println();
     serial_log_detail::atLineStart() = true;
@@ -30,7 +45,7 @@ inline void serialLogPrintln() {
 
 template <typename T>
 inline void serialLogPrint(const T& value) {
-  if (settingsSerialLogEnabled()) {
+  if (serial_log_detail::loggingActive()) {
     serial_log_detail::ensurePrefix();
     Serial.print(value);
   }
@@ -38,7 +53,7 @@ inline void serialLogPrint(const T& value) {
 
 template <typename T>
 inline void serialLogPrint(const T& value, int baseOrDecimals) {
-  if (settingsSerialLogEnabled()) {
+  if (serial_log_detail::loggingActive()) {
     serial_log_detail::ensurePrefix();
     Serial.print(value, baseOrDecimals);
   }
@@ -46,7 +61,7 @@ inline void serialLogPrint(const T& value, int baseOrDecimals) {
 
 template <typename T>
 inline void serialLogPrintln(const T& value) {
-  if (settingsSerialLogEnabled()) {
+  if (serial_log_detail::loggingActive()) {
     serial_log_detail::ensurePrefix();
     Serial.println(value);
     serial_log_detail::atLineStart() = true;
@@ -55,7 +70,7 @@ inline void serialLogPrintln(const T& value) {
 
 template <typename T>
 inline void serialLogPrintln(const T& value, int baseOrDecimals) {
-  if (settingsSerialLogEnabled()) {
+  if (serial_log_detail::loggingActive()) {
     serial_log_detail::ensurePrefix();
     Serial.println(value, baseOrDecimals);
     serial_log_detail::atLineStart() = true;

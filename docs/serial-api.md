@@ -24,8 +24,9 @@ One JSON object per line (max **1024** bytes):
 | `id` | Unsigned integer; echoed in the reply |
 | `op` | `"METHOD /path"` (single space), paths match HTTP |
 | `q` | Object of **string** query params (same names/values as HTTP). Omit or `{}` if none |
+| `len` | Required for `POST /play` / `POST /play/<name>` only: byte length of the WAV that follows (1…32 MiB) |
 
-No request body in this protocol version (no `/play` WAV upload over serial).
+Most ops are JSON-only. **`POST /play`** is hybrid: after the begin line, the host sends exactly `len` raw WAV bytes (no base64), then waits for one `R` reply. On error the device still drains remaining bytes so the stream stays in sync. `serial_log` `L` lines are suppressed while those bytes are received.
 
 Oversized line, invalid JSON, or `v` ≠ 1 → reply with `status` **400** and no dispatch.
 
@@ -77,10 +78,20 @@ Prefix `L` + space + message + `\n`. Multi-part log prints share one `L ` at the
 | `POST /setup/led` | Setup AP only |
 | `POST /setup/audio` | Setup AP only |
 | `POST /setup/oled` | Setup AP only |
+| `POST /play` | Begin JSON must include `len`; then raw WAV (same format as HTTP). Requires Wi-Fi credentials saved |
+| `POST /play/<name>` | Same; `name` = `talking`\|`typing`\|`reading`\|`thinking`\|`none` |
 
 Unknown `op` → **404** `{"ok":false,"error":"not found"}`. Wrong method for a known path → **405** `method not allowed`.
 
-**Not on serial:** HTML / `/ui/*`, CORS, `PUT /settings/wifi` (JSON body), `POST /play` (binary WAV). Use HTTP for those. WAV-over-serial is a possible later extension (length-prefixed binary after a JSON begin line).
+**Not on serial:** HTML / `/ui/*`, CORS, `PUT /settings/wifi` (JSON body). Use HTTP for those.
+
+### `POST /play` framing
+
+```text
+{"v":1,"id":42,"op":"POST /play","len":123456}\n
+<123456 bytes of WAV>
+R{"v":1,"id":42,"status":200,"body":{"ok":true,"played_ms":3000}}\n
+```
 
 ## Example
 
@@ -95,6 +106,7 @@ Or with the CLI:
 TINY_ENGINEER_SERIAL=/dev/cu.usbmodemXXXX tiny-engineer anim thinking
 tiny-engineer doctor --serial /dev/cu.usbmodemXXXX
 tiny-engineer anim thinking --serial          # auto-detect (VID + health probe)
+tiny-engineer play clip.wav --serial=auto
 TINY_ENGINEER_SERIAL=auto tiny-engineer doctor
 ```
 
@@ -104,7 +116,8 @@ Auto-detect prefers Espressif USB devices (VID `303A`, manufacturer / Windows fr
 
 1. Open the port at 115200.
 2. Write one request line ending in `\n`.
-3. Read lines until an `R` line whose JSON `id` matches; ignore `L` and other noise.
-4. Parse `status` and `body` like an HTTP response.
+3. For `/play`, write exactly `len` WAV bytes next (no extra framing). Pace about realtime (~44 KB/s for 16-bit mono 22050 Hz). Much faster overflows CDC during `I2S.write`; much slower stretches speech with gaps.
+4. Read lines until an `R` line whose JSON `id` matches; ignore `L` and other noise.
+5. Parse `status` and `body` like an HTTP response.
 
-Blocking test/setup ops hold the device until motion/audio finishes (same as HTTP).
+Blocking test/setup/`/play` ops hold the device until motion/audio finishes (same as HTTP).

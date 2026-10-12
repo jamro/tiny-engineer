@@ -579,7 +579,7 @@ curl -X POST http://tiny-engineer.local/play/thinking -H 'Content-Type: audio/wa
 { "ok": true, "played_ms": 3000 }
 ```
 
-The unified CLI wraps this for agents: `tiny-engineer play clip.wav [--name thinking]` ([integration.md](integration.md#1-unified-cli-default)).
+The unified CLI wraps this for agents: `tiny-engineer play clip.wav [--name thinking]` over HTTP or serial ([integration.md](integration.md#1-unified-cli-default)). On serial, the same WAV rules apply; the body is framed with a JSON begin line plus `len` (see [serial-api.md](serial-api.md)).
 
 Errors arrive before any audio plays:
 

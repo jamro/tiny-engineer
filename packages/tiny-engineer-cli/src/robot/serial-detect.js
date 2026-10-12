@@ -277,6 +277,12 @@ export async function detectSerialPort(opts = {}) {
   }
 
   if (matches.length === 0) {
+    if (candidates.length > 0) {
+      const listed = candidates.map((c) => c.path).join(", ");
+      throw new Error(
+        `no Tiny Engineer reply on ${listed} (close pio monitor / other serial apps, wait for boot, or pass --serial <path>)`,
+      );
+    }
     throw new Error(
       "no Tiny Engineer serial port found (try `tiny-engineer ports` or pass --serial <path>)",
     );

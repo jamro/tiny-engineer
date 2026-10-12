@@ -53,7 +53,7 @@ npx -y tiny-engineer doctor
 - Cold `npx` can be slow: `setup` writes hook **`timeout` ≥ 30**.
 - Transport: interactive `setup` asks **HTTP (Wi-Fi)** vs **Serial (USB)** and writes one of `TINY_ENGINEER_URL` or `TINY_ENGINEER_SERIAL` into `.env` (clears the other). Non-interactive: `--url http://192.168.x.x` or `--serial` / `--serial=auto` / `--serial <path>` (not both). Runtime flags override the same way. List paths with `tiny-engineer ports`. Protocol: [`serial-api.md`](serial-api.md).
 - Auto-detect caches the last good port under `~/.cache/tiny-engineer/`; cache clears when the port stops responding.
-- `play` is HTTP-only (unset serial for WAV upload).
+- `play` uses the same transport as `anim` (HTTP or serial). Serial `/play` sends a JSON begin line with `len` then raw WAV bytes — see [`serial-api.md`](serial-api.md).
 - Auth (HTTP): if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`. Serial skips Bearer (trusted USB).
 - Prefer registry `npx` over `npx github:…` (SSH often fails in IDE hooks).
 
@@ -93,9 +93,10 @@ Cursor deep dive (event table, sample `hooks.json`): [`hooks.md`](hooks.md).
 tiny-engineer anim ring
 tiny-engineer play /tmp/clip.wav
 tiny-engineer play /tmp/clip.wav --name thinking
+tiny-engineer play /tmp/clip.wav --serial=auto
 ```
 
-WAV for `/play`: 16-bit mono PCM at 22050 Hz. Details: [`api.md#post-play`](api.md#post-play).
+WAV for `/play`: 16-bit mono PCM at 22050 Hz. Details: [`api.md#post-play`](api.md#post-play). Serial framing: [`serial-api.md`](serial-api.md).
 
 ### Speaking through the robot (skill)
 

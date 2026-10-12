@@ -32,6 +32,8 @@ constexpr int kBootSteps = 6;
 void setup() {
   initServoOutputPin();
 
+  // Larger CDC RX helps serial /play while I2S.write blocks ≈ realtime.
+  Serial.setRxBufferSize(8192);
   Serial.begin(115200);
   Serial.setTxTimeoutMs(0);
   delay(1000);

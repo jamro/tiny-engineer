@@ -12,6 +12,7 @@ npx -y tiny-engineer doctor
 npx -y tiny-engineer anim ring
 npx -y tiny-engineer ports
 npx -y tiny-engineer anim ring --serial /dev/cu.usbmodem14101
+npx -y tiny-engineer play clip.wav --serial=auto
 ```
 
 Supported IDEs: **Cursor**, **Claude Code**, **Antigravity**.
@@ -27,7 +28,7 @@ Interactive `setup` asks **HTTP vs Serial**, then writes one key to project `.en
 
 Auto-detect: Espressif USB filter (VID / manufacturer / PID `1001`) + parallel `GET /health` probe on macOS `cu.*`, Linux `ttyACM*`, Windows `COMn`; requires exactly one match. Last good path is cached in `~/.cache/tiny-engineer/serial-port.json` and cleared when serial becomes unreachable.
 
-Do not pass both `--url` and `--serial`. `play` requires HTTP (WAV body). Serial framing: [serial-api.md](https://github.com/jamro/tiny-engineer/blob/main/docs/serial-api.md).
+Do not pass both `--url` and `--serial`. `anim` and `play` both work on HTTP or serial. Serial framing: [serial-api.md](https://github.com/jamro/tiny-engineer/blob/main/docs/serial-api.md).
 
 ## Docs
 
