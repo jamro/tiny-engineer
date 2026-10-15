@@ -18,6 +18,8 @@ constexpr const char* kKeyWifiSsid = "wifi_ssid";
 constexpr const char* kKeyWifiPass = "wifi_pass";
 constexpr const char* kKeyWifiNets = "wifi_nets";
 constexpr const char* kKeyServoRanges = "sranges";
+constexpr const char* kKeyServoCenters = "scenters";
+constexpr const char* kKeySwapHands = "swap_hands";
 constexpr const char* kKeyRgbOrder = "rgb_ord";
 constexpr const char* kKeyOledRot = "oled_rot";
 

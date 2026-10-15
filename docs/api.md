@@ -118,6 +118,8 @@ curl http://tiny-engineer.local/settings
   "wifi_configured": true,
   "servo_mins": [60, 40, 45, 35, 40],
   "servo_maxs": [130, 130, 135, 125, 130],
+  "servo_centers": [95, 85, 90, 80, 85],
+  "swap_hands": false,
   "rgb_order": "GRB",
   "oled_rotate_180": false,
   "wifi_networks": ["MyNetwork", "Office"]
@@ -139,13 +141,15 @@ curl http://tiny-engineer.local/settings
 | `wifi_networks` | Saved network names (up to 5), in saved order. Passwords are never returned. At boot the robot scans and tries the visible saved networks strongest first, then the rest in this order (hidden SSIDs do not show in a scan). Change the list with [`PUT /settings/wifi`](#put-settingswifi) |
 | `servo_mins` | Per-joint safe minimum degrees `[head, neck, left, right, body]` (stock defaults **60, 40, 45, 35, 40**) |
 | `servo_maxs` | Per-joint safe maximum degrees (stock defaults **130, 130, 135, 125, 130**). Each max must be greater than the matching min |
+| `swap_hands` | `false`: left hand on PCA9685 channel 2, right on 3 (default). `true`: left on 3, right on 2. Left/right are from the robot’s perspective. Applies after reboot; survives factory reset |
+| `servo_centers` | Per-joint calibrated center degrees in the same order (stock defaults **95, 85, 90, 80, 85**). Each center must be strictly between its min/max. Survives factory reset |
 | `rgb_order` | Onboard WS2812 wire-byte order (`RGB`, `RBG`, `GRB`, `GBR`, `BRG`, `BGR`). Default **`GRB`**. Survives factory reset |
 | `oled_rotate_180` | OLED 180° rotation (`true` → `setRotation(2)`). Default **`false`**. Setup AP only. Survives factory reset |
-| `reboot_required` | `true` once the saved `hostname`, `loading` or WiFi networks differ from what this boot started with; those apply only after a reboot |
+| `reboot_required` | `true` once the saved `hostname`, `loading`, `swap_hands` or WiFi networks differ from what this boot started with; those apply only after a reboot |
 
 ### `POST /settings`
 
-Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname`, `loading`, or `swap_hands` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`) apply immediately, including outside setup AP. RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) remain **setup AP only** and apply immediately. Servo centers (`servo_centers`) can also be changed outside setup AP and take effect on subsequent normalized motion commands without reboot. Saving centers does not move a joint; `/test/servo` still takes electrical degrees. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings" \
@@ -154,6 +158,15 @@ curl -X POST "http://tiny-engineer.local/settings" \
 curl -X POST "http://tiny-engineer.local/settings" \
   -H "Content-Type: application/json" \
   -d '{"access_token":""}'
+curl -X POST "http://tiny-engineer.local/settings" \
+  -H "Content-Type: application/json" \
+  -d '{"servo_centers":[95,85,92,78,90]}'
+curl -X POST "http://tiny-engineer.local/settings" \
+  -H "Content-Type: application/json" \
+  -d '{"swap_hands":true}'
+curl -X POST "http://tiny-engineer.local/settings" \
+  -H "Content-Type: application/json" \
+  -d '{"servo_mins":[65,40,45,35,40],"servo_maxs":[125,130,135,125,130]}'
 curl -X POST "http://192.168.4.1/settings" \
   -H "Content-Type: application/json" \
   -d '{"servo_mins":[60,40,45,35,40],"servo_maxs":[130,130,135,125,130],"rgb_order":"GRB","oled_rotate_180":true}'
@@ -174,6 +187,8 @@ curl -X POST "http://192.168.4.1/settings" \
   "wifi_configured": true,
   "servo_mins": [60, 40, 45, 35, 40],
   "servo_maxs": [130, 130, 135, 125, 130],
+  "servo_centers": [95, 85, 90, 80, 85],
+  "swap_hands": false,
   "rgb_order": "GRB",
   "oled_rotate_180": false,
   "wifi_networks": ["MyNetwork"],
@@ -192,12 +207,18 @@ curl -X POST "http://192.168.4.1/settings" \
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
 | `access_token` | string | 0–64 printable ASCII, no space at either end; empty string clears the token and disables auth |
-| `servo_mins` | integer array | Five integers `0`–`180` (`head, neck, left, right, body`); setup AP only; must be sent with `servo_maxs` |
-| `servo_maxs` | integer array | Five integers `0`–`180`; setup AP only; each value must be greater than the matching min |
+| `servo_mins` | integer array | Five integers `0`–`180` (`head, neck, left, right, body`); immediate; must be sent with `servo_maxs` |
+| `servo_maxs` | integer array | Five integers `0`–`180`; immediate; each value must be greater than the matching min |
+| `swap_hands` | boolean | Swap hand channels 2 and 3; default `false`; next reboot |
+| `servo_centers` | number array | Five finite numbers (`head, neck, left, right, body`); each min < center < max; immediate, including outside setup AP |
 | `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR`; setup AP only; default `GRB` |
 | `oled_rotate_180` | boolean | Setup AP only; default `false` |
 
-Leave out a field to keep its saved value. An empty object → **400** `send at least one setting`. A field this route does not know → **400** `unknown field <field>`. A field with the wrong type or out of range → **400** `invalid <field>` (servo ranges that overlap or exceed 180: `invalid servo_mins or servo_maxs`). Only one of `servo_mins` / `servo_maxs` → **400** `servo_mins and servo_maxs go together`. On any 400, nothing is saved. Outside setup AP mode, servo ranges → **400** `servo setup only in AP mode`, `rgb_order` → **400** `rgb setup only in AP mode`, `oled_rotate_180` → **400** `oled setup only in AP mode`. Replies carry `reboot_required` as in `GET /settings`.
+Leave out a field to keep its saved value. An empty object → **400** `send at least one setting`. A field this route does not know → **400** `unknown field <field>`. A field with the wrong type or out of range → **400** `invalid <field>` (servo ranges that overlap or exceed 180: `invalid servo_mins or servo_maxs`). A wrong length/type, non-finite value, or center not strictly inside the resulting safe limits → **400** `invalid servo_centers`. Only one of `servo_mins` / `servo_maxs` → **400** `servo_mins and servo_maxs go together`. On any 400, nothing is saved. Outside setup AP mode, `rgb_order` → **400** `rgb setup only in AP mode`, `oled_rotate_180` → **400** `oled setup only in AP mode`. Replies carry `reboot_required` as in `GET /settings`.
+
+Hand channel assignment affects all PWM writes after restart, including setup moves, animations, and output release. Limits and centers remain attached to logical joints; verify both hands’ calibration after changing their assignment.
+
+When changing safe limits without sending `servo_centers`, existing centers inside the new limits are kept; an excluded center falls back to the new midpoint. The Servo control page exposes Min/Max fields and **Save limits** for each joint; the slider follows the saved limits only after a successful save. Active motion targets are clamped to new limits so an out-of-range destination can still finish. On upgrades from firmware without centers, each center defaults to the midpoint of the saved limits. Poses map `−1` to min, `0` to center, and `+1` to max, with linear interpolation on each side. Hand rest poses remain at their safe endpoints. See [center calibration](robot-movement.md#center-calibration).
 
 ### `PUT /settings/wifi`
 
@@ -220,7 +241,7 @@ The list must hold 1 to 5 networks, so the robot always has one to try; factory 
 
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
+Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/center/max, hand channel assignment (`swap_hands`), RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
 
 The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup wizard. It does not poll for reconnect.
 
@@ -243,6 +264,8 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "wifi_configured": false,
   "servo_mins": [60, 40, 45, 35, 40],
   "servo_maxs": [130, 130, 135, 125, 130],
+  "servo_centers": [95, 85, 90, 80, 85],
+  "swap_hands": false,
   "rgb_order": "GRB",
   "oled_rotate_180": false,
   "wifi_networks": [],
@@ -292,7 +315,7 @@ curl -X POST http://tiny-engineer.local/test/screen
 
 ### `POST /test/movement`
 
-All five servos: per-joint mid → +0.5 → −0.5 → mid of the saved min/max (`runServoTest()`). Needs a strong 5 V supply — see [power.md](hardware/power.md).
+All five servos: per-joint calibrated center → +0.5 → −0.5 → center within the saved min/max (`runServoTest()`). Needs a strong 5 V supply — see [power.md](hardware/power.md).
 
 ```bash
 curl -X POST http://tiny-engineer.local/test/movement
@@ -446,7 +469,7 @@ Wrong fields return **400** and do not move any servo:
 | `invalid index` | `index` missing, not an integer, or outside `0`–`4` |
 | `invalid angle` | `angle` missing, not a number, or outside `0`–`180` |
 
-Assembled robot: firmware clamps to the NVS min/max from setup (stock defaults in [robot-movement.md](robot-movement.md)); this route still accepts 0–180 and clamps. For unclamped assembly moves, use setup AP `POST /setup/servo`.
+Assembled robot: firmware clamps to the NVS min/max saved from Servo control or setup (stock defaults in [robot-movement.md](robot-movement.md)); this route still accepts 0–180 and clamps. For unclamped assembly moves, use setup AP `POST /setup/servo`.
 
 ### `GET /anim`
 
@@ -498,7 +521,7 @@ Durations and quoted lines below are the stock clips in [`assets/`](../assets/).
 
 | `name` | Behavior |
 | --- | --- |
-| `none` | Head/neck/body → mid; hands down (right `min`, left `max` — inverted scales). After all joints still for 2 s, PCA9685 PWM is full-off (servos limp; head may droop). Setup AP does not release PWM. |
+| `none` | Head/neck/body → calibrated center; hands down (right `min`, left `max` — inverted scales). After all joints still for 2 s, PCA9685 PWM is full-off (servos limp; head may droop). Setup AP does not release PWM. |
 | `typing` | **Continuous.** Alternating hands with randomness (15° band from hand limits). Head nods slowly on lowest 10° of head limits. Body sways ±5° around mid; neck counters opposite so head stays put. Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
 | `reading` | **Continuous.** Hands/body park as in `none`. Head nods on same lowest 10° band as typing, but slower. Neck sweeps ±10° around mid; right (angle down) slower than left (angle up). Occasional right-hand down-arrow bursts (1–3 presses, same 15° band as typing). Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
 | `thinking` | **Continuous.** Hands/body park as in `none`. Head (pitch) and neck (yaw) ease from the current pose into thinking poses (up + slight left/right). Move → pause → optional micro-adjust (sometimes chained) → pause; nearby pose drift with occasional larger shifts after ~2.2 s, more often over time. Axes stagger start/duration; no periodic sway. Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |

@@ -68,6 +68,8 @@ Your agent (or a hook script) sends poses over HTTP. The **ESP32-C3** is a small
 
 Details: [Integrations](docs/integration.md) · [HTTP API](docs/api.md) · [Cursor hooks](docs/hooks.md)
 
+If the body or hands are off-center after assembly, open **Servo control** at `http://tiny-engineer.local/servo` to save each joint’s min/max limits and calibrated center. If the hand servos are connected the other way around, open **Config** at `http://tiny-engineer.local/config`, select their channel assignment, and restart the robot. Calibration and hand assignment persist after power-off and factory reset; movements stay within the saved limits. See [center calibration](docs/robot-movement.md#center-calibration).
+
 ## Documentation
 
 | You want to… | Start here |

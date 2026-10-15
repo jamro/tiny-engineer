@@ -67,19 +67,19 @@ Firmware uses two complementary control paths:
 
 | Mode | API | Use |
 | --- | --- | --- |
-| **Choreographed** | `setNormPosition()` + time easing (`anim::easedLerp`, `anim::EasedMove`) | Welcome raise/wiggle, thinking head/neck — pose in −1..1, mapped to saved min/max each frame |
+| **Choreographed** | `setNormPosition()` + time easing (`anim::easedLerp`, `anim::EasedMove`) | Welcome raise/wiggle, thinking head/neck — pose in −1..1, mapped to saved min/center/max each frame |
 | **Discrete** | `setNormTarget()` + `update()` slew | Typing, reading, ring, transitions — rate-limited chase to a mapped pose |
 
 Helpers live in [`src/animation/util.cpp`](../../src/animation/util.cpp). Blocking test moves (`moveTo`) also use cubic easing.
 
 `SERVO_MAX_SPEED_DEG_S` (140°/s) is ~28% of PowerHD HD-1370A unloaded max (~500°/s @ 4.8 V) — smoother under load while staying responsive for hand taps. Other presets (SG90, FS0307, ES9051) still use this firmware cap.
 
-Bring-up motion (`runServoTest`): each joint uses its **saved** min/max (`n` in −1..1):
+Bring-up motion (`runServoTest`): each joint uses its **saved** min/center/max (`n` in −1..1):
 
-1. All channels → mid (`n = 0`)
-2. Smooth mid → +0.5 (75% of span)
-3. Smooth +0.5 → −0.5 (25% of span)
-4. Smooth −0.5 → mid
+1. All channels → calibrated center (`n = 0`)
+2. Smooth center → +0.5 (halfway from center to max)
+3. Smooth +0.5 → −0.5 (halfway from center to min)
+4. Smooth −0.5 → calibrated center
 
 This is a wiring/power test, not a pose library.
 
@@ -89,11 +89,11 @@ This is a wiring/power test, not a pose library.
 | --- | --- | --- | --- |
 | 1 | Electrical PWM | Pulse widths the servo electronics accept (~800–2200 µs @ 50 Hz) | In firmware |
 | 2 | Nominal manufacturer angle | Marketing / datasheet travel (0–180° **or** ~130° over full pulse — sources disagree) | Do not trust for installed mechanics |
-| 3 | Mechanical safe range | Per-joint min/max after horns and linkages | Stock defaults in `SERVO_SPECS` ([`include/servos.h`](../../include/servos.h)); saved to NVS in the setup AP wizard. See [robot-movement.md](../robot-movement.md) |
+| 3 | Mechanical safe range | Per-joint min/max after horns and linkages | Stock defaults in `SERVO_SPECS` ([`include/servos.h`](../../include/servos.h)); saved to NVS from Servo control or the setup AP wizard. See [robot-movement.md](../robot-movement.md) |
 
-Animations author poses in **−1..1** (min / mid / max of range 3) and map through `servoNormToDeg`. `POST /test/servo` still takes electrical degrees and clamps to range 3. Setup AP `POST /setup/servo` uses range 1 (0–180°) to find limits.
+Animations author poses in **−1..1** (min / calibrated center / max of range 3) and map through `servoNormToDeg`. `POST /test/servo` still takes electrical degrees and clamps to range 3. Setup AP `POST /setup/servo` uses range 1 (0–180°) to find limits.
 
-Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out the 5 V rail. Stay inside the saved min/max (stock `SERVO_SPECS` until you calibrate in setup AP).
+Blind 0–180° on the assembled robot can stall gears, tear horns, or brown out the 5 V rail. Stay inside the saved min/max (stock `SERVO_SPECS` until you calibrate).
 
 ## Channel-to-mechanism mapping
 

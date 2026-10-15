@@ -3,12 +3,12 @@ import { HealthStrip } from "./HealthStrip";
 
 const CARDS = [
   ["/animations", "Animations", "Pick a gesture — typing, reading, thinking, talking, and more."],
-  ["/servo", "Servo control", "Move individual servos to any angle."],
+  ["/servo", "Servo control", "Move servos and save limits and centers."],
   ["/tests", "Hardware tests", "Try the speaker, screen, LEDs, and servo sweep."],
   [
     "/config",
     "Config",
-    "Device name, timeouts, volume, eyes style, boot behavior, serial logging, API token, and saved WiFi networks. Servo ranges, screen orientation, and RGB mapping are retuned in setup mode after factory reset.",
+    "Device name, timeouts, volume, eyes style, boot behavior, serial logging, API token, saved WiFi networks, and hand servo assignment. Servo limits and centers live on Servo control. Screen orientation and RGB mapping are retuned in setup mode after factory reset.",
   ],
   ["/api", "API reference", "Full endpoint list, parameters, and curl-friendly docs."],
 ] as const;

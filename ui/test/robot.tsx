@@ -19,6 +19,8 @@ const DEFAULT_SETTINGS: Settings = {
   wifi_networks: ["home"],
   servo_mins: [60, 40, 45, 35, 40],
   servo_maxs: [130, 130, 135, 125, 130],
+  servo_centers: [95, 85, 90, 80, 85],
+  swap_hands: false,
   rgb_order: "GRB",
   oled_rotate_180: false,
 };

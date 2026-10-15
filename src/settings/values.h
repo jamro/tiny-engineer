@@ -19,12 +19,14 @@ struct SettingsValues {
   char eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1];
   char accessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1];
   ServoRanges servoRanges;
+  ServoCenters servoCenters;
+  bool swapHands;
   char rgbOrder[SETTINGS_RGB_ORDER_MAX_LEN + 1];
   bool oledRotate180;
 
   static SettingsValues defaults();
 
-  // The patch must be valid (SettingsPatch::invalidField() == nullptr).
+  // The patch must be valid (SettingsPatch::invalidField(&servoRanges) == nullptr).
   void apply(const SettingsPatch& patch);
 
   // Reads NVS over the current values; keys that are missing or invalid keep theirs.
@@ -41,6 +43,6 @@ struct SettingsValues {
 
 extern SettingsValues g_settings;
 extern WifiNetworkList g_wifiNetworks;
-// Hostname and loading screen are read at boot only; a change waits for a reboot.
+// Hostname, loading screen and hand mapping are read at boot; changes wait for a reboot.
 extern SettingsValues g_bootSettings;
 extern bool g_wifiChangedSinceBoot;

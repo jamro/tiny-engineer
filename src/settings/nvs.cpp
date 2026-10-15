@@ -61,8 +61,21 @@ void SettingsValues::load() {
     }
   }
 
+  // Older firmware saved only ranges: retain its exact midpoint behavior.
+  for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
+    servoCenters.angles[i] = (servoRanges.mins[i] + servoRanges.maxs[i]) * 0.5f;
+  }
+
+  ServoCenters storedCenters{};
+
+  if (g_settingsPrefs.getBytes(kKeyServoCenters, &storedCenters, sizeof(storedCenters)) ==
+        sizeof(storedCenters) && storedCenters.valid(&servoRanges)) {
+    servoCenters = storedCenters;
+  }
+
   loadText(rgbOrder, kKeyRgbOrder, settingsValidateRgbOrder);
   oledRotate180 = g_settingsPrefs.getBool(kKeyOledRot, oledRotate180);
+  swapHands = g_settingsPrefs.getBool(kKeySwapHands, swapHands);
 }
 
 namespace {
@@ -108,6 +121,7 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
   putText(kKeyAccessTok, values.accessToken, before.accessToken);
   putText(kKeyRgbOrder, values.rgbOrder, before.rgbOrder);
   putBool(kKeyOledRot, values.oledRotate180, before.oledRotate180);
+  putBool(kKeySwapHands, values.swapHands, before.swapHands);
 
   if (all || memcmp(&values.servoRanges, &before.servoRanges, sizeof(ServoRanges)) != 0) {
     uint8_t blob[kServoRangesLen];
@@ -118,6 +132,11 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
     }
 
     ok &= g_settingsPrefs.putBytes(kKeyServoRanges, blob, kServoRangesLen) == kServoRangesLen;
+  }
+
+  if (all || memcmp(&values.servoCenters, &before.servoCenters, sizeof(ServoCenters)) != 0) {
+    ok &= g_settingsPrefs.putBytes(kKeyServoCenters, &values.servoCenters, sizeof(ServoCenters)) ==
+      sizeof(ServoCenters);
   }
 
   return ok;
@@ -147,7 +166,7 @@ bool SettingsValues::replaceAll() const {
 }
 
 bool saveSettings(const SettingsPatch& patch) {
-  if (patch.invalidField() != nullptr) {
+  if (patch.invalidField(&g_settings.servoRanges) != nullptr) {
     return false;
   }
 
@@ -191,6 +210,8 @@ bool factoryResetSettings() {
   // The hardware calibration survives a reset.
   SettingsValues next = SettingsValues::defaults();
   next.servoRanges = g_settings.servoRanges;
+  next.servoCenters = g_settings.servoCenters;
+  next.swapHands = g_settings.swapHands;
   strlcpy(next.rgbOrder, g_settings.rgbOrder, sizeof(next.rgbOrder));
   next.oledRotate180 = g_settings.oledRotate180;
 
@@ -209,5 +230,6 @@ bool factoryResetSettings() {
 bool settingsRebootRequired() {
   return strcmp(g_settings.hostname, g_bootSettings.hostname) != 0 ||
          strcmp(g_settings.loading, g_bootSettings.loading) != 0 ||
+         g_settings.swapHands != g_bootSettings.swapHands ||
          g_wifiChangedSinceBoot;
 }

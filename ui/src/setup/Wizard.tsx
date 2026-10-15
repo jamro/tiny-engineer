@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import type { Settings } from "../api/types";
 import { useRobot } from "../robot";
 import { Button } from "../components/Button";
+import { HandAssignment } from "../components/HandAssignment";
 import { useStatus } from "../status/status";
 import { useResettableState } from "../useResettableState";
 import { FindRanges } from "./FindRanges";
@@ -59,8 +60,9 @@ export function Wizard({ settings }: { settings: Settings }) {
         {
           servo_mins: calibration.ranges.map(([min]) => min),
           servo_maxs: calibration.ranges.map(([, max]) => max),
+          servo_centers: calibration.centers,
         },
-        "Saving servo ranges…",
+        "Saving servo calibration…",
       ),
     oled: () => save({ oled_rotate_180: oledRotate180 }, "Saving screen rotation…"),
     led: () => save({ rgb_order: led.order }, "Saving LED mapping…"),
@@ -98,6 +100,7 @@ export function Wizard({ settings }: { settings: Settings }) {
           style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }}
         ></div>
       </div>
+      {step.id === "servos" && <HandAssignment settings={settings} />}
       {step.id === "servos" &&
         (placingParts ? (
           <PlaceParts calibration={calibration} />

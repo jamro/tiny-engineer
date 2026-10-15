@@ -75,6 +75,26 @@ float settingsServoMax(int index) {
   return static_cast<float>(g_settings.servoRanges.maxs[index]);
 }
 
+float settingsServoCenter(int index) {
+  if (index < 0 || index >= static_cast<int>(SETTINGS_SERVO_COUNT)) {
+    return SETTINGS_SERVO_ANGLE_MAX * 0.5f;
+  }
+
+  return g_settings.servoCenters.angles[index];
+}
+
+const ServoRanges& settingsServoRanges() {
+  return g_settings.servoRanges;
+}
+
+bool settingsSwapHands() {
+  return g_settings.swapHands;
+}
+
+int settingsServoChannel(int index) {
+  return servoChannelFor(index, g_bootSettings.swapHands);
+}
+
 const char* settingsRgbOrder() {
   return g_settings.rgbOrder;
 }
