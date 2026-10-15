@@ -9,7 +9,7 @@ Firmware is [`src/main.cpp`](../../src/main.cpp). Boot **inits** hardware and st
 - [`src/hardware/pca9685_servos.cpp`](../../src/hardware/pca9685_servos.cpp)
 - [`src/http/routes.cpp`](../../src/http/routes.cpp), [`src/http/test_handlers.cpp`](../../src/http/test_handlers.cpp)
 
-Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi credentials are saved in NVS and configured only in setup AP mode (first boot, or after factory reset + power-cycle). Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are also setup-AP-only; factory reset keeps them.
+Constants: [`include/pins.h`](../../include/pins.h). Wi-Fi credentials are saved in NVS and configured only in setup AP mode (first boot, or after factory reset + power-cycle). RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are also setup-AP-only; factory reset keeps them. Servo min/max can be saved on the regular Servo control page and apply immediately. Hand channel assignment (`swap_hands`) swaps channels 2 and 3 after reboot and survives factory reset. Servo centers (`servo_centers`) can also be calibrated on the regular Servo control page and survive factory reset.
 
 Stock flash: **[Web flash](https://jamro.github.io/tiny-engineer/flash/)**. Build from source / serial (115200): [flash.md](../flash.md) (Advanced: PlatformIO — `pio run`, `pio run -t upload`). Physical board is **Waveshare ESP32-C3-Zero**; PlatformIO env name is `esp32-c3-devkitm-1`.
 
@@ -54,7 +54,7 @@ silent, which makes the LED the only signal a first-boot board gives you.
 7. **Sleep inertia loading:** wakeup frame 0 during init (classic: closed lids; cover: black halves; kaomoji: Sleepy; dots: no circles). Smooth move to sleep pose if `welcome` is on. After init, wake plays from t=0: slow eye open + blinks (~5.5 s). Head/neck wave only if `welcome` is on; otherwise eyes only
 8. `WIFI SETUP` on serial — connect OK + IP, open setup AP, or saved credentials failed (setup AP for reconfiguration)
 9. `Starting MAX98357A` → `I2S OK`
-10. `Centering servos` — smooth move to per-channel mid (progress path only; skipped if sleep pose already applied)
+10. `Centering servos` — smooth move to each saved center (progress path only; skipped if sleep pose already applied)
 11. `ROBOT READY`
 12. RGB fades to white over 1 s if `welcome` runs (Wi-Fi OK and setting enabled), or fades off if idle
 13. If Wi-Fi OK: `HTTP: http://<ip>/`, `HTTP: http://tiny-engineer.local/`, and `/health` URLs on serial
@@ -110,10 +110,10 @@ curl -X POST "http://tiny-engineer.local/test/servo" -H "Content-Type: applicati
 | `GET` | `/health` | Health JSON — full field list in [api.md](../api.md#get-health) |
 | `GET` / `POST` | `/anim` | Current animation / start one (`name`, optional `interrupt`) — full params in [api.md](../api.md#post-anim) |
 | `POST` | `/play` | Stream a WAV while `talking` (or `/play/{name}`) runs; answers when the clip ends — full params in [api.md](../api.md#post-play) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
-| `POST` | `/settings` | Update NVS settings from a JSON object; the reply carries `reboot_required`, true once `hostname`, `loading` or the WiFi networks differ from what the robot booted with. `servo_mins` / `servo_maxs` (integer arrays), `rgb_order` and `oled_rotate_180` (boolean) are setup-AP-only |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `servo_centers`, `swap_hands`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
+| `POST` | `/settings` | Update NVS settings from a JSON object; the reply carries `reboot_required`, true once `hostname`, `loading`, `swap_hands` or the WiFi networks differ from what the robot booted with. `servo_centers` (five finite numbers strictly between min/max) apply to subsequent normalized moves, including outside setup AP. `servo_mins` / `servo_maxs` (integer arrays) apply immediately, including outside setup AP. Only `rgb_order` and `oled_rotate_180` (boolean) are setup-AP-only |
 | `PUT` | `/settings/wifi` | Replace the saved WiFi networks (JSON array of 1 to 5); first one tested in setup AP mode |
-| `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges, RGB mapping, and screen rotation); power-cycle to reopen setup AP |
+| `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges and centers, hand assignment, RGB mapping, and screen rotation); power-cycle to reopen setup AP |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/audio/bell` | `{"ok":true,"test":"bell"}` after `playBell()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |

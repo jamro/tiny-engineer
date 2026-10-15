@@ -1,5 +1,6 @@
 #include "settings/settings.h"
 
+#include <cmath>
 #include <cstring>
 
 #include "display/eyes/styles/eye_style.h"
@@ -119,6 +120,27 @@ bool ServoRanges::valid() const {
   return true;
 }
 
+bool ServoCenters::valid(const ServoRanges* ranges) const {
+  for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
+    const float min = ranges != nullptr ? ranges->mins[i] : 0.0f;
+    const float max = ranges != nullptr ? ranges->maxs[i] : SETTINGS_SERVO_ANGLE_MAX;
+
+    if (!std::isfinite(angles[i]) || angles[i] <= min || angles[i] >= max) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void ServoCenters::fitTo(const ServoRanges& ranges) {
+  for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
+    if (!std::isfinite(angles[i]) || angles[i] <= ranges.mins[i] || angles[i] >= ranges.maxs[i]) {
+      angles[i] = (ranges.mins[i] + ranges.maxs[i]) * 0.5f;
+    }
+  }
+}
+
 bool settingsValidateRgbOrder(const char* rgbOrder) {
   if (rgbOrder == nullptr) {
     return false;
@@ -132,7 +154,7 @@ bool settingsValidateRgbOrder(const char* rgbOrder) {
          strcmp(rgbOrder, "BGR") == 0;
 }
 
-const char* SettingsPatch::invalidField() const {
+const char* SettingsPatch::invalidField(const ServoRanges* savedRanges) const {
   if (sleepTimeoutMin && !settingsValidateSleepTimeout(*sleepTimeoutMin)) {
     return "sleep_timeout";
   }
@@ -165,6 +187,10 @@ const char* SettingsPatch::invalidField() const {
     return "servo_mins or servo_maxs";
   }
 
+  if (servoCenters && !servoCenters->valid(servoRanges ? &*servoRanges : savedRanges)) {
+    return "servo_centers";
+  }
+
   if (rgbOrder != nullptr && !settingsValidateRgbOrder(rgbOrder)) {
     return "rgb_order";
   }
@@ -173,10 +199,6 @@ const char* SettingsPatch::invalidField() const {
 }
 
 const char* SettingsPatch::setupOnlyStep() const {
-  if (servoRanges) {
-    return "servo";
-  }
-
   if (rgbOrder != nullptr) {
     return "rgb";
   }

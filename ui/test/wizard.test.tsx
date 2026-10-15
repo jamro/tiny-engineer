@@ -34,6 +34,17 @@ describe("setup wizard", () => {
     expect(guide?.querySelector("input, button")).toBeNull();
   });
 
+  it("lets the hand assignment be saved before attaching parts", async () => {
+    const robot = fakeRobot({ provisioning: true });
+    const { user, click } = renderApp("/");
+
+    await user.selectOptions(await screen.findByLabelText("Left hand servo channel"), "3");
+    await click("Save hand assignment");
+
+    await waitFor(() => expect(robot.lastPost("/settings")?.json).toEqual({ swap_hands: true }));
+    expect(robot.sent("POST", "/setup/servo")).toHaveLength(0);
+  });
+
   it("moves the selected joint in steps and stops at 180°", async () => {
     const { robot, click } = await startCalibration();
 
@@ -102,6 +113,7 @@ describe("setup wizard", () => {
     expect(robot.lastPost("/settings")?.json).toEqual({
       servo_mins: [80, 40, 45, 35, 40],
       servo_maxs: [130, 130, 135, 125, 130],
+      servo_centers: [95, 85, 90, 80, 85],
     });
     await waitFor(() => expect(robot.lastPost("/setup/oled")?.json).toEqual({ rotate_180: false }));
   });
@@ -115,6 +127,37 @@ describe("setup wizard", () => {
 
     await waitFor(() => expect(robot.lastPost("/setup/oled")?.json).toBeUndefined());
     expect(stepLabel()).toBe("Step 1 of 5 · Servos");
+  });
+
+  it("saves a center for the selected joint alongside its limits", async () => {
+    const { robot, click } = await startCalibration();
+
+    await click("Body");
+    await click("+5°");
+    await click("Set center (85°)");
+    await click("Next: Screen");
+
+    await waitFor(() => expect(robot.settings.servo_centers).toEqual([95, 85, 90, 80, 95]));
+    expect(robot.settings.servo_mins).toEqual([60, 40, 45, 35, 40]);
+  });
+
+  it("refuses a center on a safe limit", async () => {
+    const { click } = await startCalibration();
+
+    await click("Set min (60°)");
+    await click("Set center (95°)");
+
+    expect(statusText()).toBe("Center must be between min and max.");
+  });
+
+  it("recenters within new limits when the old center is excluded", async () => {
+    const { robot, click } = await startCalibration();
+
+    await click("+10°");
+    await click("Set min (60°)");
+    await click("Next: Screen");
+
+    await waitFor(() => expect(robot.settings.servo_centers[0]).toBe(115));
   });
 
   it("saves the hostname, then tests the new network ahead of the saved ones", async () => {

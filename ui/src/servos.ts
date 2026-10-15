@@ -16,3 +16,6 @@ export const savedRanges = ({ servo_mins: mins, servo_maxs: maxs }: Settings): R
   mins.map((min, index) => [min, maxs[index]] as const);
 
 export const inRange = (angle: number, [min, max]: Range) => angle >= min && angle <= max;
+
+export const isCenter = (angle: number, [min, max]: Range) =>
+  Number.isFinite(angle) && angle > min && angle < max;

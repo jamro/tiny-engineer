@@ -33,7 +33,21 @@ constexpr float servoMid(const ServoSpec& spec) {
   return (spec.min + spec.max) * 0.5f;
 }
 
-// Pose space: -1 = saved min, 0 = mid, +1 = saved max.
+// Swap only the hand outputs; pose limits and centers belong to logical joints.
+constexpr int servoChannelFor(int index, bool swapHands) {
+  if (index < 0 || index >= SERVO_COUNT) {
+    return -1;
+  }
+  if (swapHands && index == SERVO_HAND_LEFT) {
+    return SERVO_SPECS[SERVO_HAND_RIGHT].channel;
+  }
+  if (swapHands && index == SERVO_HAND_RIGHT) {
+    return SERVO_SPECS[SERVO_HAND_LEFT].channel;
+  }
+  return SERVO_SPECS[index].channel;
+}
+
+// Pose space: -1 = saved min, 0 = calibrated center, +1 = saved max.
 inline float servoSaturateNorm(float n) {
   if (n < -1.0f) {
     return -1.0f;
@@ -44,17 +58,25 @@ inline float servoSaturateNorm(float n) {
   return n;
 }
 
-inline float servoNormToDeg(float n, float savedMin, float savedMax) {
+inline float servoNormToDeg(float n, float savedMin, float savedCenter, float savedMax) {
   n = servoSaturateNorm(n);
-  return (savedMin + savedMax) * 0.5f + n * (savedMax - savedMin) * 0.5f;
+  return savedCenter + n * (n < 0.0f ? savedCenter - savedMin : savedMax - savedCenter);
 }
 
-inline float servoDegToNorm(float deg, float savedMin, float savedMax) {
-  const float span = savedMax - savedMin;
+inline float servoNormToDeg(float n, float savedMin, float savedMax) {
+  return servoNormToDeg(n, savedMin, (savedMin + savedMax) * 0.5f, savedMax);
+}
+
+inline float servoDegToNorm(float deg, float savedMin, float savedCenter, float savedMax) {
+  const float span = deg < savedCenter ? savedCenter - savedMin : savedMax - savedCenter;
   if (span <= 0.0f) {
     return 0.0f;
   }
-  return servoSaturateNorm(2.0f * (deg - savedMin) / span - 1.0f);
+  return servoSaturateNorm((deg - savedCenter) / span);
+}
+
+inline float servoDegToNorm(float deg, float savedMin, float savedMax) {
+  return servoDegToNorm(deg, savedMin, (savedMin + savedMax) * 0.5f, savedMax);
 }
 
 // Max commanded slew rate for all smooth moves

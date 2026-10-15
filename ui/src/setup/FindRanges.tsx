@@ -2,9 +2,9 @@ import { Button } from "../components/Button";
 import { clamp } from "../lib/math";
 import { ConfigSection } from "../components/ConfigSection";
 import { ServoTrack } from "../components/ServoTrack";
-import { DEFAULT_SERVO_RANGES, type Range, SERVO_NAMES } from "../servos";
+import { DEFAULT_SERVO_RANGES, isCenter, type Range, SERVO_NAMES } from "../servos";
 import { useStatus } from "../status/status";
-import { type Calibration, CENTER } from "./useCalibration";
+import { type Calibration } from "./useCalibration";
 import { useSetupServo } from "./useSetupServo";
 
 const JOINT_COPY = [
@@ -12,9 +12,8 @@ const JOINT_COPY = [
   "Yaw left and right. Stop when the cables pull taut. Do not twist until the loom binds.",
   "Lowest is forearm horizontal. Highest is upper arm horizontal. On this servo, higher angle is up.",
   "Same physical stops, inverted scale: higher angle is down. Physical lowest (forearm horizontal) is toward the high end of the bar; physical highest (upper arm horizontal) is toward the low end.",
-  "Rotate until the right hand sits over the bell at the extreme. Prefer a band symmetric about 90° (hint only — stock 40–130 is fine).",
+  "Rotate until the right hand sits over the bell at the extreme. Set the center where the torso faces the laptop.",
 ];
-const BODY_JOINT = 4;
 const NUDGES = [-10, -5, -1, 1, 5, 10];
 
 const percent = (angle: number) => `${(angle / 180) * 100}%`;
@@ -22,7 +21,7 @@ const percent = (angle: number) => `${(angle / 180) * 100}%`;
 export function FindRanges({ calibration }: { calibration: Calibration }) {
   const { setStatus } = useStatus();
   const moveServos = useSetupServo();
-  const { joint, angles, ranges } = calibration;
+  const { joint, angles, ranges, centers } = calibration;
   const angle = angles[joint];
   const [min, max] = ranges[joint];
 
@@ -43,8 +42,22 @@ export function FindRanges({ calibration }: { calibration: Calibration }) {
     }
   }
 
-  function setRange(range: Range) {
+  function setRange(range: Range, resetCenter = false) {
     calibration.setRanges(ranges.map((each, index) => (index === joint ? range : each)));
+    const center =
+      !resetCenter && isCenter(centers[joint], range) ? centers[joint] : (range[0] + range[1]) / 2;
+
+    calibration.setCenters(centers.map((each, index) => (index === joint ? center : each)));
+  }
+
+  function setCenter() {
+    if (!isCenter(angle, ranges[joint])) {
+      setStatus("Center must be between min and max.", "err");
+
+      return;
+    }
+
+    calibration.setCenters(centers.map((each, index) => (index === joint ? angle : each)));
   }
 
   function setLimit(bound: "min" | "max") {
@@ -68,7 +81,7 @@ export function FindRanges({ calibration }: { calibration: Calibration }) {
       <p className="setup-copy">
         Move one joint at a time with the buttons. Stop before cables pull taut or parts collide.
         The bar is a guide only. Stock limits are pre-filled. Switching tabs leaves the other joints
-        where they are.
+        where they are. Once the limits are set, align the joint and set its center between them.
       </p>
       <div className="joint-tabs">
         {SERVO_NAMES.map((name, index) => (
@@ -83,9 +96,7 @@ export function FindRanges({ calibration }: { calibration: Calibration }) {
         ))}
       </div>
       <p className="setup-copy">{JOINT_COPY[joint]}</p>
-      <p className="hint" hidden={joint !== BODY_JOINT}>
-        {`Distance below 90°: ${CENTER - min}° · above 90°: ${max - CENTER}°`}
-      </p>
+      <p className="hint">{`Center: ${centers[joint]}° · safe range: ${min}–${max}°`}</p>
       <div className="form-group">
         <div className="calib-angle-readout">
           <span data-testid="calib-angle">{angle}</span>°
@@ -116,7 +127,12 @@ export function FindRanges({ calibration }: { calibration: Calibration }) {
         <Button onClick={() => setLimit("min")}>{`Set min (${min}°)`}</Button>
         <Button onClick={() => setLimit("max")}>{`Set max (${max}°)`}</Button>
       </div>
-      <Button onClick={() => setRange(DEFAULT_SERVO_RANGES[joint])}>Reset to default</Button>
+      <div className="calib-minmax">
+        <Button onClick={setCenter}>{`Set center (${centers[joint]}°)`}</Button>
+        <Button onClick={() => setRange(DEFAULT_SERVO_RANGES[joint], true)}>
+          Reset to default
+        </Button>
+      </div>
     </ConfigSection>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
 import type { Settings } from "../api/types";
-import { savedRanges, SERVO_NAMES } from "../servos";
+import { isCenter, savedRanges, SERVO_NAMES } from "../servos";
 import { useResettableState } from "../useResettableState";
 
 export const CENTER = 90;
@@ -11,6 +11,7 @@ export function useCalibration(settings: Settings) {
   const [joint, setJoint] = useState(0);
   const [angles, setAngles] = useState(() => SERVO_NAMES.map(() => CENTER));
   const [ranges, setRanges] = useResettableState(settings, savedRanges);
+  const [centers, setCenters] = useResettableState(settings.servo_centers, (saved) => saved);
 
   return {
     phase,
@@ -21,7 +22,9 @@ export function useCalibration(settings: Settings) {
     setAngles,
     ranges,
     setRanges,
-    valid: ranges.every(([min, max]) => min < max),
+    centers,
+    setCenters,
+    valid: ranges.every(([min, max], i) => min < max && isCenter(centers[i], [min, max])),
     placePartsDone: () => {
       setPhase("ranges");
       setJoint(0);

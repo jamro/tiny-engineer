@@ -1,3 +1,4 @@
+import { HandAssignment } from "../components/HandAssignment";
 import { useRobot } from "../robot";
 import { Wizard } from "../setup/Wizard";
 import { ConfigForm } from "./ConfigForm";
@@ -17,6 +18,7 @@ export function ConfigPage() {
       {settings && (
         <>
           <ConfigForm settings={settings} />
+          <HandAssignment settings={settings} />
           <FactoryReset />
         </>
       )}

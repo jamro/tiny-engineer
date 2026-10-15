@@ -10,7 +10,7 @@ export function FactoryReset() {
 
   async function reset() {
     const confirmed = confirm(
-      "Reset settings to factory defaults? WiFi credentials will be cleared. Servo ranges, RGB LED mapping, and screen rotation stay. Power-cycle the device to reopen setup AP mode and configure WiFi again.",
+      "Reset settings to factory defaults? WiFi credentials will be cleared. Servo ranges and centers, hand assignment, RGB LED mapping, and screen rotation stay. Power-cycle the device to reopen setup AP mode and configure WiFi again.",
     );
 
     if (!confirmed) {
@@ -31,9 +31,9 @@ export function FactoryReset() {
   return (
     <ConfigSection title="Factory reset" className="config-danger">
       <p className="hint">
-        Erases saved settings and restores defaults. WiFi credentials are cleared. Servo ranges, RGB
-        LED mapping, and screen rotation stay. Power-cycle the device to reopen setup AP mode and
-        configure WiFi again.
+        Erases saved settings and restores defaults. WiFi credentials are cleared. Servo ranges and
+        centers, hand assignment, RGB LED mapping, and screen rotation stay. Power-cycle the device
+        to reopen setup AP mode and configure WiFi again.
       </p>
       <Button variant="danger" onClick={reset}>
         Factory reset

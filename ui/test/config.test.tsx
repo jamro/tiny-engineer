@@ -86,4 +86,37 @@ describe("config page", () => {
     expect(robot.lastPost("/settings")?.json).toHaveProperty("access_token", "new-token");
     expect(sessionStorage.getItem("te_access_token")).toBe("new-token");
   });
+
+  it("saves swapped hand channels without moving servos", async () => {
+    const { robot, user, click } = await openConfig();
+
+    await user.selectOptions(await screen.findByLabelText("Left hand servo channel"), "3");
+    await click("Save hand assignment");
+
+    await waitFor(() => expect(robot.lastPost("/settings")?.json).toEqual({ swap_hands: true }));
+    expect(robot.sent("POST", "/test/servo")).toHaveLength(0);
+    expect(robot.settings.servo_centers).toEqual([95, 85, 90, 80, 85]);
+    expect(screen.getByRole("status").textContent).toContain("Restart the robot");
+  });
+
+  it("can restore the default hand assignment", async () => {
+    const { robot, user, click } = await openConfig({ swap_hands: true });
+
+    await user.selectOptions(await screen.findByLabelText("Left hand servo channel"), "2");
+    await click("Save hand assignment");
+
+    await waitFor(() => expect(robot.lastPost("/settings")?.json).toEqual({ swap_hands: false }));
+  });
+
+  it("keeps the saved hand assignment when saving fails", async () => {
+    const { robot, user, click } = await openConfig();
+
+    await user.selectOptions(await screen.findByLabelText("Left hand servo channel"), "3");
+    robot.failing.add("/settings");
+    await click("Save hand assignment");
+
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("robot said no"));
+    expect(robot.settings.swap_hands).toBe(false);
+    expect(screen.getByText(/Saved assignment: left on 2, right on 3/)).toBeTruthy();
+  });
 });

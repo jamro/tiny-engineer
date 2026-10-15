@@ -72,6 +72,7 @@ float servoNormToDeg(int index, float n) {
   return servoNormToDeg(
     n,
     settingsServoMin(index),
+    settingsServoCenter(index),
     settingsServoMax(index)
   );
 }
@@ -84,6 +85,7 @@ float servoDegToNorm(int index, float deg) {
   return servoDegToNorm(
     deg,
     settingsServoMin(index),
+    settingsServoCenter(index),
     settingsServoMax(index)
   );
 }
@@ -183,6 +185,15 @@ void ServoWrapper::update() {
     return;
   }
 
+  // Limits can change while a move is in progress. Keep its destination
+  // reachable so a target outside the new band cannot leave it moving forever.
+  target_ = clampServoAngle(index_, target_);
+
+  if (!isMoving()) {
+    lastUpdateMs_ = 0;
+    return;
+  }
+
   const uint32_t now = millis();
 
   if (lastUpdateMs_ == 0) {
@@ -260,7 +271,7 @@ void ServoWrapper::ensureServoOutput() {
 
   const uint16_t pulse = angleToPulse(angle_);
   pwm.setPWM(
-    SERVO_SPECS[index_].channel,
+    settingsServoChannel(index_),
     0,
     pulse
   );
@@ -269,7 +280,7 @@ void ServoWrapper::ensureServoOutput() {
   serialLogPrint("[servo] pwm on ");
   serialLogPrint(SERVO_SPECS[index_].name);
   serialLogPrint(" ch=");
-  serialLogPrintln(SERVO_SPECS[index_].channel);
+  serialLogPrintln(settingsServoChannel(index_));
 }
 
 void ServoWrapper::releaseServoOutput() {
@@ -278,7 +289,7 @@ void ServoWrapper::releaseServoOutput() {
   }
 
   pwm.setPWM(
-    SERVO_SPECS[index_].channel,
+    settingsServoChannel(index_),
     0,
     kPca9685FullOff
   );
@@ -303,7 +314,7 @@ void ServoWrapper::writeAngle(float angle, bool log, bool electrical) {
 
   if (pulse != lastPulse_) {
     pwm.setPWM(
-      SERVO_SPECS[index_].channel,
+      settingsServoChannel(index_),
       0,
       pulse
     );

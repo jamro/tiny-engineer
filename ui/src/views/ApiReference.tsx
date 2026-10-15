@@ -151,7 +151,7 @@ export function ApiReference() {
             </td>
             <td>integer array</td>
             <td>
-              5 integers 0&ndash;180; setup AP only; requires <code>servo_maxs</code>
+              5 integers 0&ndash;180; immediate; requires <code>servo_maxs</code>
             </td>
           </tr>
           <tr>
@@ -159,7 +159,23 @@ export function ApiReference() {
               <code>servo_maxs</code>
             </td>
             <td>integer array</td>
-            <td>5 integers 0&ndash;180; setup AP only; each max &gt; min</td>
+            <td>5 integers 0&ndash;180; immediate; each max &gt; min</td>
+          </tr>
+          <tr>
+            <td>
+              <code>servo_centers</code>
+            </td>
+            <td>number array</td>
+            <td>
+              5 finite numbers; each min &lt; center &lt; max; immediate, including outside setup AP
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>swap_hands</code>
+            </td>
+            <td>boolean</td>
+            <td>Swap hand channels 2 and 3; default false; next reboot</td>
           </tr>
           <tr>
             <td>
@@ -183,15 +199,15 @@ export function ApiReference() {
         </tbody>
       </table>
       <p>
-        Servo min/max, RGB LED mapping, and OLED rotation can only be set in setup AP mode.{" "}
-        <code>PUT /settings/wifi</code> takes a JSON array of 1&ndash;5{" "}
-        <code>{'{"ssid", "password"}'}</code> objects; leave out <code>password</code> to keep a
-        saved one. In setup AP mode the robot tests the first network before saving. During setup
-        (credentials not saved), control APIs return <strong>503</strong>{" "}
-        <code>wifi not configured</code>; <code>POST /setup/servo</code>,{" "}
+        Servo min/max and centers can also be saved outside setup AP. RGB LED mapping and OLED
+        rotation can only be set in setup AP mode. <code>PUT /settings/wifi</code> takes a JSON
+        array of 1&ndash;5 <code>{'{"ssid", "password"}'}</code> objects; leave out{" "}
+        <code>password</code> to keep a saved one. In setup AP mode the robot tests the first
+        network before saving. During setup (credentials not saved), control APIs return{" "}
+        <strong>503</strong> <code>wifi not configured</code>; <code>POST /setup/servo</code>,{" "}
         <code>POST /setup/led</code>, <code>POST /setup/audio</code>, and{" "}
-        <code>POST /setup/oled</code> stay available. Servo ranges, RGB mapping, and screen rotation
-        survive factory reset and can be retuned in the setup wizard.
+        <code>POST /setup/oled</code> stay available. Servo ranges and centers, RGB mapping, and
+        screen rotation survive factory reset and can be retuned in the setup wizard.
       </p>
       <p>
         POST <code>/anim</code> &mdash; query param <code>name</code>:

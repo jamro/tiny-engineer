@@ -43,6 +43,25 @@ bool readField(JsonVariantConst list, uint8_t (&out)[SETTINGS_SERVO_COUNT]) {
   return true;
 }
 
+bool readField(JsonVariantConst list, std::optional<ServoCenters>& out) {
+  if (!list.is<JsonArrayConst>() || list.size() != SETTINGS_SERVO_COUNT) {
+    return false;
+  }
+
+  ServoCenters centers{};
+
+  for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
+    if (!list[i].is<float>()) {
+      return false;
+    }
+
+    centers.angles[i] = list[i].as<float>();
+  }
+
+  out = centers;
+  return true;
+}
+
 // Fills the patch from the body. Returns the 400 message, or an empty string
 // when every field is known and has the right JSON type.
 String readPatch(JsonObjectConst body, SettingsPatch& patch) {
@@ -74,10 +93,12 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("access_token", patch.accessToken);
   read("rgb_order", patch.rgbOrder);
   read("oled_rotate_180", patch.oledRotate180);
+  read("swap_hands", patch.swapHands);
 
   ServoRanges ranges{};
   read("servo_mins", ranges.mins);
   read("servo_maxs", ranges.maxs);
+  read("servo_centers", patch.servoCenters);
 
   for (const JsonPairConst field : body) {
     const auto isKnown = [&](const char* key) { return field.key() == key; };
@@ -121,14 +142,17 @@ JsonDocument settingsJson() {
 
   JsonArray servoMins = doc["servo_mins"].to<JsonArray>();
   JsonArray servoMaxs = doc["servo_maxs"].to<JsonArray>();
+  JsonArray servoCenters = doc["servo_centers"].to<JsonArray>();
 
   for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
     servoMins.add(static_cast<unsigned>(settingsServoMin(i)));
     servoMaxs.add(static_cast<unsigned>(settingsServoMax(i)));
+    servoCenters.add(settingsServoCenter(i));
   }
 
   doc["rgb_order"] = settingsRgbOrder();
   doc["oled_rotate_180"] = settingsOledRotate180();
+  doc["swap_hands"] = settingsSwapHands();
 
   const WifiNetworkList& networks = settingsWifiNetworks();
   JsonArray ssids = doc["wifi_networks"].to<JsonArray>();
@@ -162,8 +186,10 @@ void handleSettingsPost(WebServer& server) {
   SettingsPatch patch;
   String error = readPatch(body.as<JsonObjectConst>(), patch);
 
-  if (error.isEmpty() && patch.invalidField() != nullptr) {
-    error = String("invalid ") + patch.invalidField();
+  const char* invalid = patch.invalidField(&settingsServoRanges());
+
+  if (error.isEmpty() && invalid != nullptr) {
+    error = String("invalid ") + invalid;
   }
 
   if (!error.isEmpty()) {

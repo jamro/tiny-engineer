@@ -1,5 +1,6 @@
 #include <cstring>
 #include <unity.h>
+#include <limits>
 
 #include "settings/settings.h"
 
@@ -118,6 +119,53 @@ void test_servo_ranges() {
   TEST_ASSERT_FALSE(over.valid());
 }
 
+void test_servo_centers_reject_invalid_angles() {
+  const ServoRanges ranges = {{60, 40, 45, 35, 40}, {130, 130, 135, 125, 130}};
+  ServoCenters centers = {{95, 85, 90, 80, 85}};
+
+  TEST_ASSERT_TRUE(centers.valid(&ranges));
+  centers.angles[4] = 85.5f;
+  TEST_ASSERT_TRUE(centers.valid(&ranges));
+
+  for (const float invalid : {40.0f, 130.0f, -1.0f, 181.0f,
+                             std::numeric_limits<float>::quiet_NaN(),
+                             std::numeric_limits<float>::infinity()}) {
+    centers.angles[4] = invalid;
+    TEST_ASSERT_FALSE(centers.valid(&ranges));
+  }
+}
+
+void test_range_changes_keep_centers_or_fall_back_to_midpoint() {
+  const ServoRanges ranges = {{60, 40, 45, 35, 40}, {131, 130, 135, 125, 130}};
+  ServoCenters centers = {{60, 85, 135, 80, std::numeric_limits<float>::quiet_NaN()}};
+
+  centers.fitTo(ranges);
+
+  TEST_ASSERT_TRUE(centers.valid(&ranges));
+  TEST_ASSERT_FLOAT_WITHIN(0.001f, 95.5f, centers.angles[0]);
+  TEST_ASSERT_FLOAT_WITHIN(0.001f, 85.0f, centers.angles[1]);
+  TEST_ASSERT_FLOAT_WITHIN(0.001f, 90.0f, centers.angles[2]);
+  TEST_ASSERT_FLOAT_WITHIN(0.001f, 80.0f, centers.angles[3]);
+  TEST_ASSERT_FLOAT_WITHIN(0.001f, 85.0f, centers.angles[4]);
+}
+
+void test_patch_validates_centers_against_resulting_ranges() {
+  const ServoRanges saved = {{60, 40, 45, 35, 40}, {130, 130, 135, 125, 130}};
+  SettingsPatch patch;
+  patch.servoCenters = ServoCenters{{95, 85, 90, 80, 35}};
+
+  TEST_ASSERT_EQUAL_STRING("servo_centers", patch.invalidField(&saved));
+  TEST_ASSERT_NULL(patch.setupOnlyStep());
+
+  // A center can move outside the old band only when the new band allows it.
+  patch.servoRanges = ServoRanges{{60, 40, 45, 35, 30}, {130, 130, 135, 125, 130}};
+  TEST_ASSERT_NULL(patch.invalidField(&saved));
+  TEST_ASSERT_NULL(patch.setupOnlyStep());
+
+  patch.servoCenters->angles[4] = 30;
+  TEST_ASSERT_EQUAL_STRING("servo_centers", patch.invalidField(&saved));
+}
+
 void test_patch_names_the_first_invalid_field() {
   SettingsPatch patch;
 
@@ -140,13 +188,17 @@ void test_patch_names_its_setup_only_step() {
 
   patch.volume = 50;
   patch.hostname = "tiny-engineer";
+  patch.swapHands = true;
+  TEST_ASSERT_NULL(patch.setupOnlyStep());
+
+  patch.servoRanges = ServoRanges{{10, 20, 30, 40, 50}, {20, 30, 40, 50, 60}};
   TEST_ASSERT_NULL(patch.setupOnlyStep());
 
   patch.oledRotate180 = false;
   TEST_ASSERT_EQUAL_STRING("oled", patch.setupOnlyStep());
 
-  patch.servoRanges = ServoRanges{{10, 20, 30, 40, 50}, {20, 30, 40, 50, 60}};
-  TEST_ASSERT_EQUAL_STRING("servo", patch.setupOnlyStep());
+  patch.rgbOrder = "GRB";
+  TEST_ASSERT_EQUAL_STRING("rgb", patch.setupOnlyStep());
 }
 
 void test_rgb_order() {
@@ -174,6 +226,9 @@ int main() {
   RUN_TEST(test_wifi_ssid);
   RUN_TEST(test_wifi_password);
   RUN_TEST(test_servo_ranges);
+  RUN_TEST(test_servo_centers_reject_invalid_angles);
+  RUN_TEST(test_range_changes_keep_centers_or_fall_back_to_midpoint);
+  RUN_TEST(test_patch_validates_centers_against_resulting_ranges);
   RUN_TEST(test_patch_names_the_first_invalid_field);
   RUN_TEST(test_patch_names_its_setup_only_step);
   RUN_TEST(test_rgb_order);

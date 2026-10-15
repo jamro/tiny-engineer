@@ -60,7 +60,7 @@ void servoMoveAllToElectricalAngle(float angle) {
 }
 
 void centerAllServos() {
-  serialLogPrintln("Centering servos to mid (min+max)/2");
+  serialLogPrintln("Centering servos to calibrated centers");
 
   float targets[SERVO_COUNT];
 
