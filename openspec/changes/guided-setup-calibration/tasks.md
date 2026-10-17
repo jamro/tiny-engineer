@@ -19,11 +19,16 @@
 - [x] 3.5 Guided center steps: same ±1/5/10 nudges as min/max; record session-only center in client state (not NVS); mirror max as `2×center − min`; reject `min >= center`; demo returns to session center; update Vitest (including save payload still mins/maxs only)
 - [x] 3.6 Default guided center park = midpoint of current min/max per joint; update Vitest
 - [x] 3.7 Swap guided hand bound bindings (R min / L max at keyboard; L min / R max at upper) and landmark copy; update Vitest
+- [x] 3.8 Park guided min / hand-min at current `ranges[joint].min` and hand-max at current `ranges[joint].max` (parallel to center → mid); drop offset parks (`center−20`, electrical mid ±20); update Vitest
 
 ## 4. Docs touch-up (if copy still describes old flow)
 
 - [x] 4.1 Update any human docs that describe forced “parts on → joint tabs” setup calibration to mention hub / guided / skip / assembly; verify grep for obsolete wizard phrases is clean or intentional
 - [x] 4.2 Align `docs/robot-movement.md` (and any hand at-min/at-max copy) with the bench-proven guided hand polarity; verify docs and UI bindings match
+
+## 5. Stock empty-NVS defaults
+
+- [x] 5.1 Set `SERVO_SPECS` (and settings default fill) to min 80 / max 100 for all five joints; sync UI `DEFAULT_SERVO_RANGES`, docs tables, and tests; verify `pio test -e native` and UI skip-save payload use `[80×5]` / `[100×5]`
 
 ## Workflow follow-up
 

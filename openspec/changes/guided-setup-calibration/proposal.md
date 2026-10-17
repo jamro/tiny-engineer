@@ -12,16 +12,17 @@ Setup AP servo calibration today is a free-form joint tab UI after a single “m
   - **Assembly** — Stage A (center at 90° + identify); always returns to the hub
 - Stage A: move all joints to 90°; identify each servo with a small ±3° wiggle around midpoint; no auto-entry into Stage B
 - Stage B: strict forward wizard (Back = previous substep or hub): Body → Neck → Head → Hands; landmark copy; slow moves via existing `POST /setup/servo`
-- Body/Neck/Head: set **center** then **min** with the same ±1° / ±5° / ±10° nudge buttons; center step starts at the midpoint of that joint’s current min/max; max is mirrored about the confirmed center (`2×center − min`). Center exists only for the guided session (client memory); runtime and NVS keep mid as the midpoint of saved min/max
-- Hands: no centers; bench-proven bound binding (keyboard = right **min** + left **max**; upper = left **min** + right **max**) — swapped vs the earlier docs-aligned UI mapping after on-robot testing
+- Body/Neck/Head: set **center** then **min** with the same ±1° / ±5° / ±10° nudge buttons; center step starts at the midpoint of that joint’s current min/max; min step starts at the current min; max is mirrored about the confirmed center (`2×center − min`). Center exists only for the guided session (client memory); runtime and NVS keep mid as the midpoint of saved min/max
+- Hands: no centers; each bound step starts at that joint’s current min or max; bench-proven bound binding (keyboard = right **min** + left **max**; upper = left **min** + right **max**) — swapped vs the earlier docs-aligned UI mapping after on-robot testing
 - Persistence unchanged: same `POST /settings` with `servo_mins` / `servo_maxs` only — no center field in NVS or settings
-- No HTTP API changes; no firmware calibration logic changes
+- When NVS has no saved ranges, stock defaults for **all five** joints are **min 80° / max 100°** (mid 90°), replacing the previous wider `SERVO_SPECS` bands
+- No new HTTP routes; setup/test servo move endpoints unchanged
 
 ## Capabilities
 
 ### New Capabilities
 
-- `setup-servo-calibration`: Setup AP wizard servo hub, assembly centering/identify, guided range calibration, and skip behavior (UI flow only; same save endpoints and NVS fields)
+- `setup-servo-calibration`: Setup AP wizard servo hub, assembly centering/identify, guided range calibration, skip behavior, and stock empty-NVS servo range defaults (same save endpoints and NVS field names)
 
 ### Modified Capabilities
 
@@ -29,7 +30,8 @@ Setup AP servo calibration today is a free-form joint tab UI after a single “m
 
 ## Impact
 
-- **UI**: `ui/src/setup/` (`Wizard.tsx`, `PlaceParts.tsx`, `FindRanges.tsx`, `useCalibration.ts`, related helpers/components)
-- **Tests**: `ui/test/wizard.test.tsx` (and any new setup calibration tests)
-- **Docs**: assembly/setup hub wording; hand at-min/at-max in `docs/robot-movement.md` (and related) to match bench-proven guided polarity
-- **Unaffected**: `POST /setup/servo`, `POST /settings` servo fields, NVS layout, firmware motion speeds, CLI
+- **Firmware defaults**: `include/servos.h` (`SERVO_SPECS`), settings default fill path
+- **UI**: `ui/src/setup/`, `ui/src/servos.ts` default ranges
+- **Tests**: UI wizard tests, native settings tests if they assert stock ranges
+- **Docs**: assembly/setup hub wording; hand polarity; stock default tables in `docs/api.md` / `docs/robot-movement.md`
+- **Unaffected**: `POST /setup/servo` / `POST /settings` field names, NVS key layout, firmware motion speeds, CLI

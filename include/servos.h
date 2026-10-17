@@ -21,12 +21,13 @@ struct ServoSpec {
   float max;
 };
 
+// Empty-NVS / stock defaults: narrow band around electrical 90° until setup AP calibration.
 constexpr ServoSpec SERVO_SPECS[SERVO_COUNT] = {
-  {"HEAD",       SERVO_HEAD,       60.0f, 130.0f},
-  {"NECK",       SERVO_NECK,       40.0f, 130.0f},
-  {"HAND_LEFT",  SERVO_HAND_LEFT,  45.0f, 135.0f},
-  {"HAND_RIGHT", SERVO_HAND_RIGHT, 35.0f, 125.0f},
-  {"BODY",       SERVO_BODY,       40.0f, 130.0f},
+  {"HEAD",       SERVO_HEAD,       80.0f, 100.0f},
+  {"NECK",       SERVO_NECK,       80.0f, 100.0f},
+  {"HAND_LEFT",  SERVO_HAND_LEFT,  80.0f, 100.0f},
+  {"HAND_RIGHT", SERVO_HAND_RIGHT, 80.0f, 100.0f},
+  {"BODY",       SERVO_BODY,       80.0f, 100.0f},
 };
 
 constexpr float servoMid(const ServoSpec& spec) {

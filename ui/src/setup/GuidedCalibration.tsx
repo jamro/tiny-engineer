@@ -11,23 +11,15 @@ const NUDGES = [-10, -5, -1, 1, 5, 10];
 
 const percent = (angle: number) => `${(angle / 180) * 100}%`;
 
-function startAngleFor(
-  step: (typeof GUIDED_STEPS)[number],
-  centers: (number | undefined)[],
-  ranges: Range[],
-): number {
-  const sessionCenter = centers[step.joint] ?? rangeMid(ranges[step.joint]);
+function startAngleFor(step: (typeof GUIDED_STEPS)[number], ranges: Range[]): number {
+  const [min, max] = ranges[step.joint];
 
   if (step.kind === "hand" && step.bound === "max") {
-    return Math.min(180, rangeMid(ranges[step.joint]) + 20);
+    return max;
   }
 
-  if (step.kind === "hand" && step.bound === "min") {
-    return Math.max(0, rangeMid(ranges[step.joint]) - 20);
-  }
-
-  if (step.kind === "min") {
-    return Math.max(0, sessionCenter - 20);
+  if (step.kind === "min" || (step.kind === "hand" && step.bound === "min")) {
+    return min;
   }
 
   return rangeMid(ranges[step.joint]);
@@ -38,7 +30,8 @@ export function GuidedCalibration({
   onComplete,
 }: {
   calibration: Calibration;
-  onComplete: () => void | Promise<void>;
+  /** Optional ranges override so the last confirm can save before React re-renders. */
+  onComplete: (ranges?: Range[]) => void | Promise<void>;
 }) {
   const { setStatus } = useStatus();
   const moveServos = useSetupServo();
@@ -81,17 +74,17 @@ export function GuidedCalibration({
     return true;
   }
 
-  async function goToStep(index: number, centersForStart: (number | undefined)[] = centers) {
+  async function goToStep(index: number) {
     const step = GUIDED_STEPS[index];
-    const start = startAngleFor(step, centersForStart, ranges);
+    const start = startAngleFor(step, ranges);
 
     calibration.setJointAngle(step.joint, start);
     await moveServos({ index: step.joint, angle: start });
   }
 
-  async function advance(centersForStart?: (number | undefined)[]) {
+  async function advance(rangesForSave?: Range[]) {
     if (calibration.isLastGuidedStep) {
-      await onComplete();
+      await onComplete(rangesForSave);
 
       return;
     }
@@ -99,15 +92,13 @@ export function GuidedCalibration({
     const nextIndex = guidedIndex + 1;
 
     calibration.guidedNext();
-    await goToStep(nextIndex, centersForStart ?? centers);
+    await goToStep(nextIndex);
   }
 
   async function confirm() {
     if (guidedStep.kind === "center") {
-      const nextCenters = centers.map((each, index) => (index === joint ? angle : each));
-
       calibration.setJointCenter(joint, angle);
-      await advance(nextCenters);
+      await advance();
 
       return;
     }
@@ -146,8 +137,10 @@ export function GuidedCalibration({
       return;
     }
 
+    const nextRanges = ranges.map((each, index) => (index === joint ? nextRange : each));
+
     calibration.setJointRange(joint, nextRange);
-    await advance();
+    await advance(nextRanges);
   }
 
   async function back() {

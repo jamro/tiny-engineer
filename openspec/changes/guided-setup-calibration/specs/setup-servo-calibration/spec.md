@@ -59,6 +59,10 @@ For Body, Neck, and Head, guided calibration MUST set a session center, then a m
 - **AND** the joint starts at the midpoint of its current min and max
 - **AND** confirming the step records the current angle as that joint’s session center
 
+#### Scenario: Min step opens at current min
+- **WHEN** the user enters a Body, Neck, or Head min substep
+- **THEN** the joint starts at that joint’s current minimum from the ranges held for the step
+
 #### Scenario: Body landmarks
 - **WHEN** the user sets Body min after a recorded center
 - **THEN** copy instructs rotating the body toward the robot’s right until the right hand is over the bell
@@ -87,6 +91,10 @@ For Body, Neck, and Head, guided calibration MUST set a session center, then a m
 ### Requirement: Hands calibrate four bounds without centers
 Guided Hands calibration MUST set four electrical bounds in this order, with no center step: right-hand min (keyboard height with slack), left-hand max (same height), left-hand min (upper), right-hand max (same upper height).
 
+#### Scenario: Hand bound step opens at current bound
+- **WHEN** the user enters a hand bound substep for min or max
+- **THEN** the joint starts at that joint’s current minimum or maximum (respectively) from the ranges held for the step
+
 #### Scenario: Keyboard height bounds
 - **WHEN** the user sets the keyboard-height pose for both hands
 - **THEN** the right-hand electrical min and left-hand electrical max are recorded
@@ -113,3 +121,15 @@ Leaving the servos step after guided calibration or skip MUST persist `servo_min
 #### Scenario: Save after skip
 - **WHEN** the user skips calibration and advances
 - **THEN** the client posts the ranges already held for the step (from settings/defaults), without requiring the user to set new limits
+
+### Requirement: Empty NVS uses narrow stock ranges
+When no servo ranges are stored in NVS, the device MUST use stock defaults of minimum 80° and maximum 100° for every joint (head, neck, left hand, right hand, body).
+
+#### Scenario: Settings expose stock defaults
+- **WHEN** settings are loaded with empty servo-range NVS
+- **THEN** `servo_mins` is `[80, 80, 80, 80, 80]`
+- **AND** `servo_maxs` is `[100, 100, 100, 100, 100]`
+
+#### Scenario: Skip without prior calibration saves stock defaults
+- **WHEN** the user skips calibration on a device still on stock defaults
+- **THEN** the posted `servo_mins` and `servo_maxs` match those 80° / 100° arrays

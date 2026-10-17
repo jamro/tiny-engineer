@@ -5,11 +5,11 @@ export type Range = readonly [min: number, max: number];
 export const SERVO_NAMES = ["Head", "Neck", "Left hand", "Right hand", "Body"];
 
 export const DEFAULT_SERVO_RANGES: Range[] = [
-  [60, 130],
-  [40, 130],
-  [45, 135],
-  [35, 125],
-  [40, 130],
+  [80, 100],
+  [80, 100],
+  [80, 100],
+  [80, 100],
+  [80, 100],
 ];
 
 export const savedRanges = ({ servo_mins: mins, servo_maxs: maxs }: Settings): Range[] =>

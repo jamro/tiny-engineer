@@ -11,15 +11,16 @@ See proposal.md — Why. Today wizard step 1 forces `PlaceParts` (horns) then `F
 - Hub-based entry replacing forced horns → tabs
 - Stage A (assembly) and Stage B (guided ranges) as separate UI modes with clear return/skip rules
 - Derive mirrored max in the client from a session-only center; demonstrate ranges with sequential setup moves
+- Stock empty-NVS defaults of 80°–100° on every joint (safe narrow band around electrical 90°)
 - Keep Vitest coverage for hub, skip, Stage A identify, Stage B order/symmetry/hands polarity, and save payloads
 
 **Non-Goals:**
 
-- Firmware changes, new HTTP routes, or altering `/setup/servo` / settings validation
+- New HTTP routes or altering `/setup/servo` / settings validation shape
 - Persisting per-joint center angles (NVS, settings fields, or browser storage beyond the live UI session)
 - Re-calibrating from the STA Config page
 - CLI / serial parity for setup calibration
-- Changing stock default ranges in `include/servos.h`
+- Migrating devices that already have wider ranges in NVS (they keep saved values; factory reset that preserves calibration also keeps them)
 
 ## Decisions
 
@@ -42,9 +43,9 @@ head-center → head-min → head-demo
 hand-right-min → hand-left-max → hand-left-min → hand-right-max
 ```
 
-Center and min/hand substeps share the same ±1/5/10 nudge pad and angle readout. Entering a `*-center` step parks at `(ranges[joint].min + ranges[joint].max) / 2` from the ranges already held for the step (NVS or defaults) — not hard-coded electrical 90°. On confirm of a `*-center` step: store `centers[joint] = angle` in calibration hook state only. On confirm of a `*-min` step: reject if `min >= centers[joint]`; else `max = 2 * centers[joint] - min`. Min park may start near `center − 20`. Demo moves to max then back to `centers[joint]`, then auto-advance when moves succeed. Electrical 90° remains Stage A (horn seating) only.
+Center and min/hand substeps share the same ±1/5/10 nudge pad and angle readout. Entering a step parks at the value already held for that role in `ranges` (NVS or defaults, updated as earlier guided confirms write): `*-center` → `(min + max) / 2`; `*-min` / hand `bound: min` → current `min`; hand `bound: max` → current `max`. Same pattern as center: show the saved bound, then nudge. On confirm of a `*-center` step: store `centers[joint] = angle` in calibration hook state only. On confirm of a `*-min` step: reject if `min >= centers[joint]`; else `max = 2 * centers[joint] - min`. Demo moves to max then back to `centers[joint]`, then auto-advance when moves succeed. Electrical 90° remains Stage A (horn seating) only.
 
-**Alternatives:** Free tabs with a “recommended order” checklist (rejected — too easy to skip landmarks). Compute max only at save time without demo (rejected — user asked for visual sweep). Fixed electrical 90° as default guided center (rejected — stock/saved ranges already define a mid).
+**Alternatives:** Free tabs with a “recommended order” checklist (rejected — too easy to skip landmarks). Compute max only at save time without demo (rejected — user asked for visual sweep). Fixed electrical 90° as default guided center (rejected — stock/saved ranges already define a mid). Offset parks (`center − 20`, electrical mid ±20) for min/max (rejected — user wants open-at-saved-bound, parallel to center → mid).
 
 ### 3. Session-only center on the client (not NVS)
 
@@ -78,6 +79,12 @@ Keep `SERVO_NAMES` / index mapping; guided order uses body=4, neck=1, head=0, ha
 ### 7. Guided hand bounds from bench (UI swap)
 
 On-robot testing showed the docs-aligned binding was flipped for landmarks. Guided UI writes: keyboard → right **min**, left **max**; upper → left **min**, right **max**. Keep physical step order; only which electrical bound each confirm sets changes. Sync `docs/robot-movement.md` (and related copy) so at-min/at-max for hands matches this binding.
+
+### 8. Empty-NVS defaults 80/100 all joints
+
+Set every entry in `SERVO_SPECS` to `min=80`, `max=100` so settings defaults and boot clamps match. Midpoint is 90° — aligns with Stage A horn seating and guided center park when ranges are still defaults. Update UI `DEFAULT_SERVO_RANGES`, API/docs tables, and any tests that hard-code the old stock arrays.
+
+**Alternatives:** Keep wide stock bands and only tighten in the wizard UI (rejected — empty NVS / skip would still expose unsafe-wide clamps before guided calibration). Per-joint asymmetric defaults (rejected — user asked for the same 80/100 on all).
 
 ## Risks / Trade-offs
 

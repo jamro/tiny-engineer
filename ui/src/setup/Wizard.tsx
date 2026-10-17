@@ -4,6 +4,7 @@ import { useRobot } from "../robot";
 import { Button } from "../components/Button";
 import { useStatus } from "../status/status";
 import { useResettableState } from "../useResettableState";
+import type { Range } from "../servos";
 import { GuidedCalibration } from "./GuidedCalibration";
 import { LedStep } from "./LedStep";
 import { NetworkStep } from "./NetworkStep";
@@ -53,18 +54,18 @@ export function Wizard({ settings }: { settings: Settings }) {
     return result?.ok === true;
   }
 
-  async function saveServoRanges() {
+  async function saveServoRanges(ranges: Range[] = calibration.ranges) {
     return save(
       {
-        servo_mins: calibration.ranges.map(([min]) => min),
-        servo_maxs: calibration.ranges.map(([, max]) => max),
+        servo_mins: ranges.map(([min]) => min),
+        servo_maxs: ranges.map(([, max]) => max),
       },
       "Saving servo ranges…",
     );
   }
 
-  async function finishServos() {
-    if (await saveServoRanges()) {
+  async function finishServos(ranges?: Range[]) {
+    if (await saveServoRanges(ranges)) {
       calibration.goHub();
       setStepIndex(stepIndex + 1);
     }
@@ -103,11 +104,14 @@ export function Wizard({ settings }: { settings: Settings }) {
         ></div>
       </div>
       {onServos && calibration.mode === "hub" && (
-        <ServosHub calibration={calibration} onSkip={finishServos} />
+        <ServosHub calibration={calibration} onSkip={() => void finishServos()} />
       )}
       {onServos && calibration.mode === "assembly" && <PlaceParts calibration={calibration} />}
       {onServos && calibration.mode === "guided" && (
-        <GuidedCalibration calibration={calibration} onComplete={finishServos} />
+        <GuidedCalibration
+          calibration={calibration}
+          onComplete={(ranges) => void finishServos(ranges)}
+        />
       )}
       {step.id === "oled" && (
         <ScreenStep rotate180={oledRotate180} onRotate={() => setOledRotate180(!oledRotate180)} />

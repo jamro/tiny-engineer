@@ -118,8 +118,8 @@ curl http://tiny-engineer.local/settings
   "access_token_set": false,
   "link_mode": "wifi",
   "wifi_configured": true,
-  "servo_mins": [60, 40, 45, 35, 40],
-  "servo_maxs": [130, 130, 135, 125, 130],
+  "servo_mins": [80, 80, 80, 80, 80],
+  "servo_maxs": [100, 100, 100, 100, 100],
   "rgb_order": "GRB",
   "oled_rotate_180": false,
   "wifi_networks": ["MyNetwork", "Office"]
@@ -140,8 +140,8 @@ curl http://tiny-engineer.local/settings
 | `link_mode` | `""` unprovisioned, `"wifi"`, or `"usb"` (connection mode; see [`serial.md`](serial.md)) |
 | `wifi_configured` | `true` when at least one WiFi network is saved |
 | `wifi_networks` | Saved network names (up to 5), in saved order. Passwords are never returned. At boot the robot scans and tries the visible saved networks strongest first, then the rest in this order (hidden SSIDs do not show in a scan). Change the list with [`PUT /settings/wifi`](#put-settingswifi) |
-| `servo_mins` | Per-joint safe minimum degrees `[head, neck, left, right, body]` (stock defaults **60, 40, 45, 35, 40**) |
-| `servo_maxs` | Per-joint safe maximum degrees (stock defaults **130, 130, 135, 125, 130**). Each max must be greater than the matching min |
+| `servo_mins` | Per-joint safe minimum degrees `[head, neck, left, right, body]` (stock defaults **80, 80, 80, 80, 80**) |
+| `servo_maxs` | Per-joint safe maximum degrees (stock defaults **100, 100, 100, 100, 100**). Each max must be greater than the matching min |
 | `rgb_order` | Onboard WS2812 wire-byte order (`RGB`, `RBG`, `GRB`, `GBR`, `BRG`, `BGR`). Default **`GRB`**. Survives factory reset |
 | `oled_rotate_180` | OLED 180° rotation (`true` → `setRotation(2)`). Default **`false`**. Setup AP only. Survives factory reset |
 | `reboot_required` | `true` once the saved `hostname`, `loading` or WiFi networks differ from what this boot started with; those apply only after a reboot |
@@ -159,7 +159,7 @@ curl -X POST "http://tiny-engineer.local/settings" \
   -d '{"access_token":""}'
 curl -X POST "http://192.168.4.1/settings" \
   -H "Content-Type: application/json" \
-  -d '{"servo_mins":[60,40,45,35,40],"servo_maxs":[130,130,135,125,130],"rgb_order":"GRB","oled_rotate_180":true}'
+  -d '{"servo_mins":[80,80,80,80,80],"servo_maxs":[100,100,100,100,100],"rgb_order":"GRB","oled_rotate_180":true}'
 ```
 
 ```json
@@ -176,8 +176,8 @@ curl -X POST "http://192.168.4.1/settings" \
   "access_token_set": true,
   "link_mode": "wifi",
   "wifi_configured": true,
-  "servo_mins": [60, 40, 45, 35, 40],
-  "servo_maxs": [130, 130, 135, 125, 130],
+  "servo_mins": [80, 80, 80, 80, 80],
+  "servo_maxs": [100, 100, 100, 100, 100],
   "rgb_order": "GRB",
   "oled_rotate_180": false,
   "wifi_networks": ["MyNetwork"],
@@ -246,8 +246,8 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "eyes_style": "classic",
   "access_token_set": false,
   "wifi_configured": false,
-  "servo_mins": [60, 40, 45, 35, 40],
-  "servo_maxs": [130, 130, 135, 125, 130],
+  "servo_mins": [80, 80, 80, 80, 80],
+  "servo_maxs": [100, 100, 100, 100, 100],
   "rgb_order": "GRB",
   "oled_rotate_180": false,
   "wifi_networks": [],
