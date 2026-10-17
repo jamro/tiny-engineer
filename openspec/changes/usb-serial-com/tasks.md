@@ -43,7 +43,7 @@
 ## 6. Docs and integration check
 
 - [x] 6.1 Document serial protocol overview, device Connection (`link_mode`) vs project setup (host transport), factory-reset escape, CLI transport/port/monitor, and PlatformIO monitor limitations in `docs/` (+ README touch if boot URLs/modes change)
-- [ ] 6.2 End-to-end smoke: USB-only provision → setup AP drops and serial anim works without power-cycle → CLI serial **play** (short 22050 WAV) / settings / reset-confirm abort after 4.6; Wi‑Fi mode → HTTP still works and serial still works; record results in the PR description
+- [x] 6.2 End-to-end smoke: USB-only provision → setup AP drops and serial anim works without power-cycle → CLI serial **play** (short 22050 WAV) / settings / reset-confirm abort after 4.6; Wi‑Fi mode → HTTP still works and serial still works; record results in the PR description
 
 ## Workflow follow-up
 

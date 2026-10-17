@@ -1,6 +1,6 @@
 # tiny-engineer
 
-Unified CLI for the [Tiny Engineer](https://github.com/jamro/tiny-engineer) desk robot: install IDE hooks, map agent events to poses, and drive animations over HTTP.
+Unified CLI for the [Tiny Engineer](https://github.com/jamro/tiny-engineer) desk robot: install IDE hooks, map agent events to poses, and drive animations over HTTP or USB serial.
 
 ## Install / run
 

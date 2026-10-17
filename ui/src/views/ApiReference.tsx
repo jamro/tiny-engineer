@@ -147,6 +147,16 @@ export function ApiReference() {
           </tr>
           <tr>
             <td>
+              <code>link_mode</code>
+            </td>
+            <td>string</td>
+            <td>
+              <code>wifi</code> or <code>usb</code>; Connection step uses <code>usb</code> for
+              USB-only; Wi-Fi mode is usually set via <code>PUT /settings/wifi</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
               <code>servo_mins</code>
             </td>
             <td>integer array</td>
@@ -188,10 +198,10 @@ export function ApiReference() {
         <code>{'{"ssid", "password"}'}</code> objects; leave out <code>password</code> to keep a
         saved one. In setup AP mode the robot tests the first network before saving. During setup
         (credentials not saved), control APIs return <strong>503</strong>{" "}
-        <code>not provisioned</code>; <code>POST /setup/servo</code>,{" "}
-        <code>POST /setup/led</code>, <code>POST /setup/audio</code>, and{" "}
-        <code>POST /setup/oled</code> stay available. Servo ranges, RGB mapping, and screen rotation
-        survive factory reset and can be retuned in the setup wizard.
+        <code>not provisioned</code>; <code>POST /setup/servo</code>, <code>POST /setup/led</code>,{" "}
+        <code>POST /setup/audio</code>, and <code>POST /setup/oled</code> stay available. Servo
+        ranges, RGB mapping, and screen rotation survive factory reset and can be retuned in the
+        setup wizard.
       </p>
       <p>
         POST <code>/anim</code> &mdash; query param <code>name</code>:

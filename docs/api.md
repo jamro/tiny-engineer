@@ -116,6 +116,7 @@ curl http://tiny-engineer.local/settings
   "loading": "progress",
   "eyes_style": "classic",
   "access_token_set": false,
+  "link_mode": "wifi",
   "wifi_configured": true,
   "servo_mins": [60, 40, 45, 35, 40],
   "servo_maxs": [130, 130, 135, 125, 130],
@@ -136,6 +137,7 @@ curl http://tiny-engineer.local/settings
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
 | `access_token_set` | `true` when a non-empty access token is stored (secret itself is never returned) |
+| `link_mode` | `""` unprovisioned, `"wifi"`, or `"usb"` (connection mode; see [`serial.md`](serial.md)) |
 | `wifi_configured` | `true` when at least one WiFi network is saved |
 | `wifi_networks` | Saved network names (up to 5), in saved order. Passwords are never returned. At boot the robot scans and tries the visible saved networks strongest first, then the rest in this order (hidden SSIDs do not show in a scan). Change the list with [`PUT /settings/wifi`](#put-settingswifi) |
 | `servo_mins` | Per-joint safe minimum degrees `[head, neck, left, right, body]` (stock defaults **60, 40, 45, 35, 40**) |
@@ -172,6 +174,7 @@ curl -X POST "http://192.168.4.1/settings" \
   "loading": "progress",
   "eyes_style": "classic",
   "access_token_set": true,
+  "link_mode": "wifi",
   "wifi_configured": true,
   "servo_mins": [60, 40, 45, 35, 40],
   "servo_maxs": [130, 130, 135, 125, 130],
@@ -193,6 +196,7 @@ curl -X POST "http://192.168.4.1/settings" \
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
 | `access_token` | string | 0–64 printable ASCII, no space at either end; empty string clears the token and disables auth |
+| `link_mode` | string | `wifi` or `usb`; setup Connection step uses `usb` for USB-only; Wi-Fi mode is usually set when saving networks via [`PUT /settings/wifi`](#put-settingswifi) |
 | `servo_mins` | integer array | Five integers `0`–`180` (`head, neck, left, right, body`); setup AP only; must be sent with `servo_maxs` |
 | `servo_maxs` | integer array | Five integers `0`–`180`; setup AP only; each value must be greater than the matching min |
 | `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR`; setup AP only; default `GRB` |

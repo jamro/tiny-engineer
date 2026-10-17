@@ -6,6 +6,8 @@ artifacts/
 
 node_modules/
 
+*.bak
+
 # Cursor hook event log
 cursor_events.log
 

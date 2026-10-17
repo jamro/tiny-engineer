@@ -97,7 +97,7 @@ export function fakeRobot({
           required: authRequired,
           version: "test",
           wifi_configured: robot.settings.wifi_configured,
-          link_mode: robot.settings.link_mode ?? "",
+          link_mode: robot.settings.link_mode,
           provisioning: robot.provisioning,
         });
       }
