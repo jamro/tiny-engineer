@@ -120,12 +120,7 @@ describe("setup wizard", () => {
   it("saves the hostname, then tests the new network ahead of the saved ones", async () => {
     const { robot, user, click } = await startCalibration({ wifi_networks: ["old"] });
 
-    for (const next of [
-      "Next: Screen",
-      "Next: RGB mapping",
-      "Next: Speaker",
-      "Next: Connection",
-    ]) {
+    for (const next of ["Next: Screen", "Next: RGB mapping", "Next: Speaker", "Next: Connection"]) {
       await click(next);
     }
 
