@@ -114,7 +114,7 @@ Follow the checklist in [getting-started.md](../getting-started.md). Summary:
 6. **Prove** (`/health`, `ring`) → [getting-started §7](../getting-started.md#7-prove-it)
 7. **Agent hooks** → [integration.md](../integration.md) (`tiny-engineer setup`); Cursor detail: [hooks.md](../hooks.md)
 
-**Desk smoke is first:** with boards still on the desk, confirm serial boot, PCA9685 OK, and one servo via `/test/servo` or setup AP **Move all to 90°**. Then one mechanical run. Do not finish the wizard until §20.
+**Desk smoke is first:** with boards still on the desk, confirm serial boot, PCA9685 OK, and one servo via `/test/servo` or setup AP **Assembly → Move all to 90°**. Then one mechanical run. Do not finish the wizard until §20.
 
 **Temptation to avoid:** printing everything beautifully before verifying electronics. Pretty plastic won't fix a swapped SDA/SCL.
 
@@ -129,7 +129,7 @@ Check these off — order matches the checklist:
 | 1 | **Continuity sanity** | connect | No short 5V–GND; GND common (meter, power off) |
 | 2 | **Serial boot** | flash | `pio device monitor` shows boot log, dim green LED |
 | 3 | **PCA9685 detected** | flash | Serial OK; missing = 1 red blink, hang ([blink codes](../hardware/testing.md#boot-failure-blink-codes)) |
-| 4 | **One servo / 90°** | flash | Setup AP **Move all to 90°** or `/test/servo` moves a channel |
+| 4 | **One servo / 90°** | flash | Setup AP **Assembly → Move all to 90°** or `/test/servo` moves a channel |
 | 5 | **Joints in safe range** | assembly §§1–19 | Each joint centered and joined; no stall buzz |
 | 6 | **Board seated** | late assembly | Same electronics checks still pass after mounting in the chest |
 | 7 | **Wi-Fi stable** | after §20 wizard | `/health` over `tiny-engineer.local` or OLED IP |

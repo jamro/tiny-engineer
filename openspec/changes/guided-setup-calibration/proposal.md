@@ -11,10 +11,10 @@ Setup AP servo calibration today is a free-form joint tab UI after a single “m
   - **Skip calibration** — leave existing `servo_mins` / `servo_maxs` (NVS or defaults); advance to the next wizard step
   - **Assembly** — Stage A (center at 90° + identify); always returns to the hub
 - Stage A: move all joints to 90°; identify each servo with a small ±3° wiggle around midpoint; no auto-entry into Stage B
-- Stage B: strict forward wizard (Back = previous substep or hub): Body → Neck → Head → Hands; mirrored max from center for body/neck/head; landmark copy; slow moves via existing `POST /setup/servo`
-- Hands: electrical min/max per [`docs/robot-movement.md`](../../../docs/robot-movement.md) (keyboard = left min + right max; upper = left max + right min); no hand centers
-- Nudges stay ±1° / ±5° / ±10°
-- Persistence unchanged: same `POST /settings` with `servo_mins` / `servo_maxs` when leaving the servos step after calibrate or skip
+- Stage B: strict forward wizard (Back = previous substep or hub): Body → Neck → Head → Hands; landmark copy; slow moves via existing `POST /setup/servo`
+- Body/Neck/Head: set **center** then **min** with the same ±1° / ±5° / ±10° nudge buttons; center step starts at the midpoint of that joint’s current min/max; max is mirrored about the confirmed center (`2×center − min`). Center exists only for the guided session (client memory); runtime and NVS keep mid as the midpoint of saved min/max
+- Hands: no centers; bench-proven bound binding (keyboard = right **min** + left **max**; upper = left **min** + right **max**) — swapped vs the earlier docs-aligned UI mapping after on-robot testing
+- Persistence unchanged: same `POST /settings` with `servo_mins` / `servo_maxs` only — no center field in NVS or settings
 - No HTTP API changes; no firmware calibration logic changes
 
 ## Capabilities
@@ -31,5 +31,5 @@ Setup AP servo calibration today is a free-form joint tab UI after a single “m
 
 - **UI**: `ui/src/setup/` (`Wizard.tsx`, `PlaceParts.tsx`, `FindRanges.tsx`, `useCalibration.ts`, related helpers/components)
 - **Tests**: `ui/test/wizard.test.tsx` (and any new setup calibration tests)
-- **Docs** (copy sync only if needed): assembly/setup mentions of the old horns→tabs flow; not API contract docs unless wording refers to the old UI
+- **Docs**: assembly/setup hub wording; hand at-min/at-max in `docs/robot-movement.md` (and related) to match bench-proven guided polarity
 - **Unaffected**: `POST /setup/servo`, `POST /settings` servo fields, NVS layout, firmware motion speeds, CLI

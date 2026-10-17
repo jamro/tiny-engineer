@@ -738,22 +738,6 @@ footer {
   margin: 0 0 1rem;
 }
 
-.joint-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin: 0 0 1rem;
-}
-
-.joint-tabs .btn {
-  width: 100%;
-  min-height: 2.85rem;
-  padding: 0.65rem 0.5rem;
-  font-size: 0.95rem;
-  text-align: center;
-  font-weight: 600;
-}
-
 .calib-guide {
   pointer-events: none;
   user-select: none;
@@ -815,7 +799,30 @@ footer {
   margin-top: 0;
 }
 
-#setup-horns-done {
+.setup-hub-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.setup-hub-actions .btn {
+  width: 100%;
+  font-weight: 600;
+}
+
+.setup-identify {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.85rem 0 0.5rem;
+}
+
+.setup-identify .btn {
+  flex: 1 1 8rem;
+}
+
+#setup-assembly-done {
   margin-top: 0.75rem;
   text-align: center;
   font-weight: 600;
@@ -955,12 +962,6 @@ footer {
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
-}
-
-.joint-tabs .btn.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
 }
 
 .led-test .btn.led-r {

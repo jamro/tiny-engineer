@@ -51,38 +51,49 @@ Guided range calibration MUST proceed in a fixed joint order with only forward c
 - **THEN** the UI returns to the previous guided substep
 
 ### Requirement: Body neck and head use center then mirrored range
-For Body, Neck, and Head, guided calibration MUST set a center at 90°, then a user-chosen electrical min, then derive max as symmetric about 90°, then demonstrate the range with slow moves ending at center before continuing.
+For Body, Neck, and Head, guided calibration MUST set a session center, then a min below it, then a max mirrored about that center, then demo the range ending at the session center before continuing.
+
+#### Scenario: Center uses nudge controls
+- **WHEN** the user is on a Body, Neck, or Head center substep
+- **THEN** the UI offers the same ±1°, ±5°, and ±10° nudge buttons used for min/max steps
+- **AND** the joint starts at the midpoint of its current min and max
+- **AND** confirming the step records the current angle as that joint’s session center
 
 #### Scenario: Body landmarks
-- **WHEN** the user sets Body min
+- **WHEN** the user sets Body min after a recorded center
 - **THEN** copy instructs rotating the body toward the robot’s right until the right hand is over the bell
-- **AND** max is set to `180 − min` (symmetric about 90°)
+- **AND** max is set to `2 × center − min`
 
 #### Scenario: Neck min is user-chosen
-- **WHEN** the user sets Neck min
+- **WHEN** the user sets Neck min after a recorded center
 - **THEN** copy does not require a bell landmark
-- **AND** max is set symmetric about 90°
+- **AND** max is set to `2 × center − min`
 
 #### Scenario: Head landmarks
 - **WHEN** the user sets Head center and min
 - **THEN** center copy describes looking straight forward
 - **AND** min copy describes looking at the computer screen
-- **AND** max is set symmetric about 90°
+- **AND** max is set to `2 × center − min`
 
 #### Scenario: Range demonstration after mirrored max
 - **WHEN** a mirrored max has just been established for Body, Neck, or Head
-- **THEN** the joint moves slowly to that max, then slowly back to 90°, before the next substep
+- **THEN** the joint moves slowly to that max, then slowly back to the recorded session center, before the next substep
+
+#### Scenario: Center is not persisted
+- **WHEN** the user finishes guided calibration and advances
+- **THEN** the settings update includes `servo_mins` and `servo_maxs` only
+- **AND** no center angle is written to NVS or settings
 
 ### Requirement: Hands calibrate four bounds without centers
-Guided Hands calibration MUST set four electrical bounds in this order, with no center step: right-hand max (keyboard height with slack), left-hand min (same height), left-hand max (upper), right-hand min (same upper height). Polarity MUST match `docs/robot-movement.md`.
+Guided Hands calibration MUST set four electrical bounds in this order, with no center step: right-hand min (keyboard height with slack), left-hand max (same height), left-hand min (upper), right-hand max (same upper height).
 
 #### Scenario: Keyboard height bounds
 - **WHEN** the user sets the keyboard-height pose for both hands
-- **THEN** the right-hand electrical max and left-hand electrical min are recorded
+- **THEN** the right-hand electrical min and left-hand electrical max are recorded
 
 #### Scenario: Upper height bounds
 - **WHEN** the user sets the upper pose for both hands
-- **THEN** the left-hand electrical max and right-hand electrical min are recorded
+- **THEN** the left-hand electrical min and right-hand electrical max are recorded
 
 ### Requirement: Calibration moves are slow setup moves
 All servo motion during assembly and guided calibration MUST use the existing setup-AP slow move endpoint (`POST /setup/servo`), not an instantaneous position snap and not the post-provisioning test servo endpoint.

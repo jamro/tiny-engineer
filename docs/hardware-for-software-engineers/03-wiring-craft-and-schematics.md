@@ -89,7 +89,7 @@ The default connect checklist is [main-control-board.md](../hardware/main-contro
 **Desk smoke order** (wiring mindset — after wire + flash, before the mechanical run):
 1. USB power + GND only → ESP32 boots (LED, serial)
 2. Add I2C devices → serial shows PCA9685 found
-3. Add one servo on one channel → `/test/servo` or setup AP **Move all to 90°**
+3. Add one servo on one channel → `/test/servo` or setup AP **Assembly → Move all to 90°**
 4. Add audio and OLED as you wire the rest of the harness
 5. Then open [assembly.md](../3d/assembly.md) from §1 (one mechanical run). Seat the harness with [assembly-modular.md](../3d/assembly-modular.md), which replaces assembly §12–§13.
 
