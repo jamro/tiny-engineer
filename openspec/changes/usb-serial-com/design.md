@@ -70,13 +70,32 @@ NVS field e.g. `link_mode`: unset/empty = unprovisioned; `wifi` | `usb`. Setup N
 
 Escape USB-only: factory reset only (product decision).
 
-### D6: CLI transport and port cache
+### D6: CLI transport, project setup, and port cache
 
-- `TINY_ENGINEER_TRANSPORT` / `--transport` ∈ {`http`,`serial`}; **default `http`**
-- Serial: `--port` / `TINY_ENGINEER_PORT`; else autodetect (VID/PID + SYNC/ping probe); cache file e.g. `~/.config/tiny-engineer/serial-port.json` (port path, probe id, timestamp); invalidate on open/probe fail
+Two setup surfaces (do not conflate):
+
+| Surface | Choice | Persist |
+| --- | --- | --- |
+| Device AP wizard (web UI) | `link_mode` wifi \| usb | NVS on robot |
+| Project `tiny-engineer setup` | host transport http \| serial | project `.env` |
+
+Host resolution: `--transport` > `TINY_ENGINEER_TRANSPORT` > default `http`.
+
+Project setup flow:
+
+1. Ask transport (`http` \| `serial`; default `http`)
+2. If `http`: ask/merge URL (`TINY_ENGINEER_URL`) as today
+3. If `serial`: optional port prompt; merge `TINY_ENGINEER_PORT` when set; do not require URL
+4. Merge `TINY_ENGINEER_TRANSPORT` (same create/update/skip/force pattern as URL)
+5. Non-interactive: `--transport`, `--force-transport`, optional `--port`; `--yes` defaults transport to `http` if unset
+6. Uninstall `--purge-env` strips `TRANSPORT` and `PORT` with URL/token
+
+Runtime:
+
+- Serial: `--port` / `TINY_ENGINEER_PORT`; else autodetect (VID/PID + SYNC/ping); cache e.g. `~/.config/tiny-engineer/serial-port.json`; invalidate on open/probe fail
 - New commands: `settings`, `test`, `servo`, `reset` (confirm / `--yes`), `monitor`
-- Shared robot client interface used by `anim`/`play`/`hook`/`doctor`
-- Agent packages: prefer routing through CLI or shared client module so hooks honor transport
+- Shared robot client for `anim` / `play` / `hook` / `doctor`
+- Agent packages: shared client or CLI so hooks honor project `.env` transport
 
 ### D7: Contention
 
@@ -95,13 +114,13 @@ Primary: `tiny-engineer monitor`. Optional follow-up: PIO `monitor_encoding=lati
 - **[Risk] Hook latency from serial open/probe** → Mitigation: port cache; short timeouts; fail-open
 - **[Risk] Dual transport races** → Mitigation: busy lock for play; simple serialization for writes
 - **[Trade-off] Factory-reset-only escape** → Simpler security/UX story; slower recovery than in-band mode switch
-- **[Trade-off] Default transport HTTP** → Backward compatible; corporate USB users must set env once
+- **[Trade-off] Default transport HTTP** → Backward compatible; corporate USB users pick serial once in `tiny-engineer setup` (writes `.env`); flags still override
 
 ## Migration Plan
 
 1. Ship firmware with protocol + `link_mode`; existing devices without key behave as Wi‑Fi mode when nets exist (migration: if nets saved and mode unset → `wifi`).
-2. Ship CLI with transport default HTTP; serial opt-in.
-3. Docs: corporate USB-only setup path; monitor; factory reset.
+2. Ship CLI with transport default HTTP; `setup` writes `TINY_ENGINEER_TRANSPORT` for new projects; serial opt-in via setup or env.
+3. Docs: device Connection vs project setup; corporate USB-only path; monitor; factory reset.
 4. Rollback: flash previous firmware; CLI without `TINY_ENGINEER_TRANSPORT=serial` keeps working against old HTTP-only devices (serial commands fail gracefully).
 
 ## Open Questions

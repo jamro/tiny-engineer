@@ -12,6 +12,7 @@ Corporate networks often forbid unverified Wi‑Fi devices, so Tiny Engineer can
 - **Auth skipped** on serial (trusted local channel); HTTP Bearer rules unchanged.
 - Escape USB-only mode via **factory reset** only (reopens setup AP); factory reset also available over CLI with explicit confirmation.
 - Extend **tiny-engineer CLI**: explicit `--transport http|serial` (or env; default `http`, no auto-probe between transports); serial port autodetect + cache when transport is serial; commands covering day-to-day web UI parity (settings, tests, servo, health, factory reset, play over serial); `monitor` that decodes LOG frames.
+- Extend interactive **`tiny-engineer setup`** (project/IDE hooks wizard): ask preferred host transport (`http` | `serial`), persist `TINY_ENGINEER_TRANSPORT` (and URL and/or optional serial port) in the project `.env` so later CLI commands and agent hooks use that transport without requiring flags. Flags still override. Distinct from the device AP Connection step (`link_mode`).
 - Route application `serial_log` output through typed LOG frames (no raw `Serial.print` for app logs); CLI monitor preserves developer logging UX.
 - Shared **command core** so HTTP and serial invoke the same operations (prepare for future device-initiated events).
 
@@ -33,6 +34,6 @@ No **BREAKING** HTTP route removals in this change. New NVS/settings fields and 
 
 - **Firmware**: new serial protocol stack; command core extracted/shared with HTTP handlers; settings/NVS for `link_mode`; setup wizard Network step; boot path skips STA/HTTP in USB mode; `serial_log` → LOG frames; vendored nanocobs (or equivalent lightweight COBS).
 - **Web UI**: setup last step offers Wi‑Fi vs USB-only; API/docs mention connection mode.
-- **Packages**: `tiny-engineer-cli` transport layer; hook/anim/play/doctor use selected transport; agent packages that call HTTP helpers need shared client or CLI path.
+- **Packages**: `tiny-engineer-cli` transport layer and setup/uninstall `.env` merge for transport; hook/anim/play/doctor use selected transport; agent packages that call HTTP helpers need shared client or CLI path.
 - **Docs**: `docs/api.md`, integration, settings, hardware serial notes; PlatformIO monitor limitations + CLI monitor.
 - **Dependencies**: vendored COBS on device; host serialport + COBS (e.g. npm `nanocobs` or equivalent); no heavy new firmware frameworks.
