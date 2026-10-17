@@ -96,9 +96,14 @@ export function GuidedCalibration({
     const step = GUIDED_STEPS[index];
     const start = guidedDrafts[index] ?? startAngleFor(step, ranges);
 
+    if (!(await moveServos({ index: step.joint, angle: start }))) {
+      return false;
+    }
+
     calibration.setJointAngle(step.joint, start);
     calibration.setGuidedDraft(index, start);
-    await moveServos({ index: step.joint, angle: start });
+
+    return true;
   }
 
   async function advance(rangesForSave?: Range[]) {
@@ -110,8 +115,11 @@ export function GuidedCalibration({
 
     const nextIndex = guidedIndex + 1;
 
+    if (!(await goToStep(nextIndex))) {
+      return;
+    }
+
     calibration.guidedNext();
-    await goToStep(nextIndex);
   }
 
   async function confirm() {
@@ -180,8 +188,11 @@ export function GuidedCalibration({
 
     const prevIndex = guidedIndex - 1;
 
+    if (!(await goToStep(prevIndex))) {
+      return;
+    }
+
     calibration.guidedBack();
-    await goToStep(prevIndex);
   }
 
   const confirmLabel = confirmLabelFor(guidedStep, calibration.isLastGuidedStep);

@@ -18,10 +18,13 @@ export function ServosHub({
     const first = GUIDED_STEPS[0];
     const mid = rangeMid(calibration.ranges[first.joint]);
 
+    if (!(await moveServos({ index: first.joint, angle: mid }))) {
+      return;
+    }
+
     calibration.startGuided();
     calibration.setJointAngle(first.joint, mid);
     calibration.setGuidedDraft(0, mid);
-    await moveServos({ index: first.joint, angle: mid });
   }
 
   return (

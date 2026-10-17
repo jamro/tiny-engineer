@@ -207,6 +207,42 @@ describe("setup wizard", () => {
     expect(angle()).toBe("80");
   });
 
+  it("stays on the hub when the first guided park fails", async () => {
+    const { robot, click } = await openWizard();
+
+    robot.failing.add("/setup/servo");
+    await click("Calibrate servos");
+
+    await waitFor(() => expect(statusText()).toBe("robot said no"));
+    expect(screen.getByRole("button", { name: "Calibrate servos" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Body · center" })).toBeNull();
+  });
+
+  it("stays on the current guided step when the next park fails", async () => {
+    const { robot, click } = await startGuided();
+
+    robot.failing.add("/setup/servo");
+    await click("Confirm center");
+
+    await waitFor(() => expect(statusText()).toBe("robot said no"));
+    expect(screen.getByRole("heading", { name: "Body · center" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Body · minimum" })).toBeNull();
+  });
+
+  it("stays on the current guided step when Back park fails", async () => {
+    const { robot, click } = await startGuided();
+
+    await click("Confirm center");
+    await screen.findByRole("heading", { name: "Body · minimum" });
+
+    robot.failing.add("/setup/servo");
+    await click("Back");
+
+    await waitFor(() => expect(statusText()).toBe("robot said no"));
+    expect(screen.getByRole("heading", { name: "Body · minimum" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Body · center" })).toBeNull();
+  });
+
   it("rejects a body min at or above the session center", async () => {
     const { click } = await startGuided();
 
