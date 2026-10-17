@@ -2,20 +2,24 @@
 
 ## Architecture
 
-One common **nominal 5 V** rail feeds the robot.
+USB-C brings in a **nominal 5 V**. On the [main control board](../../hardware/boards/main-control-board/README.md) that splits into a logic/host rail and a protected servo (and amp) rail.
 
 | Net | Source | Loads |
 | --- | --- | --- |
-| **+5V** | Main control board USB-C **VBUS** | ESP32 **5V**, PCA9685 **5V**, MAX98357A **Vin**; servos from PCA9685 **V+** |
-| **3V3** | ESP32 onboard LDO, from the 5 V input | ESP32 core/GPIO, PCA9685 **VCC**, OLED **VCC** |
+| **+5V** | USB-C **VBUS** → 3 A PPTC fuse | ESP32 **5V**, 5 V indicator, eFuse input |
+| **SERVO_5V** | TPS259571 eFuse out of **+5V** (~2 A via `R14`) | Servo header 5 V pins, bulk capacitor; amp supply via net tie |
+| **AUDIO_5V** | Net-tied from **SERVO_5V** (not raw **+5V**) | MAX98357A **Vin** |
+| **3V3** | ESP32 onboard LDO, from the 5 V input | ESP32 core/GPIO, PCA9685 **VCC** / **VDD**, OLED **VCC**, I2C pull-ups |
 | **GND** | Board USB-C GND + ESP32 GND | Everything |
 
-ESP32 internally runs at 3.3 V logic. Servo power **does not** pass through the ESP32 3.3 V regulator. USB **5V** → PCA9685 **5V**; PCA9685 **V+** → servo **5V**; PCA9685 **VCC** ← ESP32 **3V3**. The advanced breakout harness draws the same nets — [wiring.md](wiring.md).
+ESP32 internally runs at 3.3 V logic. Servo power **does not** pass through the ESP32 3.3 V regulator. On the main control board: **+5V** feeds the module **5V** pad; **SERVO_5V** feeds the servo plugs; PCA9685 **VDD** ← **3V3**. The chip has no package “V+” pin — servo 5 V is a board distribution net to the connector (same idea as Adafruit breakout **V+**). The advanced breakout harness draws equivalent nets without the board eFuse — [wiring.md](wiring.md).
 
 > [!WARNING]
 > Never power the servos from the ESP32 3.3 V regulator.
 
 Waveshare documents the C3-Zero LDO as ME6217C33M5G (hundreds of mA class). That is enough for logic + OLED + PCA9685 digital. It is **not** a servo supply.
+
+Multi-servo stall can hit the eFuse’s ~2 A limit before the 3 A resettable fuse trips. Use a **5 V / ≥ 2 A** supply; expect occasional **SERVO_5V** (and amp) cutouts under heavy load, then auto-retry.
 
 ## Servo current (worst case)
 
@@ -40,7 +44,7 @@ This **excludes**:
 
 ## USB supply
 
-Power and data enter on the **main control board USB-C** (one cable). Nets: VBUS → +5V, GND, D− → GPIO18, D+ → GPIO19. Details: [interfaces.md](interfaces.md).
+Power and data enter on the **main control board USB-C** (one cable). Nets: VBUS → fuse → **+5V**, GND, D− → GPIO18, D+ → GPIO19. Servos and the amp sit behind the eFuse on **SERVO_5V** / **AUDIO_5V**. Details: [interfaces.md](interfaces.md).
 
 Two 5.1 kΩ CC resistors on the board mark it as a USB device. The charger decides how much current arrives. Use a **5 V / ≥ 2 A** source, with extra margin if several servos move **while audio plays**. The connector is **not** USB-PD voltage conversion. Feed it 5 V USB.
 

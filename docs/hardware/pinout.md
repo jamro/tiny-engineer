@@ -20,7 +20,7 @@ Logic level: **3.3 V**.
 
 | GPIO | Status | Reason |
 | --- | --- | --- |
-| GPIO9 | **Reserved** | BOOT button / strapping. Do not pick casually for peripherals |
+| GPIO9 | **Reserved** | BOOT / strapping. On the main control board it is also on **J4** (extension only) — do not pull low at reset (download mode). Do not pick casually for peripherals |
 | GPIO10 | **Occupied** | Onboard WS2812 |
 | GPIO12–GPIO17 | **Unavailable** | Stacked flash, not brought out |
 | GPIO18 | **Reserved** | Native USB D− (main control board USB-C; advanced path: [5993](wiring.md#usb-connector-5993)) |
@@ -30,13 +30,56 @@ Logic level: **3.3 V**.
 
 | GPIO | Status | Notes |
 | --- | --- | --- |
-| GPIO6 | Free | Unused |
-| GPIO7 | Free | Unused |
-| GPIO8 | Free | Unused |
-| GPIO20 | Default UART0 RX | Silkscreen RX. Free for other use only if USB CDC remains the console (`ARDUINO_USB_CDC_ON_BOOT=1`) |
-| GPIO21 | Default UART0 TX | Silkscreen TX. Same caveat as GPIO20 |
+| GPIO6 | Free | Brought out on **J4** (main control board) |
+| GPIO7 | Free | Brought out on **J4** |
+| GPIO8 | Free | Brought out on **J4**; strapping — do not pull low at reset |
+| GPIO20 | Default UART0 RX | Silkscreen RX; also on **J4**. Free for other use only if USB CDC remains the console (`ARDUINO_USB_CDC_ON_BOOT=1`) |
+| GPIO21 | Default UART0 TX | Silkscreen TX; also on **J4**. Same caveat as GPIO20 |
 
 Power pads (not GPIO): **5V**, **GND**, **3V3**.
+
+## Main control board headers
+
+Pin order matches the KiCad board and [`expected-nets.yml`](../../hardware/boards/main-control-board/expected-nets.yml). Board overview: [board README](../../hardware/boards/main-control-board/README.md).
+
+### J2 — OLED (`Conn_OLED`)
+
+| Pin | Net |
+| --- | --- |
+| 1 | **+3.3V** |
+| 2 | **GND** |
+| 3 | **I2C SDA** |
+| 4 | **I2C SCL** |
+
+### J3 — I2C extension (`Conn_extension`, JST)
+
+Same bus as J2 / PCA9685. **Pin order is not the same as J2** (GND and 3.3 V are swapped).
+
+| Pin | Net |
+| --- | --- |
+| 1 | **GND** |
+| 2 | **+3.3V** |
+| 3 | **I2C SDA** |
+| 4 | **I2C SCL** |
+
+### J4 — 12-pin extension (`Conn_02x06_Odd_Even`)
+
+| Pin | Net |
+| --- | --- |
+| 1 | **SERVO_5V** |
+| 2 | **GP21** (default UART0 TX) |
+| 3 | **GND** |
+| 4 | **GP20** (default UART0 RX) |
+| 5 | **GND** |
+| 6 | **GP9** (strapping / BOOT — do not pull low at reset) |
+| 7 | **+3.3V** |
+| 8 | **GP8** (strapping — do not pull low at reset) |
+| 9 | **I2S BCLK** |
+| 10 | **GP7** |
+| 11 | **I2S LRC** |
+| 12 | **GP6** |
+
+I2S **DIN** is not on J4 (ESP32 → amp only). **SERVO_5V** is the eFuse-protected rail — [power.md](power.md).
 
 ## PCA9685 channels (not ESP32 GPIO)
 

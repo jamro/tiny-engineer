@@ -3,6 +3,8 @@
 # Net classes = KiCad netlist `class` list, effective class first.
 # Compare with: kicad-cli sch export netlist
 # See docs/pcb.md#expected-nets-yml
+#
+# J4 = 12-pin extension port (SERVO_5V, GND×2, +3.3V, I2S BCLK/LRC, GP6–GP9, GP20, GP21).
 
 netclasses:
   "+5V":
@@ -30,6 +32,16 @@ netclasses:
   "/ESP32/GP5":
     - Default
   "/ESP32/GP6":
+    - Default
+  "/ESP32/GP7":
+    - Default
+  "/ESP32/GP8":
+    - Default
+  "/ESP32/GP9":
+    - Default
+  "/ESP32/GP20":
+    - Default
+  "/ESP32/GP21":
     - Default
   "/I2S_BCLK":
     - Default
@@ -77,9 +89,10 @@ nets:
     - U4.5:OUT
   "+3.3V":
     - C1.2:2
+    - C7.1:1
     - J2.1:Pin_1
     - J3.2:Pin_2
-    - J4.2:Pin_2
+    - J4.7:Pin_7
     - J7.3:Pin_3
     - R3.1:1
     - R4.1:1
@@ -92,11 +105,14 @@ nets:
     - C3.1:1
     - C4.1:1
     - C5.1:1
+    - C6.2:2
+    - C7.2:2
     - D1.1:K
     - D2.1:K
     - J2.2:Pin_2
     - J3.1:Pin_1
     - J4.3:Pin_3
+    - J4.5:Pin_5
     - J7.2:Pin_2
     - R1.1:1
     - R2.1:1
@@ -141,12 +157,29 @@ nets:
     - R3.2:2
     - U1.23:~{OE}
   "/ESP32/GP6":
-    - J4.4:Pin_4
+    - J4.12:Pin_12
     - J8.1:Pin_1
+  "/ESP32/GP7":
+    - J4.10:Pin_10
+    - J8.2:Pin_2
+  "/ESP32/GP8":
+    - J4.8:Pin_8
+    - J8.3:Pin_3
+  "/ESP32/GP9":
+    - J4.6:Pin_6
+    - J8.4:Pin_4
+  "/ESP32/GP20":
+    - J4.4:Pin_4
+    - J8.8:Pin_8
+  "/ESP32/GP21":
+    - J4.2:Pin_2
+    - J8.9:Pin_9
   "/I2S_BCLK":
+    - J4.9:Pin_9
     - J7.6:Pin_6
     - U3.16:BCLK
   "/I2S_LRC":
+    - J4.11:Pin_11
     - J7.7:Pin_7
     - U3.14:LRCLK
   "/I2S_DIN":
