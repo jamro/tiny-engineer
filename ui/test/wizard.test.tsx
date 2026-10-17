@@ -18,7 +18,7 @@ async function openWizard(settings = {}) {
 async function skipCalibration(settings = {}) {
   const ctx = await openWizard(settings);
 
-  await ctx.click("Skip calibration");
+  await ctx.click("Skip");
   await waitFor(() => expect(stepLabel()).toBe("Step 2 of 5 · Screen"));
 
   return ctx;
@@ -27,7 +27,7 @@ async function skipCalibration(settings = {}) {
 async function startGuided(settings = {}) {
   const ctx = await openWizard(settings);
 
-  await ctx.click("Calibrate ranges");
+  await ctx.click("Calibrate servos");
   await screen.findByRole("heading", { name: "Body · center" });
 
   return ctx;
@@ -46,9 +46,15 @@ describe("setup wizard", () => {
   it("opens the servos hub before assembly or guided calibration", async () => {
     await openWizard();
 
-    expect(screen.getByRole("button", { name: "Calibrate ranges" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Skip calibration" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Assembly: 90° + identify" })).toBeTruthy();
+    const calibrate = screen.getByRole("button", { name: "Calibrate servos" });
+    const assembly = screen.getByRole("button", { name: "Assembly support" });
+    const skip = screen.getByRole("button", { name: "Skip" });
+
+    expect(calibrate.classList.contains("btn-primary")).toBe(true);
+    expect(assembly.classList.contains("btn-secondary")).toBe(true);
+    expect(skip.compareDocumentPosition(assembly) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+    expect(document.querySelector(".setup-hub-when")?.textContent).toMatch(/Assembly support/);
+    expect(screen.getByText(/80°–100°/)).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Body · center" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Move all to 90°" })).toBeNull();
   });
@@ -66,7 +72,7 @@ describe("setup wizard", () => {
   it("centers all servos and identifies one from assembly, then returns to the hub", async () => {
     const { robot, click } = await openWizard();
 
-    await click("Assembly: 90° + identify");
+    await click("Assembly support");
     await click("Move all to 90°");
 
     await waitFor(() => expect(robot.lastPost("/setup/servo")?.json).toEqual({ all: 90 }));
@@ -82,9 +88,11 @@ describe("setup wizard", () => {
       ).toEqual([93, 87, 90]),
     );
 
-    await click("Back to hub");
+    expect(screen.getByRole("button", { name: "✓ Head" }).classList.contains("done")).toBe(true);
 
-    expect(screen.getByRole("button", { name: "Calibrate ranges" })).toBeTruthy();
+    await click("Done · back to hub");
+
+    expect(screen.getByRole("button", { name: "Calibrate servos" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Body · center" })).toBeNull();
   });
 
@@ -101,11 +109,17 @@ describe("setup wizard", () => {
   it("nudges center and min with the same buttons, mirrors max about the session center", async () => {
     const { robot, click } = await startGuided();
 
+    expect(screen.getByTestId("calib-progress").textContent).toBe("Body · center · 1/10");
+    expect(screen.getByRole("button", { name: "Confirm center" })).toBeTruthy();
+    expect(document.querySelector(".setup-copy strong")?.textContent).toMatch(
+      /centered in the chair/,
+    );
+
     // Stock 80–100 → default park at midpoint 90°.
     await waitFor(() => expect(angle()).toBe("90"));
     await click("−5°");
     await waitFor(() => expect(angle()).toBe("85"));
-    await click("Set center (85°)");
+    await click("Confirm center");
 
     await screen.findByRole("heading", { name: "Body · minimum" });
     // Park at current min 80°; nudge to 55°, mirror max = 115.
@@ -114,7 +128,7 @@ describe("setup wizard", () => {
     await click("−10°");
     await click("−5°");
     await waitFor(() => expect(angle()).toBe("55"));
-    await click("Set min · demo range");
+    await click("Confirm min");
 
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "Neck · center" })).toBeTruthy(),
@@ -132,7 +146,7 @@ describe("setup wizard", () => {
   it("restores the shown angle when a move fails", async () => {
     const { robot, click } = await startGuided();
 
-    await click("Set center (90°)");
+    await click("Confirm center");
     await waitFor(() => expect(angle()).toBe("80"));
 
     robot.failing.add("/setup/servo");
@@ -145,12 +159,12 @@ describe("setup wizard", () => {
   it("rejects a body min at or above the session center", async () => {
     const { click } = await startGuided();
 
-    await click("Set center (90°)");
+    await click("Confirm center");
     await waitFor(() => expect(angle()).toBe("80"));
 
     await click("+10°");
     await waitFor(() => expect(angle()).toBe("90"));
-    await click("Set min · demo range");
+    await click("Confirm min");
 
     expect(statusText()).toBe("Min must be below the center so the mirrored max stays valid.");
     expect(screen.getByRole("heading", { name: "Body · minimum" })).toBeTruthy();
@@ -161,7 +175,7 @@ describe("setup wizard", () => {
 
     await click("Back");
 
-    expect(screen.getByRole("button", { name: "Calibrate ranges" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Calibrate servos" })).toBeTruthy();
   });
 
   it("has no joint tabs during guided calibration", async () => {
@@ -176,27 +190,27 @@ describe("setup wizard", () => {
 
     // Body/Neck/Head mid 90; min opens at saved 80 → nudge to 60 → max 120
     await waitFor(() => expect(angle()).toBe("90"));
-    await click("Set center (90°)");
+    await click("Confirm center");
     await waitFor(() => expect(angle()).toBe("80"));
     await click("−10°");
     await click("−10°");
-    await click("Set min · demo range");
+    await click("Confirm min");
 
     await screen.findByRole("heading", { name: "Neck · center" });
     await waitFor(() => expect(angle()).toBe("90"));
-    await click("Set center (90°)");
+    await click("Confirm center");
     await waitFor(() => expect(angle()).toBe("80"));
     await click("−10°");
     await click("−10°");
-    await click("Set min · demo range");
+    await click("Confirm min");
 
     await screen.findByRole("heading", { name: "Head · center" });
     await waitFor(() => expect(angle()).toBe("90"));
-    await click("Set center (90°)");
+    await click("Confirm center");
     await waitFor(() => expect(angle()).toBe("80"));
     await click("−10°");
     await click("−10°");
-    await click("Set min · demo range");
+    await click("Confirm min");
 
     // Right min (keyboard) — park at saved min 80; nudge to 35
     await screen.findByRole("heading", { name: "Right hand · keyboard" });
@@ -206,7 +220,7 @@ describe("setup wizard", () => {
     await click("−10°");
     await click("−10°");
     await click("−5°");
-    await click("Set min (35°)");
+    await click("Confirm min");
 
     // Left max (keyboard) — park at saved max 100; nudge to 135
     await screen.findByRole("heading", { name: "Left hand · keyboard" });
@@ -215,7 +229,7 @@ describe("setup wizard", () => {
     await click("+10°");
     await click("+10°");
     await click("+5°");
-    await click("Set max (135°)");
+    await click("Confirm max");
 
     // Left min (upper) — park at saved min 80; nudge to 45
     await screen.findByRole("heading", { name: "Left hand · upper" });
@@ -224,7 +238,7 @@ describe("setup wizard", () => {
     await click("−10°");
     await click("−10°");
     await click("−5°");
-    await click("Set min (45°)");
+    await click("Confirm min");
 
     // Right max (upper) — park at current max 100; nudge to 125
     await screen.findByRole("heading", { name: "Right hand · upper" });
@@ -232,6 +246,10 @@ describe("setup wizard", () => {
     await click("+10°");
     await click("+10°");
     await click("+5°");
+
+    expect(screen.getByRole("button", { name: "Finish · save ranges" })).toBeTruthy();
+    expect(screen.queryByTestId("calib-range-summary")).toBeNull();
+
     await click("Finish · save ranges");
 
     await waitFor(() => expect(stepLabel()).toBe("Step 2 of 5 · Screen"));
@@ -254,7 +272,7 @@ describe("setup wizard", () => {
 
     await waitFor(() => expect(robot.lastPost("/setup/oled")?.json).toBeUndefined());
     expect(stepLabel()).toBe("Step 1 of 5 · Servos");
-    expect(screen.getByRole("button", { name: "Calibrate ranges" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Calibrate servos" })).toBeTruthy();
   });
 
   it("saves the hostname, then tests the new network ahead of the saved ones", async () => {

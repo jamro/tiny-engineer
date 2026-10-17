@@ -1,3 +1,4 @@
+import { useState } from "preact/hooks";
 import { Button } from "../components/Button";
 import { ConfigSection } from "../components/ConfigSection";
 import { SERVO_NAMES } from "../servos";
@@ -6,6 +7,7 @@ import { useSetupServo } from "./useSetupServo";
 
 export function PlaceParts({ calibration }: { calibration: Calibration }) {
   const moveServos = useSetupServo();
+  const [identified, setIdentified] = useState(() => SERVO_NAMES.map(() => false));
 
   async function centerAll() {
     if (await moveServos({ all: CENTER })) {
@@ -26,6 +28,8 @@ export function PlaceParts({ calibration }: { calibration: Calibration }) {
 
       calibration.setJointAngle(index, angle);
     }
+
+    setIdentified((current) => current.map((done, i) => (i === index ? true : done)));
   }
 
   return (
@@ -35,22 +39,27 @@ export function PlaceParts({ calibration }: { calibration: Calibration }) {
         the middle of the safe band.
       </p>
       <p className="setup-copy">
-        Move all to 90°, identify each plug with a small wiggle, then press parts onto the shafts:
-        head toward the laptop, neck straight, hands down, body centered. Snug the screws. Return
-        here when done — range calibration is a separate step from the hub.
+        <strong>Move all to 90°</strong>, identify each plug with a small wiggle, then press parts
+        onto the shafts: <strong>head toward the laptop</strong>, <strong>neck straight</strong>,{" "}
+        <strong>hands down</strong>, <strong>body centered</strong>. Snug the screws. Return here
+        when done — range calibration is a separate step from the hub.
       </p>
       <Button id="setup-move-90" variant="primary" onClick={centerAll}>
         Move all to 90°
       </Button>
       <div className="setup-identify">
         {SERVO_NAMES.map((name, index) => (
-          <Button key={name} onClick={() => identify(index)}>
-            {`Identify ${name}`}
+          <Button
+            key={name}
+            className={identified[index] ? "done" : undefined}
+            onClick={() => identify(index)}
+          >
+            {identified[index] ? `✓ ${name}` : `Identify ${name}`}
           </Button>
         ))}
       </div>
       <Button id="setup-assembly-done" onClick={calibration.goHub}>
-        Back to hub
+        Done · back to hub
       </Button>
     </ConfigSection>
   );

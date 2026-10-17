@@ -10,7 +10,7 @@ The robot sits in a chair beside a desk. A miniature laptop and a service bell s
 | 3 | **Right hand** | Hand up / down (inverted scale) | down | up | 80 – 100 (stock) |
 | 4 | **Body** | Whole torso left / right | right | left | 80 – 100 (stock) |
 
-Stock defaults match `SERVO_SPECS` in [`include/servos.h`](../include/servos.h): **80°–100°** on every joint when NVS is empty (mid 90°). After setup AP guided calibration the wider per-build limits are stored in NVS. Factory reset keeps the saved ranges. Retune them from the setup wizard servos hub (**Calibrate ranges**) when AP mode is open, or skip to keep the current values.
+Stock defaults match `SERVO_SPECS` in [`include/servos.h`](../include/servos.h): **80°–100°** on every joint when NVS is empty (mid 90°). After setup AP guided calibration the wider per-build limits are stored in NVS. Factory reset keeps the saved ranges. Retune them from the setup wizard servos hub (**Calibrate servos**) when AP mode is open, or **Skip** to keep the current values.
 
 Animations author poses in **−1..1** relative to each joint’s saved min/max (`−1` = min, `0` = mid, `+1` = max). Horn offset after assembly is absorbed by calibration; firmware maps those poses with `servoNormToDeg`. Right-hand rest is still electrical min (`−1`); left-hand rest is electrical max (`+1`).
 

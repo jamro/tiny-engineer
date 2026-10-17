@@ -16,3 +16,10 @@ export const savedRanges = ({ servo_mins: mins, servo_maxs: maxs }: Settings): R
   mins.map((min, index) => [min, maxs[index]] as const);
 
 export const inRange = (angle: number, [min, max]: Range) => angle >= min && angle <= max;
+
+export const isStockServoRanges = (ranges: readonly Range[]) =>
+  ranges.length === DEFAULT_SERVO_RANGES.length &&
+  ranges.every(
+    ([min, max], index) =>
+      min === DEFAULT_SERVO_RANGES[index][0] && max === DEFAULT_SERVO_RANGES[index][1],
+  );

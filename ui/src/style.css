@@ -186,15 +186,21 @@ nav a.active {
 }
 
 #status {
+  position: fixed;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2rem), 42rem);
+  z-index: 20;
   padding: 0.65rem 1rem;
   border-radius: 0.4rem;
-  margin-bottom: 1rem;
   font-size: 0.9rem;
+  box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 12%);
 }
 
 #status.loading {
-  background: #eee;
-  color: var(--loading);
+  background: #1a1a1a;
+  color: #fff;
 }
 
 #status.ok {
@@ -265,6 +271,19 @@ nav a.active {
   text-align: center;
   font-weight: 600;
   margin-top: 1rem;
+}
+
+.btn-secondary {
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: inherit;
+  text-align: center;
+  font-weight: 600;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, var(--card));
 }
 
 .test-card {
@@ -809,6 +828,30 @@ footer {
 .setup-hub-actions .btn {
   width: 100%;
   font-weight: 600;
+  margin-top: 0;
+  text-align: center;
+}
+
+.setup-hub-actions .btn-primary {
+  order: 0;
+}
+
+.setup-hub-when {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.setup-hub-when li {
+  margin: 0.35rem 0;
+}
+
+.setup-hub-skip-hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
 .setup-identify {
@@ -820,6 +863,12 @@ footer {
 
 .setup-identify .btn {
   flex: 1 1 8rem;
+}
+
+.setup-identify .btn.done {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--card));
+  font-weight: 600;
 }
 
 #setup-assembly-done {

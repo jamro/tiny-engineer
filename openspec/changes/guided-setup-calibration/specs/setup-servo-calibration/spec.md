@@ -7,16 +7,27 @@ Defines the setup AP wizard servo step: assembly centering and identify, guided 
 ## ADDED Requirements
 
 ### Requirement: Servos step presents a hub
-While the setup wizard is on the servos step and neither assembly nor guided calibration is active, the UI MUST present a hub with three actions: start guided range calibration, skip calibration, and open assembly centering.
+While the setup wizard is on the servos step and neither assembly nor guided calibration is active, the UI MUST present a hub with three actions in this order: **Calibrate servos** (primary), **Assembly support** (secondary / mid visual weight), and **Skip** (least visual emphasis). The hub MUST include short “when to use” guidance for each action.
 
 #### Scenario: Hub is the default entry
 - **WHEN** the user opens the setup wizard on the servos step
 - **THEN** the hub is shown before assembly or guided calibration content
 
+#### Scenario: Hub action labels and order
+- **WHEN** the hub is shown
+- **THEN** the primary action is labeled Calibrate servos
+- **AND** the secondary action is labeled Assembly support
+- **AND** Skip appears after Assembly support with quieter styling than Assembly support
+
 #### Scenario: Skip advances without guided calibration
-- **WHEN** the user chooses skip calibration from the hub
+- **WHEN** the user chooses Skip from the hub
 - **THEN** the wizard advances past the servos step without entering guided range calibration
 - **AND** the device retains the servo min/max values already loaded for that step (NVS or defaults)
+
+#### Scenario: Soft hint when skipping stock defaults
+- **WHEN** the user is on the hub and current ranges are the stock 80° / 100° defaults
+- **THEN** the UI shows a soft hint that skipping keeps the narrow stock band
+- **AND** the hint does not block Skip
 
 ### Requirement: Assembly path centers and identifies then returns
 The assembly path MUST let the user move all servos to electrical 90° and identify each servo by a small oscillation around 90°, then MUST return only to the hub (not into guided calibration).
@@ -29,6 +40,7 @@ The assembly path MUST let the user move all servos to electrical 90° and ident
 - **WHEN** the user identifies a joint on the assembly path
 - **THEN** that joint moves a few degrees below and above 90° (about ±3°) and returns to 90°
 - **AND** other joints are not commanded by that identify action
+- **AND** that joint’s identify control shows a done state until the user leaves assembly
 
 #### Scenario: Leave assembly to hub only
 - **WHEN** the user finishes or leaves the assembly path
@@ -49,6 +61,17 @@ Guided range calibration MUST proceed in a fixed joint order with only forward c
 #### Scenario: Back within the path
 - **WHEN** the user is past the first guided substep and chooses Back
 - **THEN** the UI returns to the previous guided substep
+
+#### Scenario: Progress shows joint context
+- **WHEN** the user is on a guided substep
+- **THEN** the UI shows which joint (and center/min/max or hand landmark role) is active along with overall progress
+
+### Requirement: Instruction copy emphasizes key phrases
+Hub, assembly, and guided instruction text MUST emphasize landmarks and stop conditions with strong/bold phrasing so the eye can scan the important cues.
+
+#### Scenario: Guided landmark emphasis
+- **WHEN** the user is on a guided substep with landmark instructions
+- **THEN** the landmark and stop-condition phrases are visually stronger than surrounding copy
 
 ### Requirement: Body neck and head use center then mirrored range
 For Body, Neck, and Head, guided calibration MUST set a session center, then a min below it, then a max mirrored about that center, then demo the range ending at the session center before continuing.
@@ -88,6 +111,11 @@ For Body, Neck, and Head, guided calibration MUST set a session center, then a m
 - **THEN** the settings update includes `servo_mins` and `servo_maxs` only
 - **AND** no center angle is written to NVS or settings
 
+#### Scenario: Confirm labels stay simple
+- **WHEN** the user is on a center, min, or hand bound substep
+- **THEN** the primary confirm control uses short wording (Confirm center / Confirm min / Confirm max or equivalent landmark wording)
+- **AND** the label does not require the word “demo”
+
 ### Requirement: Hands calibrate four bounds without centers
 Guided Hands calibration MUST set four electrical bounds in this order, with no center step: right-hand min (keyboard height with slack), left-hand max (same height), left-hand min (upper), right-hand max (same upper height).
 
@@ -117,6 +145,7 @@ Leaving the servos step after guided calibration or skip MUST persist `servo_min
 #### Scenario: Save after guided calibration
 - **WHEN** the user finishes guided calibration and advances to the next wizard step
 - **THEN** the client posts the calibrated `servo_mins` and `servo_maxs` via `POST /settings`
+- **AND** the UI shows a compact summary of those mins and maxs around the finish/save action
 
 #### Scenario: Save after skip
 - **WHEN** the user skips calibration and advances

@@ -1,3 +1,4 @@
+import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import type { Settings } from "../api/types";
 import { type Range, savedRanges, SERVO_NAMES } from "../servos";
@@ -24,7 +25,7 @@ export interface GuidedStep {
   joint: number;
   bound?: "min" | "max";
   title: string;
-  copy: string;
+  copy: ComponentChildren;
 }
 
 export const GUIDED_STEPS: GuidedStep[] = [
@@ -33,42 +34,71 @@ export const GUIDED_STEPS: GuidedStep[] = [
     kind: "center",
     joint: JOINT.body,
     title: "Body · center",
-    copy: "Nudge until the body sits centered in the chair. Confirm when it looks straight.",
+    copy: (
+      <>
+        Nudge until the body sits <strong>centered in the chair</strong>. Confirm when it looks{" "}
+        <strong>straight</strong>.
+      </>
+    ),
   },
   {
     id: "body-min",
     kind: "min",
     joint: JOINT.body,
     title: "Body · minimum",
-    copy: "Rotate the body toward the robot’s right until the right hand sits over the bell. Stop before cables pull taut. Max will mirror this about the center you set.",
+    copy: (
+      <>
+        Rotate the body toward the robot’s right until the <strong>right hand</strong> sits{" "}
+        <strong>over the bell</strong>. Stop before <strong>cables pull taut</strong>. Max will
+        mirror this about the center you set.
+      </>
+    ),
   },
   {
     id: "neck-center",
     kind: "center",
     joint: JOINT.neck,
     title: "Neck · center",
-    copy: "Nudge until the neck yaw faces straight forward.",
+    copy: (
+      <>
+        Nudge until the neck yaw faces <strong>straight forward</strong>.
+      </>
+    ),
   },
   {
     id: "neck-min",
     kind: "min",
     joint: JOINT.neck,
     title: "Neck · minimum",
-    copy: "Pan toward the electrical minimum (robot’s right). Choose a stop before cables bind. Max will mirror this about the center you set.",
+    copy: (
+      <>
+        Pan toward the electrical minimum (<strong>robot’s right</strong>). Choose a stop before{" "}
+        <strong>cables bind</strong>. Max will mirror this about the center you set.
+      </>
+    ),
   },
   {
     id: "head-center",
     kind: "center",
     joint: JOINT.head,
     title: "Head · center",
-    copy: "Nudge until the head looks straight forward.",
+    copy: (
+      <>
+        Nudge until the head looks <strong>straight forward</strong>.
+      </>
+    ),
   },
   {
     id: "head-min",
     kind: "min",
     joint: JOINT.head,
     title: "Head · minimum",
-    copy: "Tilt down until the head looks at the computer screen. Stop before parts collide. Max will mirror this about the center you set.",
+    copy: (
+      <>
+        Tilt down until the head looks at the <strong>computer screen</strong>. Stop before{" "}
+        <strong>parts collide</strong>. Max will mirror this about the center you set.
+      </>
+    ),
   },
   {
     id: "hand-right-min",
@@ -76,7 +106,12 @@ export const GUIDED_STEPS: GuidedStep[] = [
     joint: JOINT.rightHand,
     bound: "min",
     title: "Right hand · keyboard",
-    copy: "Set the right hand over the laptop keyboard with a little slack (not touching). This is the electrical minimum.",
+    copy: (
+      <>
+        Set the right hand over the <strong>laptop keyboard</strong> with a little slack (not
+        touching). This is the <strong>electrical minimum</strong>.
+      </>
+    ),
   },
   {
     id: "hand-left-max",
@@ -84,7 +119,12 @@ export const GUIDED_STEPS: GuidedStep[] = [
     joint: JOINT.leftHand,
     bound: "max",
     title: "Left hand · keyboard",
-    copy: "Match the same keyboard height on the left hand. This is the electrical maximum.",
+    copy: (
+      <>
+        Match the same <strong>keyboard height</strong> on the left hand. This is the{" "}
+        <strong>electrical maximum</strong>.
+      </>
+    ),
   },
   {
     id: "hand-left-min",
@@ -92,7 +132,12 @@ export const GUIDED_STEPS: GuidedStep[] = [
     joint: JOINT.leftHand,
     bound: "min",
     title: "Left hand · upper",
-    copy: "Raise the left hand to the upper stop (upper arm roughly horizontal). This is the electrical minimum.",
+    copy: (
+      <>
+        Raise the left hand to the <strong>upper stop</strong> (upper arm roughly horizontal). This
+        is the <strong>electrical minimum</strong>.
+      </>
+    ),
   },
   {
     id: "hand-right-max",
@@ -100,7 +145,12 @@ export const GUIDED_STEPS: GuidedStep[] = [
     joint: JOINT.rightHand,
     bound: "max",
     title: "Right hand · upper",
-    copy: "Raise the right hand to the same upper height. This is the electrical maximum.",
+    copy: (
+      <>
+        Raise the right hand to the same <strong>upper height</strong>. This is the{" "}
+        <strong>electrical maximum</strong>.
+      </>
+    ),
   },
 ];
 

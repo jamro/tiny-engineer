@@ -12,6 +12,7 @@ See proposal.md — Why. Today wizard step 1 forces `PlaceParts` (horns) then `F
 - Stage A (assembly) and Stage B (guided ranges) as separate UI modes with clear return/skip rules
 - Derive mirrored max in the client from a session-only center; demonstrate ranges with sequential setup moves
 - Stock empty-NVS defaults of 80°–100° on every joint (safe narrow band around electrical 90°)
+- Clear hub hierarchy, readable bolded instructions, and guided progress / confirm / finish affordances
 - Keep Vitest coverage for hub, skip, Stage A identify, Stage B order/symmetry/hands polarity, and save payloads
 
 **Non-Goals:**
@@ -86,6 +87,18 @@ Set every entry in `SERVO_SPECS` to `min=80`, `max=100` so settings defaults and
 
 **Alternatives:** Keep wide stock bands and only tighten in the wizard UI (rejected — empty NVS / skip would still expose unsafe-wide clamps before guided calibration). Per-joint asymmetric defaults (rejected — user asked for the same 80/100 on all).
 
+### 9. Hub labels, hierarchy, and copy UX
+
+Hub actions in this order: **Calibrate servos** (`primary`) → **Assembly support** (secondary / mid visual weight — new `variant="secondary"` or hub-scoped CSS) → **Skip** (default/quiet, last). Short “when to use” lines under the intro (calibrate = assembled robot / set safe limits; assembly support = first build / seat horns at 90°; skip = ranges already good).
+
+Instruction copy in hub, assembly, and guided steps uses `<strong>` (or equivalent) on landmarks and stop conditions only — not whole paragraphs. Guided `GUIDED_STEPS` copy becomes rich text (JSX / Preact nodes), not plain strings only.
+
+Assembly identify: mark each joint as done after a successful identify wiggle (button state / check) until leaving assembly; Done CTA reads clearly (e.g. **Done · back to hub**).
+
+Guided progress: show joint context plus step index (e.g. `Body · center` with `1/10`, or grouped `Body 1/3`). Confirm labels: **Confirm center** / **Confirm min** / **Confirm max** (or hand landmark wording) — demo after min still runs; omit “demo range” from the button. Skip when current ranges match stock 80–100: soft hint that defaults stay narrow (no modal). On final guided confirm: compact mins/maxs summary in UI before/with the existing `POST /settings` save (payload shape unchanged).
+
+**Alternatives:** Keep “Assembly: 90° + identify” (rejected — opaque). Equal-weight buttons (rejected — primary path unclear). Full-sentence bold (rejected — reduces scanability). Blocking skip modal (rejected — friction for re-flash / known-good robots).
+
 ## Risks / Trade-offs
 
 - **[Risk] Long blocking demo moves on slow phones / flaky AP** → Mitigation: keep one joint moving; disable double-submit; surface existing failure + restore angle pattern from tests.
@@ -101,4 +114,4 @@ Set every entry in `SERVO_SPECS` to `min=80`, `max=100` so settings defaults and
 
 ## Open Questions
 
-None that block implementation. Minor copy polish for landmarks can happen during apply.
+None that block implementation. Exact secondary button styling and finish-summary layout left to apply.

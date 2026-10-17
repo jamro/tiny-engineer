@@ -25,6 +25,22 @@ function startAngleFor(step: (typeof GUIDED_STEPS)[number], ranges: Range[]): nu
   return rangeMid(ranges[step.joint]);
 }
 
+function confirmLabelFor(step: (typeof GUIDED_STEPS)[number], isLast: boolean): string {
+  if (isLast) {
+    return "Finish · save ranges";
+  }
+
+  if (step.kind === "center") {
+    return "Confirm center";
+  }
+
+  if (step.bound === "max") {
+    return "Confirm max";
+  }
+
+  return "Confirm min";
+}
+
 export function GuidedCalibration({
   calibration,
   onComplete,
@@ -156,17 +172,13 @@ export function GuidedCalibration({
     await goToStep(prevIndex);
   }
 
-  const confirmLabel = calibration.isLastGuidedStep
-    ? "Finish · save ranges"
-    : guidedStep.kind === "min"
-      ? "Set min · demo range"
-      : guidedStep.kind === "hand"
-        ? `Set ${guidedStep.bound} (${angle}°)`
-        : `Set center (${angle}°)`;
+  const confirmLabel = confirmLabelFor(guidedStep, calibration.isLastGuidedStep);
 
   return (
     <ConfigSection title={guidedStep.title}>
-      <p className="hint">{`Step ${guidedIndex + 1} of ${GUIDED_STEPS.length}`}</p>
+      <p className="hint" data-testid="calib-progress">
+        {guidedStep.title} · {guidedIndex + 1}/{GUIDED_STEPS.length}
+      </p>
       <p className="setup-copy">{guidedStep.copy}</p>
       <div className="form-group">
         <div className="calib-angle-readout">

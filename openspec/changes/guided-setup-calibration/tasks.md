@@ -30,6 +30,14 @@
 
 - [x] 5.1 Set `SERVO_SPECS` (and settings default fill) to min 80 / max 100 for all five joints; sync UI `DEFAULT_SERVO_RANGES`, docs tables, and tests; verify `pio test -e native` and UI skip-save payload use `[80×5]` / `[100×5]`
 
+## 6. Hub and guided UX polish
+
+- [x] 6.1 Hub: label **Calibrate servos** (primary), **Assembly support** (secondary mid-weight), **Skip** last/quiet; add when-to-use lines; update Vitest button names/order
+- [x] 6.2 Emphasize landmarks/stop cues with `<strong>` (or equivalent) in hub, assembly, and guided instruction copy; update Vitest where copy is asserted
+- [x] 6.3 Assembly: per-joint identify done feedback; clearer Done CTA; update Vitest
+- [x] 6.4 Guided: progress shows joint context; simplify confirm labels (no “demo” in button text); update Vitest
+- [x] 6.5 Soft skip hint for stock 80–100 ranges; compact mins/maxs summary on guided finish; update Vitest (payload still mins/maxs only)
+
 ## Workflow follow-up
 
 - Archive the change after implementation and review (`/opsx-archive` or project equivalent).
