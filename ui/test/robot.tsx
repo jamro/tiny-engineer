@@ -18,8 +18,8 @@ const DEFAULT_SETTINGS: Settings = {
   link_mode: "wifi",
   wifi_configured: true,
   wifi_networks: ["home"],
-  servo_mins: [60, 40, 45, 35, 40],
-  servo_maxs: [130, 130, 135, 125, 130],
+  servo_mins: [80, 80, 80, 80, 80],
+  servo_maxs: [100, 100, 100, 100, 100],
   rgb_order: "GRB",
   oled_rotate_180: false,
 };

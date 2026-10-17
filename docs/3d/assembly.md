@@ -43,7 +43,7 @@ Electronics and firmware should already be done ([getting-started](../getting-st
 
 **Bench window:** keep the electronics on the desk — do **not** seat them in the chest until [§12](#12-electronics-inside-the-desk).
 
-> **Stop.** Join the setup AP only to press **Move all to 90°**. Do **not** finish the wizard (ranges, OLED, LED, speaker, home Wi-Fi) until [§20](#20-setup-wizard-and-first-boot-on-wi-fi).
+> **Stop.** Join the setup AP only for **Assembly support** → **Move all to 90°** (optional **Identify** wiggle per joint). Return to the hub — do **not** run guided range calibration or finish the wizard (OLED, LED, speaker, home Wi-Fi) until [§20](#20-setup-wizard-and-first-boot-on-wi-fi).
 
 After each centering step, **unplug the servo from the PCA9685** before you keep building. Leaving the lead attached makes the next joins awkward. You reconnect the correct channels later.
 
@@ -52,7 +52,7 @@ After each centering step, **unplug the servo from the PCA9685** before you keep
 Use this recipe whenever a later step says to center a servo:
 
 1. Plug the servo into any PCA9685 channel (channel mapping does not matter for centering).
-2. Power the ESP32. Join the setup Wi‑Fi (`TinyEngineer-XXXX`), open `http://192.168.4.1/config`, and press **Move all to 90°**. The shaft is now at electrical center.
+2. Power the ESP32. Join the setup Wi‑Fi (`TinyEngineer-XXXX`), open `http://192.168.4.1/config`, open **Assembly support**, and press **Move all to 90°**. Use **Identify** on a joint if you need to see which plug is which. The shaft is now at electrical center.
 3. After you finish that joint, **unplug** the servo from the PCA9685 before the next awkward join.
 
 
@@ -259,11 +259,11 @@ The robot is built. What remains is servo calibration, Wi-Fi, and a quick check 
 1. Connect power. The board should start the **setup access point** (`TinyEngineer-XXXX`). First boot, or after factory reset + power-cycle.
 2. Join that Wi-Fi and open the configurator (`http://192.168.4.1/config`).
 3. Walk through the **entire setup wizard**:
-  1. Seat printed parts on the servo shafts at 90°, then mark each joint’s safe min/max (factory reset keeps prior ranges; you can still change them here).
+  1. **Servos hub:** run **Calibrate servos** (guided Body → Neck → Head → Hands) on the assembled robot, or **Skip** if NVS/defaults are already good. **Assembly support** is only for seating horns — use it from the hub if needed, then return; it does not start range calibration.
   2. Look at the OLED and tap Rotate 180° if text is upside down (factory reset keeps the rotation).
   3. Tap Red/Green/Blue on the onboard LED; change mapping only if colors look wrong (default **GRB**; factory reset keeps the mapping).
   4. Play the welcome clip through the speaker.
-  5. Hostname and home Wi-Fi (**2.4 GHz** only). OLED shows join-AP steps.
+  5. Hostname and home Wi-Fi (**2.4 GHz** only), or USB-only. OLED shows join-AP steps.
 4. When the wizard is finished, **disconnect power**, then power on again.
 5. The robot should join your home network and expose the **REST API**. Prove it — [getting-started §7](../getting-started.md#7-prove-it), [api.md](../api.md).
 

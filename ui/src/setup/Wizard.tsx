@@ -4,11 +4,13 @@ import { useRobot } from "../robot";
 import { Button } from "../components/Button";
 import { useStatus } from "../status/status";
 import { useResettableState } from "../useResettableState";
-import { FindRanges } from "./FindRanges";
+import type { Range } from "../servos";
+import { GuidedCalibration } from "./GuidedCalibration";
 import { LedStep } from "./LedStep";
 import { NetworkStep } from "./NetworkStep";
 import { PlaceParts } from "./PlaceParts";
 import { ScreenStep } from "./ScreenStep";
+import { ServosHub } from "./ServosHub";
 import { SpeakerStep } from "./SpeakerStep";
 import { useCalibration } from "./useCalibration";
 import { releaseLed, useLedMapping } from "./useLedMapping";
@@ -32,8 +34,8 @@ export function Wizard({ settings }: { settings: Settings }) {
   const led = useLedMapping(settings.rgb_order);
   const step = STEPS[stepIndex];
   const nextStep = STEPS.at(stepIndex + 1);
-  const placingParts = step.id === "servos" && calibration.phase === "horns";
-  const ready: Partial<Record<StepId, boolean>> = { servos: calibration.valid, led: led.valid };
+  const onServos = step.id === "servos";
+  const ready: Partial<Record<StepId, boolean>> = { led: led.valid };
 
   // A hold left over from an earlier visit would keep the LED lit.
   useEffect(() => {
@@ -52,16 +54,25 @@ export function Wizard({ settings }: { settings: Settings }) {
     return result?.ok === true;
   }
 
-  // What each step saves before the wizard moves on.
+  async function saveServoRanges(ranges: Range[] = calibration.ranges) {
+    return save(
+      {
+        servo_mins: ranges.map(([min]) => min),
+        servo_maxs: ranges.map(([, max]) => max),
+      },
+      "Saving servo ranges…",
+    );
+  }
+
+  async function finishServos(ranges?: Range[]) {
+    if (await saveServoRanges(ranges)) {
+      calibration.goHub();
+      setStepIndex(stepIndex + 1);
+    }
+  }
+
+  // What each non-servos step saves before the wizard moves on.
   const saves: Partial<Record<StepId, () => Promise<boolean>>> = {
-    servos: () =>
-      save(
-        {
-          servo_mins: calibration.ranges.map(([min]) => min),
-          servo_maxs: calibration.ranges.map(([, max]) => max),
-        },
-        "Saving servo ranges…",
-      ),
     oled: () => save({ oled_rotate_180: oledRotate180 }, "Saving screen rotation…"),
     led: () => save({ rgb_order: led.order }, "Saving LED mapping…"),
   };
@@ -75,21 +86,15 @@ export function Wizard({ settings }: { settings: Settings }) {
   }
 
   function back() {
-    if (step.id === "servos") {
-      calibration.setPhase("horns");
-
-      return;
-    }
-
     if (step.id === "oled") {
-      calibration.setPhase("ranges");
+      calibration.goHub();
     }
 
     setStepIndex(stepIndex - 1);
   }
 
   return (
-    <div>
+    <div className="setup-wizard">
       <h2 className="page-title">Tiny Engineer setup</h2>
       <p className="page-desc">{`Step ${stepIndex + 1} of ${STEPS.length} · ${step.title}`}</p>
       <div className="setup-progress-track">
@@ -98,19 +103,23 @@ export function Wizard({ settings }: { settings: Settings }) {
           style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }}
         ></div>
       </div>
-      {step.id === "servos" &&
-        (placingParts ? (
-          <PlaceParts calibration={calibration} />
-        ) : (
-          <FindRanges calibration={calibration} />
-        ))}
+      {onServos && calibration.mode === "hub" && (
+        <ServosHub calibration={calibration} onSkip={() => void finishServos()} />
+      )}
+      {onServos && calibration.mode === "assembly" && <PlaceParts calibration={calibration} />}
+      {onServos && calibration.mode === "guided" && (
+        <GuidedCalibration
+          calibration={calibration}
+          onComplete={(ranges) => void finishServos(ranges)}
+        />
+      )}
       {step.id === "oled" && (
         <ScreenStep rotate180={oledRotate180} onRotate={() => setOledRotate180(!oledRotate180)} />
       )}
       {step.id === "led" && <LedStep mapping={led} />}
       {step.id === "speaker" && <SpeakerStep />}
       {step.id === "network" && <NetworkStep settings={settings} />}
-      {!placingParts && (
+      {!onServos && (
         <div className="setup-footer">
           <Button onClick={back}>Back</Button>
           {nextStep && (

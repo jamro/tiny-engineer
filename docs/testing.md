@@ -37,7 +37,7 @@ npm test --prefix ui
 npm run format --prefix ui   # apply Prettier
 ```
 
-`npm test` runs [Vitest](https://vitest.dev/) in jsdom: each test renders the app with [Testing Library](https://testing-library.com/docs/preact-testing-library/intro/) and drives it against a fake robot that stubs `fetch` and records requests ([`ui/test/robot.tsx`](../ui/test/robot.tsx)). The tests cover the auth gate, config saving and access-token handling, the staged WiFi network list, the servo page range hint, and the setup wizard (step order, what each step saves, step-only calibration moves, LED order validation).
+`npm test` runs [Vitest](https://vitest.dev/) in jsdom: each test renders the app with [Testing Library](https://testing-library.com/docs/preact-testing-library/intro/) and drives it against a fake robot that stubs `fetch` and records requests ([`ui/test/robot.tsx`](../ui/test/robot.tsx)). The tests cover the auth gate, config saving and access-token handling, the staged WiFi network list, the servo page range hint, and the setup wizard (servos hub, skip/assembly/guided calibration, what each step saves, LED order validation).
 
 ## Packages
 

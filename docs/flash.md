@@ -19,7 +19,7 @@ The stock image includes app firmware and LittleFS (WAV audio). The site ships e
 Flash with the ESP32-C3-Zero **seated on the main control board** (PCA9685 present). A bare module alone is not enough for these checks.
 
 - Onboard RGB is **dim green** during init (not a repeating red blink).
-- Setup AP `TinyEngineer-XXXX` appears; open `http://192.168.4.1/config`, press **Move all to 90°** (one servo moves).
+- Setup AP `TinyEngineer-XXXX` appears; open `http://192.168.4.1/config`, choose **Assembly support**, press **Move all to 90°** (servos move).
 
 Fatal init hangs and blinks the RGB **red**. Count flashes before the long gap:
 

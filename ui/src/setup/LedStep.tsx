@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { Button } from "../components/Button";
 import { ConfigSection } from "../components/ConfigSection";
 import { useStatus } from "../status/status";
@@ -14,16 +14,25 @@ const BYTE_LABELS = ["First byte", "Second byte", "Third byte"];
 
 export function LedStep({ mapping }: { mapping: LedMapping }) {
   const { perform } = useStatus();
+  const [completedAction, setCompletedAction] = useState<string>();
 
   // Leaving the step hands the LED back to the setup AP's dim blue.
   useEffect(() => () => void releaseLed(), []);
 
-  const preview = (json: { color: string; rgb_order: string } | { byte: number }) =>
-    perform({
+  async function preview(
+    json: { color: string; rgb_order: string } | { byte: number },
+    completed: string,
+  ) {
+    const result = await perform({
       path: "/setup/led",
       request: { method: "POST", json },
       failure: "LED preview failed",
     });
+
+    if (result?.ok) {
+      setCompletedAction(completed);
+    }
+  }
 
   function pickLook(byte: number, look: string) {
     mapping.setLooks(mapping.looks.map((each, index) => (index === byte ? look : each)));
@@ -41,16 +50,22 @@ export function LedStep({ mapping }: { mapping: LedMapping }) {
             key={channel}
             className={`led-${channel.toLowerCase()}`}
             onClick={() =>
-              preview({
-                color: channel,
-                rgb_order: mapping.previewOrder,
-              })
+              preview(
+                {
+                  color: channel,
+                  rgb_order: mapping.previewOrder,
+                },
+                `${name} preview sent`,
+              )
             }
           >
             {name}
           </Button>
         ))}
       </div>
+      <p className="setup-state" data-testid="led-completion">
+        {completedAction ? `✓ ${completedAction}` : "No LED test run yet."}
+      </p>
       <Button id="setup-led-remap-toggle" onClick={() => mapping.setRemapOpen(true)}>
         Change color mapping
       </Button>
@@ -73,7 +88,7 @@ export function LedStep({ mapping }: { mapping: LedMapping }) {
           {BYTE_LABELS.map((label, byte) => (
             <div key={label} className="led-byte" role="group" aria-label={label}>
               <p className="led-byte-label">{label}</p>
-              <Button className="led-light" onClick={() => preview({ byte })}>
+              <Button className="led-light" onClick={() => preview({ byte }, `${label} lit`)}>
                 Light
               </Button>
               <p className="hint">Looks like</p>

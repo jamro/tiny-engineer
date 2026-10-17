@@ -56,7 +56,7 @@ flowchart LR
 ### 4. Flash
 
 - **Open:** **[Web flash](https://jamro.github.io/tiny-engineer/flash/)** (Chrome or Edge; USB-C **data** cable). Seat the ESP32 on the **main control board** first (desk electronics from step 3); a bare module alone will not open the setup AP. Pick the latest release → Connect & install. No PlatformIO or repo clone needed for stock firmware. More detail / stuck / advanced: [flash.md](flash.md).
-- **Until:** stock firmware + audio on the board; **Move all to 90°** (setup AP config page) or one servo moves. Do not finish the Wi-Fi wizard yet.
+- **Until:** stock firmware + audio on the board; setup AP **Assembly support** → **Move all to 90°** (or one servo moves). Do not finish the Wi-Fi wizard yet.
 - **Return** here. Keep electronics on the desk — do not seat them in the chest yet.
 
 ### 5. Assemble

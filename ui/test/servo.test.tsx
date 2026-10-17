@@ -28,7 +28,7 @@ describe("servo page", () => {
 
     await typeAngle(user, "150");
 
-    expect(screen.getByText(/firmware clamps to 60–130°/).classList.contains("warn")).toBe(true);
+    expect(screen.getByText(/firmware clamps to 80–100°/).classList.contains("warn")).toBe(true);
   });
 
   it("moves only when the form is submitted", async () => {

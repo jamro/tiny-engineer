@@ -186,15 +186,21 @@ nav a.active {
 }
 
 #status {
+  position: fixed;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2rem), 42rem);
+  z-index: 20;
   padding: 0.65rem 1rem;
   border-radius: 0.4rem;
-  margin-bottom: 1rem;
   font-size: 0.9rem;
+  box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 12%);
 }
 
 #status.loading {
-  background: #eee;
-  color: var(--loading);
+  background: #1a1a1a;
+  color: #fff;
 }
 
 #status.ok {
@@ -258,6 +264,15 @@ nav a.active {
   color: var(--muted);
 }
 
+.btn-primary .btn-hint {
+  color: rgb(255 255 255 / 85%);
+}
+
+.btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
 .btn-primary {
   background: var(--accent);
   color: #fff;
@@ -265,6 +280,19 @@ nav a.active {
   text-align: center;
   font-weight: 600;
   margin-top: 1rem;
+}
+
+.btn-secondary {
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: inherit;
+  text-align: center;
+  font-weight: 600;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, var(--card));
 }
 
 .test-card {
@@ -732,32 +760,58 @@ footer {
   flex: 1;
 }
 
+@media (width <= 48rem) and (height <= 50rem) {
+  .setup-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    padding-top: 0.75rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .config-section .setup-footer {
+    background: var(--card);
+  }
+
+  .setup-wizard > .setup-footer {
+    background: var(--bg);
+  }
+}
+
 .setup-copy {
   font-size: 0.9rem;
   color: var(--muted);
   margin: 0 0 1rem;
 }
 
-.joint-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin: 0 0 1rem;
+.setup-state {
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
 }
 
-.joint-tabs .btn {
-  width: 100%;
-  min-height: 2.85rem;
-  padding: 0.65rem 0.5rem;
-  font-size: 0.95rem;
-  text-align: center;
-  font-weight: 600;
+.setup-state strong {
+  color: var(--text);
 }
 
 .calib-guide {
   pointer-events: none;
   user-select: none;
   margin: 0.25rem 0 0.5rem;
+}
+
+.calib-progress-track {
+  height: 0.25rem;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: -0.55rem 0 1rem;
+}
+
+.calib-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
 }
 
 .calib-marker {
@@ -780,6 +834,26 @@ footer {
   font-weight: 700;
   margin: 0.35rem 0 0.85rem;
   letter-spacing: -0.02em;
+}
+
+.calib-range-label,
+.calib-target {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.calib-range-label {
+  margin: 0.25rem 0 0;
+  text-align: center;
+}
+
+.calib-target {
+  margin: 0 0 0.6rem;
+}
+
+.calib-range-label strong,
+.calib-target strong {
+  color: var(--text);
 }
 
 .calib-nudge {
@@ -815,7 +889,48 @@ footer {
   margin-top: 0;
 }
 
-#setup-horns-done {
+.setup-hub-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.setup-hub-actions .btn {
+  width: 100%;
+  font-weight: 600;
+  margin-top: 0;
+  text-align: center;
+}
+
+.setup-hub-actions .btn-primary {
+  order: 0;
+}
+
+.setup-hub-skip-hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.setup-identify {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.85rem 0 0.5rem;
+}
+
+.setup-identify .btn {
+  flex: 1 1 8rem;
+}
+
+.setup-identify .btn.done {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--card));
+  font-weight: 600;
+}
+
+#setup-assembly-done {
   margin-top: 0.75rem;
   text-align: center;
   font-weight: 600;
@@ -955,12 +1070,6 @@ footer {
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
-}
-
-.joint-tabs .btn.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
 }
 
 .led-test .btn.led-r {

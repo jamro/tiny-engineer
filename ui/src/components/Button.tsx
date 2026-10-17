@@ -2,7 +2,7 @@ import clsx from "clsx";
 import type { ComponentProps } from "preact";
 import { useStatus } from "../status/status";
 
-type ButtonProps = ComponentProps<"button"> & { variant?: "primary" | "danger" };
+type ButtonProps = ComponentProps<"button"> & { variant?: "primary" | "secondary" | "danger" };
 
 // Every button locks while an action runs.
 export function Button({ variant, className, disabled, ...props }: ButtonProps) {
