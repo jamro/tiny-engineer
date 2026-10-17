@@ -89,7 +89,8 @@ void SerialFrameDecoder::onDelimiter_() {
   buf_[len_] = COBS_FRAME_DELIMITER;
   const size_t encodedLen = len_ + 1;
 
-  uint8_t decoded[kSerialMaxPayload];
+  // Static: handler may send frames while this buffer is still live on the call stack.
+  static uint8_t decoded[kSerialMaxPayload];
   size_t decodedLen = 0;
   size_t consumed = 0;
   const cobs_ret_t result =

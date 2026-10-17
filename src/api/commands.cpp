@@ -8,6 +8,7 @@
 #include "display/oled.h"
 #include "hardware/pca9685_servos.h"
 #include "hardware/rgb.h"
+#include "network/wifi_connect.h"
 #include "servos.h"
 #include "settings/settings.h"
 
@@ -40,6 +41,15 @@ ApiResult apiFactoryReset() {
 ApiResult apiSaveSettings(const SettingsPatch& patch) {
   if (patch.invalidField() != nullptr) {
     return {false, 400, "invalid settings"};
+  }
+  if (const char* linkErr = settingsLinkModePatchDenied(
+        patch.linkMode,
+        settingsLinkMode(),
+        settingsProvisioned(),
+        wifiProvisioningMode()
+      );
+      linkErr != nullptr) {
+    return {false, 400, linkErr};
   }
   if (!saveSettings(patch)) {
     return {false, 500, "save failed"};

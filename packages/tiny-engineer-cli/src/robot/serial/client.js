@@ -254,28 +254,38 @@ export class SerialRobotClient {
     let offset = 0;
     let seq = 1;
     const bytes = Buffer.from(wav);
+    let ended = false;
 
-    while (offset < bytes.length) {
-      const chunkLen = Math.min(credits, bytes.length - offset, 1024);
-      if (chunkLen <= 0) {
-        throw new Error("serial play stalled (no credits)");
+    try {
+      while (offset < bytes.length) {
+        const chunkLen = Math.min(credits, bytes.length - offset, 1024);
+        if (chunkLen <= 0) {
+          throw new Error("serial play stalled (no credits)");
+        }
+        const chunk = bytes.subarray(offset, offset + chunkLen);
+        const payload = packStreamPayload(streamId, SerialStreamKind.Data, seq, chunk);
+        const message = packMessage(SerialMsgType.Stream, 0, payload);
+        const frame = cobsEncodeFrame(message);
+        credits = 0;
+        const creditPromise = this.waitCredit(streamId, seq, 10_000);
+        await new Promise((resolve, reject) => {
+          this._port.write(frame, (err) => (err ? reject(err) : resolve(undefined)));
+        });
+        credits = await creditPromise;
+        offset += chunkLen;
+        seq = (seq + 1) & 0xffff;
+        if (seq === 0) seq = 1;
       }
-      const chunk = bytes.subarray(offset, offset + chunkLen);
-      const payload = packStreamPayload(streamId, SerialStreamKind.Data, seq, chunk);
-      const message = packMessage(SerialMsgType.Stream, 0, payload);
-      const frame = cobsEncodeFrame(message);
-      credits = 0;
-      const creditPromise = this.waitCredit(streamId, seq, 10_000);
-      await new Promise((resolve, reject) => {
-        this._port.write(frame, (err) => (err ? reject(err) : resolve(undefined)));
-      });
-      credits = await creditPromise;
-      offset += chunkLen;
-      seq = (seq + 1) & 0xffff;
-      if (seq === 0) seq = 1;
-    }
 
-    return this.request("play_end", { stream_id: streamId }, { timeoutMs });
+      const result = await this.request("play_end", { stream_id: streamId }, { timeoutMs });
+      ended = true;
+      return result;
+    } finally {
+      // Best-effort close so firmware does not stay busy after credit/stream errors.
+      if (!ended && this._port?.isOpen) {
+        await this.request("play_end", { stream_id: streamId }, { timeoutMs: 5000 }).catch(() => {});
+      }
+    }
   }
 }
 

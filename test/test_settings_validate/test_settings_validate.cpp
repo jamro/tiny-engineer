@@ -169,6 +169,32 @@ void test_link_mode() {
   TEST_ASSERT_FALSE(settingsValidateLinkMode(nullptr));
 }
 
+void test_link_mode_patch_rejects_empty() {
+  SettingsPatch patch;
+  patch.linkMode = "";
+  TEST_ASSERT_EQUAL_STRING("link_mode", patch.invalidField());
+
+  patch.linkMode = "wifi";
+  TEST_ASSERT_NULL(patch.invalidField());
+}
+
+void test_link_mode_patch_denied_outside_setup() {
+  TEST_ASSERT_NULL(settingsLinkModePatchDenied("usb", "", false, true));
+  TEST_ASSERT_NULL(settingsLinkModePatchDenied("wifi", "wifi", true, false));
+  TEST_ASSERT_EQUAL_STRING(
+    "link_mode only in setup",
+    settingsLinkModePatchDenied("usb", "wifi", true, false)
+  );
+  TEST_ASSERT_EQUAL_STRING(
+    "link_mode only in setup",
+    settingsLinkModePatchDenied("wifi", "usb", true, false)
+  );
+  TEST_ASSERT_EQUAL_STRING(
+    "link_mode only in setup",
+    settingsLinkModePatchDenied("wifi", "", false, false)
+  );
+}
+
 int main() {
   UNITY_BEGIN();
   RUN_TEST(test_hostname_rejects_invalid);
@@ -186,5 +212,7 @@ int main() {
   RUN_TEST(test_patch_names_its_setup_only_step);
   RUN_TEST(test_rgb_order);
   RUN_TEST(test_link_mode);
+  RUN_TEST(test_link_mode_patch_rejects_empty);
+  RUN_TEST(test_link_mode_patch_denied_outside_setup);
   return UNITY_END();
 }

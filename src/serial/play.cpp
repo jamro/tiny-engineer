@@ -66,6 +66,8 @@ public:
     }
     if (length == 0 || length > credits_) {
       error = "over credits";
+      creditsOut = 0;
+      abort_();
       return false;
     }
     credits_ = 0;
@@ -73,6 +75,7 @@ public:
     if (parser_->failed()) {
       error = parser_->error() != nullptr ? parser_->error() : "wav parse failed";
       creditsOut = 0;
+      abort_();
       return false;
     }
     // writeMonoToSpeaker blocks inside onPcm, so the chunk is drained before we grant again.
@@ -98,12 +101,7 @@ public:
     serialLogPrint("[play] serial end ms=");
     serialLogPrintln(playedMs);
 
-    if (started_) {
-      if (animation_ == AnimationId::Talking) {
-        audioMotionEnd(millis());
-      }
-      setAnimationImmediately(animationIsContinuous(previous_) ? previous_ : AnimationId::None);
-    }
+    restoreAnimIfStarted_();
     release_();
     if (failed_) {
       return false;
@@ -134,6 +132,23 @@ public:
   }
 
 private:
+  void restoreAnimIfStarted_() {
+    if (!started_) {
+      return;
+    }
+    if (animation_ == AnimationId::Talking) {
+      audioMotionEnd(millis());
+    }
+    setAnimationImmediately(animationIsContinuous(previous_) ? previous_ : AnimationId::None);
+    started_ = false;
+  }
+
+  // End session after a rejected DATA chunk: free busy so later play is not stuck at 503.
+  void abort_() {
+    restoreAnimIfStarted_();
+    release_();
+  }
+
   void release_() {
     parser_.reset();
     active_ = false;

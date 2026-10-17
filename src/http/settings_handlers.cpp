@@ -186,6 +186,17 @@ void handleSettingsPost(WebServer& server) {
     return;
   }
 
+  if (const char* linkErr = settingsLinkModePatchDenied(
+        patch.linkMode,
+        settingsLinkMode(),
+        settingsProvisioned(),
+        wifiProvisioningMode()
+      );
+      linkErr != nullptr) {
+    sendError(server, 400, linkErr);
+    return;
+  }
+
   if (!saveSettings(patch)) {
     sendError(server, 400, "save failed");
     return;

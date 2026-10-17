@@ -171,7 +171,8 @@ const char* SettingsPatch::invalidField() const {
     return "access_token";
   }
 
-  if (linkMode != nullptr && !settingsValidateLinkMode(linkMode)) {
+  // Empty stays valid for NVS load / defaults via settingsValidateLinkMode, not for patches.
+  if (linkMode != nullptr && (linkMode[0] == '\0' || !settingsValidateLinkMode(linkMode))) {
     return "link_mode";
   }
 
@@ -183,6 +184,27 @@ const char* SettingsPatch::invalidField() const {
     return "rgb_order";
   }
 
+  return nullptr;
+}
+
+const char* settingsLinkModePatchDenied(
+  const char* patchMode,
+  const char* currentMode,
+  bool provisioned,
+  bool inSetupAp
+) {
+  if (patchMode == nullptr) {
+    return nullptr;
+  }
+  if (inSetupAp) {
+    return nullptr;
+  }
+  if (currentMode != nullptr && strcmp(patchMode, currentMode) == 0) {
+    return nullptr;
+  }
+  if (provisioned || patchMode[0] != '\0') {
+    return "link_mode only in setup";
+  }
   return nullptr;
 }
 

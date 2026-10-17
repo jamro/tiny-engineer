@@ -88,6 +88,14 @@ const char* settingsLinkMode();
 // True after setup chose Wi-Fi or USB-only (migrated devices with saved nets count).
 bool settingsProvisioned();
 bool settingsValidateLinkMode(const char* linkMode);
+// Pure gate for tests: nullptr if the patch may change link_mode, else a short error.
+// Setup AP may set mode; outside AP only a no-op (same value) is allowed.
+const char* settingsLinkModePatchDenied(
+  const char* patchMode,
+  const char* currentMode,
+  bool provisioned,
+  bool inSetupAp
+);
 float settingsServoMin(int index);
 float settingsServoMax(int index);
 const char* settingsRgbOrder();

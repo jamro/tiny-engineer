@@ -29,7 +29,8 @@ void writeFrame(const uint8_t* payload, size_t payloadLen) {
 }
 
 void sendPacked(const SerialHeader& header, const uint8_t* payload, size_t payloadLen) {
-  uint8_t message[kSerialHeaderSize + kSerialMaxPayload];
+  // File-scope would be ideal; static keeps ~2 KB off the Arduino loop-task stack.
+  static uint8_t message[kSerialHeaderSize + kSerialMaxPayload];
   const size_t n = serialPackMessage(header, payload, payloadLen, message, sizeof(message));
   if (n == 0) {
     return;
