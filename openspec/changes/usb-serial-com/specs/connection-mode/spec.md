@@ -14,8 +14,23 @@ The setup wizard’s final step MUST let the user choose either Wi‑Fi credenti
 - **THEN** the device stores Wi‑Fi mode and leaves setup AP after a successful connection test (existing Wi‑Fi setup behavior)
 
 #### Scenario: Choose USB-only at end of setup
-- **WHEN** the user completes setup by selecting USB connection only
-- **THEN** the device stores USB-only mode, stops requiring Wi‑Fi credentials, and ends provisioning without joining a network
+- **WHEN** the user completes setup by selecting USB connection only while the setup AP is active
+- **THEN** the device stores USB-only mode, does not join a Wi‑Fi network, stops the setup softAP after the HTTP response is sent, clears provisioning mode, and stops the HTTP control API for that session
+
+#### Scenario: USB-only unlocks serial without reboot
+- **WHEN** USB-only mode has just been saved and the setup AP has been torn down
+- **THEN** the full serial API is available without requiring a power-cycle, and sync/health no longer report provisioning as active
+
+### Requirement: Idle eyes after leaving setup AP
+After the setup AP is torn down in-session (Wi‑Fi connect success or USB-only save), the OLED MUST leave the provisioning/status text and return to the normal idle eyes display. A brief status flash (IP, “No IP”, or USB-only ready) MAY appear first, matching cold-boot behavior, but MUST NOT remain indefinitely in place of eyes.
+
+#### Scenario: Eyes after Wi-Fi setup leave
+- **WHEN** the user completes Wi‑Fi setup and the setup AP has been stopped in the same session
+- **THEN** after any brief IP (or “No IP”) status flash, the OLED shows idle eyes rather than leaving the status text on screen
+
+#### Scenario: Eyes after USB-only setup leave
+- **WHEN** the user completes USB-only setup and the setup AP has been stopped in the same session
+- **THEN** after any brief USB-only status flash, the OLED shows idle eyes rather than leaving the status text on screen
 
 ### Requirement: Mode controls Wi-Fi and HTTP only
 Connection mode MUST enable or disable Wi‑Fi station mode and the HTTP API. Connection mode MUST NOT disable the serial API once the device is provisioned.
@@ -28,16 +43,24 @@ Connection mode MUST enable or disable Wi‑Fi station mode and the HTTP API. Co
 - **WHEN** the device boots in USB-only mode
 - **THEN** the device does not start the HTTP control API and does not join Wi‑Fi as a station
 
+#### Scenario: USB-only stops HTTP when leaving setup AP
+- **WHEN** the user selects USB-only during an active setup AP session
+- **THEN** after the successful save response, the HTTP control API is no longer served on the setup AP (AP stopped; no zombie config server)
+
 #### Scenario: Serial remains in Wi-Fi mode
 - **WHEN** the device is provisioned in Wi‑Fi mode
 - **THEN** the full serial API remains available on USB CDC
 
 ### Requirement: Provisioned readiness without Wi-Fi
-Operations that today require Wi‑Fi credentials to be configured MUST treat USB-only mode as provisioned. Those operations MUST be available over serial in USB-only mode without returning a Wi‑Fi-not-configured error.
+Operations that today require Wi‑Fi credentials to be configured MUST treat USB-only mode as provisioned. Those operations MUST be available over serial in USB-only mode without returning a Wi‑Fi-not-configured error. A power-cycle MAY still be recommended for a clean boot, but MUST NOT be required to end provisioning or use the full serial API after USB-only save.
 
 #### Scenario: Anim in USB-only mode
 - **WHEN** connection mode is USB-only and the host requests an animation over serial
 - **THEN** the device does not reject the request solely because no Wi‑Fi networks are saved
+
+#### Scenario: Anim after USB-only save in same power cycle
+- **WHEN** the user has just completed USB-only setup and the setup AP is down
+- **THEN** a serial animation request succeeds without a reboot
 
 ### Requirement: Escape USB-only via factory reset only
 Leaving USB-only mode MUST require a factory reset that clears provisioning and reopens setup AP on the next boot cycle as today. The device MUST NOT offer a silent in-place switch from USB-only to Wi‑Fi mode without factory reset.

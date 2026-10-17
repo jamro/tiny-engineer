@@ -20,6 +20,7 @@ SettingsValues SettingsValues::defaults() {
   strlcpy(values.loading, SETTINGS_DEFAULT_LOADING, sizeof(values.loading));
   strlcpy(values.eyesStyle, SETTINGS_DEFAULT_EYES_STYLE, sizeof(values.eyesStyle));
   strlcpy(values.accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN, sizeof(values.accessToken));
+  strlcpy(values.linkMode, SETTINGS_DEFAULT_LINK_MODE, sizeof(values.linkMode));
 
   for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
     values.servoRanges.mins[i] = static_cast<uint8_t>(SERVO_SPECS[i].min);
@@ -56,6 +57,10 @@ void SettingsValues::apply(const SettingsPatch& patch) {
     strlcpy(accessToken, patch.accessToken, sizeof(accessToken));
   }
 
+  if (patch.linkMode != nullptr) {
+    strlcpy(linkMode, patch.linkMode, sizeof(linkMode));
+  }
+
   if (patch.rgbOrder != nullptr) {
     strlcpy(rgbOrder, patch.rgbOrder, sizeof(rgbOrder));
   }
@@ -67,11 +72,13 @@ void SettingsValues::log(const char* prefix) const {
   }
 
   const ServoRanges& r = servoRanges;
-
-  Serial.printf(
+  char line[384];
+  snprintf(
+    line,
+    sizeof(line),
     "%s sleep_timeout=%umin hostname=%s volume=%u welcome=%s serial_log=on "
-    "continuous_timeout=%umin loading=%s eyes_style=%s access_token=%s wifi_networks=%u "
-    "servos=%u-%u;%u-%u;%u-%u;%u-%u;%u-%u rgb_order=%s oled_rotate_180=%s\n",
+    "continuous_timeout=%umin loading=%s eyes_style=%s access_token=%s link_mode=%s "
+    "wifi_networks=%u servos=%u-%u;%u-%u;%u-%u;%u-%u;%u-%u rgb_order=%s oled_rotate_180=%s",
     prefix,
     static_cast<unsigned>(sleepTimeoutMin),
     hostname,
@@ -81,10 +88,12 @@ void SettingsValues::log(const char* prefix) const {
     loading,
     eyesStyle,
     accessToken[0] != '\0' ? "set" : "unset",
+    linkMode[0] != '\0' ? linkMode : "(none)",
     static_cast<unsigned>(g_wifiNetworks.count()),
     r.mins[0], r.maxs[0], r.mins[1], r.maxs[1], r.mins[2], r.maxs[2], r.mins[3], r.maxs[3],
     r.mins[4], r.maxs[4],
     rgbOrder,
     oledRotate180 ? "on" : "off"
   );
+  serialLogPrintln(line);
 }

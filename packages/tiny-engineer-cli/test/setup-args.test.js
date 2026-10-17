@@ -22,12 +22,20 @@ test("parseSetupArgs reads flags", () => {
     "--url",
     "http://x",
     "--force-url",
+    "--transport",
+    "serial",
+    "--force-transport",
+    "--port",
+    "/dev/ttyUSB0",
   ]);
   assert.deepEqual(args.ides, ["cursor"]);
   assert.equal(args.yes, true);
   assert.equal(args.dryRun, true);
   assert.equal(args.url, "http://x");
   assert.equal(args.forceUrl, true);
+  assert.equal(args.transport, "serial");
+  assert.equal(args.forceTransport, true);
+  assert.equal(args.port, "/dev/ttyUSB0");
 });
 
 test("runSetup --yes without ide exits 1", async () => {
@@ -84,6 +92,31 @@ test("runSetup --yes writes cursor hooks", async () => {
     assert.equal(hooks.hooks.stop[0].timeout, 30);
     const env = readFileSync(join(dir, ".env"), "utf8");
     assert.ok(env.includes("TINY_ENGINEER_URL=http://robot.test"));
+    assert.ok(env.includes("TINY_ENGINEER_TRANSPORT=http"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("runSetup --yes --transport serial writes transport without URL", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
+  mkdirSync(join(dir, ".cursor"));
+  const out = createOutput({
+    quiet: true,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: () => {},
+  });
+  try {
+    await runSetup(out, ["cursor", "--yes", "--transport", "serial", "--port", "/dev/cu.usb"], {
+      projectRoot: dir,
+    });
+    assert.equal(process.exitCode, 0);
+    const env = readFileSync(join(dir, ".env"), "utf8");
+    assert.ok(env.includes("TINY_ENGINEER_TRANSPORT=serial"));
+    assert.ok(env.includes("TINY_ENGINEER_PORT=/dev/cu.usb"));
+    assert.ok(!env.includes("TINY_ENGINEER_URL="));
   } finally {
     rmSync(dir, { recursive: true, force: true });
     process.exitCode = 0;

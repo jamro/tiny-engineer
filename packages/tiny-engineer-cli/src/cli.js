@@ -1,15 +1,18 @@
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 
-import { DEFAULT_URL, getBaseUrl, getToken, loadDotEnv } from "./config/env.js";
-import { get as getIntegration, list as listIntegrations } from "./integrations/registry.js";
+import { DEFAULT_URL, loadDotEnv } from "./config/env.js";
 import {
-  formatRobotError,
-  postAnim,
-  postPlay,
-  validateAnimName,
-  validatePlayAnimName,
-} from "./robot/client.js";
+  runHealth,
+  runReset,
+  runServo,
+  runSettings,
+  runTest,
+} from "./commands/parity.js";
+import { runMonitor } from "./commands/monitor.js";
+import { get as getIntegration, list as listIntegrations } from "./integrations/registry.js";
+import { validateAnimName, validatePlayAnimName } from "./robot/client.js";
+import { formatRobotError, robotPlay, robotSetAnim } from "./robot/transport.js";
 import {
   parseAnimArgs,
   parseCommonArgs,
@@ -32,19 +35,29 @@ Unified CLI for the Tiny Engineer desk robot.
 Commands:
   setup [ide...]          Merge IDE hook configs into the current project
   uninstall [ide...]      Remove Tiny Engineer hook entries (keeps other hooks)
-  doctor                  Check URL, token, hook wiring, and /health
-  hook <ide>              Read hook JSON from stdin, map to a pose, POST /anim
-  anim <name> [--url]     POST /anim?name=<name>
-  play <clip.wav> [opts]  POST /play (16-bit mono PCM WAV)
+  doctor                  Check transport, URL/token, hook wiring, and health
+  hook <ide>              Read hook JSON from stdin, map to a pose, set anim
+  anim <name>             Set animation pose
+  play <clip.wav> [opts]  Stream WAV play (HTTP or serial credits)
+  settings [get|set]      Read or write settings
+  test <name>             Run hardware test (audio|bell|screen|movement|led)
+  servo <index> <angle>   Move one servo (degrees)
+  health                  Fetch health JSON/summary
+  reset [--yes]           Factory-reset device (confirm or --yes)
+  monitor                 Print serial LOG frames
 
 Options (most commands):
   --url <base>            Robot base URL (default: TINY_ENGINEER_URL, else ${DEFAULT_URL})
+  --transport <http|serial>
+                          Host transport (flag > TINY_ENGINEER_TRANSPORT > http)
+  --port <path>           Serial port when transport is serial
   -q, --quiet, --silent   Suppress success/info lines; errors still print
   -h, --help              Show this help
 
 Auth:
-  If TINY_ENGINEER_TOKEN is set (process env or project-root .env), requests
+  If TINY_ENGINEER_TOKEN is set (process env or project-root .env), HTTP requests
   send Authorization: Bearer <token>. Must match the device access_token.
+  Serial transport skips Bearer auth.
 
 Output:
   Colors/icons when stdout/stderr is a TTY (disabled by NO_COLOR or TERM=dumb).
@@ -57,10 +70,12 @@ Integrations (hook <ide>):
 
 Examples:
   tiny-engineer setup cursor --yes
+  tiny-engineer setup cursor --yes --transport serial
   tiny-engineer uninstall cursor --yes
-  tiny-engineer uninstall --all --yes --dry-run
   tiny-engineer doctor
   tiny-engineer anim ring
+  tiny-engineer settings get --transport serial
+  tiny-engineer reset --yes
   echo '{"hook_event_name":"stop"}' | tiny-engineer hook cursor
 `);
 }
@@ -110,7 +125,7 @@ async function runHook(out, argv, quietGlobal) {
   const anim = integration.mapToAnim(input);
   if (anim) {
     // Fail-open: ignore result so an offline robot never stalls the agent.
-    await postAnim(opts.url ?? getBaseUrl(), anim, getToken());
+    await robotSetAnim(anim, { url: opts.url, transport: opts.transport, port: opts.port });
   }
 
   const fileLines = integration.describeFiles?.(input, localOut.style) ?? [];
@@ -156,14 +171,17 @@ async function runAnim(out, argv, quietGlobal) {
     return;
   }
 
-  const baseUrl = opts.url ?? getBaseUrl();
-  const result = await postAnim(baseUrl, name, getToken());
+  const result = await robotSetAnim(name, {
+    url: opts.url,
+    transport: opts.transport,
+    port: opts.port,
+  });
   if (!result.ok) {
     localOut.error(formatRobotError(result));
     process.exitCode = 1;
     return;
   }
-  localOut.ok(`animation ${name} → ${localOut.style.dim(baseUrl)}`);
+  localOut.ok(`animation ${name} → ${localOut.style.dim(result.target ?? "robot")}`);
   process.exitCode = 0;
 }
 
@@ -201,13 +219,13 @@ async function runPlay(out, argv, quietGlobal) {
     return;
   }
 
-  const baseUrl = opts.url ?? getBaseUrl();
   const pose = opts.name ?? "talking";
-  const result = await postPlay({
-    baseUrl,
+  const result = await robotPlay({
     wav,
     name: opts.name,
-    token: getToken(),
+    url: opts.url,
+    transport: opts.transport,
+    port: opts.port,
   });
   if (!result.ok) {
     localOut.error(formatRobotError(result));
@@ -215,7 +233,7 @@ async function runPlay(out, argv, quietGlobal) {
     return;
   }
   localOut.ok(
-    `played ${basename(/** @type {string} */ (opts.wavPath))} (${pose}) → ${localOut.style.dim(baseUrl)}`,
+    `played ${basename(/** @type {string} */ (opts.wavPath))} (${pose}) → ${localOut.style.dim(result.target ?? "robot")}`,
   );
   process.exitCode = 0;
 }
@@ -258,6 +276,24 @@ export async function run(argv) {
       return;
     case "play":
       await runPlay(out, rest, global.quiet);
+      return;
+    case "settings":
+      await runSettings(out, rest, global.quiet);
+      return;
+    case "test":
+      await runTest(out, rest, global.quiet);
+      return;
+    case "servo":
+      await runServo(out, rest, global.quiet);
+      return;
+    case "health":
+      await runHealth(out, rest, global.quiet);
+      return;
+    case "reset":
+      await runReset(out, rest, global.quiet);
+      return;
+    case "monitor":
+      await runMonitor(out, rest);
       return;
     default:
       out.error(`Unknown command: ${command}`);

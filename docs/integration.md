@@ -1,13 +1,14 @@
 # Integrating Tiny Engineer
 
-Tiny Engineer is a Wi-Fi desk robot. Prefer the unified **`tiny-engineer` CLI** for Cursor, Claude Code, and Antigravity hooks. For custom agents, other IDEs, or scripts, call the **REST API** directly.
+Tiny Engineer is a desk robot controlled over **Wi‑Fi HTTP** and/or **USB serial**. Prefer the unified **`tiny-engineer` CLI** for Cursor, Claude Code, and Antigravity hooks. For custom agents, other IDEs, or scripts, call the **REST API** or the serial protocol.
 
-Robot must be on the same network. Base URL: `http://tiny-engineer.local` (or the IP shown on the OLED). Full HTTP reference: [`api.md`](api.md).
+HTTP: robot on the same network; base URL `http://tiny-engineer.local` (or OLED IP). Full HTTP reference: [`api.md`](api.md). USB serial (corporate Wi‑Fi bans, USB-only mode): [`serial.md`](serial.md).
 
 | Path | Best for | How |
 |---|---|---|
-| **`tiny-engineer` CLI** (default) | Cursor, Claude Code, Antigravity hooks | `tiny-engineer setup` → `hook <ide>` → `POST /anim` |
-| **REST API** (advanced) | Custom agents, other IDEs, CI, one-off scripts | `POST /anim?name=…` ([`api.md`](api.md)) |
+| **`tiny-engineer` CLI** (default) | Cursor, Claude Code, Antigravity hooks | `tiny-engineer setup` → `hook <ide>` → anim over HTTP or serial |
+| **REST API** (advanced) | Custom agents, other IDEs, CI | `POST /anim?name=…` ([`api.md`](api.md)) |
+| **USB serial** | No Wi‑Fi / USB-only device | `--transport serial` ([`serial.md`](serial.md)) |
 
 ```mermaid
 flowchart TB
@@ -49,7 +50,8 @@ npx -y tiny-engineer doctor
 
 - Cold `npx` can be slow: `setup` writes hook **`timeout` ≥ 30**.
 - Optional: `--url http://192.168.x.x` (default `TINY_ENGINEER_URL`, else `http://tiny-engineer.local`).
-- Auth: if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`.
+- Host transport: `--transport http|serial` or `TINY_ENGINEER_TRANSPORT` (setup writes this into project `.env`). Default `http`. Distinct from the device AP **Connection** step (`link_mode`).
+- Auth (HTTP only): if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`. Serial skips Bearer.
 - Prefer registry `npx` over `npx github:…` (SSH often fails in IDE hooks).
 
 **This firmware repo (local CLI development):**

@@ -8,7 +8,7 @@
 
 ## 2. Command core and HTTP adapter hookup
 
-- [ ] 2.1 Introduce a transport-agnostic command core for anim, settings get/set/reset, health, hardware tests, servo test, and factory reset; verify existing HTTP routes still pass `pio run` and relevant native/UI tests
+- [x] 2.1 Introduce a transport-agnostic command core for anim, settings get/set/reset, health, hardware tests, servo test, and factory reset; verify existing HTTP routes still pass `pio run` and relevant native/UI tests
 - [x] 2.2 Replace Wi‑Fi-only `Access::Configured` gating with provisioned checks used by both HTTP and serial; verify unprovisioned HTTP still returns the documented not-configured/setup behavior
 - [x] 2.3 Add a global busy lock for play/long operations and verify a second concurrent play (HTTP or serial) returns busy without aborting the first
 
@@ -18,29 +18,32 @@
 - [x] 3.2 Boot path: USB-only skips STA and does not start HTTP; Wi‑Fi mode keeps current connect/AP behavior; verify via boot logs / health fields once available
 - [x] 3.3 Extend setup wizard Network/Link step with USB-only choice; verify UI tests cover selecting USB-only and Wi‑Fi connect paths
 - [x] 3.4 Expose `link_mode` (and provisioning state) on `/auth` and/or `/settings`/`/health` as needed for UI/CLI; update `docs/api.md` and `ui/src/views/ApiReference.tsx` in the same change
+- [x] 3.5 After USB-only save during setup AP: mirror Wi‑Fi teardown (reply → delay → stop AP → clear provisioning → stop HTTP); unlock full serial without reboot; OLED + UI copy (no mandatory power-cycle); cover with firmware/UI test
+- [x] 3.6 After in-session AP teardown (Wi‑Fi leave and USB-only leave): brief status then `showIdleScreen()` / eyes (same as boot IP hold → idle); do not leave IP / “No IP” / USB-only text stuck; share helper with boot if practical; verify on device or with a focused test hook
 
 ## 4. Serial API operations and streaming
 
-- [ ] 4.1 Dispatch full serial ops when provisioned; ping/sync only while provisioning; verify anim rejected in provisioning and accepted after USB-only provision
-- [ ] 4.2 Implement credit-window stream play reusing `WavStreamParser` / speaker path; verify play completes for a short 16-bit mono 22050 WAV and credits prevent unbounded RX growth
+- [x] 4.1 Dispatch full serial ops when provisioned; ping/sync only while provisioning; verify anim rejected in provisioning and accepted after USB-only provision
+- [x] 4.2 Implement credit-window stream play reusing `WavStreamParser` / speaker path; verify play completes for a short 16-bit mono 22050 WAV and credits prevent unbounded RX growth
 - [x] 4.3 Route `serialLog*` through LOG frames when `serial_log` is on; verify no raw application log lines on the wire in a framed session
 - [x] 4.4 Skip Bearer auth on serial; verify HTTP auth behavior unchanged when token set
 - [x] 4.5 Run `pio run` after firmware serial stack lands and fix compile failures
+- [x] 4.6 HWCDC sizing for stream play: raise RX/TX before `Serial.begin` (recommend 4096); ensure `kSerialPlayCreditChunk` + CLI max chunk fit under RX with COBS margin; on `serialPlayFeed` failure surface error (no silent credit stall); verify CLI `play assets/test/audio_test_short_22K.wav --transport serial` completes on device
 
 ## 5. CLI transport, port cache, and parity commands
 
-- [ ] 5.0 Extend `tiny-engineer setup` (and uninstall `--purge-env`) so interactive/non-interactive flows choose host transport, merge `TINY_ENGINEER_TRANSPORT` / optional `TINY_ENGINEER_PORT` into project `.env`, keep URL merge for HTTP, and verify setup/uninstall tests cover serial and HTTP paths
-- [ ] 5.1 Add `--transport` / `TINY_ENGINEER_TRANSPORT` resolution (`flag > env > default http`, no cross-transport fallback) and verify CLI arg/env tests including setup-written `.env`
-- [ ] 5.2 Implement serial client (COBS + typed messages) with `--port` / `TINY_ENGINEER_PORT`, autodetect + cache + invalidate-on-fail; verify unit tests for cache hit/miss/stale
-- [ ] 5.3 Refactor `anim`/`play`/`hook`/`doctor` onto a shared robot client interface; verify existing HTTP client tests still pass
-- [ ] 5.4 Add CLI commands for settings get/set, tests, servo, health (if not covered), and factory reset with confirmation/`--yes`; verify command tests and help text
-- [ ] 5.5 Add `tiny-engineer monitor` that prints LOG frame text; verify with a fixture frame stream
-- [ ] 5.6 Wire agent packages (cursor/antigravity/claude-code) to honor transport via shared client or CLI; verify package tests with short timeouts / fail-open
+- [x] 5.0 Extend `tiny-engineer setup` (and uninstall `--purge-env`) so interactive/non-interactive flows choose host transport, merge `TINY_ENGINEER_TRANSPORT` / optional `TINY_ENGINEER_PORT` into project `.env`, keep URL merge for HTTP, and verify setup/uninstall tests cover serial and HTTP paths
+- [x] 5.1 Add `--transport` / `TINY_ENGINEER_TRANSPORT` resolution (`flag > env > default http`, no cross-transport fallback) and verify CLI arg/env tests including setup-written `.env`
+- [x] 5.2 Implement serial client (COBS + typed messages) with `--port` / `TINY_ENGINEER_PORT`, autodetect + cache + invalidate-on-fail; verify unit tests for cache hit/miss/stale
+- [x] 5.3 Refactor `anim`/`play`/`hook`/`doctor` onto a shared robot client interface; verify existing HTTP client tests still pass
+- [x] 5.4 Add CLI commands for settings get/set, tests, servo, health (if not covered), and factory reset with confirmation/`--yes`; verify command tests and help text
+- [x] 5.5 Add `tiny-engineer monitor` that prints LOG frame text; verify with a fixture frame stream
+- [x] 5.6 Wire agent packages (cursor/antigravity/claude-code) to honor transport via shared client or CLI; verify package tests with short timeouts / fail-open
 
 ## 6. Docs and integration check
 
-- [ ] 6.1 Document serial protocol overview, device Connection (`link_mode`) vs project setup (host transport), factory-reset escape, CLI transport/port/monitor, and PlatformIO monitor limitations in `docs/` (+ README touch if boot URLs/modes change)
-- [ ] 6.2 End-to-end smoke: USB-only provision → CLI serial anim/play/settings/reset-confirm abort; Wi‑Fi mode → HTTP still works and serial still works; record results in the PR description
+- [x] 6.1 Document serial protocol overview, device Connection (`link_mode`) vs project setup (host transport), factory-reset escape, CLI transport/port/monitor, and PlatformIO monitor limitations in `docs/` (+ README touch if boot URLs/modes change)
+- [ ] 6.2 End-to-end smoke: USB-only provision → setup AP drops and serial anim works without power-cycle → CLI serial **play** (short 22050 WAV) / settings / reset-confirm abort after 4.6; Wi‑Fi mode → HTTP still works and serial still works; record results in the PR description
 
 ## Workflow follow-up
 

@@ -146,6 +146,29 @@ describe("setup wizard", () => {
     expect(statusText()).toContain("WiFi connected");
   });
 
+  it("saves USB-only mode from the connection step", async () => {
+    const { robot, click, user } = await startCalibration({
+      wifi_networks: [],
+      link_mode: "",
+      wifi_configured: false,
+    });
+
+    await click("Next: Screen");
+    await click("Next: RGB mapping");
+    await click("Next: Speaker");
+    await click("Next: Connection");
+
+    expect(stepLabel()).toBe("Step 5 of 5 · Connection");
+
+    await user.click(screen.getByRole("radio", { name: /USB connection only/i }));
+    await click("Use USB only");
+
+    await waitFor(() => expect(robot.lastPost("/settings")?.json).toEqual({ link_mode: "usb" }));
+    expect(statusText()).toMatch(/USB-only/i);
+    expect(statusText()).toMatch(/serial/i);
+    expect(statusText()).not.toMatch(/power-cycle/i);
+  });
+
   it("blocks a color mapping that uses a color twice", async () => {
     const { robot, click, user } = await startCalibration();
 

@@ -62,6 +62,7 @@ void SettingsValues::load() {
   loadText(loading, kKeyLoading, settingsValidateLoading);
   loadText(eyesStyle, kKeyEyesStyle, settingsValidateEyesStyle);
   loadText(accessToken, kKeyAccessTok, settingsValidateAccessToken);
+  loadText(linkMode, kKeyLinkMode, settingsValidateLinkMode);
 
   if (g_settingsPrefs.isKey(kKeyServoRanges)) {
     uint8_t blob[kServoRangesLen] = {};
@@ -129,6 +130,7 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
   putText(kKeyLoading, values.loading, before.loading);
   putText(kKeyEyesStyle, values.eyesStyle, before.eyesStyle);
   putText(kKeyAccessTok, values.accessToken, before.accessToken);
+  putText(kKeyLinkMode, values.linkMode, before.linkMode);
   putText(kKeyRgbOrder, values.rgbOrder, before.rgbOrder);
   putBool(kKeyOledRot, values.oledRotate180, before.oledRotate180);
 

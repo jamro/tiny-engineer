@@ -3,11 +3,14 @@ export interface ApiError {
   error: string;
 }
 
+export type LinkMode = "" | "wifi" | "usb";
+
 export interface AuthInfo {
   ok: true;
   version: string;
   required: boolean;
   wifi_configured: boolean;
+  link_mode: LinkMode;
   provisioning: boolean;
 }
 
@@ -20,6 +23,7 @@ export interface Health {
   cpu_temp_c: number | null;
   wifi: { connected: boolean; ip: string; rssi: number; hostname: string };
   wifi_configured: boolean;
+  link_mode: LinkMode;
   provisioning: boolean;
 }
 
@@ -36,6 +40,7 @@ export interface Settings {
   loading: LoadingMode;
   eyes_style: string;
   access_token_set: boolean;
+  link_mode: LinkMode;
   wifi_configured: boolean;
   servo_mins: number[];
   servo_maxs: number[];

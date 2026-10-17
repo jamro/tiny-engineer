@@ -2,13 +2,19 @@
 
 #include <algorithm>
 
+#include "api/commands.h"
 #include "display/oled.h"
+#include "hardware/rgb.h"
 #include "http/handlers.h"
 #include "http/request.h"
 #include "http/response.h"
+#include "http/server.h"
 #include "network/wifi_connect.h"
+#include "serial_log.h"
 #include "settings/settings.h"
 #include "settings/wifi_network_list.h"
+
+#include <cstring>
 
 namespace {
 
@@ -72,6 +78,7 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("loading", patch.loading);
   read("eyes_style", patch.eyesStyle);
   read("access_token", patch.accessToken);
+  read("link_mode", patch.linkMode);
   read("rgb_order", patch.rgbOrder);
   read("oled_rotate_180", patch.oledRotate180);
 
@@ -117,6 +124,7 @@ JsonDocument settingsJson() {
   doc["loading"] = settingsLoading();
   doc["eyes_style"] = settingsEyesStyle();
   doc["access_token_set"] = settingsAccessTokenSet();
+  doc["link_mode"] = settingsLinkMode();
   doc["wifi_configured"] = settingsWifiConfigured();
 
   JsonArray servoMins = doc["servo_mins"].to<JsonArray>();
@@ -188,7 +196,21 @@ void handleSettingsPost(WebServer& server) {
     restoreProvisioningOled();
   }
 
+  const bool leaveUsbOnly =
+    wifiProvisioningMode() && patch.linkMode != nullptr && strcmp(patch.linkMode, "usb") == 0;
+
   sendJson(server, 200, settingsJson());
+
+  // Mirror Wi‑Fi setup teardown: reply first, then drop the config AP so the
+  // browser gets the 200. Clears provisioning so serial unlocks without reboot.
+  if (leaveUsbOnly) {
+    delay(300);
+    wifiStopProvisioningAp();
+    stopHttpServer();
+    showTextThenIdle("USB-only", "CLI serial");
+    setRgb(0, 0, 0);
+    serialLogPrintln("USB-only mode: setup AP stopped; use serial CLI");
+  }
 }
 
 void handleSettingsWifiPut(WebServer& server) {
@@ -255,6 +277,15 @@ void handleSettingsWifiPut(WebServer& server) {
     return;
   }
 
+  if (tested) {
+    SettingsPatch mode;
+    mode.linkMode = "wifi";
+    if (!saveSettings(mode)) {
+      sendError(server, 400, "save failed");
+      return;
+    }
+  }
+
   JsonDocument reply = settingsJson();
 
   if (tested) {
@@ -268,13 +299,14 @@ void handleSettingsWifiPut(WebServer& server) {
   if (tested) {
     delay(300);
     wifiStopProvisioningAp();
-    showBootIp(wifiIpText());
+    showBootIpThenIdle(wifiIpText());
   }
 }
 
 void handleSettingsReset(WebServer& server) {
-  if (!factoryResetSettings()) {
-    sendError(server, 400, "factory reset failed");
+  const ApiResult result = apiFactoryReset();
+  if (!result.ok) {
+    sendError(server, result.code, result.error);
     return;
   }
 

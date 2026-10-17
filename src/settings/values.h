@@ -18,6 +18,7 @@ struct SettingsValues {
   char loading[SETTINGS_LOADING_MAX_LEN + 1];
   char eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1];
   char accessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1];
+  char linkMode[SETTINGS_LINK_MODE_MAX_LEN + 1];
   ServoRanges servoRanges;
   char rgbOrder[SETTINGS_RGB_ORDER_MAX_LEN + 1];
   bool oledRotate180;

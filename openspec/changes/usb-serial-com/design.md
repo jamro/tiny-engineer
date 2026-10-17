@@ -46,7 +46,7 @@ Each COBS frame (delimited by `0x00`) carries:
 | req / res / log / evt / sync | UTF-8 JSON |
 | stream | binary header (stream_id, seq, kind) + raw bytes |
 
-Protocol version starts at `1`. Max payload capped (recommend 1024 bytes for stream chunks; ≤2048 for JSON) to bound decode buffers.
+Protocol version starts at `1`. Max payload capped (≤2048 decode; stream chunk sized so framed COBS fits under HWCDC RX — see D3; 512–1024 B after RX enlarge is fine) to bound decode buffers.
 
 **COBS library:** vendor [nanocobs](https://github.com/charlesnicholson/nanocobs) (`cobs.c`/`cobs.h`) — C99, no libc, incremental APIs, ~1–1.5 KB flash. Host: npm `nanocobs` or same algorithm in JS for byte identity.
 
@@ -54,9 +54,17 @@ Protocol version starts at `1`. Max payload capped (recommend 1024 bytes for str
 
 ### D3: Stream flow control
 
-Play opens a stream; device advertises credit window (2–4 × 512–1024 B). Host sends stream frames only while credits > 0; device returns credits as I2S drains (aligned with existing `writeMonoToSpeaker` blocking). Reuse `WavStreamParser` sink path from HTTP play.
+Play opens a stream; device advertises a credit window; host sends stream DATA only while credits > 0; device returns credits after draining a chunk (aligned with `writeMonoToSpeaker` blocking). Reuse `WavStreamParser` sink path from HTTP play. One outstanding DATA chunk is enough; credits alone do not enlarge the USB RX queue.
 
-**Alternatives:** Stop-and-wait per chunk (higher latency); unbounded push (OOM risk on C3).
+**HWCDC buffer constraint (ESP32-C3, `ARDUINO_USB_MODE=1`):** Arduino HWCDC defaults **RX/TX = 256 B** unless raised before `Serial.begin`. A framed stream DATA message is `7 (header) + 4 (stream hdr) + chunk` then COBS (~chunk+11 worst-case). With the historical 1024 B credit chunk that is ~1041 B on the wire — larger than the default RX queue. ISR enqueue then overflows while `loop()` is elsewhere → COBS never completes → no Stream Credit → CLI `serial credit timed out` even though play JSON start succeeded.
+
+**Required sizing:**
+
+1. Before `Serial.begin`: `Serial.setRxBufferSize` / `setTxBufferSize` large enough for one max framed stream message plus margin under normal poll latency (recommend **4096** each; at least above `kSerialMaxPayload` COBS worst-case).
+2. `kSerialPlayCreditChunk` and the CLI host max chunk MUST satisfy `COBS(header + streamHdr + chunk) < RX buffer` with headroom (do not treat “credits below CDC buffer” as optional).
+3. On `serialPlayFeed` failure: surface an error to the host (typed error/event or failed play path). Do not silently drop DATA and leave the host blocked on credit wait.
+
+**Alternatives:** Stop-and-wait per chunk (higher latency); unbounded push (OOM risk on C3); shrink chunks only and keep 256 B RX (works but poor throughput / fragile if LOG/TX contend).
 
 ### D4: Logging and boot noise
 
@@ -69,6 +77,19 @@ All application `serialLog*` paths emit LOG frames when `serial_log` is on; neve
 NVS field e.g. `link_mode`: unset/empty = unprovisioned; `wifi` | `usb`. Setup Network step becomes “Link”: Wi‑Fi form **or** “USB only”. Provisioned = mode set (USB) or Wi‑Fi nets saved (wifi). Replace `Access::Configured` wifi-only gate with provisioned check. USB boot: skip STA + do not register HTTP routes (or never start WebServer). Factory reset clears mode + Wi‑Fi nets (existing reset semantics + mode).
 
 Escape USB-only: factory reset only (product decision).
+
+**End of Connection step (same session):** Completing either path MUST tear down the setup AP so provisioning is finished without waiting for reboot.
+
+| Path | After successful save |
+| --- | --- |
+| Wi‑Fi | STA connected → reply → short delay → `wifiStopProvisioningAp()` → brief OLED status (IP, or “No IP” if empty) → idle eyes (`showIdleScreen` / `startEyes`) |
+| USB-only | Reply 200 → short delay → `wifiStopProvisioningAp()` → clear `wifiProvisioningMode` → stop HTTP (no zombie config server) → brief OLED “USB-only” status (not “Join this WiFi”) → idle eyes → full serial API unlocked |
+
+**OLED after leaving setup AP (same session):** Provisioning calls `stopEyes()`. Teardown MUST NOT leave a static status frame forever. Match cold-boot progress path: show status briefly (boot uses ~3s IP hold), then `showIdleScreen()` so eyes resume. Prefer one shared helper for boot + in-session leave. Wi‑Fi leave MAY also start welcome animation when `welcome` is enabled (same as boot); eyes idle is the minimum. Blocking `delay` in the HTTP handler is acceptable if it mirrors boot; a deferred non-blocking handoff is nicer but not required for correctness.
+
+UI: drop mandatory “power-cycle before CLI works”; optional reboot remains fine for a clean boot. Power-cycle MUST NOT be required to leave the AP or use serial after USB-only save.
+
+Do not leave `wifiProvisioningMode()==true` after USB-only save: serial gates on that flag and would stay ping-only until reboot.
 
 ### D6: CLI transport, project setup, and port cache
 
@@ -108,7 +129,7 @@ Primary: `tiny-engineer monitor`. Optional follow-up: PIO `monitor_encoding=lati
 ## Risks / Trade-offs
 
 - **[Risk] Boot/ROM noise corrupts first session** → Mitigation: host resync + SYNC; device quiet until ready
-- **[Risk] CDC RX overrun without credits** → Mitigation: mandatory credit window sized below CDC buffer; spike measure on HW
+- **[Risk] CDC RX overrun on stream DATA** → Observed on HW: play start OK, first ~1041 B DATA vs default HWCDC RX 256 → overflow → credit timeout. Mitigation: enlarge RX/TX before `begin` **and** keep credit chunk well below RX with margin; verify with CLI `play` of a short 22050 mono WAV on device
 - **[Risk] PIO monitor unusable with COBS** → Mitigation: CLI monitor; docs; optional filter later
 - **[Risk] Port exclusive (monitor vs CLI vs upload)** → Mitigation: document; clear CLI errors on busy port
 - **[Risk] Hook latency from serial open/probe** → Mitigation: port cache; short timeouts; fail-open

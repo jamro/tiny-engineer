@@ -1,0 +1,12 @@
+{
+  "name": "nanocobs",
+  "version": "0.1.0",
+  "description": "Vendored Consistent Overhead Byte Stuffing (COBS) from charlesnicholson/nanocobs.",
+  "keywords": ["cobs", "framing", "serial"],
+  "license": "Unlicense OR 0BSD",
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {
+    "flags": "-I src"
+  }
+}

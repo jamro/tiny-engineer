@@ -22,6 +22,7 @@ bool oledAvailable = false;
 namespace {
 
 constexpr uint32_t kProvisionRotateMs = 3500;
+constexpr uint32_t kStatusThenIdleHoldMs = 3000;
 
 uint32_t lastProvisionRotateMs = 0;
 uint8_t provisionStep = 0;
@@ -86,6 +87,19 @@ void showOledText(
 
 void showIdleScreen() {
   startEyes();
+}
+
+void showBootIpThenIdle(const char* ip) {
+  showBootIp(ip);
+  delay(kStatusThenIdleHoldMs);
+  showIdleScreen();
+}
+
+void showTextThenIdle(const char* line1, const char* line2) {
+  stopEyes();
+  showOledText(line1, line2);
+  delay(kStatusThenIdleHoldMs);
+  showIdleScreen();
 }
 
 void blankOled() {

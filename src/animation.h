@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 enum class AnimationId {
   None,
   Typing,

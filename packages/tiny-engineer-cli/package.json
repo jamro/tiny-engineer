@@ -39,5 +39,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "serialport": "^13.0.0"
+  }
 }

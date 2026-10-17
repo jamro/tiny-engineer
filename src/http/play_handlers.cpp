@@ -3,6 +3,7 @@
 #include <optional>
 
 #include "animation.h"
+#include "api/busy.h"
 #include "audio/audio.h"
 #include "audio/audio_motion.h"
 #include "audio/wav_parser.h"
@@ -26,11 +27,18 @@ public:
   void begin(WebServer& server) {
     parser_.reset();
     started_ = false;
+    heldBusy_ = false;
     refusal_ = Refusal::check(server, Access::Configured);
 
     if (refusal_) {
       return;
     }
+
+    if (!apiBusyTryAcquire()) {
+      refusal_ = Refusal{503, "busy"};
+      return;
+    }
+    heldBusy_ = true;
 
     // "/play" or "/play/<name>"; pathArg() would assert on the route without a name.
     const String uri = server.uri();
@@ -40,6 +48,7 @@ public:
     if (!parseAnimationName(name, animation_) ||
         (animation_ != AnimationId::None && !animationIsContinuous(animation_))) {
       refusal_ = Refusal{400, "name must be talking, typing, reading, thinking or none"};
+      releaseBusy_();
       return;
     }
 
@@ -56,6 +65,7 @@ public:
 
   void end() {
     if (!parser_) {
+      releaseBusy_();
       return;
     }
 
@@ -69,6 +79,7 @@ public:
       }
       setAnimationImmediately(animationIsContinuous(previous_) ? previous_ : AnimationId::None);
     }
+    releaseBusy_();
   }
 
   void respond(WebServer& server) {
@@ -115,7 +126,15 @@ private:
   AnimationId animation_ = AnimationId::Talking;
   AnimationId previous_ = AnimationId::None;
   bool started_ = false;
+  bool heldBusy_ = false;
   std::optional<Refusal> refusal_;
+
+  void releaseBusy_() {
+    if (heldBusy_) {
+      apiBusyRelease();
+      heldBusy_ = false;
+    }
+  }
 
   uint32_t playedMs() const {
     return static_cast<uint32_t>(parser_->samplesDelivered() * 1000ULL / SAMPLE_RATE);

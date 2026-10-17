@@ -61,6 +61,17 @@ During WAV (or PCM) streaming, the device MUST apply credit-based flow control s
 - **WHEN** the host opens a play stream, sends WAV data within credits, and closes the stream
 - **THEN** the device plays the audio and returns a successful play completion response
 
+### Requirement: CDC buffers sized for stream frames
+The device MUST size USB CDC receive (and transmit) buffers so that one maximum legal stream DATA frame, including COBS overhead and delimiter, fits without RX overflow under normal `serialLinkPoll` latency. Advertised play credits MUST NOT imply a single host chunk larger than that capacity. When the device rejects a stream DATA chunk, it MUST inform the host (error response, event, or equivalent) rather than remaining silent until the host credit wait times out.
+
+#### Scenario: Play credits complete under healthy link
+- **WHEN** the host opens a play stream and sends WAV chunks within advertised credits over a healthy USB link
+- **THEN** the device returns stream credit frames for accepted chunks and play completes without the host timing out waiting for credits
+
+#### Scenario: Rejected stream chunk is not silent
+- **WHEN** the device refuses a stream DATA chunk (bad stream id, over credit, or parse failure)
+- **THEN** the host receives an explicit failure indication instead of only a credit-wait timeout
+
 ### Requirement: Application logs as LOG frames
 When serial logging is enabled, application diagnostic log lines MUST be emitted as typed log frames. The device MUST NOT emit those application log lines as raw unframed text on USB CDC.
 

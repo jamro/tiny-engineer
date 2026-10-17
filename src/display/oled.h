@@ -26,6 +26,11 @@ void showBootProgress(
 
 void showBootIp(const char* ip);
 
+// Brief status (IP / two-line text), then idle eyes. Shared by boot and
+// in-session setup-AP leave so status text does not stick forever.
+void showBootIpThenIdle(const char* ip);
+void showTextThenIdle(const char* line1, const char* line2 = nullptr);
+
 void showIdleScreen();
 
 void initOled();

@@ -17,6 +17,7 @@
 #include "network/ota.h"
 #include "http/server.h"
 #include "settings/settings.h"
+#include "serial/link.h"
 #include "serial_log.h"
 #include "sleep.h"
 #include "robot_tick.h"
@@ -31,6 +32,10 @@ constexpr int kBootSteps = 6;
 void setup() {
   initServoOutputPin();
 
+  // HWCDC defaults RX/TX to 256; stream DATA frames are ~1 KB COBS and overrun
+  // the queue before serialLinkPoll drains → silent credit timeout on play.
+  Serial.setRxBufferSize(4096);
+  Serial.setTxBufferSize(4096);
   Serial.begin(115200);
   Serial.setTxTimeoutMs(0);
   delay(1000);
@@ -131,9 +136,7 @@ void setup() {
     if (wifiProvisioningMode()) {
       showProvisioningOled("Join this WiFi", wifiApSsid());
     } else {
-      showBootIp(wifiConnected() ? wifiIpText() : "");
-      delay(3000);
-      showIdleScreen();
+      showBootIpThenIdle(wifiConnected() ? wifiIpText() : "");
     }
   } else {
     bootRunSleepInertia();
@@ -158,6 +161,7 @@ void setup() {
     setRgbForAnimation(AnimationId::None, millis());
   }
 
+  // Wi-Fi mode (or setup AP) starts HTTP; USB-only skips it.
   if (wifiConnected() || wifiProvisioningMode()) {
     startHttpServer();
   }
@@ -169,6 +173,7 @@ void setup() {
 }
 
 void loop() {
+  serialLinkPoll();
   pollHttpServer();
   pollOta();
   tickRobot();

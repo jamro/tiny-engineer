@@ -62,6 +62,16 @@ bool settingsValidateEyesStyle(const char* eyesStyle) {
   return isRegisteredEyeStyleId(eyesStyle);
 }
 
+bool settingsValidateLinkMode(const char* linkMode) {
+  if (linkMode == nullptr) {
+    return false;
+  }
+
+  return linkMode[0] == '\0' ||
+         strcmp(linkMode, "wifi") == 0 ||
+         strcmp(linkMode, "usb") == 0;
+}
+
 bool settingsValidateAccessToken(const char* accessToken) {
   if (accessToken == nullptr) {
     return false;
@@ -159,6 +169,10 @@ const char* SettingsPatch::invalidField() const {
 
   if (accessToken != nullptr && !settingsValidateAccessToken(accessToken)) {
     return "access_token";
+  }
+
+  if (linkMode != nullptr && !settingsValidateLinkMode(linkMode)) {
+    return "link_mode";
   }
 
   if (servoRanges && !servoRanges->valid()) {

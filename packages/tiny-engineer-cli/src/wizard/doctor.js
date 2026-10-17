@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { DEFAULT_URL, getBaseUrl, getToken } from "../config/env.js";
+import { DEFAULT_URL, getBaseUrl, getToken, resolveTransport } from "../config/env.js";
 import { all as allIntegrations } from "../integrations/registry.js";
-import { robotFetch } from "../robot/client.js";
+import { robotHealth } from "../robot/transport.js";
+import { parseCommonArgs } from "../util/args.js";
 import { readJsonFile } from "./merge.js";
 
 /**
@@ -37,21 +38,7 @@ export function configHasHook(projectRoot, ideId, relativePath) {
  * @returns {Promise<{ ok: boolean, detail: string }>}
  */
 export async function checkHealth(baseUrl) {
-  try {
-    const res = await robotFetch(
-      baseUrl,
-      "/health",
-      { method: "GET", signal: AbortSignal.timeout(2000) },
-      getToken(),
-    );
-    const body = await res.text();
-    if (res.ok) return { ok: true, detail: body.trim() || `HTTP ${res.status}` };
-    return { ok: false, detail: body.trim() || `HTTP ${res.status}` };
-  } catch (err) {
-    const detail =
-      err instanceof Error ? err.message : String(err);
-    return { ok: false, detail };
-  }
+  return robotHealth({ url: baseUrl, transport: "http" });
 }
 
 /**
@@ -60,26 +47,42 @@ export async function checkHealth(baseUrl) {
  * @param {{ projectRoot?: string }} [opts]
  */
 export async function runDoctor(out, argv, { projectRoot = process.cwd() } = {}) {
-  for (const arg of argv) {
-    if (arg === "-h" || arg === "--help") {
-      console.log(`Usage: tiny-engineer doctor
+  const args = parseCommonArgs(argv);
+  if (args.error) {
+    out.error(args.error);
+    process.exitCode = 1;
+    return;
+  }
+  if (args.help) {
+    console.log(`Usage: tiny-engineer doctor [--transport http|serial] [--url] [--port]
 
-Report robot URL/token, detected IDE configs, and /health.
+Report robot transport/URL/token, detected IDE configs, and health.
 `);
-      return;
-    }
-    if (arg.startsWith("-")) {
-      out.error(`Unknown argument: ${arg}`);
-      process.exitCode = 1;
-      return;
-    }
+    return;
+  }
+  if (args.rest.length > 0) {
+    out.error(`Unexpected argument: ${args.rest[0]}`);
+    process.exitCode = 1;
+    return;
   }
 
-  const url = getBaseUrl() || DEFAULT_URL;
+  const resolved = resolveTransport(args.transport);
+  if (resolved.error) {
+    out.error(resolved.error);
+    process.exitCode = 1;
+    return;
+  }
+
+  const url = args.url ?? getBaseUrl() ?? DEFAULT_URL;
   const token = getToken();
 
-  out.ok(`url: ${url}`);
-  out.info(`token: ${token ? "set" : "not set"}`);
+  out.ok(`transport: ${resolved.transport}`);
+  if (resolved.transport === "http") {
+    out.ok(`url: ${url}`);
+    out.info(`token: ${token ? "set" : "not set"}`);
+  } else if (args.port) {
+    out.info(`port: ${args.port}`);
+  }
 
   for (const integration of allIntegrations()) {
     const detected = Boolean(integration.detect?.(projectRoot));
@@ -97,13 +100,15 @@ Report robot URL/token, detected IDE configs, and /health.
     out.info(".env: absent");
   }
 
-  const health = await checkHealth(url);
+  const health = await robotHealth({
+    url: args.url,
+    transport: args.transport,
+    port: args.port,
+  });
   if (health.ok) {
     out.ok(`health: ok (${health.detail.slice(0, 80)})`);
   } else {
     out.error(`health: ${health.detail}`);
-    // Non-fatal for doctor — still exit 0 unless user expects otherwise.
-    // Plan: print ok/fail (not fatal).
   }
   process.exitCode = 0;
 }

@@ -19,10 +19,31 @@ const withFirst = (saved: string[], ssid: string, password: string): WifiNetwork
 export function NetworkStep({ settings }: { settings: Settings }) {
   const { applySettings, leaveSetup } = useRobot();
   const { perform, setStatus } = useStatus();
+  const [mode, setMode] = useState<"wifi" | "usb">("wifi");
   const [ssid, setSsid] = useState("");
   const [password, setPassword] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [hostname, setHostname] = useResettableState(settings.hostname, String);
+
+  async function chooseUsb() {
+    const result = await perform<Settings>({
+      path: "/settings",
+      request: { method: "POST", json: { link_mode: "usb" } },
+      pending: "Saving USB-only mode…",
+      failure: "Could not save USB-only mode",
+    });
+
+    if (!result?.ok) {
+      return;
+    }
+
+    applySettings(result.data);
+    leaveSetup();
+    setStatus(
+      "USB-only mode saved. Setup Wi‑Fi is off — control the robot with the CLI over USB serial (TINY_ENGINEER_TRANSPORT=serial).",
+      "ok",
+    );
+  }
 
   // Runs once the browser has checked the hostname field.
   async function connect(event: TargetedSubmitEvent<HTMLFormElement>) {
@@ -83,49 +104,84 @@ export function NetworkStep({ settings }: { settings: Settings }) {
   }
 
   return (
-    <ConfigSection title="WiFi" apply="now">
+    <ConfigSection title="Connection" apply="now">
       <p className="hint">
-        Enter the network name and password for the WiFi you want the robot to join.
+        Choose Wi‑Fi for network control, or USB-only for corporate desks where unverified Wi‑Fi
+        devices are blocked. USB-only disables Wi‑Fi and the HTTP API; use the CLI over serial.
       </p>
-      <form onSubmit={connect}>
-        <div className="form-group">
-          <label htmlFor="config-wifi-ssid">Network name (SSID)</label>
+      <div className="form-group" role="radiogroup" aria-label="Connection mode">
+        <label className="toggle">
           <input
-            type="text"
-            id="config-wifi-ssid"
-            autoFocus
-            maxLength={32}
-            autoComplete="off"
-            value={ssid}
-            onInput={(event) => setSsid(event.currentTarget.value)}
+            type="radio"
+            name="link-mode"
+            checked={mode === "wifi"}
+            onChange={() => setMode("wifi")}
           />
+          <span>Wi‑Fi</span>
+        </label>
+        <label className="toggle">
+          <input
+            type="radio"
+            name="link-mode"
+            checked={mode === "usb"}
+            onChange={() => setMode("usb")}
+          />
+          <span>USB connection only</span>
+        </label>
+      </div>
+
+      {mode === "usb" ? (
+        <div>
+          <p className="hint">
+            After save, the setup Wi‑Fi turns off. Control the robot with{" "}
+            <code>TINY_ENGINEER_TRANSPORT=serial</code> and the tiny-engineer CLI (no power-cycle
+            required).
+          </p>
+          <Button id="config-usb-only" variant="primary" onClick={() => void chooseUsb()}>
+            Use USB only
+          </Button>
         </div>
-        <div className="form-group">
-          <label htmlFor="config-wifi-password">Password</label>
-          <div className="token-row">
+      ) : (
+        <form onSubmit={connect}>
+          <div className="form-group">
+            <label htmlFor="config-wifi-ssid">Network name (SSID)</label>
             <input
-              type={revealed ? "text" : "password"}
-              id="config-wifi-password"
-              maxLength={63}
-              autoComplete="new-password"
-              value={password}
-              onInput={(event) => setPassword(event.currentTarget.value)}
+              type="text"
+              id="config-wifi-ssid"
+              autoFocus
+              maxLength={32}
+              autoComplete="off"
+              value={ssid}
+              onInput={(event) => setSsid(event.currentTarget.value)}
             />
-            <Button
-              className="btn-token-toggle"
-              aria-pressed={revealed}
-              onClick={() => setRevealed(!revealed)}
-            >
-              {revealed ? "Hide" : "Show"}
-            </Button>
           </div>
-          <p className="hint">Leave empty only for open networks.</p>
-        </div>
-        <HostnameField id="config-wifi-hostname" value={hostname} onInput={setHostname} />
-        <Button type="submit" id="config-wifi-connect" variant="primary">
-          Connect to WiFi
-        </Button>
-      </form>
+          <div className="form-group">
+            <label htmlFor="config-wifi-password">Password</label>
+            <div className="token-row">
+              <input
+                type={revealed ? "text" : "password"}
+                id="config-wifi-password"
+                maxLength={63}
+                autoComplete="new-password"
+                value={password}
+                onInput={(event) => setPassword(event.currentTarget.value)}
+              />
+              <Button
+                className="btn-token-toggle"
+                aria-pressed={revealed}
+                onClick={() => setRevealed(!revealed)}
+              >
+                {revealed ? "Hide" : "Show"}
+              </Button>
+            </div>
+            <p className="hint">Leave empty only for open networks.</p>
+          </div>
+          <HostnameField id="config-wifi-hostname" value={hostname} onInput={setHostname} />
+          <Button type="submit" id="config-wifi-connect" variant="primary">
+            Connect to WiFi
+          </Button>
+        </form>
+      )}
     </ConfigSection>
   );
 }

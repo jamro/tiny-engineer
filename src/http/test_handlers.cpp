@@ -1,14 +1,10 @@
 #include <Arduino.h>
 
-#include "animation.h"
-#include "audio/audio.h"
+#include "api/commands.h"
 #include "display/oled.h"
-#include "hardware/pca9685_servos.h"
-#include "hardware/rgb.h"
 #include "http/handlers.h"
 #include "http/request.h"
 #include "http/response.h"
-#include "servos.h"
 
 namespace {
 
@@ -19,43 +15,41 @@ JsonDocument testReply(const char* test) {
   return reply;
 }
 
-// Every test leaves the OLED on its idle screen before it answers.
 void finishTest(WebServer& server, const JsonDocument& reply) {
   showIdleScreen();
   sendJson(server, 200, reply);
 }
 
+void runNamedTest(WebServer& server, const char* name) {
+  const ApiResult result = apiRunHardwareTest(name);
+  if (!result.ok) {
+    showIdleScreen();
+    sendError(server, result.code, result.error);
+    return;
+  }
+  finishTest(server, testReply(name));
+}
+
 }  // namespace
 
 void handleAudioTest(WebServer& server) {
-  runSoundTest();
-  finishTest(server, testReply("audio"));
+  runNamedTest(server, "audio");
 }
 
 void handleBellTest(WebServer& server) {
-  if (!playBell()) {
-    showIdleScreen();
-    sendError(server, 500, "bell playback failed");
-    return;
-  }
-
-  finishTest(server, testReply("bell"));
+  runNamedTest(server, "bell");
 }
 
 void handleScreenTest(WebServer& server) {
-  runOledTest();
-  finishTest(server, testReply("screen"));
+  runNamedTest(server, "screen");
 }
 
 void handleMovementTest(WebServer& server) {
-  runServoTest();
-  finishTest(server, testReply("movement"));
+  runNamedTest(server, "movement");
 }
 
 void handleLedTest(WebServer& server) {
-  runRgbTest();
-  setRgbForAnimation(getAnimation(), millis());
-  finishTest(server, testReply("led"));
+  runNamedTest(server, "led");
 }
 
 void handleServoTest(WebServer& server) {
@@ -71,7 +65,12 @@ void handleServoTest(WebServer& server) {
     return;
   }
 
-  moveServoSmooth(move->index, move->angle);
+  const ApiResult result = apiMoveServo(move->index, move->angle);
+  if (!result.ok) {
+    showIdleScreen();
+    sendError(server, result.code, result.error);
+    return;
+  }
 
   JsonDocument reply = testReply("servo");
   move->addTo(reply);

@@ -18,7 +18,7 @@ const STEPS = [
   { id: "oled", title: "Screen" },
   { id: "led", title: "RGB mapping" },
   { id: "speaker", title: "Speaker" },
-  { id: "network", title: "Network" },
+  { id: "network", title: "Connection" },
 ] as const;
 
 type StepId = (typeof STEPS)[number]["id"];

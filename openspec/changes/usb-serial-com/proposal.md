@@ -8,6 +8,7 @@ Corporate networks often forbid unverified Wi‑Fi devices, so Tiny Engineer can
 
 - Add a **USB CDC serial control plane**: typed messages (request, response, log, event, stream) framed with COBS; JSON for control; raw binary for WAV streaming; protocol version, correlation IDs, resync, and stream credit/flow control.
 - Add a **connection mode** (`wifi` | `usb`) chosen at the end of the setup AP wizard: mode enables/disables Wi‑Fi and HTTP only; the serial API stays available whenever the device is provisioned (including in Wi‑Fi mode).
+- Completing the Connection step (Wi‑Fi connect **or** USB-only) **ends the setup AP in-session** (softAP off, provisioning cleared); USB-only also stops HTTP and unlocks full serial without requiring a power-cycle.
 - While provisioning (setup AP / unprovisioned): serial offers **ping/identity only**; full serial API after a mode is chosen.
 - **Auth skipped** on serial (trusted local channel); HTTP Bearer rules unchanged.
 - Escape USB-only mode via **factory reset** only (reopens setup AP); factory reset also available over CLI with explicit confirmation.

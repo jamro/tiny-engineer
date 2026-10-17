@@ -30,13 +30,15 @@ export function writeJsonFile(path, data) {
 }
 
 /**
- * Merge TINY_ENGINEER_URL into a `.env` file.
+ * Merge a Tiny Engineer env key into a `.env` file.
  * @param {string} envPath
- * @param {string} url
+ * @param {string} key
+ * @param {string} value
  * @param {{ force?: boolean }} [opts]
  * @returns {"created" | "updated" | "skipped"}
  */
-export function mergeEnvUrl(envPath, url, { force = false } = {}) {
+export function mergeEnvKey(envPath, key, value, { force = false } = {}) {
+  const re = new RegExp(`^\\s*${key}\\s*=`);
   mkdirSync(dirname(envPath), { recursive: true });
   let raw = "";
   if (existsSync(envPath)) {
@@ -46,17 +48,17 @@ export function mergeEnvUrl(envPath, url, { force = false } = {}) {
   const lines = raw ? raw.split(/\r?\n/) : [];
   let found = false;
   const next = lines.map((line) => {
-    if (!/^\s*TINY_ENGINEER_URL\s*=/.test(line)) return line;
+    if (!re.test(line)) return line;
     found = true;
     if (!force) return line;
-    return `TINY_ENGINEER_URL=${url}`;
+    return `${key}=${value}`;
   });
 
   if (found && !force) return "skipped";
 
   if (!found) {
     if (next.length && next[next.length - 1] !== "") next.push("");
-    next.push(`TINY_ENGINEER_URL=${url}`);
+    next.push(`${key}=${value}`);
     writeFileSync(envPath, `${next.join("\n").replace(/\n+$/, "\n")}`, "utf8");
     return raw ? "updated" : "created";
   }
@@ -65,10 +67,21 @@ export function mergeEnvUrl(envPath, url, { force = false } = {}) {
   return "updated";
 }
 
-const ENV_TE_LINE = /^\s*TINY_ENGINEER_(URL|TOKEN)\s*=/;
+/**
+ * Merge TINY_ENGINEER_URL into a `.env` file.
+ * @param {string} envPath
+ * @param {string} url
+ * @param {{ force?: boolean }} [opts]
+ * @returns {"created" | "updated" | "skipped"}
+ */
+export function mergeEnvUrl(envPath, url, { force = false } = {}) {
+  return mergeEnvKey(envPath, "TINY_ENGINEER_URL", url, { force });
+}
+
+const ENV_TE_LINE = /^\s*TINY_ENGINEER_(URL|TOKEN|TRANSPORT|PORT)\s*=/;
 
 /**
- * Remove TINY_ENGINEER_URL / TINY_ENGINEER_TOKEN lines from `.env`.
+ * Remove Tiny Engineer env keys from `.env`.
  * Leaves the file if other content remains; does not delete a non-empty file.
  * @param {string} envPath
  * @returns {"removed" | "absent" | "unchanged"}

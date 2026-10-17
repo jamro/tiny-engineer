@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS: Settings = {
   loading: "progress",
   eyes_style: "classic",
   access_token_set: false,
+  link_mode: "wifi",
   wifi_configured: true,
   wifi_networks: ["home"],
   servo_mins: [60, 40, 45, 35, 40],
@@ -91,7 +92,14 @@ export function fakeRobot({
       robot.onRequest?.(request);
 
       if (request.path === "/auth") {
-        return json({ ok: true, required: authRequired });
+        return json({
+          ok: true,
+          required: authRequired,
+          version: "test",
+          wifi_configured: robot.settings.wifi_configured,
+          link_mode: robot.settings.link_mode ?? "",
+          provisioning: robot.provisioning,
+        });
       }
 
       if (authRequired && request.authorization !== `Bearer ${token}`) {
@@ -118,6 +126,7 @@ export function fakeRobot({
       if (request.path === "/settings/wifi" && request.method === "PUT") {
         robot.settings.wifi_networks = (request.json as WifiNetwork[]).map(({ ssid }) => ssid);
         robot.settings.wifi_configured = true;
+        robot.settings.link_mode = "wifi";
 
         // A tested network ends setup AP mode.
         if (robot.provisioning) {

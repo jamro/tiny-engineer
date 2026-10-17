@@ -335,6 +335,12 @@ void runWifiSetup() {
 
   connectError[0] = '\0';
 
+  if (strcmp(settingsLinkMode(), "usb") == 0) {
+    serialLogPrintln("USB-only mode; skipping WiFi and HTTP");
+    provisioning = false;
+    return;
+  }
+
   if (settingsWifiConfigured()) {
     serialLogPrintln("Trying saved WiFi credentials");
 

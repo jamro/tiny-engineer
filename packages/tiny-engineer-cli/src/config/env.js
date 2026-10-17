@@ -4,7 +4,21 @@ import { join, resolve } from "node:path";
 
 const TOKEN_KEY = "TINY_ENGINEER_TOKEN";
 const URL_KEY = "TINY_ENGINEER_URL";
+const TRANSPORT_KEY = "TINY_ENGINEER_TRANSPORT";
+const PORT_KEY = "TINY_ENGINEER_PORT";
 export const DEFAULT_URL = "http://tiny-engineer.local";
+export const DEFAULT_TRANSPORT = "http";
+
+/**
+ * @param {string | undefined | null} value
+ * @returns {"http" | "serial" | null}
+ */
+export function normalizeTransport(value) {
+  if (value === undefined || value === null) return null;
+  const trimmed = String(value).trim().toLowerCase();
+  if (trimmed === "http" || trimmed === "serial") return trimmed;
+  return null;
+}
 
 /**
  * Parse one dotenv line into [key, value] or null.
@@ -102,4 +116,40 @@ export function getBaseUrl() {
   if (value === undefined) return DEFAULT_URL;
   const trimmed = value.trim().replace(/\/+$/, "");
   return trimmed || DEFAULT_URL;
+}
+
+/**
+ * Resolve host transport: flag > TINY_ENGINEER_TRANSPORT > default http.
+ * @param {string | undefined} [flag] value from `--transport`
+ * @returns {{ transport: "http" | "serial", error?: undefined } | { transport?: undefined, error: string }}
+ */
+export function resolveTransport(flag) {
+  if (flag !== undefined) {
+    const normalized = normalizeTransport(flag);
+    if (!normalized) {
+      return { error: `invalid --transport ${flag} (use http or serial)` };
+    }
+    return { transport: normalized };
+  }
+
+  const envValue = process.env[TRANSPORT_KEY];
+  if (envValue !== undefined && envValue.trim() !== "") {
+    const normalized = normalizeTransport(envValue);
+    if (!normalized) {
+      return { error: `invalid TINY_ENGINEER_TRANSPORT=${envValue} (use http or serial)` };
+    }
+    return { transport: normalized };
+  }
+
+  return { transport: DEFAULT_TRANSPORT };
+}
+
+/**
+ * @returns {string | null} trimmed TINY_ENGINEER_PORT, or null if unset/empty
+ */
+export function getSerialPort() {
+  const value = process.env[PORT_KEY];
+  if (value === undefined) return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
 }

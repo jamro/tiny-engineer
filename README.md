@@ -59,14 +59,14 @@ What we are building toward:
 
 ![How Tiny Engineer works](docs/how-it-works.jpg)
 
-Your agent (or a hook script) sends poses over HTTP. The **ESP32-C3** is a small Wi-Fi computer on the robot — one chip that runs the program, joins your network, hosts REST API, and drives the servos, the face, and the speaker.
+Your agent (or a hook script) sends poses over **Wi‑Fi HTTP** or **USB serial**. The **ESP32-C3** runs the firmware, optional Wi‑Fi/REST, USB CDC control, and drives the servos, face, and speaker.
 
 **Clients**
 
-- **Default** — [`npx -y tiny-engineer`](https://www.npmjs.com/package/tiny-engineer) (`setup` / `hook`) for Cursor, Claude Code, Antigravity → Wi-Fi
-- **Advanced** — any tool that can `POST` to `/anim` ([HTTP API](docs/api.md))
+- **Default** — [`npx -y tiny-engineer`](https://www.npmjs.com/package/tiny-engineer) (`setup` / `hook`) for Cursor, Claude Code, Antigravity (HTTP or `--transport serial`)
+- **Advanced** — `POST /anim` ([HTTP API](docs/api.md)) or framed USB serial ([serial.md](docs/serial.md))
 
-Details: [Integrations](docs/integration.md) · [HTTP API](docs/api.md) · [Cursor hooks](docs/hooks.md)
+Details: [Integrations](docs/integration.md) · [HTTP API](docs/api.md) · [USB serial](docs/serial.md) · [Cursor hooks](docs/hooks.md)
 
 ## Documentation
 

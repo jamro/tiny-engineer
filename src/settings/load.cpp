@@ -1,5 +1,7 @@
+#include "serial/link.h"
 #include "serial_log.h"
 #include "settings/nvs.h"
+#include "settings/settings.h"
 #include "settings/values.h"
 
 namespace {
@@ -67,5 +69,14 @@ void initSettings() {
     migrateLegacyWifi();
   }
 
+  // Older firmware had Wi-Fi nets but no link_mode; treat as Wi-Fi mode.
+  if (g_settings.linkMode[0] == '\0' && g_wifiNetworks.count() > 0) {
+    SettingsPatch patch;
+    patch.linkMode = "wifi";
+    saveSettings(patch);
+  }
+
+  // Framed serial API (and LOG frames) start after NVS is loaded.
+  serialLinkBegin();
   g_settings.log("Settings:");
 }

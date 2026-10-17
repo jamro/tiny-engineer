@@ -161,6 +161,14 @@ void test_rgb_order() {
   TEST_ASSERT_FALSE(settingsValidateRgbOrder(nullptr));
 }
 
+void test_link_mode() {
+  TEST_ASSERT_TRUE(settingsValidateLinkMode(""));
+  TEST_ASSERT_TRUE(settingsValidateLinkMode("wifi"));
+  TEST_ASSERT_TRUE(settingsValidateLinkMode("usb"));
+  TEST_ASSERT_FALSE(settingsValidateLinkMode("ble"));
+  TEST_ASSERT_FALSE(settingsValidateLinkMode(nullptr));
+}
+
 int main() {
   UNITY_BEGIN();
   RUN_TEST(test_hostname_rejects_invalid);
@@ -177,5 +185,6 @@ int main() {
   RUN_TEST(test_patch_names_the_first_invalid_field);
   RUN_TEST(test_patch_names_its_setup_only_step);
   RUN_TEST(test_rgb_order);
+  RUN_TEST(test_link_mode);
   return UNITY_END();
 }

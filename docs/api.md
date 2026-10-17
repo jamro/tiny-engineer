@@ -6,7 +6,7 @@ Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `htt
 
 Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). Replies are `Content-Type: application/json`. Routes that take parameters (except `POST /anim` and `/play`) read a JSON object body sent with `Content-Type: application/json`; query parameters or form fields on those routes → **400** `send a JSON body with Content-Type: application/json`, and a body that is not a JSON object → **400** `body must be a JSON object`. CORS: requests with an `Origin` header get `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization, Content-Type` and `Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS`; a preflight `OPTIONS` gets **200**.
 
-When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`) stay available on the setup AP.
+When the robot is not yet provisioned (no connection mode chosen), control APIs (`/anim`, `/test/*`, `/play`) return **503** `{"ok":false,"error":"not provisioned"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`) stay available on the setup AP. Connection mode is `wifi` or `usb` (`link_mode` in settings/auth/health). USB-only mode disables Wi‑Fi station and the HTTP API after reboot; control then uses the USB serial protocol ([serial.md](serial.md)).
 
 If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a five-step setup wizard at `/config` (servo calibration, OLED orientation, RGB LED, speaker test, then Wi-Fi). If saved credentials fail, it reopens setup AP mode. The setup AP acts as a captive portal: DHCP sends the portal URL (option 114) and DNS answers every name with the AP IP, so a phone that joins the network opens the wizard on its own. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
@@ -35,7 +35,7 @@ curl http://tiny-engineer.local/auth
 ```
 
 ```json
-{ "ok": true, "version": "v0.3.0", "required": false, "wifi_configured": true, "provisioning": false }
+{ "ok": true, "version": "v0.3.0", "required": false, "wifi_configured": true, "link_mode": "wifi", "provisioning": false }
 ```
 
 | Field | Meaning |
@@ -44,6 +44,7 @@ curl http://tiny-engineer.local/auth
 | `version` | Firmware version, same as `GET /health` |
 | `required` | `true` when a non-empty access token is configured |
 | `wifi_configured` | `true` when WiFi credentials are saved in NVS |
+| `link_mode` | `""` unprovisioned, `"wifi"`, or `"usb"` |
 | `provisioning` | `true` when the setup AP is active |
 
 ### `GET /health`

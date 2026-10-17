@@ -12,13 +12,28 @@ test("parseCommonArgs extracts --url and rest", () => {
     help: false,
     quiet: false,
     url: "http://x",
+    transport: undefined,
+    port: undefined,
     rest: ["cursor"],
   });
   assert.deepEqual(parseCommonArgs(["--url=http://y", "cursor", "extra"]), {
     help: false,
     quiet: false,
     url: "http://y",
+    transport: undefined,
+    port: undefined,
     rest: ["cursor", "extra"],
+  });
+});
+
+test("parseCommonArgs extracts --transport and --port", () => {
+  assert.deepEqual(parseCommonArgs(["--transport", "serial", "--port", "/dev/tty", "cursor"]), {
+    help: false,
+    quiet: false,
+    url: undefined,
+    transport: "serial",
+    port: "/dev/tty",
+    rest: ["cursor"],
   });
 });
 
@@ -42,7 +57,13 @@ test("parseAnimArgs requires name", () => {
     quiet: false,
     name: "ring",
     url: "http://x",
+    transport: undefined,
+    port: undefined,
   });
+});
+
+test("parseAnimArgs extracts --transport", () => {
+  assert.equal(parseAnimArgs(["ring", "--transport", "serial"]).transport, "serial");
 });
 
 test("parseAnimArgs accepts -q after name", () => {

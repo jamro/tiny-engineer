@@ -59,6 +59,14 @@ bool settingsWifiConfigured() {
   return g_wifiNetworks.count() > 0;
 }
 
+const char* settingsLinkMode() {
+  return g_settings.linkMode;
+}
+
+bool settingsProvisioned() {
+  return strcmp(g_settings.linkMode, "wifi") == 0 || strcmp(g_settings.linkMode, "usb") == 0;
+}
+
 float settingsServoMin(int index) {
   if (index < 0 || index >= static_cast<int>(SETTINGS_SERVO_COUNT)) {
     return 0.0f;

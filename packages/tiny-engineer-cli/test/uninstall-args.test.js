@@ -100,7 +100,7 @@ test("stripEnvTinyEngineer removes only TE keys", () => {
   try {
     writeFileSync(
       envPath,
-      "FOO=1\nTINY_ENGINEER_URL=http://x\nTINY_ENGINEER_TOKEN=secret\nBAR=2\n",
+      "FOO=1\nTINY_ENGINEER_URL=http://x\nTINY_ENGINEER_TOKEN=secret\nTINY_ENGINEER_TRANSPORT=serial\nTINY_ENGINEER_PORT=/dev/tty\nBAR=2\n",
       "utf8",
     );
     assert.equal(stripEnvTinyEngineer(envPath), "removed");

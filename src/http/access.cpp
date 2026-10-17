@@ -14,8 +14,8 @@ bool tokenAccepted(WebServer& server) {
 }  // namespace
 
 std::optional<Refusal> Refusal::check(WebServer& server, Access access) {
-  if (access == Access::Configured && !settingsWifiConfigured()) {
-    return Refusal{503, "wifi not configured"};
+  if (access == Access::Configured && !settingsProvisioned()) {
+    return Refusal{503, "not provisioned"};
   }
 
   if (access != Access::Public && !tokenAccepted(server)) {

@@ -12,6 +12,7 @@ namespace {
 
 WebServer server(80);
 CorsMiddleware cors;
+bool httpStarted = false;
 
 bool serving() {
   return wifiConnected() || wifiProvisioningMode();
@@ -41,6 +42,7 @@ void startHttpServer() {
 
   registerHttpRoutes(server);
   server.begin();
+  httpStarted = true;
 
   if (wifiProvisioningMode()) {
     logUrl(wifiApIpText(), "/config");
@@ -55,8 +57,17 @@ void startHttpServer() {
   }
 }
 
+void stopHttpServer() {
+  if (!httpStarted) {
+    return;
+  }
+  server.close();
+  httpStarted = false;
+  serialLogPrintln("HTTP: stopped");
+}
+
 void pollHttpServer() {
-  if (!serving()) {
+  if (!httpStarted || !serving()) {
     delay(10);
     return;
   }

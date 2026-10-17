@@ -15,6 +15,7 @@ void handleAuth(WebServer& server) {
   body["version"] = FW_VERSION;
   body["required"] = settingsAccessTokenSet();
   body["wifi_configured"] = settingsWifiConfigured();
+  body["link_mode"] = settingsLinkMode();
   body["provisioning"] = wifiProvisioningMode();
   sendJson(server, 200, body);
 }
@@ -45,6 +46,7 @@ void handleHealth(WebServer& server) {
   wifi["hostname"] = wifiMdnsHostname();
 
   body["wifi_configured"] = settingsWifiConfigured();
+  body["link_mode"] = settingsLinkMode();
   body["provisioning"] = provisioning;
   body["setup_ap_ssid"] = provisioning ? wifiApSsid() : "";
   body["setup_ap_ip"] = provisioning ? wifiApIpText() : "";

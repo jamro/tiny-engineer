@@ -28,6 +28,11 @@ path = "LICENSE"
 SPDX-License-Identifier = "MIT"
 
 [[annotations]]
+path = "lib/nanocobs/**"
+SPDX-FileCopyrightText = "Charles Nicholson"
+SPDX-License-Identifier = "Unlicense OR 0BSD"
+
+[[annotations]]
 path = "3d_models/LICENSE"
 SPDX-License-Identifier = "CERN-OHL-S-2.0"
 

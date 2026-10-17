@@ -19,7 +19,7 @@ Pick a path. Depth lives in the linked pages.
 | **Adapt CAD to a different servo** | [3d/parametric-design.md](3d/parametric-design.md) |
 | **Add a new CAD / printable part** | [3d/adding-parts.md](3d/adding-parts.md) |
 | **Optional mods** | [../mods/README.md](../mods/README.md) |
-| **Use with an agent** (robot already on Wi-Fi) | [integration.md](integration.md) (`tiny-engineer` CLI or REST) · Cursor: [hooks.md](hooks.md) |
+| **Use with an agent** (Wi‑Fi or USB serial) | [integration.md](integration.md) (`tiny-engineer` CLI or REST) · [serial.md](serial.md) · Cursor: [hooks.md](hooks.md) |
 
 ### Reference and contribute
 
@@ -27,6 +27,7 @@ Pick a path. Depth lives in the linked pages.
 | --- | --- |
 | **Contribute a PCB** (KiCad) | [pcb.md](pcb.md) → [`hardware/`](../hardware/README.md) |
 | **HTTP API / settings** | [api.md](api.md); add a setting: [settings.md](settings.md) |
+| **USB serial protocol / CLI transport** | [serial.md](serial.md) |
 | **CLI setup / REST for any IDE** | [integration.md](integration.md) |
 | **Publish npm CLI** (`tiny-engineer`) | [cli-release.md](cli-release.md) |
 | **Firmware / package tests** | [testing.md](testing.md) |

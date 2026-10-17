@@ -144,7 +144,7 @@ export async function runUninstall(out, argv, { projectRoot = process.cwd() } = 
       out.info(`${plan.relativePath}: remove ${plan.detail}`);
     }
     if (args.purgeEnv) {
-      out.info(".env: strip TINY_ENGINEER_URL / TINY_ENGINEER_TOKEN");
+      out.info(".env: strip TINY_ENGINEER_URL / TOKEN / TRANSPORT / PORT");
     }
     process.exitCode = 0;
     return;
@@ -205,7 +205,7 @@ Options:
   --all              Target all integrations
   --yes, -y          Non-interactive (requires --all or ide args)
   --dry-run          Print plan without writing files
-  --purge-env        Also remove TINY_ENGINEER_URL / TINY_ENGINEER_TOKEN from .env
+  --purge-env        Also remove TINY_ENGINEER_URL / TOKEN / TRANSPORT / PORT from .env
   -h, --help         Show this help
 
 Examples:

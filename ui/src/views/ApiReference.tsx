@@ -188,7 +188,7 @@ export function ApiReference() {
         <code>{'{"ssid", "password"}'}</code> objects; leave out <code>password</code> to keep a
         saved one. In setup AP mode the robot tests the first network before saving. During setup
         (credentials not saved), control APIs return <strong>503</strong>{" "}
-        <code>wifi not configured</code>; <code>POST /setup/servo</code>,{" "}
+        <code>not provisioned</code>; <code>POST /setup/servo</code>,{" "}
         <code>POST /setup/led</code>, <code>POST /setup/audio</code>, and{" "}
         <code>POST /setup/oled</code> stay available. Servo ranges, RGB mapping, and screen rotation
         survive factory reset and can be retuned in the setup wizard.
