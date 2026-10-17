@@ -107,3 +107,10 @@ Hook posting, doctor health checks, and other robot-facing CLI entry points MUST
 #### Scenario: Hook over serial
 - **WHEN** transport is `serial` and a hook maps to an animation
 - **THEN** the CLI posts that animation over serial with the existing fail-open timing behavior for offline robots
+
+### Requirement: Serial play ends session on host failure
+After a successful serial `play` open, if streaming fails before normal completion, the CLI MUST attempt `play_end` while the port is still open (best-effort), then close the port. This MUST NOT suppress the original stream failure error to the user.
+
+#### Scenario: Credit or stream error still sends play_end
+- **WHEN** serial play streaming fails (for example stream Error frame or credit wait timeout) after `play` has opened
+- **THEN** the CLI attempts `play_end` for that stream before closing the port

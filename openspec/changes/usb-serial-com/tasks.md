@@ -28,7 +28,7 @@
 - [x] 4.3 Route `serialLog*` through LOG frames when `serial_log` is on; verify no raw application log lines on the wire in a framed session
 - [x] 4.4 Skip Bearer auth on serial; verify HTTP auth behavior unchanged when token set
 - [x] 4.5 Run `pio run` after firmware serial stack lands and fix compile failures
-- [x] 4.6 HWCDC sizing for stream play: raise RX/TX before `Serial.begin` (recommend 4096); ensure `kSerialPlayCreditChunk` + CLI max chunk fit under RX with COBS margin; on `serialPlayFeed` failure surface error (no silent credit stall); verify CLI `play assets/test/audio_test_short_22K.wav --transport serial` completes on device
+- [ ] 4.6 HWCDC sizing for stream play: raise RX/TX before `Serial.begin` (recommend 4096); ensure `kSerialPlayCreditChunk` + CLI max chunk fit under RX with COBS margin; on `serialPlayFeed` failure surface error (no silent credit stall); verify CLI `play assets/test/audio_test_short_22K.wav --transport serial` completes on device
 
 ## 5. CLI transport, port cache, and parity commands
 
@@ -43,9 +43,16 @@
 ## 6. Docs and integration check
 
 - [x] 6.1 Document serial protocol overview, device Connection (`link_mode`) vs project setup (host transport), factory-reset escape, CLI transport/port/monitor, and PlatformIO monitor limitations in `docs/` (+ README touch if boot URLs/modes change)
-- [x] 6.2 End-to-end smoke: USB-only provision → setup AP drops and serial anim works without power-cycle → CLI serial **play** (short 22050 WAV) / settings / reset-confirm abort after 4.6; Wi‑Fi mode → HTTP still works and serial still works; record results in the PR description
+- [ ] 6.2 End-to-end smoke: USB-only provision → setup AP drops and serial anim works without power-cycle → CLI serial **play** (short 22050 WAV) / settings / reset-confirm abort after 4.6; Wi‑Fi mode → HTTP still works and serial still works; record results in the PR description
+
+## 7. Review follow-ups (P0–P1)
+
+- [ ] 7.1 Play session abort on stream failure: firmware releases busy/session (restore anim if started) when feed/parse rejects DATA; CLI serial `play` best-effort `play_end` in `finally` while port open; cover with unit/CLI test where practical
+- [ ] 7.2 `link_mode` patch gates: reject empty in patch validation (NVS load still allows `""`); reject changed `link_mode` when provisioned and not in setup AP (HTTP + serial / `apiSaveSettings`); keep setup AP USB-only path; `pio test -e native` coverage
+- [ ] 7.3 Move large serial `message` / `decoded` buffers off loop-task stack (`static` or file-scope); `pio run`
 
 ## Workflow follow-up
 
 - Archive the change after review and implementation are complete (`/opsx-archive` or project equivalent).
 - Optional later: PlatformIO custom monitor filter for LOG frames (`monitor_encoding=latin1`).
+- Deferred (not in this update): serial settings unknown-key / full HTTP field parity; `reboot_required` for `link_mode`; play idle timeout; OpenSpec sync RENAMED-before-MODIFIED doc fix.

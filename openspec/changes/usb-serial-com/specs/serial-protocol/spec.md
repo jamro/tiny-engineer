@@ -129,3 +129,14 @@ If a long-running operation (such as WAV play) is active on one transport, a con
 #### Scenario: Second play while busy
 - **WHEN** a play stream is active over serial and the host starts another play over HTTP
 - **THEN** the second play is rejected with a busy error and the first play continues
+
+### Requirement: Play session released on stream failure
+When an active serial play session rejects stream DATA (bad stream id, over credit, WAV parse failure, or equivalent), the device MUST end that session: release the play busy lock, clear session state, and restore the prior animation if playback had already started. The device MUST NOT remain busy solely until a later `play_end` or reboot.
+
+#### Scenario: Parse failure releases busy
+- **WHEN** an active serial play session rejects a DATA chunk because WAV parsing failed
+- **THEN** the host receives an explicit failure indication and a subsequent play request is not rejected solely because the previous session left the busy lock held
+
+#### Scenario: Second play after failed feed
+- **WHEN** a serial play feed has failed and the session was aborted
+- **THEN** a new play request on serial or HTTP may start (subject to normal validation) without requiring reboot

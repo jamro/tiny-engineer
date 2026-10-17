@@ -63,6 +63,8 @@ Play opens a stream; device advertises a credit window; host sends stream DATA o
 1. Before `Serial.begin`: `Serial.setRxBufferSize` / `setTxBufferSize` large enough for one max framed stream message plus margin under normal poll latency (recommend **4096** each; at least above `kSerialMaxPayload` COBS worst-case).
 2. `kSerialPlayCreditChunk` and the CLI host max chunk MUST satisfy `COBS(header + streamHdr + chunk) < RX buffer` with headroom (do not treat “credits below CDC buffer” as optional).
 3. On `serialPlayFeed` failure: surface an error to the host (typed error/event or failed play path). Do not silently drop DATA and leave the host blocked on credit wait.
+4. On feed/parse failure (or equivalent reject of an active session): **abort the play session** — release the global busy lock, clear session state, and restore the prior animation if PCM/playback had already started. Do not leave `active_` + busy set until a later `play_end` or reboot (otherwise later HTTP/serial play returns busy/503).
+5. Host CLI: after a successful serial `play` open, wrap streaming in `try/finally` and best-effort send `play_end` while the port is still open when streaming fails before normal completion (cable yank / killed process still needs firmware abort; finally covers parser/credit errors).
 
 **Alternatives:** Stop-and-wait per chunk (higher latency); unbounded push (OOM risk on C3); shrink chunks only and keep 256 B RX (works but poor throughput / fragile if LOG/TX contend).
 
@@ -77,6 +79,8 @@ All application `serialLog*` paths emit LOG frames when `serial_log` is on; neve
 NVS field e.g. `link_mode`: unset/empty = unprovisioned; `wifi` | `usb`. Setup Network step becomes “Link”: Wi‑Fi form **or** “USB only”. Provisioned = mode set (USB) or Wi‑Fi nets saved (wifi). Replace `Access::Configured` wifi-only gate with provisioned check. USB boot: skip STA + do not register HTTP routes (or never start WebServer). Factory reset clears mode + Wi‑Fi nets (existing reset semantics + mode).
 
 Escape USB-only: factory reset only (product decision).
+
+**`link_mode` validation split:** `settingsValidateLinkMode("")` (and NVS load) MUST still accept empty as the unprovisioned default. Settings **patches** MUST reject empty `link_mode`. When the device is already provisioned and **not** in setup AP mode, HTTP and serial settings paths MUST reject a changed `link_mode` (no silent `usb`↔`wifi` via `settings.set` / `POST /settings`). The setup AP Connection path remains the only place that sets mode during provisioning (USB-only save + teardown as below).
 
 **End of Connection step (same session):** Completing either path MUST tear down the setup AP so provisioning is finished without waiting for reboot.
 
@@ -122,7 +126,11 @@ Runtime:
 
 Global “busy” for play/long tests: second transport gets busy error. Short ops (anim, settings get) may still be serialized on device loop — document last-writer for anim if needed; play is exclusive.
 
-### D8: PlatformIO monitor
+### D8: Loop-task stack for serial pack/decode
+
+`SerialFrameDecoder::onDelimiter_` holds a `decoded[kSerialMaxPayload]` (2048) while the frame handler runs; `sendPacked` adds `message[kSerialHeaderSize + kSerialMaxPayload]` (~2055); JSON responses add another ~1 KB. Nested on the Arduino-ESP32 `loop` task (~8 KB stack) this can reset the robot during serial play/LOG. Keep those large buffers **static or file-scope** (same pattern as `g_encodeBuf`). Poll/handler path is single-threaded on `loop`, so reentrancy is not required.
+
+### D9: PlatformIO monitor
 
 Primary: `tiny-engineer monitor`. Optional follow-up: PIO `monitor_encoding=latin1` + custom filter to print LOG text. Document exclusive port use. Dev escape hatch compile flag for raw ASCII logs only if needed during bring-up (not default firmware).
 
@@ -130,6 +138,9 @@ Primary: `tiny-engineer monitor`. Optional follow-up: PIO `monitor_encoding=lati
 
 - **[Risk] Boot/ROM noise corrupts first session** → Mitigation: host resync + SYNC; device quiet until ready
 - **[Risk] CDC RX overrun on stream DATA** → Observed on HW: play start OK, first ~1041 B DATA vs default HWCDC RX 256 → overflow → credit timeout. Mitigation: enlarge RX/TX before `begin` **and** keep credit chunk well below RX with margin; verify with CLI `play` of a short 22050 mono WAV on device
+- **[Risk] Stuck play session after stream Error** → Feed/parse fail returns Error but leaves busy/session active; CLI closes port without `play_end`. Mitigation: firmware abort on feed fail (D3); CLI `finally` → `play_end` (D3); optional idle timeout later (out of P0–P1)
+- **[Risk] Loop-task stack overflow during serial** → Nested decode + pack + JSON locals. Mitigation: D8 static/file-scope buffers
+- **[Risk] Empty or mid-life `link_mode` patch** → Patch validator reused load-time empty-ok; provisioned `settings.set` could clear mode or switch `usb`↔`wifi` without factory reset. Mitigation: D5 patch gates
 - **[Risk] PIO monitor unusable with COBS** → Mitigation: CLI monitor; docs; optional filter later
 - **[Risk] Port exclusive (monitor vs CLI vs upload)** → Mitigation: document; clear CLI errors on busy port
 - **[Risk] Hook latency from serial open/probe** → Mitigation: port cache; short timeouts; fail-open

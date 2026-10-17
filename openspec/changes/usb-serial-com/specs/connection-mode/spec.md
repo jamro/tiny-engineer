@@ -69,6 +69,25 @@ Leaving USB-only mode MUST require a factory reset that clears provisioning and 
 - **WHEN** a factory reset is performed on a USB-only device
 - **THEN** connection mode provisioning is cleared and setup AP mode becomes available again after reboot/power-cycle as documented for factory reset
 
+### Requirement: link_mode patches gated after provision
+Empty `link_mode` MUST remain valid as the unprovisioned NVS default and for settings load. Settings patches MUST reject an empty `link_mode` value. When the device is provisioned and not in setup AP mode, settings patches that change `link_mode` MUST be rejected over HTTP and serial. The setup AP Connection path MAY set `wifi` or `usb` during provisioning as specified above.
+
+#### Scenario: Empty link_mode patch rejected
+- **WHEN** a provisioned or unprovisioned device receives a settings patch with `link_mode` set to an empty string
+- **THEN** the device rejects the patch with a validation error and does not clear connection mode
+
+#### Scenario: Provisioned mode change outside setup AP rejected
+- **WHEN** the device is provisioned in Wi‑Fi mode, setup AP is not active, and the host patches `link_mode` to `usb`
+- **THEN** the device rejects the patch and leaves the saved mode unchanged
+
+#### Scenario: USB-only cannot switch to Wi-Fi via settings
+- **WHEN** the device is provisioned in USB-only mode and the host patches `link_mode` to `wifi` without a factory reset
+- **THEN** the device rejects the patch
+
+#### Scenario: Setup AP USB-only save still works
+- **WHEN** the setup AP is active and the user completes USB-only Connection
+- **THEN** the device accepts and stores `link_mode=usb` and performs the in-session AP teardown as specified
+
 ### Requirement: Factory reset over CLI with confirmation
 The host CLI MUST expose factory reset over the selected transport and MUST require an explicit confirmation step (interactive prompt or affirmative flag) before sending the reset command.
 

@@ -16,6 +16,7 @@ Corporate networks often forbid unverified Wi‑Fi devices, so Tiny Engineer can
 - Extend interactive **`tiny-engineer setup`** (project/IDE hooks wizard): ask preferred host transport (`http` | `serial`), persist `TINY_ENGINEER_TRANSPORT` (and URL and/or optional serial port) in the project `.env` so later CLI commands and agent hooks use that transport without requiring flags. Flags still override. Distinct from the device AP Connection step (`link_mode`).
 - Route application `serial_log` output through typed LOG frames (no raw `Serial.print` for app logs); CLI monitor preserves developer logging UX.
 - Shared **command core** so HTTP and serial invoke the same operations (prepare for future device-initiated events).
+- Review hardening (P0–P1): abort serial play sessions on stream failure (release busy; CLI best-effort `play_end`); reject empty / out-of-setup `link_mode` patches so USB-only escape stays factory-reset-only; keep large serial pack/decode buffers off the Arduino loop-task stack.
 
 No **BREAKING** HTTP route removals in this change. New NVS/settings fields and setup UI choices are additive. USB-only mode turns HTTP off by design for that configuration.
 
