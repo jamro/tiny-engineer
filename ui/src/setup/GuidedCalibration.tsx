@@ -27,7 +27,7 @@ function startAngleFor(step: (typeof GUIDED_STEPS)[number], ranges: Range[]): nu
 
 function confirmLabelFor(step: (typeof GUIDED_STEPS)[number], isLast: boolean): string {
   if (isLast) {
-    return "Finish · save ranges";
+    return "Save and continue";
   }
 
   if (step.kind === "center") {
@@ -51,7 +51,7 @@ export function GuidedCalibration({
 }) {
   const { setStatus } = useStatus();
   const moveServos = useSetupServo();
-  const { guidedStep, guidedIndex, angles, ranges, centers } = calibration;
+  const { guidedStep, guidedIndex, guidedDrafts, angles, ranges, centers } = calibration;
   const joint = guidedStep.joint;
   const angle = angles[joint];
   const [min, max] = ranges[joint];
@@ -68,9 +68,11 @@ export function GuidedCalibration({
     }
 
     calibration.setAngles(withAngle(next));
+    calibration.setGuidedDraft(guidedIndex, next);
 
     if (!(await moveServos({ index: joint, angle: next }))) {
       calibration.setAngles(withAngle(angle));
+      calibration.setGuidedDraft(guidedIndex, angle);
     }
   }
 
@@ -92,9 +94,10 @@ export function GuidedCalibration({
 
   async function goToStep(index: number) {
     const step = GUIDED_STEPS[index];
-    const start = startAngleFor(step, ranges);
+    const start = guidedDrafts[index] ?? startAngleFor(step, ranges);
 
     calibration.setJointAngle(step.joint, start);
+    calibration.setGuidedDraft(index, start);
     await moveServos({ index: step.joint, angle: start });
   }
 
@@ -129,6 +132,15 @@ export function GuidedCalibration({
       }
 
       const nextMax = mirrorMax(center, angle);
+
+      if (nextMax > 180) {
+        setStatus(
+          "Mirrored max must not exceed 180°. Move the center lower or min closer to center.",
+          "err",
+        );
+
+        return;
+      }
 
       calibration.setJointRange(joint, [angle, nextMax]);
 
@@ -177,8 +189,21 @@ export function GuidedCalibration({
   return (
     <ConfigSection title={guidedStep.title}>
       <p className="hint" data-testid="calib-progress">
-        {guidedStep.title} · {guidedIndex + 1}/{GUIDED_STEPS.length}
+        Servo calibration · {guidedIndex + 1} of {GUIDED_STEPS.length}
       </p>
+      <div
+        className="calib-progress-track"
+        role="progressbar"
+        aria-label="Servo calibration progress"
+        aria-valuemin={1}
+        aria-valuemax={GUIDED_STEPS.length}
+        aria-valuenow={guidedIndex + 1}
+      >
+        <div
+          className="calib-progress-bar"
+          style={{ width: `${((guidedIndex + 1) / GUIDED_STEPS.length) * 100}%` }}
+        ></div>
+      </div>
       <p className="setup-copy">{guidedStep.copy}</p>
       <div className="form-group">
         <div className="calib-angle-readout">
@@ -198,7 +223,16 @@ export function GuidedCalibration({
             }
           />
         </div>
+        <p className="calib-range-label">
+          Saved range:{" "}
+          <strong>
+            {min}°–{max}°
+          </strong>
+        </p>
       </div>
+      <p className="calib-target">
+        Target: <strong>{guidedStep.target}</strong>
+      </p>
       <div className="calib-nudge">
         {NUDGES.map((delta) => (
           <Button key={delta} onClick={() => nudge(delta)}>

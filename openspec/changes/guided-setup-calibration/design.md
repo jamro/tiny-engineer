@@ -89,20 +89,37 @@ Set every entry in `SERVO_SPECS` to `min=80`, `max=100` so settings defaults and
 
 ### 9. Hub labels, hierarchy, and copy UX
 
-Hub actions in this order: **Calibrate servos** (`primary`) → **Assembly support** (secondary / mid visual weight — new `variant="secondary"` or hub-scoped CSS) → **Skip** (default/quiet, last). Short “when to use” lines under the intro (calibrate = assembled robot / set safe limits; assembly support = first build / seat horns at 90°; skip = ranges already good).
+Hub actions in this order: **Calibrate servos** (`primary`) → **Assembly support** (secondary / mid visual weight — new `variant="secondary"` or hub-scoped CSS) → **Skip** (default/quiet, last). Use one short intro, then put each action’s “when to use” guidance inside the button via title + hint. Do not repeat the same three choices in a separate list.
 
 Instruction copy in hub, assembly, and guided steps uses `<strong>` (or equivalent) on landmarks and stop conditions only — not whole paragraphs. Guided `GUIDED_STEPS` copy becomes rich text (JSX / Preact nodes), not plain strings only.
 
 Assembly identify: mark each joint as done after a successful identify wiggle (button state / check) until leaving assembly; Done CTA reads clearly (e.g. **Done · back to hub**).
 
-Guided progress: show joint context plus step index (e.g. `Body · center` with `1/10`, or grouped `Body 1/3`). Confirm labels: **Confirm center** / **Confirm min** / **Confirm max** (or hand landmark wording) — demo after min still runs; omit “demo range” from the button. Skip when current ranges match stock 80–100: soft hint that defaults stay narrow (no modal). On final guided confirm: compact mins/maxs summary in UI before/with the existing `POST /settings` save (payload shape unchanged).
+Guided progress: keep the active role once as the section heading (`Body · center`), then show `Servo calibration · 1 of 10` plus a small internal progress bar. This is separate from the outer five-step wizard progress. Confirm labels: **Confirm center** / **Confirm min** / **Confirm max** (or hand landmark wording); final confirm is **Save and continue**. Demo after min still runs; omit “demo range” from the button. Skip when current ranges match stock 80–100: soft hint that defaults stay narrow (no modal). Do not show a final ranges-summary box.
 
 **Alternatives:** Keep “Assembly: 90° + identify” (rejected — opaque). Equal-weight buttons (rejected — primary path unclear). Full-sentence bold (rejected — reduces scanability). Blocking skip modal (rejected — friction for re-flash / known-good robots).
+
+### 10. Calibration guidance and wizard feedback
+
+Label the calibration track with the current saved bounds (`Saved range: 80°–100°`) so the orange band has explicit meaning. Add concise per-substep target metadata (for example, `Target: straight forward` or `Target: over the keyboard`) immediately above the nudge controls.
+
+Keep Back controls visually neutral and consistent across wizard screens while preserving a visible focus indication. Make Screen’s **Rotate 180°** action secondary because **Next** owns primary navigation, and display the current preview orientation (`Normal` / `Rotated 180°`). RGB test/mapping and Speaker playback show successful completion state after their device action succeeds.
+
+On short mobile viewports, keep wizard action footers reachable with a sticky bottom treatment, safe-area inset, opaque background, and matching content padding so actions never cover controls.
+
+### 11. Guided drafts and mirrored-range validation
+
+Keep a session-only draft angle per guided substep. Nudge updates that substep’s draft; navigating Back moves to and displays the prior draft instead of recomputing its entry angle. Drafts reset when guided calibration is left or restarted and are never persisted.
+
+For Body, Neck, and Head min confirmation, calculate `nextMax = 2 × center − min`, then validate the complete electrical range before mutating calibration state or moving a servo. Existing `min < center` validation remains. If `nextMax > 180`, show an error, keep the user on the min substep, leave ranges unchanged, and do not run the max demo.
+
+**Alternatives:** Clamp `nextMax` to 180 (rejected — silently breaks symmetry). Save then report the invalid range (rejected — state and physical demo would already be wrong). Recompute entry position on Back (rejected — discards user work).
 
 ## Risks / Trade-offs
 
 - **[Risk] Long blocking demo moves on slow phones / flaky AP** → Mitigation: keep one joint moving; disable double-submit; surface existing failure + restore angle pattern from tests.
 - **[Risk] User sets min at or above session center so mirrored max is invalid** → Mitigation: reject confirm when `min >= center` (implies `max <= min`); status error like today’s min/max checks.
+- **[Risk] An off-center center and low min mirror above electrical 180°** → Mitigation: validate `nextMax <= 180` before state mutation or demo.
 - **[Risk] Wizard tests tightly coupled to old “Parts are on →” entry** → Mitigation: rewrite `ui/test/wizard.test.tsx` helpers around hub actions; keep save-payload assertions.
 - **[Trade-off] Strict forward vs power-user retune** → Accept for v1; hub allows re-entering guided later in the same session if they Back from OLED… today Back from OLED re-enters ranges — preserve ability to re-open guided from hub when returning to servos step.
 
@@ -114,4 +131,4 @@ Guided progress: show joint context plus step index (e.g. `Body · center` with 
 
 ## Open Questions
 
-None that block implementation. Exact secondary button styling and finish-summary layout left to apply.
+None that block implementation.

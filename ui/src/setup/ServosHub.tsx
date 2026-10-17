@@ -20,38 +20,35 @@ export function ServosHub({
 
     calibration.startGuided();
     calibration.setJointAngle(first.joint, mid);
+    calibration.setGuidedDraft(0, mid);
     await moveServos({ index: first.joint, angle: mid });
   }
 
   return (
     <ConfigSection title="Servo calibration">
-      <p className="setup-copy">
-        <strong>Calibrate</strong> safe limits on the finished robot, use{" "}
-        <strong>Assembly support</strong> to seat horns at electrical 90°, or <strong>Skip</strong>{" "}
-        if ranges already look good.
-      </p>
-      <ul className="setup-hub-when">
-        <li>
-          <strong>Calibrate servos</strong> — robot assembled; walk through Body → Neck → Head →
-          Hands
-        </li>
-        <li>
-          <strong>Assembly support</strong> — first build; move to 90° and identify plugs before
-          seating parts
-        </li>
-        <li>
-          <strong>Skip</strong> — keep the ranges already loaded (NVS or defaults)
-        </li>
-      </ul>
+      <p className="setup-copy">Choose the path that matches your robot’s current state.</p>
       <div className="setup-hub-actions">
-        <Button id="setup-calibrate" variant="primary" onClick={beginGuided}>
-          Calibrate servos
+        <Button
+          id="setup-calibrate"
+          aria-label="Calibrate servos"
+          variant="primary"
+          onClick={beginGuided}
+        >
+          <span className="btn-title">Calibrate servos</span>
+          <span className="btn-hint">Set safe movement limits on the assembled robot</span>
         </Button>
-        <Button id="setup-assembly" variant="secondary" onClick={calibration.startAssembly}>
-          Assembly support
+        <Button
+          id="setup-assembly"
+          aria-label="Assembly support"
+          variant="secondary"
+          onClick={calibration.startAssembly}
+        >
+          <span className="btn-title">Assembly support</span>
+          <span className="btn-hint">Center shafts and identify plugs before seating parts</span>
         </Button>
-        <Button id="setup-skip-calib" onClick={onSkip}>
-          Skip
+        <Button id="setup-skip-calib" aria-label="Skip" onClick={onSkip}>
+          <span className="btn-title">Skip</span>
+          <span className="btn-hint">Keep the servo limits already loaded</span>
         </Button>
       </div>
       {stockDefaults && (

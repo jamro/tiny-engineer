@@ -53,20 +53,38 @@ describe("setup wizard", () => {
     expect(calibrate.classList.contains("btn-primary")).toBe(true);
     expect(assembly.classList.contains("btn-secondary")).toBe(true);
     expect(skip.compareDocumentPosition(assembly) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
-    expect(document.querySelector(".setup-hub-when")?.textContent).toMatch(/Assembly support/);
+    expect(document.querySelector(".setup-hub-when")).toBeNull();
+    expect(
+      within(calibrate).getByText("Set safe movement limits on the assembled robot"),
+    ).toBeTruthy();
+    expect(
+      within(assembly).getByText("Center shafts and identify plugs before seating parts"),
+    ).toBeTruthy();
+    expect(within(skip).getByText("Keep the servo limits already loaded")).toBeTruthy();
     expect(screen.getByText(/80°–100°/)).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Body · center" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Move all to 90°" })).toBeNull();
   });
 
   it("skips calibration, saves loaded ranges, and advances to Screen", async () => {
-    const { robot } = await skipCalibration();
+    const { robot, click } = await skipCalibration();
 
     expect(robot.lastPost("/settings")?.json).toEqual({
       servo_mins: [80, 80, 80, 80, 80],
       servo_maxs: [100, 100, 100, 100, 100],
     });
     await waitFor(() => expect(robot.lastPost("/setup/oled")?.json).toEqual({ rotate_180: false }));
+
+    const rotate = screen.getByRole("button", { name: "Rotate 180°" });
+
+    expect(rotate.classList.contains("btn-secondary")).toBe(true);
+    expect(screen.getByTestId("screen-orientation").textContent).toBe("Current preview: Normal");
+
+    await click("Rotate 180°");
+
+    expect(screen.getByTestId("screen-orientation").textContent).toBe(
+      "Current preview: Rotated 180°",
+    );
   });
 
   it("centers all servos and identifies one from assembly, then returns to the hub", async () => {
@@ -109,10 +127,19 @@ describe("setup wizard", () => {
   it("nudges center and min with the same buttons, mirrors max about the session center", async () => {
     const { robot, click } = await startGuided();
 
-    expect(screen.getByTestId("calib-progress").textContent).toBe("Body · center · 1/10");
+    expect(screen.getByTestId("calib-progress").textContent).toBe("Servo calibration · 1 of 10");
+    expect(
+      screen
+        .getByRole("progressbar", { name: "Servo calibration progress" })
+        .getAttribute("aria-valuenow"),
+    ).toBe("1");
     expect(screen.getByRole("button", { name: "Confirm center" })).toBeTruthy();
     expect(document.querySelector(".setup-copy strong")?.textContent).toMatch(
       /centered in the chair/,
+    );
+    expect(document.querySelector(".calib-range-label")?.textContent).toBe("Saved range: 80°–100°");
+    expect(document.querySelector(".calib-target")?.textContent).toBe(
+      "Target: Body centered in the chair",
     );
 
     // Stock 80–100 → default park at midpoint 90°.
@@ -170,12 +197,65 @@ describe("setup wizard", () => {
     expect(screen.getByRole("heading", { name: "Body · minimum" })).toBeTruthy();
   });
 
+  it("rejects a mirrored max above 180 without changing the range or running the demo", async () => {
+    const { robot, click } = await startGuided();
+
+    for (let i = 0; i < 5; i++) {
+      await click("+10°");
+    }
+
+    await click("Confirm center");
+    await waitFor(() => expect(angle()).toBe("80"));
+
+    const movesBeforeConfirm = robot.sent("POST", "/setup/servo").length;
+
+    await click("Confirm min");
+
+    expect(statusText()).toBe(
+      "Mirrored max must not exceed 180°. Move the center lower or min closer to center.",
+    );
+    expect(screen.getByRole("heading", { name: "Body · minimum" })).toBeTruthy();
+    expect(document.querySelector(".calib-range-label")?.textContent).toBe("Saved range: 80°–100°");
+    expect(robot.sent("POST", "/setup/servo")).toHaveLength(movesBeforeConfirm);
+  });
+
   it("returns to the hub when backing from the first guided step", async () => {
     const { click } = await startGuided();
+
+    const back = screen.getByRole("button", { name: "Back" });
+
+    expect(back.classList.contains("btn-primary")).toBe(false);
+    expect(back.classList.contains("btn-secondary")).toBe(false);
 
     await click("Back");
 
     expect(screen.getByRole("button", { name: "Calibrate servos" })).toBeTruthy();
+  });
+
+  it("restores guided substep drafts with Back and clears them after leaving", async () => {
+    const { robot, click } = await startGuided();
+
+    await click("−5°");
+    await click("Confirm center");
+    await click("−10°");
+    await click("Confirm min");
+
+    await screen.findByRole("heading", { name: "Neck · center" });
+    await click("Back");
+
+    await screen.findByRole("heading", { name: "Body · minimum" });
+    await waitFor(() => expect(angle()).toBe("70"));
+    expect(robot.lastPost("/setup/servo")?.json).toEqual({ index: 4, angle: 70 });
+
+    await click("Back");
+    await screen.findByRole("heading", { name: "Body · center" });
+    await waitFor(() => expect(angle()).toBe("85"));
+
+    await click("+5°");
+    await waitFor(() => expect(angle()).toBe("90"));
+    await click("Back");
+    await click("Calibrate servos");
+    await waitFor(() => expect(angle()).toBe("85"));
   });
 
   it("has no joint tabs during guided calibration", async () => {
@@ -247,10 +327,9 @@ describe("setup wizard", () => {
     await click("+10°");
     await click("+5°");
 
-    expect(screen.getByRole("button", { name: "Finish · save ranges" })).toBeTruthy();
-    expect(screen.queryByTestId("calib-range-summary")).toBeNull();
+    expect(screen.getByRole("button", { name: "Save and continue" })).toBeTruthy();
 
-    await click("Finish · save ranges");
+    await click("Save and continue");
 
     await waitFor(() => expect(stepLabel()).toBe("Step 2 of 5 · Screen"));
 
@@ -324,6 +403,25 @@ describe("setup wizard", () => {
     expect(statusText()).toMatch(/USB-only/i);
     expect(statusText()).toMatch(/serial/i);
     expect(statusText()).not.toMatch(/power-cycle/i);
+  });
+
+  it("shows completion feedback for LED previews and speaker playback", async () => {
+    const { click } = await skipCalibration();
+
+    await click("Next: RGB mapping");
+    await click("Red");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("led-completion").textContent).toBe("✓ Red preview sent"),
+    );
+
+    await click("Next: Speaker");
+    await click("Play");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("speaker-completion").textContent).toBe("✓ Welcome clip played"),
+    );
+    expect(screen.getByRole("button", { name: "Play again" })).toBeTruthy();
   });
 
   it("blocks a color mapping that uses a color twice", async () => {

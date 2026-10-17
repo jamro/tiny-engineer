@@ -94,7 +94,7 @@ export function Wizard({ settings }: { settings: Settings }) {
   }
 
   return (
-    <div>
+    <div className="setup-wizard">
       <h2 className="page-title">Tiny Engineer setup</h2>
       <p className="page-desc">{`Step ${stepIndex + 1} of ${STEPS.length} · ${step.title}`}</p>
       <div className="setup-progress-track">

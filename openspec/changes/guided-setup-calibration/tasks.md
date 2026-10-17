@@ -36,7 +36,20 @@
 - [x] 6.2 Emphasize landmarks/stop cues with `<strong>` (or equivalent) in hub, assembly, and guided instruction copy; update Vitest where copy is asserted
 - [x] 6.3 Assembly: per-joint identify done feedback; clearer Done CTA; update Vitest
 - [x] 6.4 Guided: progress shows joint context; simplify confirm labels (no “demo” in button text); update Vitest
-- [x] 6.5 Soft skip hint for stock 80–100 ranges; compact mins/maxs summary on guided finish; update Vitest (payload still mins/maxs only)
+- [x] 6.5 Soft skip hint for stock 80–100 ranges; update Vitest (payload still mins/maxs only)
+
+## 7. Wizard usability follow-up
+
+- [x] 7.1 Simplify the servo hub to one short intro plus self-describing action buttons (title + hint); remove the duplicated when-to-use list; update Vitest
+- [x] 7.2 Show guided role once in the heading, add `Servo calibration · N of 10` plus an independent internal progress bar; update Vitest
+- [x] 7.3 Label the calibration track with current saved min/max and add concise per-substep target hints; update Vitest
+- [x] 7.4 Make Screen rotation secondary and display current Normal / Rotated 180° preview state; update Vitest
+- [x] 7.5 Rename the final guided CTA to **Save and continue**; keep Back neutral and visibly focusable across wizard screens; update Vitest
+- [x] 7.6 Show persistent successful completion / selected state for RGB actions and Speaker playback; update Vitest
+- [x] 7.7 Preserve a session draft angle per guided substep; Back restores and moves to the draft; leaving/restarting guided clears drafts; update Vitest
+- [x] 7.8 Add a short-viewport sticky wizard action footer with safe-area spacing and no content overlap; verify responsive CSS and UI lint
+- [x] 7.9 Before state mutation or demo, reject Body/Neck/Head mirrored `nextMax > 180`; show an error, remain on min, keep ranges unchanged, and send no out-of-range move; add Vitest regression
+- [x] 7.10 Remove stale final ranges-summary expectations from planning/tests; verify `npm run lint --prefix ui` and `npm test --prefix ui`
 
 ## Workflow follow-up
 

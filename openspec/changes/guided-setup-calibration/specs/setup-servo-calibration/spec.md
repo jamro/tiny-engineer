@@ -7,7 +7,7 @@ Defines the setup AP wizard servo step: assembly centering and identify, guided 
 ## ADDED Requirements
 
 ### Requirement: Servos step presents a hub
-While the setup wizard is on the servos step and neither assembly nor guided calibration is active, the UI MUST present a hub with three actions in this order: **Calibrate servos** (primary), **Assembly support** (secondary / mid visual weight), and **Skip** (least visual emphasis). The hub MUST include short “when to use” guidance for each action.
+While the setup wizard is on the servos step and neither assembly nor guided calibration is active, the UI MUST present a hub with three actions in this order: **Calibrate servos** (primary), **Assembly support** (secondary / mid visual weight), and **Skip** (least visual emphasis). Each action MUST include short “when to use” guidance without repeating the same choices in a separate list.
 
 #### Scenario: Hub is the default entry
 - **WHEN** the user opens the setup wizard on the servos step
@@ -64,7 +64,9 @@ Guided range calibration MUST proceed in a fixed joint order with only forward c
 
 #### Scenario: Progress shows joint context
 - **WHEN** the user is on a guided substep
-- **THEN** the UI shows which joint (and center/min/max or hand landmark role) is active along with overall progress
+- **THEN** the section heading shows the joint and center/min/max or hand landmark role once
+- **AND** a separate line shows `Servo calibration` and the current substep out of all guided substeps
+- **AND** an internal progress indicator advances independently of the outer five-step wizard progress
 
 ### Requirement: Instruction copy emphasizes key phrases
 Hub, assembly, and guided instruction text MUST emphasize landmarks and stop conditions with strong/bold phrasing so the eye can scan the important cues.
@@ -81,6 +83,11 @@ For Body, Neck, and Head, guided calibration MUST set a session center, then a m
 - **THEN** the UI offers the same ±1°, ±5°, and ±10° nudge buttons used for min/max steps
 - **AND** the joint starts at the midpoint of its current min and max
 - **AND** confirming the step records the current angle as that joint’s session center
+
+#### Scenario: Calibration controls explain range and target
+- **WHEN** the user is on any guided substep
+- **THEN** the track identifies the current saved minimum and maximum
+- **AND** concise target text states the physical landmark the user is adjusting toward
 
 #### Scenario: Min step opens at current min
 - **WHEN** the user enters a Body, Neck, or Head min substep
@@ -106,6 +113,12 @@ For Body, Neck, and Head, guided calibration MUST set a session center, then a m
 - **WHEN** a mirrored max has just been established for Body, Neck, or Head
 - **THEN** the joint moves slowly to that max, then slowly back to the recorded session center, before the next substep
 
+#### Scenario: Mirrored max exceeds electrical range
+- **WHEN** a Body, Neck, or Head min would produce `2 × center − min > 180`
+- **THEN** the UI shows an error and remains on the current min substep
+- **AND** the in-memory range is not changed
+- **AND** no out-of-range setup servo move or demo is requested
+
 #### Scenario: Center is not persisted
 - **WHEN** the user finishes guided calibration and advances
 - **THEN** the settings update includes `servo_mins` and `servo_maxs` only
@@ -115,6 +128,11 @@ For Body, Neck, and Head, guided calibration MUST set a session center, then a m
 - **WHEN** the user is on a center, min, or hand bound substep
 - **THEN** the primary confirm control uses short wording (Confirm center / Confirm min / Confirm max or equivalent landmark wording)
 - **AND** the label does not require the word “demo”
+
+#### Scenario: Final guided action describes navigation
+- **WHEN** the user reaches the final hand-bound substep
+- **THEN** the primary action is labeled Save and continue
+- **AND** no ranges-summary box is shown
 
 ### Requirement: Hands calibrate four bounds without centers
 Guided Hands calibration MUST set four electrical bounds in this order, with no center step: right-hand min (keyboard height with slack), left-hand max (same height), left-hand min (upper), right-hand max (same upper height).
@@ -139,13 +157,17 @@ All servo motion during assembly and guided calibration MUST use the existing se
 - **THEN** the UI requests a setup servo move for that joint and angle
 - **AND** available nudge steps include ±1°, ±5°, and ±10°
 
+#### Scenario: Back restores substep draft
+- **WHEN** the user revisits a guided substep with Back after nudging it
+- **THEN** the displayed angle and setup servo move use that substep’s session draft
+- **AND** the draft is discarded when guided calibration is left or restarted
+
 ### Requirement: Completing or skipping servos persists ranges unchanged in mechanism
 Leaving the servos step after guided calibration or skip MUST persist `servo_mins` and `servo_maxs` through the existing settings update path. Skip MUST NOT invent new range values beyond what the step already held.
 
 #### Scenario: Save after guided calibration
 - **WHEN** the user finishes guided calibration and advances to the next wizard step
 - **THEN** the client posts the calibrated `servo_mins` and `servo_maxs` via `POST /settings`
-- **AND** the UI shows a compact summary of those mins and maxs around the finish/save action
 
 #### Scenario: Save after skip
 - **WHEN** the user skips calibration and advances
@@ -162,3 +184,25 @@ When no servo ranges are stored in NVS, the device MUST use stock defaults of mi
 #### Scenario: Skip without prior calibration saves stock defaults
 - **WHEN** the user skips calibration on a device still on stock defaults
 - **THEN** the posted `servo_mins` and `servo_maxs` match those 80° / 100° arrays
+
+### Requirement: Remaining wizard actions communicate hierarchy and completion
+Screen rotation, RGB testing/mapping, Speaker playback, and wizard navigation MUST communicate which action advances the wizard and whether device feedback has completed.
+
+#### Scenario: Screen rotation is secondary
+- **WHEN** the user is on the Screen step
+- **THEN** Rotate 180° has less visual emphasis than the Next action
+- **AND** the UI displays whether the current preview is Normal or Rotated 180°
+
+#### Scenario: RGB and Speaker show completion
+- **WHEN** an RGB test/mapping action or Speaker playback succeeds
+- **THEN** the relevant step displays a persistent completion or selected state
+
+#### Scenario: Back remains consistent and accessible
+- **WHEN** Back is shown on any wizard or guided screen
+- **THEN** it uses the same neutral visual hierarchy
+- **AND** keyboard focus remains visibly indicated
+
+#### Scenario: Actions remain reachable on short viewports
+- **WHEN** wizard content is taller than a short mobile viewport
+- **THEN** the action footer remains reachable with a sticky bottom treatment
+- **AND** it does not cover calibration controls or ignore the device safe-area inset

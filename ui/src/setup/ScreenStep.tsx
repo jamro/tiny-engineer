@@ -20,7 +20,10 @@ export function ScreenStep({ rotate180, onRotate }: { rotate180: boolean; onRota
       <p className="setup-copy">
         Look at the OLED. Text should read right-side up. Tap Rotate 180° if it is upside down.
       </p>
-      <Button variant="primary" onClick={onRotate}>
+      <p className="setup-state" data-testid="screen-orientation">
+        Current preview: <strong>{rotate180 ? "Rotated 180°" : "Normal"}</strong>
+      </p>
+      <Button variant="secondary" aria-pressed={rotate180} onClick={onRotate}>
         Rotate 180°
       </Button>
     </ConfigSection>

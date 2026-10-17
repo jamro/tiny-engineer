@@ -264,6 +264,15 @@ nav a.active {
   color: var(--muted);
 }
 
+.btn-primary .btn-hint {
+  color: rgb(255 255 255 / 85%);
+}
+
+.btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
 .btn-primary {
   background: var(--accent);
   color: #fff;
@@ -751,16 +760,58 @@ footer {
   flex: 1;
 }
 
+@media (width <= 48rem) and (height <= 50rem) {
+  .setup-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    padding-top: 0.75rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .config-section .setup-footer {
+    background: var(--card);
+  }
+
+  .setup-wizard > .setup-footer {
+    background: var(--bg);
+  }
+}
+
 .setup-copy {
   font-size: 0.9rem;
   color: var(--muted);
   margin: 0 0 1rem;
 }
 
+.setup-state {
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.setup-state strong {
+  color: var(--text);
+}
+
 .calib-guide {
   pointer-events: none;
   user-select: none;
   margin: 0.25rem 0 0.5rem;
+}
+
+.calib-progress-track {
+  height: 0.25rem;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: -0.55rem 0 1rem;
+}
+
+.calib-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
 }
 
 .calib-marker {
@@ -783,6 +834,26 @@ footer {
   font-weight: 700;
   margin: 0.35rem 0 0.85rem;
   letter-spacing: -0.02em;
+}
+
+.calib-range-label,
+.calib-target {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.calib-range-label {
+  margin: 0.25rem 0 0;
+  text-align: center;
+}
+
+.calib-target {
+  margin: 0 0 0.6rem;
+}
+
+.calib-range-label strong,
+.calib-target strong {
+  color: var(--text);
 }
 
 .calib-nudge {
@@ -834,18 +905,6 @@ footer {
 
 .setup-hub-actions .btn-primary {
   order: 0;
-}
-
-.setup-hub-when {
-  margin: 0.75rem 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.setup-hub-when li {
-  margin: 0.35rem 0;
 }
 
 .setup-hub-skip-hint {
