@@ -238,6 +238,24 @@ export class SerialRobotClient {
   }
 
   /**
+   * Drop a pending credit waiter (e.g. after a failed port write) so its timeout
+   * cannot become an unhandled rejection.
+   * @param {number} streamId
+   * @param {number} seq
+   * @param {unknown} err
+   */
+  cancelCreditWait(streamId, seq, err) {
+    const idx = this._creditWaiters.findIndex((w) => w.streamId === streamId && w.seq === seq);
+    if (idx < 0) {
+      return;
+    }
+    const waiter = this._creditWaiters[idx];
+    this._creditWaiters.splice(idx, 1);
+    clearTimeout(waiter.timer);
+    waiter.reject(err instanceof Error ? err : new Error(String(err)));
+  }
+
+  /**
    * Stream a WAV play session (credit-windowed).
    * @param {Buffer | Uint8Array} wav
    * @param {string} [name]
@@ -268,9 +286,15 @@ export class SerialRobotClient {
         const frame = cobsEncodeFrame(message);
         credits = 0;
         const creditPromise = this.waitCredit(streamId, seq, 10_000);
-        await new Promise((resolve, reject) => {
-          this._port.write(frame, (err) => (err ? reject(err) : resolve(undefined)));
-        });
+        try {
+          await new Promise((resolve, reject) => {
+            this._port.write(frame, (err) => (err ? reject(err) : resolve(undefined)));
+          });
+        } catch (err) {
+          this.cancelCreditWait(streamId, seq, err);
+          creditPromise.catch(() => {});
+          throw err;
+        }
         credits = await creditPromise;
         offset += chunkLen;
         seq = (seq + 1) & 0xffff;

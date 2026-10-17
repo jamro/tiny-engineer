@@ -38,6 +38,35 @@ test("play attempts play_end after stream credit failure", async () => {
   assert.equal(end?.fields.stream_id, 3);
 });
 
+test("play cancels credit waiter when port write fails", async () => {
+  const client = new SerialRobotClient("/dev/null");
+  const writeErr = new Error("write failed");
+
+  client._port = {
+    isOpen: true,
+    write(_frame, cb) {
+      cb(writeErr);
+    },
+  };
+
+  client.request = async (op) => {
+    if (op === "play") {
+      return { ok: true, stream_id: 5, credits: 64 };
+    }
+    if (op === "play_end") {
+      return { ok: true };
+    }
+    throw new Error(`unexpected op ${op}`);
+  };
+
+  await assert.rejects(() => client.play(Buffer.alloc(16), "talking"), (err) => {
+    assert.equal(err, writeErr);
+    return true;
+  });
+
+  assert.equal(client._creditWaiters.length, 0);
+});
+
 test("play does not double play_end on success", async () => {
   const client = new SerialRobotClient("/dev/null");
   /** @type {string[]} */
