@@ -91,9 +91,19 @@ describe("setup wizard", () => {
     const { robot, click } = await openWizard();
 
     await click("Assembly support");
+
+    for (const name of ["Head", "Neck", "Left hand", "Right hand", "Body"]) {
+      expect(screen.getByRole("button", { name: `Identify ${name}` })).toHaveProperty(
+        "disabled",
+        true,
+      );
+    }
+
     await click("Move all to 90°");
 
     await waitFor(() => expect(robot.lastPost("/setup/servo")?.json).toEqual({ all: 90 }));
+
+    expect(screen.getByRole("button", { name: "Identify Head" })).toHaveProperty("disabled", false);
 
     await click("Identify Head");
 
@@ -112,6 +122,20 @@ describe("setup wizard", () => {
 
     expect(screen.getByRole("button", { name: "Calibrate servos" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Body · center" })).toBeNull();
+
+    await click("Assembly support");
+    expect(screen.getByRole("button", { name: "Identify Head" })).toHaveProperty("disabled", true);
+  });
+
+  it("keeps Identify disabled when move-all to 90° fails", async () => {
+    const { robot, click } = await openWizard();
+
+    await click("Assembly support");
+    robot.failing.add("/setup/servo");
+    await click("Move all to 90°");
+
+    await waitFor(() => expect(statusText()).toBe("robot said no"));
+    expect(screen.getByRole("button", { name: "Identify Head" })).toHaveProperty("disabled", true);
   });
 
   it("offers no control that moves a servo from the calibration bar", async () => {

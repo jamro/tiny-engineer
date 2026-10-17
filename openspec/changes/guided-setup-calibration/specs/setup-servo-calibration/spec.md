@@ -36,8 +36,16 @@ The assembly path MUST let the user move all servos to electrical 90° and ident
 - **WHEN** the user requests move-all-to-midpoint on the assembly path
 - **THEN** every joint moves to 90° via the existing setup servo move endpoint
 
+#### Scenario: Identify disabled before center-all
+- **WHEN** the assembly path is open and move-all-to-midpoint has not succeeded in this visit
+- **THEN** Identify controls for every joint are disabled
+
+#### Scenario: Identify enabled after successful center-all
+- **WHEN** move-all-to-midpoint succeeds on the assembly path
+- **THEN** Identify controls become enabled
+
 #### Scenario: Identify one servo
-- **WHEN** the user identifies a joint on the assembly path
+- **WHEN** the user identifies a joint on the assembly path after successful center-all
 - **THEN** that joint moves a few degrees below and above 90° (about ±3°) and returns to 90°
 - **AND** other joints are not commanded by that identify action
 - **AND** that joint’s identify control shows a done state until the user leaves assembly
@@ -46,6 +54,7 @@ The assembly path MUST let the user move all servos to electrical 90° and ident
 - **WHEN** the user finishes or leaves the assembly path
 - **THEN** the UI returns to the servos hub
 - **AND** guided range calibration does not start automatically
+- **AND** the next assembly visit starts with Identify disabled again until center-all succeeds
 
 ### Requirement: Guided calibration is strict forward with Back
 Guided range calibration MUST proceed in a fixed joint order with only forward confirmation and Back to the previous substep (or to the hub from the first substep). Free joint-tab switching MUST NOT be offered during this path.

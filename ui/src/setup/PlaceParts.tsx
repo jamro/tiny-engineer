@@ -8,14 +8,21 @@ import { useSetupServo } from "./useSetupServo";
 export function PlaceParts({ calibration }: { calibration: Calibration }) {
   const moveServos = useSetupServo();
   const [identified, setIdentified] = useState(() => SERVO_NAMES.map(() => false));
+  // Session-only: remount on leave assembly clears the gate (design §4).
+  const [centered, setCentered] = useState(false);
 
   async function centerAll() {
     if (await moveServos({ all: CENTER })) {
       calibration.setAngles(SERVO_NAMES.map(() => CENTER));
+      setCentered(true);
     }
   }
 
   async function identify(index: number) {
+    if (!centered) {
+      return;
+    }
+
     const sequence = [CENTER + IDENTIFY_DELTA, CENTER - IDENTIFY_DELTA, CENTER];
 
     for (const angle of sequence) {
@@ -52,6 +59,7 @@ export function PlaceParts({ calibration }: { calibration: Calibration }) {
           <Button
             key={name}
             className={identified[index] ? "done" : undefined}
+            disabled={!centered}
             onClick={() => identify(index)}
           >
             {identified[index] ? `✓ ${name}` : `Identify ${name}`}

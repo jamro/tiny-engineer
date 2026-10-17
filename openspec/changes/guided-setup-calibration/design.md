@@ -58,7 +58,9 @@ Keep `centers` as in-memory state in `useCalibration` for the guided path. Disca
 
 Assembly identify: for index `i`, chain `90 → 93 → 87 → 90` (or equivalent ±3) via `useSetupServo`. Guided nudges and demos: same helper. Disable controls while a move is in flight (existing `perform` pending already surfaces status).
 
-**Alternatives:** Client-side interpolated PWM (impossible without firmware). Faster `/test/servo` (wrong clamp + wrong mode).
+Stage A Identify gate: keep Identify controls disabled until a successful move-all-to-90° in the current assembly visit sets a session flag (e.g. `centered`). Failed or incomplete center-all leaves Identify disabled. Leaving assembly clears the flag so the next visit requires center-all again. Rationale: the first identify hop is 93°; without a prior center, an uncentered joint can take a large jump.
+
+**Alternatives:** Client-side interpolated PWM (impossible without firmware). Faster `/test/servo` (wrong clamp + wrong mode). Always-enabled Identify (rejected — unsafe large jump before center-all).
 
 ### 5. Wizard footer ownership
 
@@ -93,7 +95,7 @@ Hub actions in this order: **Calibrate servos** (`primary`) → **Assembly suppo
 
 Instruction copy in hub, assembly, and guided steps uses `<strong>` (or equivalent) on landmarks and stop conditions only — not whole paragraphs. Guided `GUIDED_STEPS` copy becomes rich text (JSX / Preact nodes), not plain strings only.
 
-Assembly identify: mark each joint as done after a successful identify wiggle (button state / check) until leaving assembly; Done CTA reads clearly (e.g. **Done · back to hub**).
+Assembly identify: mark each joint as done after a successful identify wiggle (button state / check) until leaving assembly; Done CTA reads clearly (e.g. **Done · back to hub**). Identify buttons stay disabled until successful move-all-to-90° in that assembly visit (see §4).
 
 Guided progress: keep the active role once as the section heading (`Body · center`), then show `Servo calibration · 1 of 10` plus a small internal progress bar. This is separate from the outer five-step wizard progress. Confirm labels: **Confirm center** / **Confirm min** / **Confirm max** (or hand landmark wording); final confirm is **Save and continue**. Demo after min still runs; omit “demo range” from the button. Skip when current ranges match stock 80–100: soft hint that defaults stay narrow (no modal). Do not show a final ranges-summary box.
 

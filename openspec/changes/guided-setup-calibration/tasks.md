@@ -50,6 +50,7 @@
 - [x] 7.8 Add a short-viewport sticky wizard action footer with safe-area spacing and no content overlap; verify responsive CSS and UI lint
 - [x] 7.9 Before state mutation or demo, reject Body/Neck/Head mirrored `nextMax > 180`; show an error, remain on min, keep ranges unchanged, and send no out-of-range move; add Vitest regression
 - [x] 7.10 Remove stale final ranges-summary expectations from planning/tests; verify `npm run lint --prefix ui` and `npm test --prefix ui`
+- [x] 7.11 Gate Identify until successful Move all to 90° in the current assembly visit (session `centered` flag; clear on leave); keep Identify disabled on failure; Vitest for disabled → enabled after center-all and identify sequence
 
 ## Workflow follow-up
 
