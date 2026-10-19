@@ -46,10 +46,29 @@ function parseScreen(source) {
   };
 }
 
+// Colour tags used in the text, in order of first use.
+function usedTags(body) {
+  return [...new Set([...body.matchAll(MARKUP)].map((m) => m[1]).filter((n) => n !== '/'))];
+}
+
+// Starting colours for a tag the user just typed: the first one not already in
+// the design that still reads on its background.
+const TAG_DEFAULTS = ['#ffb000', '#5fd7ff', '#ff5fd2', '#9dff5f', '#ff6b6b', '#c792ea',
+  '#b7410e', '#2b6cb0', '#2f855a', '#805ad5', '#9c4221', '#1a202c'];
+
+function ensureTags(d) {
+  for (const name of usedTags(d.body)) {
+    if (name in d.palette) continue;
+    const taken = new Set([d.foreground, ...Object.values(d.palette)]);
+    d.palette[name] = TAG_DEFAULTS.find((c) => !taken.has(c) && contrast(c, d.background) >= MIN_CONTRAST)
+      ?? d.foreground;
+  }
+}
+
 function toScreenSource(d) {
   const head = [`# title: ${d.title}`, `# background: ${d.background}`, `# foreground: ${d.foreground}`];
   if (d.paperDim.length) head.push(`# paper-dim: ${d.paperDim.join(' ')}`);
-  for (const [name, hex] of Object.entries(d.palette)) head.push(`# color ${name}: ${hex}`);
+  for (const name of usedTags(d.body)) head.push(`# color ${name}: ${d.palette[name]}`);
   if (d.align !== 'top-left') head.push(`# align: ${d.align}`);
   if (d.outline !== 'none') head.push(`# outline: ${d.outline}`);
   return `${head.join('\n')}\n${d.body}\n`;
@@ -334,6 +353,7 @@ async function buildPdf() {
 
 function setDesign(d) {
   state.design = structuredClone(d);
+  ensureTags(state.design);
   $('scr-body').value = d.body;
   $('scr-title').value = d.title;
   syncColours();
@@ -382,7 +402,7 @@ function syncColours() {
       box.append(wrap);
     };
     swatch('text', d.foreground, false, (v) => { d.foreground = v; });
-    for (const name of Object.keys(d.palette)) {
+    for (const name of usedTags(d.body)) {
       swatch(`{${name}}`, d.palette[name], d.paperDim.includes(name), (v) => { d.palette[name] = v; });
     }
   }
@@ -426,7 +446,17 @@ function bind() {
     renderPreview();
   });
   $('scr-template').addEventListener('change', (e) => setDesign(state.designs[Number(e.target.value)]));
-  $('scr-body').addEventListener('input', (e) => { state.design.body = e.target.value; renderPreview(); });
+  let tagSet = '';
+  $('scr-body').addEventListener('input', (e) => {
+    state.design.body = e.target.value;
+    const tags = usedTags(state.design.body).join(' ');
+    if (tags !== tagSet) {
+      tagSet = tags;
+      ensureTags(state.design);
+      syncColours();
+    }
+    renderPreview();
+  });
   document.querySelectorAll('input[name="scr-source"]').forEach((r) => r.addEventListener('change', () => setSource(r.value)));
   $('scr-image').addEventListener('change', (e) => loadImage(e.target.files[0]));
   const drop = $('scr-drop');
