@@ -40,6 +40,8 @@ jobs:
         run: pip install -U platformio
       - name: Audio pack tests
         run: python3 scripts/test_audio_pack.py
+      - name: Laptop screen inserts PDF up to date
+        run: python3 scripts/laptop_screens.py --check
       - name: Build firmware
         run: pio run
       - name: Build LittleFS image
