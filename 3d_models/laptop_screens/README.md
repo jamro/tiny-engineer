@@ -4,18 +4,18 @@ Paper inserts that turn the plain black `LaptopScreen` into a terminal, an IDE, 
 
 **Print:** [`laptop-screens.pdf`](laptop-screens.pdf) — A4, three pages per servo preset with the same designs:
 
-- **Colour screens** — each design on its own dark (or light) background.
-- **Colour on coloured paper** — no background; each colour keeps its hue but is darkened so it reads on pale paper.
-- **Paper screens** — no background, black and grey text only, so the paper colour becomes the screen colour.
+- **Printed background** — each design on its own dark (or light) background. Most ink.
+- **No background, colour text** — only the text prints; each colour keeps its hue but is darkened so it reads on pale paper.
+- **No background, black text** — only the text prints, in black and grey. Least ink.
 
-| Your printer and paper | Print |
-| --- | --- |
-| Colour printer, white paper | Colour screens |
-| Black-only printer, white paper | Colour screens (prints as greyscale; heavy on toner) or Paper screens |
-| Colour printer, coloured paper | Colour on coloured paper |
-| Black-only printer, coloured paper | Paper screens |
+Two questions pick the page: does your printer do colour, and do you want the background printed?
 
-Green paper gives an old-LCD look; any pale colour works. Ink is translucent, so printed colours mix with the paper (blue on yellow turns greenish). Printers cannot print white, so dark paper (black, navy) will not show the text.
+| Printer | Printed background | No background |
+| --- | --- | --- |
+| Colour | Printed background | No background, colour text |
+| Black only | Printed background (comes out in greys; heavy on toner) | No background, black text |
+
+With no background the paper is the screen: green paper gives an old-LCD look, and any pale colour works. Ink is translucent, so printed colours mix with the paper (blue on yellow turns greenish). Printers cannot print white, so dark paper (black, navy) will not show the text.
 
 ## Print, cut, install
 
@@ -72,11 +72,11 @@ $ pio run
 | `color <name>` | Named colour for `{name}…{/}` spans in the text |
 | `align` | `top-left` (default) or `center` |
 | `outline` | `window` draws a dashed line around the visible area (blank template) |
-| `paper-dim` | Colour names the design treats as secondary: grey on the Paper screens page (other text is black), and darkened less on the Colour on coloured paper page |
+| `paper-dim` | Colour names the design treats as secondary: grey on the No background, black text page (other text is black), and darkened less on the No background, colour text page |
 
 Text lines follow the headers. `{name}` switches to a named colour, `{/}` back to the foreground. Characters must be printable in the PDF base fonts (ASCII and Latin-1 are fine).
 
-Every text colour needs at least **3:1** contrast against `background`, so the Colour page still reads from a black-only printer. The script refuses a design that falls below it.
+Every text colour needs at least **3:1** contrast against `background`, so the Printed background page still reads from a black-only printer. The script refuses a design that falls below it.
 
 Then rebuild the PDF from the repo root (Python 3, standard library only):
 

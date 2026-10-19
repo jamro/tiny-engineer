@@ -390,12 +390,13 @@ function syncColours() {
   // One background swatch: the design's background when it is printed, the
   // paper colour (preview only) when the print mode leaves it unprinted.
   const paper = onPaper();
-  $('scr-bg-label').textContent = paper ? 'Paper colour' : mono() ? 'Background · prints as grey' : 'Background';
+  $('scr-bg-label').textContent = paper ? 'Paper colour · preview only'
+    : mono() ? 'Background colour · prints as grey' : 'Background colour';
   $('scr-bg-hint').textContent = paper
-    ? 'Preview only. Nothing is printed behind the text, so this shows the ink on your paper. Ink varies by printer; treat it as a guide.'
+    ? 'No background is printed. Set this to your paper to preview the ink on it; ink varies by printer, so treat it as a guide.'
     : mono()
       ? 'Black-only printers print shades of grey, so pick a grey. Light greys save toner.'
-      : 'Fills the insert behind your text or image.';
+      : 'Printed behind your text or image.';
   $('scr-bg').value = paper ? state.paperColour : shown(d.background);
 }
 
@@ -444,8 +445,12 @@ function bind() {
   });
   $('scr-pan-x').addEventListener('input', (e) => { state.panX = Number(e.target.value) / 100; renderPreview(); });
   $('scr-pan-y').addEventListener('input', (e) => { state.panY = Number(e.target.value) / 100; renderPreview(); });
-  document.querySelectorAll('input[name="scr-print"]').forEach((r) => r.addEventListener('change', () => {
-    state.print = r.value;
+  // Printer x background -> print mode.
+  const MODES = { 'colour/printed': 'colour', 'mono/printed': 'mono', 'colour/none': 'tinted', 'mono/none': 'paper' };
+  document.querySelectorAll('input[name="scr-printer"], input[name="scr-bgmode"]').forEach((r) => r.addEventListener('change', () => {
+    const printer = document.querySelector('input[name="scr-printer"]:checked').value;
+    const bg = document.querySelector('input[name="scr-bgmode"]:checked').value;
+    state.print = MODES[`${printer}/${bg}`];
     syncColours();
     renderPreview();
   }));

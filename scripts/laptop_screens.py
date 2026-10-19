@@ -461,12 +461,12 @@ PAPER_DIM = (0.45, 0.45, 0.45)
 TINT_TEXT_LUM = 0.08
 TINT_DIM_LUM = 0.2
 MODES = {
-    "colour": ("Colour screens",
-               "Colour or black-only printer on white paper. Dark fills hide the paper colour."),
-    "tinted": ("Colour on coloured paper",
-               "Colour printer, pale coloured paper: no fill, colours darkened to read on the paper."),
-    "paper": ("Paper screens",
-              "Any printer, any paper colour: no fill, so the paper becomes the screen."),
+    "colour": ("Printed background",
+               "Background and text in colour; a black-only printer prints them as greys. Most ink."),
+    "tinted": ("No background, colour text",
+               "Colour printer. Only the text prints, darkened to read on pale paper; the paper shows through."),
+    "paper": ("No background, black text",
+              "Any printer. Only the text prints, in black and grey; the paper shows through. Least ink."),
 }
 INKS = {"colour": lambda rgb, meta: rgb, "tinted": tinted_ink, "paper": paper_ink}
 

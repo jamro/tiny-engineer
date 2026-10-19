@@ -719,8 +719,10 @@ esp-web-install-button .button,
   transition: border-color var(--dur) ease;
 }
 
-.choice + .choice {
-  margin-top: 0.4rem;
+.choice-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.4rem;
 }
 
 .choice:has(input:checked) {

@@ -47,27 +47,35 @@
             </div>
 
             <fieldset class="field choices">
-              <legend class="field-label">Printing on</legend>
-              <label class="choice" for="scr-print-colour">
-                <input type="radio" name="scr-print" id="scr-print-colour" value="colour" checked>
-                <span><strong>Colour printer, white paper</strong><span class="hint">The design as shown, on its own background.</span></span>
-              </label>
-              <label class="choice" for="scr-print-mono">
-                <input type="radio" name="scr-print" id="scr-print-mono" value="mono">
-                <span><strong>Black-only printer, white paper</strong><span class="hint">Greyscale, so the preview matches the print.</span></span>
-              </label>
-              <label class="choice" for="scr-print-tinted">
-                <input type="radio" name="scr-print" id="scr-print-tinted" value="tinted">
-                <span><strong>Colour printer, coloured paper</strong><span class="hint">No background. Colours keep their hue, darkened to read on pale paper.</span></span>
-              </label>
-              <label class="choice" for="scr-print-paper">
-                <input type="radio" name="scr-print" id="scr-print-paper" value="paper">
-                <span><strong>Black text, no background</strong><span class="hint">Any printer, any paper. Least ink; on coloured paper the paper becomes the screen.</span></span>
-              </label>
+              <legend class="field-label">Printer</legend>
+              <div class="choice-row">
+                <label class="choice" for="scr-printer-colour">
+                  <input type="radio" name="scr-printer" id="scr-printer-colour" value="colour" checked>
+                  <span><strong>Colour</strong><span class="hint">Inkjet or colour laser.</span></span>
+                </label>
+                <label class="choice" for="scr-printer-mono">
+                  <input type="radio" name="scr-printer" id="scr-printer-mono" value="mono">
+                  <span><strong>Black only</strong><span class="hint">Mono laser or black ink. Preview turns greyscale.</span></span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="field choices">
+              <legend class="field-label">Background</legend>
+              <div class="choice-row">
+                <label class="choice" for="scr-bg-printed">
+                  <input type="radio" name="scr-bgmode" id="scr-bg-printed" value="printed" checked>
+                  <span><strong>Printed</strong><span class="hint">Fills the insert with the screen colour. Most ink.</span></span>
+                </label>
+                <label class="choice" for="scr-bg-none">
+                  <input type="radio" name="scr-bgmode" id="scr-bg-none" value="none">
+                  <span><strong>None</strong><span class="hint">Only the text prints. Coloured paper shows through as the screen.</span></span>
+                </label>
+              </div>
             </fieldset>
 
             <div class="field">
-              <label id="scr-bg-label" class="field-label" for="scr-bg">Background</label>
+              <label id="scr-bg-label" class="field-label" for="scr-bg">Background colour</label>
               <div class="swatch paper-swatch">
                 <input id="scr-bg" type="color" value="#000000">
                 <span id="scr-bg-hint">Fills the insert behind your text or image.</span>
@@ -92,7 +100,7 @@
               <div class="field">
                 <span class="field-label">Colours</span>
                 <div id="scr-colours" class="swatches"></div>
-                <p id="scr-colours-note" class="hint" hidden>In this mode all text prints black, with the design’s secondary text in grey.</p>
+                <p id="scr-colours-note" class="hint" hidden>Black only, no background: all text prints black, with the design’s secondary text in grey.</p>
               </div>
             </div>
 
