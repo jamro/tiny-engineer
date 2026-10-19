@@ -64,11 +64,15 @@
                 <input type="radio" name="scr-print" id="scr-print-paper" value="paper">
                 <span><strong>Black-only printer, coloured paper</strong><span class="hint">No background and black text. The paper becomes the screen.</span></span>
               </label>
-              <label id="scr-paper-field" class="swatch paper-swatch" for="scr-paper-colour" hidden>
-                <input id="scr-paper-colour" type="color" value="#fff1a8">
-                <span>Paper colour, for the preview only. Ink on coloured paper varies by printer, so treat it as a guide.</span>
-              </label>
             </fieldset>
+
+            <div class="field">
+              <label id="scr-bg-label" class="field-label" for="scr-bg">Background</label>
+              <div class="swatch paper-swatch">
+                <input id="scr-bg" type="color" value="#000000">
+                <span id="scr-bg-hint">Fills the insert behind your text or image.</span>
+              </div>
+            </div>
 
             <div class="seg" role="radiogroup" aria-label="Content">
               <label><input type="radio" name="scr-source" id="scr-source-text" value="text" checked> Text</label>

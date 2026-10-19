@@ -126,7 +126,7 @@ function drawInsert(ctx, preset, scale, { mask = false } = {}) {
   const [wx, wy, ww, wh] = preset.window;
   const d = state.design;
   const mm = (v) => v * scale;
-  const paper = state.print === 'paper' || state.print === 'tinted';
+  const paper = onPaper();
   ctx.save();
   ctx.fillStyle = paper ? '#ffffff' : d.background;
   ctx.fillRect(0, 0, mm(w), mm(h));
@@ -349,10 +349,23 @@ function setDesign(d) {
     wrap.append(input, name);
     box.append(wrap);
   };
-  swatch('background', d.background, (v) => { state.design.background = v; });
   swatch('text', d.foreground, (v) => { state.design.foreground = v; });
   for (const name of Object.keys(d.palette)) swatch(`{${name}}`, d.palette[name], (v) => { state.design.palette[name] = v; });
+  syncBackground();
   renderPreview();
+}
+
+const onPaper = () => state.print === 'tinted' || state.print === 'paper';
+
+// One swatch: the design's background when it is printed, the paper colour
+// (preview only) when the print mode leaves the background unprinted.
+function syncBackground() {
+  const paper = onPaper();
+  $('scr-bg-label').textContent = paper ? 'Paper colour' : 'Background';
+  $('scr-bg-hint').textContent = paper
+    ? 'Preview only. Nothing is printed behind the text, so this shows the ink on your paper. Ink varies by printer; treat it as a guide.'
+    : 'Fills the insert behind your text or image.';
+  $('scr-bg').value = paper ? state.paperColour : state.design.background;
 }
 
 function loadImage(file) {
@@ -402,10 +415,14 @@ function bind() {
   $('scr-pan-y').addEventListener('input', (e) => { state.panY = Number(e.target.value) / 100; renderPreview(); });
   document.querySelectorAll('input[name="scr-print"]').forEach((r) => r.addEventListener('change', () => {
     state.print = r.value;
-    $('scr-paper-field').hidden = r.value !== 'tinted' && r.value !== 'paper';
+    syncBackground();
     renderPreview();
   }));
-  $('scr-paper-colour').addEventListener('input', (e) => { state.paperColour = e.target.value; renderPreview(); });
+  $('scr-bg').addEventListener('input', (e) => {
+    if (onPaper()) state.paperColour = e.target.value;
+    else state.design.background = e.target.value;
+    renderPreview();
+  });
   $('scr-mask').addEventListener('change', (e) => { state.mask = e.target.checked; renderPreview(); });
   $('scr-title').addEventListener('input', () => { state.design.title = $('scr-title').value; });
   $('scr-download').addEventListener('click', async () => {
