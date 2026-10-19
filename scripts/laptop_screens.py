@@ -29,6 +29,7 @@ PARTS = ROOT / "3d_models" / "parts"
 SERVOS_JSON = ROOT / "3d_models" / "fusion" / "TinyEngineerTools" / "servos.json"
 SCREENS_DIR = ROOT / "3d_models" / "laptop_screens" / "screens"
 OUT_PDF = ROOT / "3d_models" / "laptop_screens" / "laptop-screens.pdf"
+WEB_DIR = ROOT / "web" / "screens"
 
 PT_PER_MM = 72 / 25.4
 A4_MM = (210.0, 297.0)
@@ -523,41 +524,58 @@ def preset_page(sid, name, geo, screens, mode):
     return page
 
 
+def web_data(report):
+    """Sizes and stock designs for the web generator (web/screens/)."""
+    sizes = [{"id": sid, "name": name,
+              "insert": [round(v, 2) for v in geo["insert"]],
+              "window": [round(v, 2) for v in geo["window"]],
+              "slack": round(geo["slack"], 2)} for sid, name, geo in report]
+    designs = [{"file": f.name, "source": f.read_text(encoding="utf-8")}
+               for f in sorted(SCREENS_DIR.glob("*.screen"))]
+    dump = lambda data: (json.dumps(data, indent=2) + "\n").encode()
+    return {WEB_DIR / "presets.json": dump(sizes), WEB_DIR / "designs.json": dump(designs)}
+
+
 def build():
     screens = load_screens()
     pages, report = [], []
     for sid, name in presets():
         geo = measure_preset(PARTS / sid)
         pages.extend(preset_page(sid, name, geo, screens, mode) for mode in MODES)
-        report.append((sid, geo))
-    return write_pdf(pages, "Tiny Engineer laptop screen inserts"), report
+        report.append((sid, name, geo))
+    outputs = {OUT_PDF: write_pdf(pages, "Tiny Engineer laptop screen inserts")}
+    outputs.update(web_data(report))
+    return outputs, report
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--check", action="store_true", help="fail if the committed PDF is out of date")
+    parser.add_argument("--check", action="store_true", help="fail if the committed outputs are out of date")
     args = parser.parse_args(argv)
     try:
-        pdf, report = build()
+        outputs, report = build()
     except ScreensError as err:
         print(f"laptop_screens: {err}", file=sys.stderr)
         return 1
-    for sid, geo in report:
+    for sid, _, geo in report:
         w, h = geo["insert"]
         wx, wy, ww, wh = geo["window"]
         print(f"{sid:8} insert {w:6.2f} x {h:5.2f} mm  window {ww:6.2f} x {wh:5.2f} mm at "
               f"({wx:.2f}, {wy:.2f})  slack {geo['slack']:.2f}  spare depth {geo['spare_depth']:.2f} mm")
-    rel = OUT_PDF.relative_to(ROOT)
-    if args.check:
-        if not OUT_PDF.is_file() or OUT_PDF.read_bytes() != pdf:
-            print(f"{rel} is out of date: run python3 scripts/laptop_screens.py", file=sys.stderr)
-            return 1
-        print(f"{rel} is up to date")
-        return 0
-    OUT_PDF.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PDF.write_bytes(pdf)
-    print(f"wrote {rel}")
-    return 0
+    stale = 0
+    for path, data in outputs.items():
+        rel = path.relative_to(ROOT)
+        if args.check:
+            if not path.is_file() or path.read_bytes() != data:
+                print(f"{rel} is out of date: run python3 scripts/laptop_screens.py", file=sys.stderr)
+                stale = 1
+            else:
+                print(f"{rel} is up to date")
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+            print(f"wrote {rel}")
+    return stale
 
 
 if __name__ == "__main__":

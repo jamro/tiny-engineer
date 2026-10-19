@@ -40,7 +40,11 @@ Measured from the exported meshes (`LaptopScreen.stl` for the insert, the lid po
 | `es9051` | 37.2 × 28.4 mm | 36.8 × 19.9 mm | 0.2 / 1.7 mm |
 | `hd1370a` | 32.7 × 25.2 mm | 32.3 × 16.7 mm | 0.2 / 1.7 mm |
 
-Using your own image (a screenshot, a photo)? Crop it to the visible window's aspect ratio, print it at the insert size with the window offset above, or cut out the **Blank template** and glue it inside the dashed line.
+## Make your own
+
+**[Laptop screen generator](https://jamro.github.io/tiny-engineer/screens/)** — in the browser, nothing to install. Pick your servo preset, then either type a screen (or edit one of the stock designs, colours included) or drop in a screenshot, which is cropped to the visible window. It previews the insert at real proportions and downloads an A4 PDF of copies with the same scale check. Images stay in your browser.
+
+No internet? Cut out the **Blank template** and draw on it or glue a print inside the dashed line, using the sizes above.
 
 ## Add or edit a screen
 
@@ -80,4 +84,4 @@ python3 scripts/laptop_screens.py           # rewrite laptop-screens.pdf
 python3 scripts/laptop_screens.py --check   # CI: fail if the PDF is stale
 ```
 
-The script re-measures every `parts/{servo_id}/stl/` folder that has a `LaptopScreen.stl`, so a new servo preset gets its own page after the Fusion export — no sizes to edit by hand.
+The script re-measures every `parts/{servo_id}/stl/` folder that has a `LaptopScreen.stl`, so a new servo preset gets its own page after the Fusion export — no sizes to edit by hand. It also writes `web/screens/presets.json` and `designs.json`, which the generator page reads; `--check` covers those too. The generator's **Copy .screen source** button gives you a file in this format, ready for a PR.

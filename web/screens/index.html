@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laptop screens · Tiny Engineer</title>
+  <meta name="description" content="Make a printable paper screen for the Tiny Engineer laptop prop, sized for your servo preset.">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <script type="module" src="../js/screens.js"></script>
+</head>
+<body class="page-screens">
+  <div class="wrap">
+    <header class="site-header">
+      <a class="brand" href="../">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Tiny Engineer
+      </a>
+      <nav class="nav" aria-label="Site">
+        <a href="../flash/">Flash</a>
+        <a href="./" aria-current="page">Screens</a>
+        <a href="https://github.com/jamro/tiny-engineer">GitHub</a>
+        <a href="https://github.com/jamro/tiny-engineer/blob/main/3d_models/laptop_screens/README.md">Docs</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="flash-intro">
+        <p class="eyebrow">Printable · LaptopScreen insert</p>
+        <h1>Laptop screens</h1>
+        <p class="lede">
+          Type a screen or drop in a screenshot. You get an A4 PDF of inserts cut to your servo preset’s laptop.
+        </p>
+      </div>
+
+      <div class="hero">
+        <section class="panel">
+          <p class="panel-label">Screen</p>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="scr-preset">Servo preset</label>
+              <select id="scr-preset" class="select mono" disabled>
+                <option value="">Loading sizes…</option>
+              </select>
+            </div>
+
+            <div class="seg" role="radiogroup" aria-label="Content">
+              <label><input type="radio" name="scr-source" id="scr-source-text" value="text" checked> Text</label>
+              <label><input type="radio" name="scr-source" id="scr-source-image" value="image"> Image</label>
+            </div>
+
+            <div id="scr-text-fields" class="panel-body">
+              <div class="field">
+                <label class="field-label" for="scr-template">Start from</label>
+                <select id="scr-template" class="select"></select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="scr-body">Text</label>
+                <textarea id="scr-body" class="textarea mono" rows="10" spellcheck="false"></textarea>
+                <p class="hint">Monospaced, sized to fill the window. <span class="mono">{name}</span>…<span class="mono">{/}</span> switches to a colour below.</p>
+              </div>
+              <div class="field">
+                <span class="field-label">Colours</span>
+                <div id="scr-colours" class="swatches"></div>
+              </div>
+            </div>
+
+            <div id="scr-image-fields" class="panel-body" hidden>
+              <div class="field">
+                <label class="field-label" for="scr-image">Image</label>
+                <input id="scr-image" class="file" type="file" accept="image/*">
+                <p class="hint">Or drop a file on the preview. It is cropped to fill the visible window and never leaves your browser.</p>
+              </div>
+              <div class="field">
+                <label class="field-label" for="scr-zoom">Zoom <span id="scr-zoom-val" class="mono">100%</span></label>
+                <input id="scr-zoom" class="range" type="range" min="100" max="300" value="100">
+              </div>
+              <div class="field">
+                <label class="field-label" for="scr-pan-x">Horizontal position</label>
+                <input id="scr-pan-x" class="range" type="range" min="0" max="100" value="50">
+              </div>
+              <div class="field">
+                <label class="field-label" for="scr-pan-y">Vertical position</label>
+                <input id="scr-pan-y" class="range" type="range" min="0" max="100" value="50">
+              </div>
+            </div>
+
+            <label class="check" for="scr-paper">
+              <input id="scr-paper" type="checkbox">
+              <span>No background: black text, so coloured paper becomes the screen</span>
+            </label>
+            <div class="field">
+              <label class="field-label" for="scr-title">Label under each insert</label>
+              <input id="scr-title" class="input" type="text" maxlength="40" value="Custom">
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-raised">
+          <p class="panel-label">Preview · actual proportions</p>
+          <div class="panel-body">
+            <div id="scr-drop" class="preview-frame">
+              <canvas id="scr-preview" aria-label="Insert preview"></canvas>
+            </div>
+            <dl class="meta-grid">
+              <dt>Insert</dt><dd id="scr-insert-size" class="mono">…</dd>
+              <dt>Visible</dt><dd id="scr-window-size" class="mono">…</dd>
+            </dl>
+            <label class="check" for="scr-mask">
+              <input id="scr-mask" type="checkbox" checked>
+              <span>Shade the part the bezel and hinge hide</span>
+            </label>
+            <p id="scr-status" class="status-message">Loading sizes…</p>
+            <div class="cta-row">
+              <button id="scr-download" class="btn btn-primary" type="button" disabled>Download A4 PDF</button>
+              <button id="scr-copy" class="btn" type="button" disabled>Copy .screen source</button>
+            </div>
+          </div>
+          <div class="panel-foot">
+            <p class="callout">
+              <strong>Print at 100% / Actual size.</strong> Browser print dialogs often shrink to fit.
+              The 10 mm square on the sheet tells you if it did. Cut on the grey line, add a same-size piece of clear PET in front,
+              and slide both into the lid with <span class="mono">LaptopScreen</span> behind them.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>Ship it to the screen. The screen is paper.</p>
+    </footer>
+  </div>
+</body>
+</html>

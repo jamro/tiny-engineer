@@ -1,0 +1,34 @@
+[
+  {
+    "file": "01-build.screen",
+    "source": "# title: Build output\n# background: #0d1117\n# foreground: #c9d1d9\n# paper-dim: dim\n# color dim: #6e7681\n# color ok: #3fb950\n# color cmd: #79c0ff\n# color warn: #d29922\n{cmd}~/tiny-engineer${/} pio run\n{dim}Processing esp32-c3-devkitm-1 (espressif32){/}\n{dim}-------------------------------------------{/}\nCompiling .pio/build/src/anim/poses.cpp.o\nCompiling .pio/build/src/http/routes.cpp.o\nCompiling .pio/build/src/servos/park.cpp.o\nLinking .pio/build/firmware.elf\n{warn}Checking size .pio/build/firmware.elf{/}\nRAM:   [==        ]  17.4% (57012 bytes)\nFlash: [=====     ]  52.1% (1023890 bytes)\nBuilding .pio/build/firmware.bin\n{ok}========== [SUCCESS] Took 12.84 seconds =========={/}\n{cmd}~/tiny-engineer${/} _\n"
+  },
+  {
+    "file": "02-code.screen",
+    "source": "# title: Source code\n# background: #1e1e1e\n# foreground: #d4d4d4\n# paper-dim: num cm\n# color num: #858585\n# color kw: #569cd6\n# color ty: #4ec9b0\n# color fn: #dcdcaa\n# color str: #ce9178\n# color cm: #6a9955\n{num} 1{/}  {cm}// wave hello, then get back to work{/}\n{num} 2{/}  {kw}void{/} {fn}greet{/}({ty}Robot{/} &bot) {\n{num} 3{/}    {kw}for{/} ({kw}int{/} i = {num}0{/}; i < {num}3{/}; i++) {\n{num} 4{/}      bot.{fn}arm{/}({ty}Side{/}::Right, {num}0.8f{/});\n{num} 5{/}      {fn}delay{/}({num}180{/});\n{num} 6{/}      bot.{fn}arm{/}({ty}Side{/}::Right, {num}-0.2f{/});\n{num} 7{/}      {fn}delay{/}({num}180{/});\n{num} 8{/}    }\n{num} 9{/}    bot.{fn}say{/}({str}\"Hello, world!\"{/});\n{num}10{/}    bot.{fn}pose{/}({str}\"typing\"{/});\n{num}11{/}  }\n{num}12{/}\n"
+  },
+  {
+    "file": "03-agent.screen",
+    "source": "# title: AI agent chat\n# background: #191919\n# foreground: #e6e6e6\n# paper-dim: dim\n# color you: #8ab4f8\n# color bot: #f0a868\n# color dim: #8a8a8a\n# color ok: #81c995\n{you}> fix the failing servo test{/}\n\n{bot}*{/} Reading test/servos/test_park.cpp\n{bot}*{/} The test expects the elbow to park at\n  0.0, but the default is now -0.1.\n{bot}*{/} Updating the expected value...\n{dim}  - TEST_ASSERT_EQUAL_FLOAT(0.0f, pose);{/}\n{ok}  + TEST_ASSERT_EQUAL_FLOAT(-0.1f, pose);{/}\n{bot}*{/} Ran pio test -e native: {ok}42 passed{/}\n\n{you}> {/}_\n"
+  },
+  {
+    "file": "04-panic.screen",
+    "source": "# title: Crash / stack trace\n# background: #0a0a0a\n# foreground: #d0d0d0\n# paper-dim: dim\n# color err: #ff5f56\n# color dim: #7a7a7a\n# color hi: #ffbd2e\n{err}Guru Meditation Error: Core 0 panic'ed{/}\n{err}(Load access fault). Exception was unhandled.{/}\n\n{dim}Core 0 register dump:{/}\nMEPC    : {hi}0x42008a3e{/}  RA      : 0x42008a1c\nSP      : 0x3fc9b2f0  GP      : 0x3fc8e400\nMTVAL   : {hi}0x00000000{/}  <- null pointer\n\n{dim}Backtrace:{/}\n  0x42008a3e in Coffee::refill() at mug.cpp:42\n  0x42004f10 in Engineer::morning() at day.cpp:7\n  0x42003c88 in loop() at main.cpp:118\n\n{err}Rebooting...{/}\n"
+  },
+  {
+    "file": "05-retro.screen",
+    "source": "# title: Retro computer\n# background: #08260f\n# foreground: #39ff6a\n# paper-dim: dim\n# color dim: #1f9a40\n{dim}**** TINY ENGINEER BASIC V2 ****{/}\n{dim} 64K RAM SYSTEM  38911 BASIC BYTES FREE{/}\n\nREADY.\n10 PRINT \"HELLO, HUMAN\"\n20 GOTO 10\nRUN\nHELLO, HUMAN\nHELLO, HUMAN\nHELLO, HUMAN\nHELLO, HUMAN\nBREAK IN 10\nREADY.\n_\n"
+  },
+  {
+    "file": "06-eliza.screen",
+    "source": "# title: ELIZA-style chat\n# background: #f2efe4\n# foreground: #1d1d1d\n# paper-dim: you\n# color you: #6b4f2a\nHOW DO YOU DO. PLEASE STATE YOUR PROBLEM.\n{you}> My robot keeps waving at me.{/}\nWHY DO YOU SAY YOUR ROBOT KEEPS WAVING\nAT YOU?\n{you}> Maybe it wants a coffee.{/}\nYOU DON'T SEEM QUITE CERTAIN.\n{you}> I am never certain before coffee.{/}\nHOW LONG HAVE YOU BEEN NEVER CERTAIN\nBEFORE COFFEE?\n{you}> Since I started writing firmware.{/}\nTELL ME MORE ABOUT WRITING FIRMWARE.\n{you}> {/}_\n"
+  },
+  {
+    "file": "07-splash.screen",
+    "source": "# title: Tiny Engineer splash\n# background: #12100e\n# foreground: #e8a15a\n# paper-dim: dim\n# color dim: #8c6a48\n# align: center\n       .-----.\n       | o o |\n       |  -  |\n       '--+--'\n       /|   |\\\n        |___|\n\n    TINY ENGINEER\n{dim}  booting desk robot...{/}\n{dim}  [##########--------]{/}\n"
+  },
+  {
+    "file": "08-blank.screen",
+    "source": "# title: Blank template\n# background: #ffffff\n# foreground: #1a1a1a\n# paper-dim: hint\n# color hint: #8a8a8a\n# align: center\n# outline: window\n{hint}draw or glue your screen inside{/}\n{hint}the dashed line (visible area){/}\n"
+  }
+]
