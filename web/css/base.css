@@ -644,8 +644,35 @@ esp-web-install-button .button,
   gap: 1.25rem;
 }
 
+.page-screens .wrap {
+  width: min(100% - 2rem, 72rem);
+}
+
 .page-screens .hero {
   align-items: start;
+}
+
+/* Keep the preview beside the text while editing: pinned on wide screens,
+   first on narrow ones. */
+@media (min-width: 760px) {
+  .page-screens .hero {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+
+  .page-screens .hero > .panel-raised {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+@media (max-width: 759px) {
+  .page-screens .hero > .panel-raised {
+    order: -1;
+  }
+}
+
+.page-screens .textarea {
+  min-height: 20rem;
 }
 
 .page-screens [hidden] {

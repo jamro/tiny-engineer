@@ -1,8 +1,17 @@
 # Laptop screen inserts
 
-Paper inserts that turn the plain black `LaptopScreen` into a terminal, an IDE, an agent chat, a crash dump, a retro computer, an ELIZA-style chat or a Tiny Engineer splash. No electronics: print, cut, slide into the lid. Inspired by a [community build](https://github.com/jamro/tiny-engineer/discussions/13#discussioncomment-18741594) that used a printed ELIZA screenshot behind clear PET.
+Paper inserts that turn the plain black `LaptopScreen` into a terminal, an IDE, an agent chat, a crash dump, a retro computer, an ELIZA-style chat, a Tiny Engineer splash, a rubber duck, a Linux boot with Tux, pixel aliens, a blocky green neighbour or a red-eyed TE-9000 console. The pop-culture ones are original drawings in the spirit of the classics, not copies; Tux is credited to Larry Ewing, as he asks. No electronics: print, cut, slide into the lid. Inspired by a [community build](https://github.com/jamro/tiny-engineer/discussions/13#discussioncomment-18741594) that used a printed ELIZA screenshot behind clear PET.
 
-**Print:** [`laptop-screens.pdf`](laptop-screens.pdf) — A4, three pages per servo preset with the same designs:
+**Print:** one PDF per servo preset — download the one matching the folder you printed from [`parts/`](../parts/):
+
+| Preset | PDF |
+| --- | --- |
+| `sg90` | [`laptop-screens-sg90.pdf`](laptop-screens-sg90.pdf) |
+| `fs0307` | [`laptop-screens-fs0307.pdf`](laptop-screens-fs0307.pdf) |
+| `es9051` | [`laptop-screens-es9051.pdf`](laptop-screens-es9051.pdf) |
+| `hd1370a` | [`laptop-screens-hd1370a.pdf`](laptop-screens-hd1370a.pdf) |
+
+Each is A4 with one page per print style, every design on each:
 
 - **Printed background** — each design on its own dark (or light) background. Most ink.
 - **No background, colour text** — only the text prints; each colour keeps its hue but is darkened so it reads on pale paper.
@@ -19,7 +28,7 @@ With no background the paper is the screen: green paper gives an old-LCD look, a
 
 ## Print, cut, install
 
-1. Open the PDF and print **one page for your servo preset** (`sg90`, `fs0307`, `es9051` or `hd1370a` — the same folder you printed from [`parts/`](../parts/)), picking the page from the table above. Each insert is labelled with its preset.
+1. Open the PDF for your servo preset (table above) and print **the page for your printer and background** from the table above. A style with more designs than fit one page continues onto the next. Each insert is labelled with its preset.
 2. Print at **100% / Actual size**. Turn off "Fit to page" / "Shrink to printable area".
 3. Check the scale: the square at the top must measure **10 × 10 mm** and the ruler **50 mm**. If not, fix the print settings and reprint — a scaled insert will not fit the pocket.
 4. Cut along the thin grey outline. Snip the four corners slightly: the pocket has rounded corners.
@@ -81,7 +90,7 @@ Every text colour needs at least **3:1** contrast against `background`, so the P
 Then rebuild the PDF from the repo root (Python 3, standard library only):
 
 ```bash
-python3 scripts/laptop_screens.py           # rewrite laptop-screens.pdf
+python3 scripts/laptop_screens.py           # rewrite laptop-screens-<preset>.pdf
 python3 scripts/laptop_screens.py --check   # CI: fail if the PDF is stale
 ```
 

@@ -1,0 +1,16 @@
+# title: Blocky neighbour
+# background: #0d140d
+# foreground: #d6e8d0
+# paper-dim: dim
+# color dim: #7f9a78
+# color g: #6cc04a
+# color d: #3f8a2c
+  {g}################{/}
+  {g}##{/}{d}##{/}{g}####{/}{d}##{/}{g}##{/}{d}##{/}{g}##{/}     > mining...
+  {g}##    ####    ##{/}     > found: 3 x coffee bean
+  {g}##    {/}{d}##{/}{g}##    ##{/}     > found: 1 x loose M2 screw
+  {g}######    ######{/}
+  {g}####        ####{/}     {dim}A quiet green neighbour{/}
+  {g}####  {/}{d}####{/}{g}  ####{/}     {dim}is standing behind{/}
+  {g}####  ####  ####{/}     {dim}the robot.{/}
+  {g}################{/}

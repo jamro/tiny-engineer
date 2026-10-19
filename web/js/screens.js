@@ -422,6 +422,7 @@ function bind() {
     const [, , ww, wh] = state.preset.window;
     $('scr-insert-size').textContent = `${w.toFixed(1)} × ${h.toFixed(1)} mm`;
     $('scr-window-size').textContent = `${ww.toFixed(1)} × ${wh.toFixed(1)} mm`;
+    $('scr-stock-pdf').href = `https://github.com/jamro/tiny-engineer/raw/main/3d_models/laptop_screens/laptop-screens-${state.preset.id}.pdf`;
     renderPreview();
   });
   $('scr-template').addEventListener('change', (e) => setDesign(state.designs[Number(e.target.value)]));

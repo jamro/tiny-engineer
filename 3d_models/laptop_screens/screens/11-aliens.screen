@@ -1,0 +1,22 @@
+# title: Pixel aliens
+# background: #050510
+# foreground: #e8e8e8
+# paper-dim: dim
+# color dim: #8080a0
+# color a: #ff5fd2
+# color b: #5fd7ff
+# color c: #9dff5f
+# color ship: #ffe14d
+SCORE 00420                        HI 09001
+
+  {a}#     #{/}     {a}#     #{/}     {a}#     #{/}     {a}#     #{/}
+   {a}#####{/}       {a}#####{/}       {a}#####{/}       {a}#####{/}
+  {a}## # ##{/}     {a}## # ##{/}     {a}## # ##{/}     {a}## # ##{/}
+
+   {b}.###.{/}       {b}.###.{/}       {b}.###.{/}       {b}.###.{/}
+  {b}#o###o#{/}     {b}#o###o#{/}     {b}#o###o#{/}     {b}#o###o#{/}
+  {b}/ ' ' \{/}     {b}/ ' ' \{/}     {b}/ ' ' \{/}     {b}/ ' ' \{/}
+                     {ship}|{/}
+   {c}.####.{/}        {c}.####.{/}        {c}.####.{/}
+                 {ship}_/^\_{/}
+{dim}LIVES {/}{ship}^ ^ ^{/}{dim}                      CREDIT 01{/}

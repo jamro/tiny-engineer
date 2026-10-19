@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the printable laptop screen inserts PDF (one A4 page per servo preset).
+"""Build the printable laptop screen insert PDFs (one PDF per servo preset).
 
 Insert size and visible window are measured from the exported meshes, so every
 preset under 3d_models/parts/ gets correctly sized inserts:
@@ -11,8 +11,8 @@ preset under 3d_models/parts/ gets correctly sized inserts:
 Screen designs are plain-text files in 3d_models/laptop_screens/screens/*.screen
 (format: 3d_models/laptop_screens/README.md). Standard library only.
 
-    python3 scripts/laptop_screens.py           # rewrite the PDF
-    python3 scripts/laptop_screens.py --check   # fail if the PDF is stale
+    python3 scripts/laptop_screens.py           # rewrite the PDFs
+    python3 scripts/laptop_screens.py --check   # fail if a PDF is stale
 """
 
 import argparse
@@ -28,7 +28,13 @@ ROOT = Path(__file__).resolve().parents[1]
 PARTS = ROOT / "3d_models" / "parts"
 SERVOS_JSON = ROOT / "3d_models" / "fusion" / "TinyEngineerTools" / "servos.json"
 SCREENS_DIR = ROOT / "3d_models" / "laptop_screens" / "screens"
-OUT_PDF = ROOT / "3d_models" / "laptop_screens" / "laptop-screens.pdf"
+OUT_DIR = ROOT / "3d_models" / "laptop_screens"
+
+
+def out_pdf(sid):
+    return OUT_DIR / f"laptop-screens-{sid}.pdf"
+
+
 WEB_DIR = ROOT / "web" / "screens"
 
 PT_PER_MM = 72 / 25.4
@@ -517,7 +523,17 @@ def draw_scale_check(page, x, y):
     page.text(rx + 53, y + 8.6, "If not, reprint at 100% / Actual size (scaling off).", 2.6)
 
 
-def preset_page(sid, name, geo, screens, mode):
+def preset_pages(sid, name, geo, screens, mode):
+    """One print style for one preset: every design at least once, spares fill the last page."""
+    pages, start = [], 0
+    while start < len(screens):
+        page, slots = preset_page(sid, name, geo, screens, mode, start)
+        pages.append(page)
+        start += slots
+    return pages
+
+
+def preset_page(sid, name, geo, screens, mode, start):
     page = Page()
     w, h = geo["insert"]
     wx, wy, ww, wh = geo["window"]
@@ -526,7 +542,7 @@ def preset_page(sid, name, geo, screens, mode):
     page.text(MARGIN, y, f"Tiny Engineer - laptop screen inserts: {heading}", 6.0, font="F3")
     y += 7.5
     page.text(MARGIN, y, f"Servo preset: {name}  ({sid})", 4.6, font="F3")
-    page.text(A4_MM[0] - MARGIN - 52, y, f"Print only one page for {sid} parts.", 2.8, rgb=GREY)
+    page.text(A4_MM[0] - MARGIN - 52, y, "Print one page that suits your printer.", 2.8, rgb=GREY)
     y += 6
     page.text(MARGIN, y, use, 2.8, font="F3")
     y += 4.2
@@ -545,12 +561,12 @@ def preset_page(sid, name, geo, screens, mode):
     grid_w = cols * w + (cols - 1) * GAP_X
     x0 = (A4_MM[0] - grid_w) / 2
     for i in range(cols * rows):
-        screen = screens[i % len(screens)]
+        screen = screens[(start + i) % len(screens)]
         r, c = divmod(i, cols)
         ix, iy = x0 + c * (w + GAP_X), y + r * (h + LABEL_H + 2)
         draw_insert(page, ix, iy, geo, screen, mode)
         page.text(ix, iy + h + 2.8, f"{sid} - {screen['meta']['title']}", 2.4, rgb=GREY)
-    return page
+    return page, cols * rows
 
 
 def web_data(report):
@@ -567,12 +583,12 @@ def web_data(report):
 
 def build():
     screens = load_screens()
-    pages, report = [], []
+    outputs, report = {}, []
     for sid, name in presets():
         geo = measure_preset(PARTS / sid)
-        pages.extend(preset_page(sid, name, geo, screens, mode) for mode in MODES)
+        pages = [p for mode in MODES for p in preset_pages(sid, name, geo, screens, mode)]
+        outputs[out_pdf(sid)] = write_pdf(pages, f"Tiny Engineer laptop screen inserts ({sid})")
         report.append((sid, name, geo))
-    outputs = {OUT_PDF: write_pdf(pages, "Tiny Engineer laptop screen inserts")}
     outputs.update(web_data(report))
     return outputs, report
 
@@ -592,6 +608,14 @@ def main(argv=None):
         print(f"{sid:8} insert {w:6.2f} x {h:5.2f} mm  window {ww:6.2f} x {wh:5.2f} mm at "
               f"({wx:.2f}, {wy:.2f})  slack {geo['slack']:.2f}  spare depth {geo['spare_depth']:.2f} mm")
     stale = 0
+    for path in sorted(set(OUT_DIR.glob("laptop-screens*.pdf")) - set(outputs)):
+        rel = path.relative_to(ROOT)
+        if args.check:
+            print(f"{rel} is no longer generated: run python3 scripts/laptop_screens.py", file=sys.stderr)
+            stale = 1
+        else:
+            path.unlink()
+            print(f"removed {rel}")
     for path, data in outputs.items():
         rel = path.relative_to(ROOT)
         if args.check:
