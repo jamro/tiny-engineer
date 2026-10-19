@@ -336,36 +336,67 @@ function setDesign(d) {
   state.design = structuredClone(d);
   $('scr-body').value = d.body;
   $('scr-title').value = d.title;
-  const box = $('scr-colours');
-  box.replaceChildren();
-  const swatch = (label, value, onInput) => {
-    const id = `scr-colour-${label.replace(/\W/g, '-')}`;
-    const wrap = document.createElement('label');
-    wrap.className = 'swatch';
-    wrap.htmlFor = id;
-    const input = Object.assign(document.createElement('input'), { type: 'color', id, value });
-    input.addEventListener('input', () => { onInput(input.value); renderPreview(); });
-    const name = Object.assign(document.createElement('span'), { className: 'mono', textContent: label });
-    wrap.append(input, name);
-    box.append(wrap);
-  };
-  swatch('text', d.foreground, (v) => { state.design.foreground = v; });
-  for (const name of Object.keys(d.palette)) swatch(`{${name}}`, d.palette[name], (v) => { state.design.palette[name] = v; });
-  syncBackground();
+  syncColours();
   renderPreview();
 }
 
 const onPaper = () => state.print === 'tinted' || state.print === 'paper';
+const mono = () => state.print === 'mono';
 
-// One swatch: the design's background when it is printed, the paper colour
-// (preview only) when the print mode leaves the background unprinted.
-function syncBackground() {
+// A black-only printer only has greys, so in that mode every swatch shows and
+// stores the grey that will print.
+function toGrey(hex) {
+  const lin = luminance(hex);
+  const s = lin <= 0.0031308 ? 12.92 * lin : 1.055 * lin ** (1 / 2.4) - 0.055;
+  return `#${Math.round(s * 255).toString(16).padStart(2, '0').repeat(3)}`;
+}
+
+// What the swatch shows is what prints: greys on a black-only printer,
+// darkened ink on coloured paper.
+const shown = (hex, dim = false) => (mono() ? toGrey(hex) : state.print === 'tinted' ? tintedInk(hex, dim) : hex);
+const stored = (hex) => (mono() ? toGrey(hex) : hex);
+
+// Swatches follow the print mode: real colours, greys for a black-only
+// printer, none at all when everything prints black.
+function syncColours() {
+  const d = state.design;
+  const box = $('scr-colours');
+  box.replaceChildren();
+  const blackOnly = state.print === 'paper';
+  box.hidden = blackOnly;
+  $('scr-colours-note').hidden = !blackOnly;
+  if (!blackOnly) {
+    const swatch = (label, value, dim, onInput) => {
+      const id = `scr-colour-${label.replace(/\W/g, '-')}`;
+      const wrap = document.createElement('label');
+      wrap.className = 'swatch';
+      wrap.htmlFor = id;
+      const input = Object.assign(document.createElement('input'), { type: 'color', id, value: shown(value, dim) });
+      input.addEventListener('input', () => {
+        onInput(stored(input.value));
+        input.value = shown(input.value, dim);
+        renderPreview();
+      });
+      const name = Object.assign(document.createElement('span'), { className: 'mono', textContent: label });
+      wrap.append(input, name);
+      box.append(wrap);
+    };
+    swatch('text', d.foreground, false, (v) => { d.foreground = v; });
+    for (const name of Object.keys(d.palette)) {
+      swatch(`{${name}}`, d.palette[name], d.paperDim.includes(name), (v) => { d.palette[name] = v; });
+    }
+  }
+
+  // One background swatch: the design's background when it is printed, the
+  // paper colour (preview only) when the print mode leaves it unprinted.
   const paper = onPaper();
-  $('scr-bg-label').textContent = paper ? 'Paper colour' : 'Background';
+  $('scr-bg-label').textContent = paper ? 'Paper colour' : mono() ? 'Background · prints as grey' : 'Background';
   $('scr-bg-hint').textContent = paper
     ? 'Preview only. Nothing is printed behind the text, so this shows the ink on your paper. Ink varies by printer; treat it as a guide.'
-    : 'Fills the insert behind your text or image.';
-  $('scr-bg').value = paper ? state.paperColour : state.design.background;
+    : mono()
+      ? 'Black-only printers print shades of grey, so pick a grey. Light greys save toner.'
+      : 'Fills the insert behind your text or image.';
+  $('scr-bg').value = paper ? state.paperColour : shown(d.background);
 }
 
 function loadImage(file) {
@@ -415,12 +446,16 @@ function bind() {
   $('scr-pan-y').addEventListener('input', (e) => { state.panY = Number(e.target.value) / 100; renderPreview(); });
   document.querySelectorAll('input[name="scr-print"]').forEach((r) => r.addEventListener('change', () => {
     state.print = r.value;
-    syncBackground();
+    syncColours();
     renderPreview();
   }));
   $('scr-bg').addEventListener('input', (e) => {
-    if (onPaper()) state.paperColour = e.target.value;
-    else state.design.background = e.target.value;
+    if (onPaper()) {
+      state.paperColour = e.target.value;
+    } else {
+      state.design.background = stored(e.target.value);
+      e.target.value = shown(e.target.value);
+    }
     renderPreview();
   });
   $('scr-mask').addEventListener('change', (e) => { state.mask = e.target.checked; renderPreview(); });
