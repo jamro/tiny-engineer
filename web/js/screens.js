@@ -431,6 +431,7 @@ function setSource(source) {
   state.source = source;
   $('scr-text-fields').hidden = source !== 'text';
   $('scr-image-fields').hidden = source !== 'image';
+  $('scr-template-field').hidden = source !== 'text';
   if (source === 'image' && $('scr-title').value === state.design.title) $('scr-title').value = 'Custom';
   renderPreview();
 }

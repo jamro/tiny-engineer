@@ -648,31 +648,148 @@ esp-web-install-button .button,
   width: min(100% - 2rem, 72rem);
 }
 
-.page-screens .hero {
+/* Setup once across the top; below it the editor and the preview start at
+   the same height, and the preview stays in view while the text scrolls. */
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 0.85rem 1.1rem;
   align-items: start;
 }
 
-/* Keep the preview beside the text while editing: pinned on wide screens,
-   first on narrow ones. */
+.setup .choice-row {
+  grid-template-columns: 1fr 1fr;
+}
+
+.setup .choice {
+  padding: 0.45rem 0.6rem;
+}
+
+.workspace {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.side,
+.preview-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.source-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: end;
+}
+
+.preview-panel {
+  gap: 0.6rem;
+}
+
+.preview-panel .panel-label {
+  margin-bottom: 0;
+}
+
+.preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 1rem;
+  font-size: 0.8rem;
+}
+
+.muted-label {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+}
+
+.preview-meta .check {
+  font-size: 0.8rem;
+}
+
+.actions {
+  gap: 0.85rem;
+}
+
+.page-screens .textarea {
+  min-height: 20rem;
+}
+
 @media (min-width: 760px) {
-  .page-screens .hero {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  .workspace {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   }
 
-  .page-screens .hero > .panel-raised {
+  /* The side column is as tall as the editor, so the preview and its
+     controls can stay pinned while the download buttons follow below. */
+  .side {
+    align-self: stretch;
+  }
+
+  .preview-stack {
     position: sticky;
     top: 1rem;
   }
 }
 
+/* Phones: the preview sticks to the top of the screen, the text box sits
+   right under it, and the download controls follow the editor. */
 @media (max-width: 759px) {
-  .page-screens .hero > .panel-raised {
-    order: -1;
+  .side,
+  .preview-stack {
+    display: contents;
   }
-}
 
-.page-screens .textarea {
-  min-height: 20rem;
+  .source {
+    order: 0;
+  }
+
+  .editor {
+    order: 1;
+  }
+
+  .preview-panel {
+    order: -1;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0.6rem 0.75rem;
+  }
+
+  /* Keep the pinned preview short so the text under it stays usable. */
+  .preview-panel .panel-label,
+  .preview-panel .preview-meta {
+    display: none;
+  }
+
+  .preview-panel .preview-frame {
+    padding: 0.4rem;
+  }
+
+  .preview-panel .preview-frame canvas {
+    width: auto;
+    max-height: 30vh;
+    margin: 0 auto;
+  }
+
+  .preview-panel .status-message {
+    font-size: 0.8rem;
+  }
+
+  .actions {
+    order: 2;
+  }
+
+  .page-screens .textarea {
+    min-height: 14rem;
+    scroll-margin-top: calc(30vh + 4.5rem);
+  }
 }
 
 .page-screens [hidden] {
