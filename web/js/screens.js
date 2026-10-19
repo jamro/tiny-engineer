@@ -17,7 +17,7 @@ const MARKUP = /\{([a-z][a-z0-9_-]*|\/)\}/g;
 const $ = (id) => document.getElementById(id);
 const state = {
   presets: [], designs: [], preset: null, source: 'text', design: null,
-  image: null, zoom: 1, panX: 0.5, panY: 0.5, paper: false, mask: true,
+  image: null, zoom: 1, panX: 0.5, panY: 0.5, print: 'colour', mask: true,
 };
 
 // ------------------------------------------------------------ .screen format
@@ -85,13 +85,26 @@ function lowContrastColours(d) {
 
 // ------------------------------------------------------------ drawing
 
+// What a black-only printer does to the page. Done on pixels rather than with
+// ctx.filter, which Safari ignores.
+function greyscale(ctx, w, h) {
+  const img = ctx.getImageData(0, 0, w, h);
+  const px = img.data;
+  for (let i = 0; i < px.length; i += 4) {
+    const y = 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2];
+    px[i] = px[i + 1] = px[i + 2] = y;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
 function drawInsert(ctx, preset, scale, { mask = false } = {}) {
   const [w, h] = preset.insert;
   const [wx, wy, ww, wh] = preset.window;
   const d = state.design;
   const mm = (v) => v * scale;
+  const paper = state.print === 'paper';
   ctx.save();
-  ctx.fillStyle = state.paper ? '#ffffff' : d.background;
+  ctx.fillStyle = paper ? '#ffffff' : d.background;
   ctx.fillRect(0, 0, mm(w), mm(h));
 
   if (state.source === 'image' && state.image) {
@@ -107,9 +120,7 @@ function drawInsert(ctx, preset, scale, { mask = false } = {}) {
     ctx.beginPath();
     ctx.rect(mm(rx), mm(ry), mm(rw), mm(rh));
     ctx.clip();
-    if (state.paper) ctx.filter = 'grayscale(1)';
     ctx.drawImage(img, mm(rx) + (mm(rw) - dw) * state.panX, mm(ry) + (mm(rh) - dh) * state.panY, dw, dh);
-    ctx.filter = 'none';
   } else if (state.source === 'text') {
     const lines = d.body.split('\n').map((l) => runs(l, d));
     const cols = Math.max(1, ...lines.map((r) => r.reduce((n, [t]) => n + t.length, 0)));
@@ -135,7 +146,7 @@ function drawInsert(ctx, preset, scale, { mask = false } = {}) {
       let cx = ax;
       const base = ay + (i + 0.8) * LINE_H * size;
       for (const [text, colour] of r) {
-        ctx.fillStyle = state.paper ? (dim.has(colour) ? PAPER_DIM : '#000000') : colour;
+        ctx.fillStyle = paper ? (dim.has(colour) ? PAPER_DIM : '#000000') : colour;
         ctx.save();
         ctx.translate(mm(cx), mm(base));
         ctx.scale(k, k);
@@ -153,6 +164,9 @@ function drawInsert(ctx, preset, scale, { mask = false } = {}) {
     ctx.strokeRect(mm(wx), mm(wy), mm(ww), mm(wh));
     ctx.setLineDash([]);
   }
+  ctx.restore();
+  if (state.print !== 'colour') greyscale(ctx, Math.round(mm(w)), Math.round(mm(h)));
+  ctx.save();
   if (mask) {
     ctx.fillStyle = 'rgba(17, 17, 17, 0.6)';
     ctx.beginPath();
@@ -172,10 +186,10 @@ function renderPreview() {
   canvas.width = Math.round(preset.insert[0] * scale);
   canvas.height = Math.round(preset.insert[1] * scale);
   canvas.style.aspectRatio = `${preset.insert[0]} / ${preset.insert[1]}`;
-  drawInsert(canvas.getContext('2d'), preset, scale, { mask: state.mask });
+  drawInsert(canvas.getContext('2d', { willReadFrequently: true }), preset, scale, { mask: state.mask });
 
   const status = $('scr-status');
-  const weak = state.source === 'text' && !state.paper ? lowContrastColours(state.design) : [];
+  const weak = state.source === 'text' && state.print !== 'paper' ? lowContrastColours(state.design) : [];
   if (state.source === 'image' && !state.image) {
     status.textContent = 'No image yet. Pick a file or drop one on the preview.';
     status.className = 'status-message';
@@ -354,7 +368,10 @@ function bind() {
   });
   $('scr-pan-x').addEventListener('input', (e) => { state.panX = Number(e.target.value) / 100; renderPreview(); });
   $('scr-pan-y').addEventListener('input', (e) => { state.panY = Number(e.target.value) / 100; renderPreview(); });
-  $('scr-paper').addEventListener('change', (e) => { state.paper = e.target.checked; renderPreview(); });
+  document.querySelectorAll('input[name="scr-print"]').forEach((r) => r.addEventListener('change', () => {
+    state.print = r.value;
+    renderPreview();
+  }));
   $('scr-mask').addEventListener('change', (e) => { state.mask = e.target.checked; renderPreview(); });
   $('scr-title').addEventListener('input', () => { state.design.title = $('scr-title').value; });
   $('scr-download').addEventListener('click', async () => {

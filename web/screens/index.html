@@ -46,6 +46,22 @@
               </select>
             </div>
 
+            <fieldset class="field choices">
+              <legend class="field-label">Printing on</legend>
+              <label class="choice" for="scr-print-colour">
+                <input type="radio" name="scr-print" id="scr-print-colour" value="colour" checked>
+                <span><strong>Colour printer, white paper</strong><span class="hint">The design as shown, on its own background.</span></span>
+              </label>
+              <label class="choice" for="scr-print-mono">
+                <input type="radio" name="scr-print" id="scr-print-mono" value="mono">
+                <span><strong>Black-only printer, white paper</strong><span class="hint">Greyscale, so the preview matches the print.</span></span>
+              </label>
+              <label class="choice" for="scr-print-paper">
+                <input type="radio" name="scr-print" id="scr-print-paper" value="paper">
+                <span><strong>Coloured paper, any printer</strong><span class="hint">No background and black text. The paper becomes the screen.</span></span>
+              </label>
+            </fieldset>
+
             <div class="seg" role="radiogroup" aria-label="Content">
               <label><input type="radio" name="scr-source" id="scr-source-text" value="text" checked> Text</label>
               <label><input type="radio" name="scr-source" id="scr-source-image" value="image"> Image</label>
@@ -87,10 +103,6 @@
               </div>
             </div>
 
-            <label class="check" for="scr-paper">
-              <input id="scr-paper" type="checkbox">
-              <span>No background: black text, so coloured paper becomes the screen</span>
-            </label>
             <div class="field">
               <label class="field-label" for="scr-title">Label under each insert</label>
               <input id="scr-title" class="input" type="text" maxlength="40" value="Custom">

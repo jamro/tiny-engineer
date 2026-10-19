@@ -696,6 +696,54 @@ esp-web-install-button .button,
   font-size: 0.8rem;
 }
 
+.choices {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.choices legend {
+  padding: 0;
+  margin-bottom: 0.4rem;
+}
+
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--raised);
+  cursor: pointer;
+  transition: border-color var(--dur) ease;
+}
+
+.choice + .choice {
+  margin-top: 0.4rem;
+}
+
+.choice:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.choice input {
+  margin-top: 0.25rem;
+  accent-color: var(--accent);
+}
+
+.choice strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.choice input:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .seg {
   display: inline-flex;
   align-self: flex-start;
