@@ -1,7 +1,9 @@
 # title: Blank template
 # background: #ffffff
-# foreground: #b0b0b0
+# foreground: #1a1a1a
+# paper-dim: hint
+# color hint: #8a8a8a
 # align: center
 # outline: window
-draw or glue your screen inside
-the dashed line (visible area)
+{hint}draw or glue your screen inside{/}
+{hint}the dashed line (visible area){/}

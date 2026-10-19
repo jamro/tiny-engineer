@@ -1,6 +1,7 @@
 # title: Build output
 # background: #0d1117
 # foreground: #c9d1d9
+# paper-dim: dim
 # color dim: #6e7681
 # color ok: #3fb950
 # color cmd: #79c0ff

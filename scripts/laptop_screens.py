@@ -247,7 +247,7 @@ def parse_color(text, where):
 def parse_screen(path):
     """`# key: value` headers, then text lines with {name}...{/} colour spans."""
     meta = {"title": path.stem, "background": "#000000", "foreground": "#ffffff",
-            "align": "top-left", "outline": "none"}
+            "align": "top-left", "outline": "none", "paper-dim": ""}
     palette, body = {}, []
     lines = path.read_text(encoding="utf-8").splitlines()
     while lines and lines[0].startswith("#"):
@@ -292,8 +292,38 @@ def parse_screen(path):
         raise ScreensError(f"{path.name}: align must be top-left or center")
     if meta["outline"] not in ("none", "window"):
         raise ScreensError(f"{path.name}: outline must be none or window")
-    meta["background"] = parse_color(meta["background"], f"{path.name} background")
+    bg = meta["background"] = parse_color(meta["background"], f"{path.name} background")
+    meta["foreground"] = fg
+    dim_names = meta["paper-dim"].split()
+    for name in dim_names:
+        if name not in palette:
+            raise ScreensError(f"{path.name}: paper-dim names unknown colour {name!r}")
+    meta["paper_dim"] = {palette[name] for name in dim_names}
+    for runs in body:
+        for text, rgb in runs:
+            ratio = contrast(rgb, bg)
+            if text.strip() and ratio < MIN_CONTRAST:
+                raise ScreensError(f"{path.name}: {text.strip()!r} has contrast {ratio:.1f}:1 against the "
+                                   f"background; needs {MIN_CONTRAST}:1 to survive greyscale printing")
     return {"meta": meta, "lines": body}
+
+
+MIN_CONTRAST = 3.0
+
+
+def luminance(rgb):
+    lin = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+
+
+def contrast(a, b):
+    la, lb = sorted((luminance(a), luminance(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+def paper_ink(rgb, meta):
+    """Paper mode: colours listed in `paper-dim` print grey, everything else black."""
+    return PAPER_DIM if rgb in meta["paper_dim"] else PAPER_TEXT
 
 
 def load_screens():
@@ -401,13 +431,22 @@ CUT = (0.6, 0.6, 0.6)
 TEXT_PAD = 0.6  # mm inside the window, on top of half the pocket slack
 LINE_H = 1.2    # line height in em
 CHAR_W = 0.6    # Courier advance in em
+PAPER_TEXT = (0, 0, 0)
+PAPER_DIM = (0.45, 0.45, 0.45)
+MODES = {
+    "colour": ("Colour screens",
+               "Colour or black-only printer on white paper. Dark fills hide the paper colour."),
+    "paper": ("Paper screens",
+              "Any printer, any paper colour: no fill, so the paper becomes the screen."),
+}
 
 
-def draw_insert(page, x, y, geo, screen):
+def draw_insert(page, x, y, geo, screen, mode):
     w, h = geo["insert"]
     wx, wy, ww, wh = geo["window"]
     meta = screen["meta"]
-    page.rect(x, y, w, h, fill=meta["background"])
+    if mode == "colour":
+        page.rect(x, y, w, h, fill=meta["background"])
     pad = TEXT_PAD + geo["slack"] / 2
     ax, ay, aw, ah = x + wx + pad, y + wy + pad, ww - 2 * pad, wh - 2 * pad
     lines = screen["lines"]
@@ -425,7 +464,8 @@ def draw_insert(page, x, y, geo, screen):
             base = ay + (i + 0.8) * LINE_H * size_mm
             for text, rgb in runs:
                 if text.strip():
-                    page.text(cx, base, text, size_mm, font="F1", rgb=rgb)
+                    ink = rgb if mode == "colour" else paper_ink(rgb, meta)
+                    page.text(cx, base, text, size_mm, font="F1", rgb=ink)
                 cx += len(text) * CHAR_W * size_mm
         page.unclip()
     if meta["outline"] == "window":
@@ -447,16 +487,19 @@ def draw_scale_check(page, x, y):
     page.text(rx + 53, y + 8.6, "If not, reprint at 100% / Actual size (scaling off).", 2.6)
 
 
-def preset_page(sid, name, geo, screens):
+def preset_page(sid, name, geo, screens, mode):
     page = Page()
     w, h = geo["insert"]
     wx, wy, ww, wh = geo["window"]
+    heading, use = MODES[mode]
     y = MARGIN + 6
-    page.text(MARGIN, y, "Tiny Engineer - laptop screen inserts", 6.0, font="F3")
+    page.text(MARGIN, y, f"Tiny Engineer - laptop screen inserts: {heading}", 6.0, font="F3")
     y += 7.5
     page.text(MARGIN, y, f"Servo preset: {name}  ({sid})", 4.6, font="F3")
-    page.text(A4_MM[0] - MARGIN - 52, y, f"Print only this page for {sid} parts.", 2.8, rgb=GREY)
+    page.text(A4_MM[0] - MARGIN - 52, y, f"Print only one page for {sid} parts.", 2.8, rgb=GREY)
     y += 6
+    page.text(MARGIN, y, use, 2.8, font="F3")
+    y += 4.2
     page.text(MARGIN, y, (f"Insert {w:.1f} x {h:.1f} mm (cut on the grey line). Visible window "
                           f"{ww:.1f} x {wh:.1f} mm, {wx:.1f} mm from the left and {wy:.1f} mm from "
                           f"the top edge."), 2.8)
@@ -475,7 +518,7 @@ def preset_page(sid, name, geo, screens):
         screen = screens[i % len(screens)]
         r, c = divmod(i, cols)
         ix, iy = x0 + c * (w + GAP_X), y + r * (h + LABEL_H + 2)
-        draw_insert(page, ix, iy, geo, screen)
+        draw_insert(page, ix, iy, geo, screen, mode)
         page.text(ix, iy + h + 2.8, f"{sid} - {screen['meta']['title']}", 2.4, rgb=GREY)
     return page
 
@@ -485,7 +528,7 @@ def build():
     pages, report = [], []
     for sid, name in presets():
         geo = measure_preset(PARTS / sid)
-        pages.append(preset_page(sid, name, geo, screens))
+        pages.extend(preset_page(sid, name, geo, screens, mode) for mode in MODES)
         report.append((sid, geo))
     return write_pdf(pages, "Tiny Engineer laptop screen inserts"), report
 

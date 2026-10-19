@@ -1,6 +1,7 @@
 # title: Crash / stack trace
 # background: #0a0a0a
 # foreground: #d0d0d0
+# paper-dim: dim
 # color err: #ff5f56
 # color dim: #7a7a7a
 # color hi: #ffbd2e
