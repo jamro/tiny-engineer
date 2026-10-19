@@ -327,6 +327,28 @@ def paper_ink(rgb, meta):
     return PAPER_DIM if rgb in meta["paper_dim"] else PAPER_TEXT
 
 
+def to_linear(c):
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def to_srgb(c):
+    return 12.92 * c if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
+
+
+def tinted_ink(rgb, meta):
+    """Tinted mode: keep the hue, darken until it reads on pale coloured paper.
+
+    Scaling linear RGB keeps the colour's chromaticity, so green stays green.
+    Text the design treats as dim (`paper-dim`) is allowed to stay lighter.
+    """
+    target = TINT_DIM_LUM if rgb in meta["paper_dim"] else TINT_TEXT_LUM
+    lum = luminance(rgb)
+    if lum <= target:
+        return rgb
+    k = target / lum
+    return tuple(round(to_srgb(to_linear(c) * k), 4) for c in rgb)
+
+
 def load_screens():
     files = sorted(SCREENS_DIR.glob("*.screen"))
     if not files:
@@ -434,12 +456,19 @@ LINE_H = 1.2    # line height in em
 CHAR_W = 0.6    # Courier advance in em
 PAPER_TEXT = (0, 0, 0)
 PAPER_DIM = (0.45, 0.45, 0.45)
+# Relative luminance ceilings for tinted text: ~5:1 and ~2.5:1 against a
+# mid-pastel paper (luminance 0.6), so text survives yellow, blue or pink stock.
+TINT_TEXT_LUM = 0.08
+TINT_DIM_LUM = 0.2
 MODES = {
     "colour": ("Colour screens",
                "Colour or black-only printer on white paper. Dark fills hide the paper colour."),
+    "tinted": ("Colour on coloured paper",
+               "Colour printer, pale coloured paper: no fill, colours darkened to read on the paper."),
     "paper": ("Paper screens",
               "Any printer, any paper colour: no fill, so the paper becomes the screen."),
 }
+INKS = {"colour": lambda rgb, meta: rgb, "tinted": tinted_ink, "paper": paper_ink}
 
 
 def draw_insert(page, x, y, geo, screen, mode):
@@ -465,7 +494,7 @@ def draw_insert(page, x, y, geo, screen, mode):
             base = ay + (i + 0.8) * LINE_H * size_mm
             for text, rgb in runs:
                 if text.strip():
-                    ink = rgb if mode == "colour" else paper_ink(rgb, meta)
+                    ink = INKS[mode](rgb, meta)
                     page.text(cx, base, text, size_mm, font="F1", rgb=ink)
                 cx += len(text) * CHAR_W * size_mm
         page.unclip()

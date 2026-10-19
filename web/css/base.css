@@ -739,6 +739,17 @@ esp-web-install-button .button,
   font-weight: 600;
 }
 
+.paper-swatch {
+  display: flex;
+  margin-top: 0.5rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.paper-swatch input {
+  flex: none;
+}
+
 .choice input:focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: 1px;

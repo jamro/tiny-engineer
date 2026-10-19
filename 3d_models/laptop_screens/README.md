@@ -2,23 +2,24 @@
 
 Paper inserts that turn the plain black `LaptopScreen` into a terminal, an IDE, an agent chat, a crash dump, a retro computer, an ELIZA-style chat or a Tiny Engineer splash. No electronics: print, cut, slide into the lid. Inspired by a [community build](https://github.com/jamro/tiny-engineer/discussions/13#discussioncomment-18741594) that used a printed ELIZA screenshot behind clear PET.
 
-**Print:** [`laptop-screens.pdf`](laptop-screens.pdf) — A4, two pages per servo preset with the same designs:
+**Print:** [`laptop-screens.pdf`](laptop-screens.pdf) — A4, three pages per servo preset with the same designs:
 
 - **Colour screens** — each design on its own dark (or light) background.
+- **Colour on coloured paper** — no background; each colour keeps its hue but is darkened so it reads on pale paper.
 - **Paper screens** — no background, black and grey text only, so the paper colour becomes the screen colour.
 
 | Your printer and paper | Print |
 | --- | --- |
 | Colour printer, white paper | Colour screens |
 | Black-only printer, white paper | Colour screens (prints as greyscale; heavy on toner) or Paper screens |
-| Colour printer, coloured paper | Paper screens (Colour screens also work, but their dark fill hides the paper) |
+| Colour printer, coloured paper | Colour on coloured paper |
 | Black-only printer, coloured paper | Paper screens |
 
-Green paper gives an old-LCD look; any pale colour works. Printers cannot print white, so dark paper (black, navy) will not show the text.
+Green paper gives an old-LCD look; any pale colour works. Ink is translucent, so printed colours mix with the paper (blue on yellow turns greenish). Printers cannot print white, so dark paper (black, navy) will not show the text.
 
 ## Print, cut, install
 
-1. Open the PDF and print **one page for your servo preset** (`sg90`, `fs0307`, `es9051` or `hd1370a` — the same folder you printed from [`parts/`](../parts/)), picking Colour or Paper screens from the table above. Each insert is labelled with its preset.
+1. Open the PDF and print **one page for your servo preset** (`sg90`, `fs0307`, `es9051` or `hd1370a` — the same folder you printed from [`parts/`](../parts/)), picking the page from the table above. Each insert is labelled with its preset.
 2. Print at **100% / Actual size**. Turn off "Fit to page" / "Shrink to printable area".
 3. Check the scale: the square at the top must measure **10 × 10 mm** and the ruler **50 mm**. If not, fix the print settings and reprint — a scaled insert will not fit the pocket.
 4. Cut along the thin grey outline. Snip the four corners slightly: the pocket has rounded corners.
@@ -71,7 +72,7 @@ $ pio run
 | `color <name>` | Named colour for `{name}…{/}` spans in the text |
 | `align` | `top-left` (default) or `center` |
 | `outline` | `window` draws a dashed line around the visible area (blank template) |
-| `paper-dim` | Colour names that print grey on the Paper screens page; all other text prints black |
+| `paper-dim` | Colour names the design treats as secondary: grey on the Paper screens page (other text is black), and darkened less on the Colour on coloured paper page |
 
 Text lines follow the headers. `{name}` switches to a named colour, `{/}` back to the foreground. Characters must be printable in the PDF base fonts (ASCII and Latin-1 are fine).
 

@@ -56,9 +56,17 @@
                 <input type="radio" name="scr-print" id="scr-print-mono" value="mono">
                 <span><strong>Black-only printer, white paper</strong><span class="hint">Greyscale, so the preview matches the print.</span></span>
               </label>
+              <label class="choice" for="scr-print-tinted">
+                <input type="radio" name="scr-print" id="scr-print-tinted" value="tinted">
+                <span><strong>Colour printer, coloured paper</strong><span class="hint">No background. Colours keep their hue, darkened to read on pale paper.</span></span>
+              </label>
               <label class="choice" for="scr-print-paper">
                 <input type="radio" name="scr-print" id="scr-print-paper" value="paper">
-                <span><strong>Coloured paper, any printer</strong><span class="hint">No background and black text. The paper becomes the screen.</span></span>
+                <span><strong>Black-only printer, coloured paper</strong><span class="hint">No background and black text. The paper becomes the screen.</span></span>
+              </label>
+              <label id="scr-paper-field" class="swatch paper-swatch" for="scr-paper-colour" hidden>
+                <input id="scr-paper-colour" type="color" value="#fff1a8">
+                <span>Paper colour, for the preview only. Ink on coloured paper varies by printer, so treat it as a guide.</span>
               </label>
             </fieldset>
 

@@ -7,6 +7,9 @@ const PX_PER_MM = 24; // ~610 dpi in the PDF
 const TEXT_PAD = 0.6; // mm inside the window, plus half the pocket slack
 const LINE_H = 1.2;
 const PAPER_DIM = '#737373';
+// Luminance ceilings for tinted text, same as scripts/laptop_screens.py.
+const TINT_TEXT_LUM = 0.08;
+const TINT_DIM_LUM = 0.2;
 const MIN_CONTRAST = 3;
 const A4 = [210, 297];
 const MARGIN = 12;
@@ -17,7 +20,7 @@ const MARKUP = /\{([a-z][a-z0-9_-]*|\/)\}/g;
 const $ = (id) => document.getElementById(id);
 const state = {
   presets: [], designs: [], preset: null, source: 'text', design: null,
-  image: null, zoom: 1, panX: 0.5, panY: 0.5, print: 'colour', mask: true,
+  image: null, zoom: 1, panX: 0.5, panY: 0.5, print: 'colour', paperColour: '#fff1a8', mask: true,
 };
 
 // ------------------------------------------------------------ .screen format
@@ -78,6 +81,27 @@ function contrast(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+// Keep the hue, darken until it reads on pale coloured paper. Scaling linear
+// RGB keeps the chromaticity, so green stays green.
+function tintedInk(hex, dim) {
+  const target = dim ? TINT_DIM_LUM : TINT_TEXT_LUM;
+  const lum = luminance(hex);
+  if (lum <= target) return hex;
+  const k = target / lum;
+  return '#' + [1, 3, 5].map((i) => {
+    const v = parseInt(hex.slice(i, i + 2), 16) / 255;
+    const lin = (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4) * k;
+    const s = lin <= 0.0031308 ? 12.92 * lin : 1.055 * lin ** (1 / 2.4) - 0.055;
+    return Math.round(s * 255).toString(16).padStart(2, '0');
+  }).join('');
+}
+
+function inkFor(colour, dim) {
+  if (state.print === 'paper') return dim ? PAPER_DIM : '#000000';
+  if (state.print === 'tinted') return tintedInk(colour, dim);
+  return colour;
+}
+
 function lowContrastColours(d) {
   const used = new Set([d.foreground, ...Object.values(d.palette)]);
   return [...used].filter((hex) => contrast(hex, d.background) < MIN_CONTRAST);
@@ -102,7 +126,7 @@ function drawInsert(ctx, preset, scale, { mask = false } = {}) {
   const [wx, wy, ww, wh] = preset.window;
   const d = state.design;
   const mm = (v) => v * scale;
-  const paper = state.print === 'paper';
+  const paper = state.print === 'paper' || state.print === 'tinted';
   ctx.save();
   ctx.fillStyle = paper ? '#ffffff' : d.background;
   ctx.fillRect(0, 0, mm(w), mm(h));
@@ -146,7 +170,7 @@ function drawInsert(ctx, preset, scale, { mask = false } = {}) {
       let cx = ax;
       const base = ay + (i + 0.8) * LINE_H * size;
       for (const [text, colour] of r) {
-        ctx.fillStyle = paper ? (dim.has(colour) ? PAPER_DIM : '#000000') : colour;
+        ctx.fillStyle = inkFor(colour, dim.has(colour));
         ctx.save();
         ctx.translate(mm(cx), mm(base));
         ctx.scale(k, k);
@@ -165,8 +189,15 @@ function drawInsert(ctx, preset, scale, { mask = false } = {}) {
     ctx.setLineDash([]);
   }
   ctx.restore();
-  if (state.print !== 'colour') greyscale(ctx, Math.round(mm(w)), Math.round(mm(h)));
+  if (state.print === 'mono' || state.print === 'paper') greyscale(ctx, Math.round(mm(w)), Math.round(mm(h)));
   ctx.save();
+  if (mask && paper) {
+    // Preview only: ink is translucent, so the paper colour multiplies through.
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = state.paperColour;
+    ctx.fillRect(0, 0, mm(w), mm(h));
+    ctx.globalCompositeOperation = 'source-over';
+  }
   if (mask) {
     ctx.fillStyle = 'rgba(17, 17, 17, 0.6)';
     ctx.beginPath();
@@ -189,7 +220,8 @@ function renderPreview() {
   drawInsert(canvas.getContext('2d', { willReadFrequently: true }), preset, scale, { mask: state.mask });
 
   const status = $('scr-status');
-  const weak = state.source === 'text' && state.print !== 'paper' ? lowContrastColours(state.design) : [];
+  const weak = state.source === 'text' && (state.print === 'colour' || state.print === 'mono')
+    ? lowContrastColours(state.design) : [];
   if (state.source === 'image' && !state.image) {
     status.textContent = 'No image yet. Pick a file or drop one on the preview.';
     status.className = 'status-message';
@@ -370,8 +402,10 @@ function bind() {
   $('scr-pan-y').addEventListener('input', (e) => { state.panY = Number(e.target.value) / 100; renderPreview(); });
   document.querySelectorAll('input[name="scr-print"]').forEach((r) => r.addEventListener('change', () => {
     state.print = r.value;
+    $('scr-paper-field').hidden = r.value !== 'tinted' && r.value !== 'paper';
     renderPreview();
   }));
+  $('scr-paper-colour').addEventListener('input', (e) => { state.paperColour = e.target.value; renderPreview(); });
   $('scr-mask').addEventListener('change', (e) => { state.mask = e.target.checked; renderPreview(); });
   $('scr-title').addEventListener('input', () => { state.design.title = $('scr-title').value; });
   $('scr-download').addEventListener('click', async () => {
