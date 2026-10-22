@@ -15,6 +15,7 @@
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
 #include "network/ota.h"
+#include "extensions/push_button.h"
 #include "http/server.h"
 #include "settings/settings.h"
 #include "serial/link.h"
@@ -41,6 +42,7 @@ void setup() {
   delay(1000);
 
   initSettings();
+  pushButtonApply(settingsPushButton());
 
   initChipTemp();
 
@@ -174,6 +176,7 @@ void setup() {
 
 void loop() {
   serialLinkPoll();
+  pushButtonPoll();
   pollHttpServer();
   pollOta();
   tickRobot();

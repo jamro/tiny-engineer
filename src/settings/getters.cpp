@@ -31,6 +31,10 @@ bool settingsSerialLogEnabled() {
   return g_settings.serialLog;
 }
 
+bool settingsPushButton() {
+  return g_settings.pushButton;
+}
+
 uint32_t settingsContinuousTimeoutMin() {
   return g_settings.continuousTimeoutMin;
 }

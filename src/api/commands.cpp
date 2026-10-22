@@ -6,6 +6,7 @@
 #include "animation.h"
 #include "audio/audio.h"
 #include "display/oled.h"
+#include "extensions/push_button.h"
 #include "hardware/pca9685_servos.h"
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"
@@ -36,6 +37,7 @@ ApiResult apiFactoryReset() {
   if (!factoryResetSettings()) {
     return {false, 500, "factory reset failed"};
   }
+  pushButtonApply(settingsPushButton());
   return {true, 200, nullptr};
 }
 
@@ -54,6 +56,9 @@ ApiResult apiSaveSettings(const SettingsPatch& patch) {
   }
   if (!saveSettings(patch)) {
     return {false, 500, "save failed"};
+  }
+  if (patch.pushButton.has_value()) {
+    pushButtonApply(settingsPushButton());
   }
   return {true, 200, nullptr};
 }

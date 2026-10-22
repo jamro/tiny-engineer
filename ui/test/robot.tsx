@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS: Settings = {
   volume: 70,
   welcome: true,
   serial_log: false,
+  push_button: false,
   loading: "progress",
   eyes_style: "classic",
   access_token_set: false,

@@ -15,6 +15,9 @@ constexpr int I2S_BCLK = 2;  // GP2
 constexpr int I2S_LRC  = 3;  // GP3
 constexpr int I2S_DIN  = 4;  // GP4
 
+// Extension push-button (J4 pin 4), active-low with internal pull-up when enabled.
+constexpr int PUSH_BUTTON_PIN = 20;  // GP20
+
 // Built-in WS2812 RGB
 constexpr int RGB_LED_PIN = 10;
 

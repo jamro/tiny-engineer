@@ -4,6 +4,7 @@
 
 #include "api/commands.h"
 #include "display/oled.h"
+#include "extensions/push_button.h"
 #include "hardware/rgb.h"
 #include "http/handlers.h"
 #include "http/request.h"
@@ -74,6 +75,7 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("volume", patch.volume);
   read("welcome", patch.welcome);
   read("serial_log", patch.serialLog);
+  read("push_button", patch.pushButton);
   read("continuous_timeout", patch.continuousTimeoutMin);
   read("loading", patch.loading);
   read("eyes_style", patch.eyesStyle);
@@ -120,6 +122,7 @@ JsonDocument settingsJson() {
   doc["volume"] = settingsVolume();
   doc["welcome"] = settingsWelcomeEnabled();
   doc["serial_log"] = settingsSerialLogEnabled();
+  doc["push_button"] = settingsPushButton();
   doc["continuous_timeout"] = settingsContinuousTimeoutMin();
   doc["loading"] = settingsLoading();
   doc["eyes_style"] = settingsEyesStyle();
@@ -200,6 +203,10 @@ void handleSettingsPost(WebServer& server) {
   if (!saveSettings(patch)) {
     sendError(server, 400, "save failed");
     return;
+  }
+
+  if (patch.pushButton.has_value()) {
+    pushButtonApply(settingsPushButton());
   }
 
   if (patch.oledRotate180) {

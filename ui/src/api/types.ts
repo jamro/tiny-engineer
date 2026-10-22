@@ -36,6 +36,7 @@ export interface Settings {
   volume: number;
   welcome: boolean;
   serial_log: boolean;
+  push_button: boolean;
   continuous_timeout: number;
   loading: LoadingMode;
   eyes_style: string;

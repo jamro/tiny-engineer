@@ -9,6 +9,7 @@ constexpr const char* kKeyHost = "host";
 constexpr const char* kKeyVolume = "vol";
 constexpr const char* kKeyWelcome = "welcome";
 constexpr const char* kKeySerialLog = "serial_log";
+constexpr const char* kKeyPushButton = "ext_btn";
 constexpr const char* kKeyContTo = "cont_to";
 constexpr const char* kKeyLoading = "loading";
 constexpr const char* kKeyEyesStyle = "eyes_sty";

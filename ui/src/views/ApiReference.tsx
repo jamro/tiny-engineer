@@ -113,6 +113,13 @@ export function ApiReference() {
           </tr>
           <tr>
             <td>
+              <code>push_button</code>
+            </td>
+            <td>boolean</td>
+            <td>Extension push-button on GPIO20 (default false; immediate)</td>
+          </tr>
+          <tr>
+            <td>
               <code>continuous_timeout</code>
             </td>
             <td>integer</td>

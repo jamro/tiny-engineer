@@ -2,9 +2,9 @@
 
 Persistent settings live in NVS (namespace `te`) under [`src/settings/`](../src/settings/). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
-**HTTP / JSON** (`POST /settings` body and `GET /settings` fields — see [api.md](api.md)): `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `eyes_style`, `access_token`, `servo_mins` / `servo_maxs`, `rgb_order`, `oled_rotate_180`. WiFi networks have their own endpoint, `PUT /settings/wifi`, and show as `wifi_networks`.
+**HTTP / JSON** (`POST /settings` body and `GET /settings` fields — see [api.md](api.md)): `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `push_button`, `continuous_timeout`, `loading`, `eyes_style`, `access_token`, `servo_mins` / `servo_maxs`, `rgb_order`, `oled_rotate_180`. WiFi networks have their own endpoint, `PUT /settings/wifi`, and show as `wifi_networks`.
 
-**NVS keys** (≤15 chars; defined in [`nvs.h`](../src/settings/nvs.h)): `sleep_m`, `host`, `vol`, `welcome`, `serial_log`, `cont_to`, `loading`, `eyes_sty`, `access_tok`, `wifi_nets` (blob of up to 5 networks; replaces the older single-network `wifi_ssid` / `wifi_pass`, which are migrated on load), `sranges`, `rgb_ord`, `oled_rot`. Last commanded servo angles live in the same namespace as key `spose` (internal; not a settings API field). Boot removes a leftover `srv_hold` key from older firmware. Add new short keys there — do not reuse HTTP names as NVS keys unless they already fit the length limit.
+**NVS keys** (≤15 chars; defined in [`nvs.h`](../src/settings/nvs.h)): `sleep_m`, `host`, `vol`, `welcome`, `serial_log`, `ext_btn` (`push_button`), `cont_to`, `loading`, `eyes_sty`, `access_tok`, `wifi_nets` (blob of up to 5 networks; replaces the older single-network `wifi_ssid` / `wifi_pass`, which are migrated on load), `sranges`, `rgb_ord`, `oled_rot`. Last commanded servo angles live in the same namespace as key `spose` (internal; not a settings API field). Boot removes a leftover `srv_hold` key from older firmware. Add new short keys there — do not reuse HTTP names as NVS keys unless they already fit the length limit.
 
 Follow the same pattern for a new setting.
 
@@ -45,7 +45,7 @@ Call the getter wherever the value affects behavior (e.g. `settingsVolume()` in 
 ### 4. Web UI — [`ui/`](../ui/)
 
 1. Add the field to `Settings` in [`ui/src/api/types.ts`](../ui/src/api/types.ts).
-2. Add a control to `ConfigForm` in [`ui/src/config/ConfigForm.tsx`](../ui/src/config/ConfigForm.tsx): read it in `draftFrom()` and send it from `save()`. Use `.range-row` + range/number for 0–N scales (see volume).
+2. Add a control to `ConfigForm` in [`ui/src/config/ConfigForm.tsx`](../ui/src/config/ConfigForm.tsx): read it in `draftFrom()` and send it from `save()`. Use `.range-row` + range/number for 0–N scales (see volume). Exception: extension toggles such as `push_button` live on the Extensions page instead of Config.
 3. API reference table under POST `/settings` in [`ui/src/views/ApiReference.tsx`](../ui/src/views/ApiReference.tsx): param, type, range.
 4. Home Config card blurb if the setting is user-facing.
 
