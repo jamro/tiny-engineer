@@ -67,8 +67,11 @@ function ensureTags(d) {
 
 function toScreenSource(d) {
   const head = [`# title: ${d.title}`, `# background: ${d.background}`, `# foreground: ${d.foreground}`];
-  if (d.paperDim.length) head.push(`# paper-dim: ${d.paperDim.join(' ')}`);
-  for (const name of usedTags(d.body)) head.push(`# color ${name}: ${d.palette[name]}`);
+  const used = usedTags(d.body);
+  // A paper-dim name without its colour line fails parse_screen, so drop unused ones.
+  const dim = d.paperDim.filter((name) => used.includes(name));
+  if (dim.length) head.push(`# paper-dim: ${dim.join(' ')}`);
+  for (const name of used) head.push(`# color ${name}: ${d.palette[name]}`);
   if (d.align !== 'top-left') head.push(`# align: ${d.align}`);
   if (d.outline !== 'none') head.push(`# outline: ${d.outline}`);
   return `${head.join('\n')}\n${d.body}\n`;

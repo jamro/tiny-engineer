@@ -593,6 +593,34 @@ def build():
     return outputs, report
 
 
+FLATE_STREAM = re.compile(rb"<< /Length (\d+) /Filter /FlateDecode >>\nstream\n")
+
+
+def pdf_content(data):
+    """Objects with streams inflated and the xref dropped, so zlib builds compare equal."""
+    body = data[:data.rindex(b"\nxref\n")]
+    out, pos = bytearray(), 0
+    for m in FLATE_STREAM.finditer(body):
+        if m.start() < pos:
+            continue  # match inside compressed bytes already consumed
+        end = m.end() + int(m.group(1))
+        out += body[pos:m.start()] + zlib.decompress(body[m.end():end])
+        pos = end
+    return bytes(out + body[pos:])
+
+
+def up_to_date(path, data):
+    if not path.is_file():
+        return False
+    old = path.read_bytes()
+    if path.suffix != ".pdf":
+        return old == data
+    try:
+        return pdf_content(old) == pdf_content(data)
+    except (ValueError, zlib.error):
+        return False
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true", help="fail if the committed outputs are out of date")
@@ -619,7 +647,7 @@ def main(argv=None):
     for path, data in outputs.items():
         rel = path.relative_to(ROOT)
         if args.check:
-            if not path.is_file() or path.read_bytes() != data:
+            if not up_to_date(path, data):
                 print(f"{rel} is out of date: run python3 scripts/laptop_screens.py", file=sys.stderr)
                 stale = 1
             else:
