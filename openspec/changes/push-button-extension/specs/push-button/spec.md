@@ -54,9 +54,13 @@ When `push_button` is true, the firmware MUST read GPIO20 (J4 pin 4) with the in
 - **WHEN** the user sets `push_button` to false while the button is held
 - **THEN** no further button events are published, including no synthetic up
 
-### Requirement: Edges during blocking play are kept
-A press and release that both occur while `loop()` is blocked by `POST /play` MUST still produce `button.down` then `button.up`, in that order, once the device can publish again.
+### Requirement: Edges during blocking play are kept within the queue
+The extension MUST queue pin edges in a ring of depth **8**. When the ring is full, the oldest edge MUST be dropped. A press and release that both occur while `loop()` is blocked by `POST /play` MUST produce `button.down` then `button.up`, in that order, once the device can publish again, **when both of those edges are still in the queue**. The device MUST NOT promise that guarantee for clicks whose edges were discarded by overflow.
 
-#### Scenario: Click during play
-- **WHEN** the extension is on and the user presses and releases the button during an in-progress `POST /play`
+#### Scenario: Click during play retained
+- **WHEN** the extension is on and the user presses and releases the button during an in-progress `POST /play` and both edges remain in the queue
 - **THEN** after playback no longer blocks the loop, each outbound sink that can accept the event receives `button.down` then `button.up` for that click
+
+#### Scenario: Queue overflow drops oldest edges
+- **WHEN** more than eight edges arrive before a poll drains the ring
+- **THEN** the oldest edges are discarded and later publishes reflect only the edges that were retained

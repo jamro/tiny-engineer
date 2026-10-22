@@ -14,8 +14,19 @@ test("eventsWebSocketUrl rewrites http to ws port 81 /events", () => {
     "ws://tiny-engineer.local:81/events",
   );
   assert.equal(
-    eventsWebSocketUrl("https://robot.example/path", "secret"),
-    "wss://robot.example:81/events?token=secret",
+    eventsWebSocketUrl("http://robot.example/path", "secret"),
+    "ws://robot.example:81/events?token=secret",
+  );
+});
+
+test("eventsWebSocketUrl rejects https bases", () => {
+  assert.throws(
+    () => eventsWebSocketUrl("https://robot.example"),
+    /http: robot URL/,
+  );
+  assert.throws(
+    () => eventsWebSocketUrl("https://robot.example", "secret"),
+    /no TLS on port 81/,
   );
 });
 

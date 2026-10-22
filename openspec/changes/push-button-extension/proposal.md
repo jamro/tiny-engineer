@@ -9,8 +9,8 @@ The robot only accepts commands. A button on the extension port cannot drive hos
 - Add a firmware **outbound event hub**: producers publish events to two outbound transports, a WebSocket server and a serial `Evt` frame. REST stays the inbound control API. Serial stays request/response for commands; event frames are device-initiated only.
 - WebSocket listens on port **81** while the HTTP server is running (Wi-Fi or setup AP). USB-only mode does not start it. The socket is outbound-only: client payloads are ignored. Connected clients receive a broadcast. There is no replay of past events.
 - Discrete events use a versioned JSON text envelope. Binary frames are reserved for later audio streaming and are not sent in this change.
-- Add a **push-button extension**, off by default. A settings boolean turns it on and off from a new web UI **Extensions** page (immediate, no reboot). When on, the firmware reads GPIO20 (J4 pin 4) with an interrupt latch so edges are not lost while `POST /play` blocks `loop()`, debounces them, and publishes `button.down` and `button.up`. When off, the pin is left idle and no button events are published.
-- Extend the CLI with `watch`, which prints each event. Transport `http` (the default) uses the WebSocket. Transport `serial` reads `Evt` frames from the serial port.
+- Add a **push-button extension**, off by default. A settings boolean turns it on and off from a new web UI **Extensions** page (immediate, no reboot). When on, the firmware reads GPIO20 (J4 pin 4) with an interrupt latch (8-deep ring; overflow drops oldest) so typical clicks during `POST /play` are not lost, debounces them, and publishes `button.down` and `button.up`. When off, the pin is left idle and no button events are published.
+- Extend the CLI with `watch`, which prints each event. Transport `http` (the default) uses the WebSocket and accepts only an `http:` robot base URL (no TLS on device port 81; `https:` is rejected). Transport `serial` reads `Evt` frames from the serial port.
 
 No **BREAKING** HTTP route or query-param changes. The new settings field is additive and defaults off.
 

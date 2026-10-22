@@ -5,14 +5,23 @@ import { parseCommonArgs } from "../util/args.js";
 
 /**
  * Build the outbound-events WebSocket URL from an HTTP base URL.
+ * Device has no TLS on port 81 — `https:` bases are rejected.
  * @param {string} baseUrl
  * @param {string | null} [token]
  * @returns {string}
  */
 export function eventsWebSocketUrl(baseUrl, token = null) {
   const http = new URL(baseUrl);
+  if (http.protocol === "https:") {
+    throw new Error(
+      "watch HTTP transport requires an http: robot URL (device has no TLS on port 81)",
+    );
+  }
+  if (http.protocol !== "http:") {
+    throw new Error(`watch HTTP transport requires an http: robot URL, got ${http.protocol}`);
+  }
   const ws = new URL(http.href);
-  ws.protocol = http.protocol === "https:" ? "wss:" : "ws:";
+  ws.protocol = "ws:";
   ws.port = "81";
   ws.pathname = "/events";
   ws.search = "";
@@ -71,7 +80,8 @@ Print outbound device events as one JSON line each.
   --url <base>              HTTP base when transport is http
   --port <path>             Serial port when transport is serial
 
-HTTP opens ws://<host>:81/events (token query when Bearer would be sent).
+HTTP opens ws://<host>:81/events from an http: robot URL only
+(token query when Bearer would be sent). https: is rejected.
 Serial prints Evt frame payloads only.
 `);
     return;
@@ -103,7 +113,14 @@ Serial prints Evt frame payloads only.
 
   const baseUrl = opts.url ?? getBaseUrl();
   const token = getHttpAuthToken({ urlOverride: opts.url !== undefined });
-  const wsUrl = eventsWebSocketUrl(baseUrl, token);
+  let wsUrl;
+  try {
+    wsUrl = eventsWebSocketUrl(baseUrl, token);
+  } catch (err) {
+    out.error(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+    return;
+  }
 
   let WebSocket;
   try {

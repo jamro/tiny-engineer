@@ -31,7 +31,7 @@ Producers publish a versioned JSON envelope to every connected WebSocket client 
 
 ### WebSocket `ws://<host>:81/events`
 
-Starts and stops with the HTTP server (Wi‑Fi or setup AP). USB-only mode does not listen. Cap is **4** clients.
+Starts and stops with the HTTP server (Wi‑Fi or setup AP). USB-only mode does not listen. Cap is **4** clients. The device has **no TLS** on port 81 — use `ws://` from an `http:` robot base URL only. `tiny-engineer watch` rejects `https:` bases (no `wss://` and no plain `ws://` fallback).
 
 When an access token is set, append `?token=<access_token>` (same secret as Bearer). When no token is configured, connect without a query. The device does not log the token.
 
@@ -45,7 +45,7 @@ websocat "ws://tiny-engineer.local:81/events?token=YOUR_TOKEN"
 
 Same JSON payload as the WebSocket text frame, packed as a typed serial message (`Evt`). No Bearer. Best-effort: if the CDC transmit buffer cannot take the frame, that serial copy is dropped and WebSocket delivery is unaffected. See [serial.md](serial.md).
 
-CLI: `tiny-engineer watch` (HTTP → WebSocket; `--transport serial` → `Evt` frames).
+CLI: `tiny-engineer watch` (`http:` base → WebSocket; `--transport serial` → `Evt` frames).
 
 ## Endpoints
 

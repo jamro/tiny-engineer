@@ -28,3 +28,8 @@
 ## 6. Integration
 
 - [x] 6.1 Run `pio run` after the firmware groups and verify the default env links
+
+## 7. Review follow-ups
+
+- [x] 7.1 Reject `https:` robot base URLs in `tiny-engineer watch` (no `ws://` fallback, no `wss://` to port 81), add a unit test, and verify `npm test --prefix packages/tiny-engineer-cli` passes
+- [x] 7.2 Note in `docs/api.md` outbound-events / watch that the WebSocket path is for `http:` bases only (device has no TLS on port 81), and verify the note is present
