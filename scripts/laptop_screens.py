@@ -609,6 +609,23 @@ def pdf_content(data):
     return bytes(out + body[pos:])
 
 
+def xref_ok(data):
+    """startxref finds the table and every entry points at its own object."""
+    m = re.search(rb"startxref\n(\d+)\n%%EOF\n$", data)
+    if not m:
+        return False
+    xref = int(m.group(1))
+    head = re.match(rb"xref\n0 (\d+)\n0000000000 65535 f \n", data[xref:])
+    if not head:
+        return False
+    count = int(head.group(1)) - 1
+    entries = re.match(rb"(?:\d{10} 00000 n \n){%d}trailer\n" % count, data[xref + head.end():])
+    if not entries:
+        return False
+    offsets = re.findall(rb"(\d{10}) 00000 n \n", entries.group(0))
+    return all(data.startswith(b"%d 0 obj\n" % i, int(o)) for i, o in enumerate(offsets, 1))
+
+
 def up_to_date(path, data):
     if not path.is_file():
         return False
@@ -616,7 +633,7 @@ def up_to_date(path, data):
     if path.suffix != ".pdf":
         return old == data
     try:
-        return pdf_content(old) == pdf_content(data)
+        return xref_ok(old) and pdf_content(old) == pdf_content(data)
     except (ValueError, zlib.error):
         return False
 

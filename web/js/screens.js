@@ -519,13 +519,18 @@ function bind() {
   });
   $('scr-copy').addEventListener('click', async () => {
     const text = toScreenSource({ ...state.design, title: $('scr-title').value.trim() || 'Custom' });
+    const out = $('scr-source-out');
     try {
       await navigator.clipboard.writeText(text);
+      out.hidden = true;
       $('scr-status').textContent = 'Copied. Save it as 3d_models/laptop_screens/screens/<name>.screen to add it to the stock sheet.';
       $('scr-status').className = 'status-message is-ok';
     } catch {
-      $('scr-body').select();
-      $('scr-status').textContent = 'Clipboard blocked. Copy the text field by hand.';
+      out.value = text;
+      out.hidden = false;
+      out.focus();
+      out.select();
+      $('scr-status').textContent = 'Clipboard blocked. Copy the selected source under the buttons by hand.';
       $('scr-status').className = 'status-message is-err';
     }
   });
