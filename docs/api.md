@@ -33,7 +33,7 @@ Producers publish a versioned JSON envelope to every connected WebSocket client 
 
 Starts and stops with the HTTP server (Wi‑Fi or setup AP). USB-only mode does not listen. Cap is **4** clients. The device has **no TLS** on port 81 — use `ws://` from an `http:` robot base URL only. `tiny-engineer watch` rejects `https:` bases (no `wss://` and no plain `ws://` fallback).
 
-When an access token is set, append `?token=<access_token>` (same secret as Bearer). When no token is configured, connect without a query. The device does not log the token.
+When an access token is set, append `?token=<access_token>` (same secret as Bearer). When no token is configured, connect without a query. The device does not log the token. Setting or rotating a non-empty `access_token` disconnects current WebSocket subscribers; they must reconnect with the new `?token=…`. Clearing the token does not disconnect.
 
 ```bash
 websocat "ws://tiny-engineer.local:81/events"
@@ -234,7 +234,7 @@ curl -X POST "http://192.168.4.1/settings" \
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
-| `access_token` | string | 0–64 printable ASCII, no space at either end; empty string clears the token and disables auth |
+| `access_token` | string | 0–64 printable ASCII, no space at either end; empty string clears the token and disables auth. Setting or rotating a non-empty value disconnects WebSocket `/events` subscribers (they must reconnect with the new token); clearing does not |
 | `link_mode` | string | `wifi` or `usb`; setup Connection step uses `usb` for USB-only; Wi-Fi mode is usually set when saving networks via [`PUT /settings/wifi`](#put-settingswifi) |
 | `servo_mins` | integer array | Five integers `0`–`180` (`head, neck, left, right, body`); setup AP only; must be sent with `servo_maxs` |
 | `servo_maxs` | integer array | Five integers `0`–`180`; setup AP only; each value must be greater than the matching min |

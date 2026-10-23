@@ -121,6 +121,14 @@ void eventsHubPoll() {
   g_ws.loop();
 }
 
+void eventsHubDisconnectAll() {
+  if (!g_started) {
+    return;
+  }
+
+  g_ws.disconnect();
+}
+
 void publishEvent(const char* type, const char* source) {
   if (type == nullptr || source == nullptr) {
     return;

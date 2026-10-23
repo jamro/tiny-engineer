@@ -132,11 +132,9 @@ Serial prints Evt frame payloads only.
   }
 
   await new Promise((resolve) => {
-    const socket = new WebSocket(wsUrl);
-    let opened = false;
+    const socket = new WebSocket(wsUrl, { handshakeTimeout: 2000 });
 
     socket.on("open", () => {
-      opened = true;
       out.info(`watch ${redactEventsUrl(wsUrl)} (Ctrl+C to stop)`);
     });
 
@@ -147,16 +145,12 @@ Serial prints Evt frame payloads only.
 
     socket.on("error", (err) => {
       out.error(err instanceof Error ? err.message : String(err));
-      if (!opened) {
-        process.exitCode = 1;
-      }
+      process.exitCode = 1;
       resolve(undefined);
     });
 
     socket.on("close", () => {
-      if (!opened) {
-        process.exitCode = 1;
-      }
+      process.exitCode = 1;
       resolve(undefined);
     });
   });

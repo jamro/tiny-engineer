@@ -4,6 +4,7 @@
 
 #include "api/commands.h"
 #include "display/oled.h"
+#include "events/hub.h"
 #include "extensions/push_button.h"
 #include "hardware/rgb.h"
 #include "http/handlers.h"
@@ -200,9 +201,18 @@ void handleSettingsPost(WebServer& server) {
     return;
   }
 
+  // Compare before save — saveSettings updates the in-memory token.
+  const bool tokenRotated = patch.accessToken != nullptr &&
+                            patch.accessToken[0] != '\0' &&
+                            strcmp(patch.accessToken, settingsAccessToken()) != 0;
+
   if (!saveSettings(patch)) {
     sendError(server, 400, "save failed");
     return;
+  }
+
+  if (tokenRotated) {
+    eventsHubDisconnectAll();
   }
 
   if (patch.pushButton.has_value()) {

@@ -9,6 +9,8 @@
 void eventsHubBegin();
 void eventsHubEnd();
 void eventsHubPoll();
+// Drop every connected /events client (e.g. after access_token rotation).
+void eventsHubDisconnectAll();
 
 // Builds {v:1,type,source,ms} and sends to every connected WebSocket client
 // and as one serial Evt frame (best-effort: drop serial copy if TX is full).
