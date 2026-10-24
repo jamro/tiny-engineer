@@ -511,6 +511,13 @@ nav a.active {
   line-height: 1.25;
 }
 
+code {
+  background: #f4f4f4;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+  font-size: 0.8rem;
+}
+
 .ext-event-row label code {
   font-size: 0.82rem;
 }
@@ -655,13 +662,6 @@ td {
 
 th {
   background: #f4f4f4;
-}
-
-code {
-  background: #f4f4f4;
-  padding: 0.1rem 0.3rem;
-  border-radius: 0.2rem;
-  font-size: 0.8rem;
 }
 
 footer {
