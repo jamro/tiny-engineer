@@ -33,7 +33,7 @@ Logic level: **3.3 V**.
 | GPIO6 | Free | Brought out on **J4** (main control board) |
 | GPIO7 | Free | Brought out on **J4** |
 | GPIO8 | Free | Brought out on **J4**; strapping — do not pull low at reset |
-| GPIO20 | Default UART0 RX / push-button | Silkscreen RX; also on **J4** pin 4. Free for other use only if USB CDC remains the console (`ARDUINO_USB_CDC_ON_BOOT=1`). When the `push_button` extension is on: active-low input with internal pull-up; other contact to GND |
+| GPIO20 | Default UART0 RX / push-button default | Silkscreen RX; also on **J4** pin 4. Free for other use only if USB CDC remains the console (`ARDUINO_USB_CDC_ON_BOOT=1`). Default `push_button_pin` (also allowlist GP6/GP7/GP21 on **J4**). When the `push_button` extension is on for that GPIO: active-low input with internal pull-up; other contact to GND |
 | GPIO21 | Default UART0 TX | Silkscreen TX; also on **J4**. Same caveat as GPIO20 |
 
 Power pads (not GPIO): **5V**, **GND**, **3V3**.

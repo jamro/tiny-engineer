@@ -42,6 +42,17 @@ void test_volume() {
   TEST_ASSERT_FALSE(settingsValidateVolume(101));
 }
 
+void test_push_button_pin() {
+  TEST_ASSERT_TRUE(settingsValidatePushButtonPin(6));
+  TEST_ASSERT_TRUE(settingsValidatePushButtonPin(7));
+  TEST_ASSERT_TRUE(settingsValidatePushButtonPin(20));
+  TEST_ASSERT_TRUE(settingsValidatePushButtonPin(21));
+  TEST_ASSERT_FALSE(settingsValidatePushButtonPin(8));
+  TEST_ASSERT_FALSE(settingsValidatePushButtonPin(9));
+  TEST_ASSERT_FALSE(settingsValidatePushButtonPin(0));
+  TEST_ASSERT_FALSE(settingsValidatePushButtonPin(19));
+}
+
 void test_loading() {
   TEST_ASSERT_TRUE(settingsValidateLoading("progress"));
   TEST_ASSERT_TRUE(settingsValidateLoading("sleep_inertia"));
@@ -132,6 +143,10 @@ void test_patch_names_the_first_invalid_field() {
   TEST_ASSERT_EQUAL_STRING("volume", patch.invalidField());
 
   patch.volume = 100;
+  patch.pushButtonPin = 8;
+  TEST_ASSERT_EQUAL_STRING("push_button_pin", patch.invalidField());
+
+  patch.pushButtonPin = 20;
   TEST_ASSERT_EQUAL_STRING("rgb_order", patch.invalidField());
 }
 
@@ -202,6 +217,7 @@ int main() {
   RUN_TEST(test_sleep_timeout);
   RUN_TEST(test_continuous_timeout);
   RUN_TEST(test_volume);
+  RUN_TEST(test_push_button_pin);
   RUN_TEST(test_loading);
   RUN_TEST(test_eyes_style);
   RUN_TEST(test_access_token);

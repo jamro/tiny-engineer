@@ -37,7 +37,7 @@ ApiResult apiFactoryReset() {
   if (!factoryResetSettings()) {
     return {false, 500, "factory reset failed"};
   }
-  pushButtonApply(settingsPushButton());
+  pushButtonApplyFromSettings();
   return {true, 200, nullptr};
 }
 
@@ -54,11 +54,15 @@ ApiResult apiSaveSettings(const SettingsPatch& patch) {
       linkErr != nullptr) {
     return {false, 400, linkErr};
   }
+  static char pinConflict[96];
+  if (settingsWouldPinConflict(patch, pinConflict, sizeof(pinConflict))) {
+    return {false, 400, pinConflict};
+  }
   if (!saveSettings(patch)) {
     return {false, 500, "save failed"};
   }
-  if (patch.pushButton.has_value()) {
-    pushButtonApply(settingsPushButton());
+  if (patch.pushButton.has_value() || patch.pushButtonPin.has_value()) {
+    pushButtonApplyFromSettings();
   }
   return {true, 200, nullptr};
 }

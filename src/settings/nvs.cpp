@@ -1,5 +1,6 @@
 #include "settings/nvs.h"
 
+#include "extensions/pin_claims_settings.h"
 #include "serial_log.h"
 #include "settings/values.h"
 
@@ -60,6 +61,14 @@ void SettingsValues::load() {
 
   if (g_settingsPrefs.isKey(kKeyPushButton)) {
     pushButton = g_settingsPrefs.getBool(kKeyPushButton, pushButton);
+  }
+
+  if (g_settingsPrefs.isKey(kKeyPushButtonPin)) {
+    const uint32_t storedPin = g_settingsPrefs.getUInt(kKeyPushButtonPin, pushButtonPin);
+
+    if (storedPin <= UINT8_MAX && settingsValidatePushButtonPin(static_cast<uint8_t>(storedPin))) {
+      pushButtonPin = static_cast<uint8_t>(storedPin);
+    }
   }
 
   loadMinutes(continuousTimeoutMin, kKeyContTo, settingsValidateContinuousTimeout);
@@ -131,6 +140,7 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
   putBool(kKeyWelcome, values.welcome, before.welcome);
   putBool(kKeySerialLog, values.serialLog, before.serialLog);
   putBool(kKeyPushButton, values.pushButton, before.pushButton);
+  putUInt(kKeyPushButtonPin, values.pushButtonPin, before.pushButtonPin);
   putUInt(kKeyContTo, values.continuousTimeoutMin, before.continuousTimeoutMin);
   putText(kKeyLoading, values.loading, before.loading);
   putText(kKeyEyesStyle, values.eyesStyle, before.eyesStyle);
@@ -176,6 +186,16 @@ bool SettingsValues::replaceAll() const {
   return ok;
 }
 
+bool settingsWouldPinConflict(
+  const SettingsPatch& patch,
+  char* message,
+  size_t messageLen
+) {
+  SettingsValues proposed = g_settings;
+  proposed.apply(patch);
+  return settingsPinClaimConflict(proposed, message, messageLen);
+}
+
 bool saveSettings(const SettingsPatch& patch) {
   if (patch.invalidField() != nullptr) {
     return false;
@@ -183,6 +203,10 @@ bool saveSettings(const SettingsPatch& patch) {
 
   SettingsValues next = g_settings;
   next.apply(patch);
+
+  if (settingsPinClaimConflict(next)) {
+    return false;
+  }
 
   if (!next.save(g_settings)) {
     return false;

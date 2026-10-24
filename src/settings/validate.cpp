@@ -129,6 +129,10 @@ bool ServoRanges::valid() const {
   return true;
 }
 
+bool settingsValidatePushButtonPin(uint8_t pin) {
+  return pin == 6 || pin == 7 || pin == 20 || pin == 21;
+}
+
 bool settingsValidateRgbOrder(const char* rgbOrder) {
   if (rgbOrder == nullptr) {
     return false;
@@ -153,6 +157,10 @@ const char* SettingsPatch::invalidField() const {
 
   if (volume && !settingsValidateVolume(*volume)) {
     return "volume";
+  }
+
+  if (pushButtonPin && !settingsValidatePushButtonPin(*pushButtonPin)) {
+    return "push_button_pin";
   }
 
   if (continuousTimeoutMin && !settingsValidateContinuousTimeout(*continuousTimeoutMin)) {

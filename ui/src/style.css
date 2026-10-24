@@ -402,6 +402,53 @@ nav a.active {
   font-size: 0.9rem;
 }
 
+.choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.choice-option {
+  display: flex;
+  margin: 0;
+  cursor: pointer;
+}
+
+.choice-option input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.choice-option span {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.35rem;
+  background: var(--card);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.choice-option:hover span {
+  border-color: var(--accent);
+}
+
+.choice-option:has(input:checked) span,
+.choice-option input:checked + span {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  color: var(--accent);
+}
+
+.choice-option input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .hint {
   font-size: 0.8rem;
   color: var(--muted);
@@ -410,6 +457,25 @@ nav a.active {
 
 .hint.warn {
   color: var(--error);
+}
+
+.ext-api {
+  margin-top: 0.15rem;
+}
+
+.ext-api > .hint:first-child {
+  margin-top: 0;
+}
+
+.ext-api-list {
+  margin: 0.35rem 0 0.5rem;
+  padding-left: 1.15rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.ext-api-list li + li {
+  margin-top: 0.2rem;
 }
 
 .servo-actions {

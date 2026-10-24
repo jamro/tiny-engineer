@@ -42,7 +42,7 @@ void setup() {
   delay(1000);
 
   initSettings();
-  pushButtonApply(settingsPushButton());
+  pushButtonApplyFromSettings();
 
   initChipTemp();
 

@@ -13,6 +13,7 @@ const DEFAULT_SETTINGS: Settings = {
   welcome: true,
   serial_log: false,
   push_button: false,
+  push_button_pin: 20,
   loading: "progress",
   eyes_style: "classic",
   access_token_set: false,

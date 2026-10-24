@@ -35,6 +35,10 @@ bool settingsPushButton() {
   return g_settings.pushButton;
 }
 
+uint8_t settingsPushButtonPin() {
+  return g_settings.pushButtonPin;
+}
+
 uint32_t settingsContinuousTimeoutMin() {
   return g_settings.continuousTimeoutMin;
 }

@@ -116,7 +116,14 @@ export function ApiReference() {
               <code>push_button</code>
             </td>
             <td>boolean</td>
-            <td>Extension push-button on GPIO20 (default false; immediate)</td>
+            <td>Extension-port push-button (default false; immediate)</td>
+          </tr>
+          <tr>
+            <td>
+              <code>push_button_pin</code>
+            </td>
+            <td>integer</td>
+            <td>Extension-port GPIO 6, 7, 20, or 21 (default 20; persists when off; immediate)</td>
           </tr>
           <tr>
             <td>
