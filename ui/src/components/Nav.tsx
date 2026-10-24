@@ -5,6 +5,7 @@ const NAV = [
   ["/animations", "Animations"],
   ["/tests", "Tests"],
   ["/servo", "Servo"],
+  ["/extensions", "Extensions"],
   ["/config", "Config"],
   ["/api", "API"],
 ] as const;

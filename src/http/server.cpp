@@ -4,6 +4,7 @@
 #include <Middlewares.h>
 #include <WebServer.h>
 
+#include "events/hub.h"
 #include "http/routes.h"
 #include "network/wifi_connect.h"
 #include "serial_log.h"
@@ -43,6 +44,7 @@ void startHttpServer() {
   registerHttpRoutes(server);
   server.begin();
   httpStarted = true;
+  eventsHubBegin();
 
   if (wifiProvisioningMode()) {
     logUrl(wifiApIpText(), "/config");
@@ -61,6 +63,7 @@ void stopHttpServer() {
   if (!httpStarted) {
     return;
   }
+  eventsHubEnd();
   server.close();
   httpStarted = false;
   serialLogPrintln("HTTP: stopped");
@@ -73,4 +76,5 @@ void pollHttpServer() {
   }
 
   server.handleClient();
+  eventsHubPoll();
 }

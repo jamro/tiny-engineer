@@ -14,6 +14,8 @@ void playTone(
 
 void playSilence(int durationMs);
 void stopAllWavPlayback();
+// Starts bell/click for push-button events when free; false if none, busy, or start failed.
+bool tryStartButtonEventSound(const char* sound);
 bool startBellPlayback();
 bool updateBellPlayback();
 void stopBellPlayback();

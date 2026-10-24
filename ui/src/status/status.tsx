@@ -1,8 +1,10 @@
 import { type ComponentChildren, createContext } from "preact";
-import { useCallback, useContext, useMemo, useRef, useState } from "preact/hooks";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { api, type ApiResult, type Reply, type Request } from "../api/client";
 
 type StatusType = "loading" | "ok" | "err";
+
+export const STATUS_OK_MS = 3000;
 
 export interface Action<T extends Reply> {
   path: string;
@@ -51,11 +53,43 @@ export function StatusProvider({ children }: { children: ComponentChildren }) {
   const [busy, setBusy] = useState(false);
   // The ref blocks a second action in the same tick, before the busy state renders.
   const runningRef = useRef(false);
+  const okTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const statusGenerationRef = useRef(0);
 
-  const setStatus = useCallback((message: string, type?: StatusType) => {
-    setStatusMessage({ message, type });
+  const clearOkTimer = useCallback(() => {
+    if (okTimerRef.current !== null) {
+      clearTimeout(okTimerRef.current);
+      okTimerRef.current = null;
+    }
   }, []);
-  const clearStatus = useCallback(() => setStatusMessage(null), []);
+
+  const clearStatus = useCallback(() => {
+    clearOkTimer();
+    statusGenerationRef.current += 1;
+    setStatusMessage(null);
+  }, [clearOkTimer]);
+
+  const setStatus = useCallback(
+    (message: string, type?: StatusType) => {
+      clearOkTimer();
+      const generation = ++statusGenerationRef.current;
+
+      setStatusMessage({ message, type });
+
+      if (type === "ok") {
+        okTimerRef.current = setTimeout(() => {
+          if (statusGenerationRef.current === generation) {
+            setStatusMessage(null);
+          }
+
+          okTimerRef.current = null;
+        }, STATUS_OK_MS);
+      }
+    },
+    [clearOkTimer],
+  );
+
+  useEffect(() => () => clearOkTimer(), [clearOkTimer]);
 
   const perform = useCallback(
     async <T extends Reply = Reply>({

@@ -67,6 +67,8 @@ export class SerialRobotClient {
     this._nextId = 1;
     /** @type {((payload: Buffer) => void) | null} */
     this._onLog = null;
+    /** @type {((payload: Buffer) => void) | null} */
+    this._onEvent = null;
     /** @type {{ streamId: number, seq: number, resolve: (c: number) => void, reject: (e: Error) => void, timer: NodeJS.Timeout }[]} */
     this._creditWaiters = [];
     this._decoder.setHandler((payload) => this._onPayload(payload));
@@ -77,6 +79,13 @@ export class SerialRobotClient {
    */
   setLogHandler(handler) {
     this._onLog = handler;
+  }
+
+  /**
+   * @param {(payload: Buffer) => void} handler
+   */
+  setEventHandler(handler) {
+    this._onEvent = handler;
   }
 
   /**
@@ -131,6 +140,10 @@ export class SerialRobotClient {
     if (!msg) return;
     if (msg.type === SerialMsgType.Log) {
       this._onLog?.(msg.payload);
+      return;
+    }
+    if (msg.type === SerialMsgType.Evt) {
+      this._onEvent?.(msg.payload);
       return;
     }
     if (msg.type === SerialMsgType.Stream && msg.payload.length >= 4) {
