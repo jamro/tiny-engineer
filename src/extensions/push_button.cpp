@@ -55,6 +55,26 @@ void clearQueue() {
   portEXIT_CRITICAL(&g_mux);
 }
 
+const char* eventTypeName(PushButtonEvent event) {
+  switch (event) {
+    case PushButtonEvent::Down:
+      return "button.down";
+    case PushButtonEvent::Up:
+      return "button.up";
+    case PushButtonEvent::Click:
+      return "button.click";
+    case PushButtonEvent::DoubleClick:
+      return "button.double_click";
+    case PushButtonEvent::LongClick:
+      return "button.long_click";
+  }
+  return "button.unknown";
+}
+
+void publishButtonEvent(PushButtonEvent event) {
+  publishEvent(eventTypeName(event), "push-button");
+}
+
 }  // namespace
 
 void pushButtonApply(bool enabled) {
@@ -86,15 +106,21 @@ void pushButtonApply(bool enabled) {
 void pushButtonPoll() {
   PushButtonSample sample;
   while (popSample(sample)) {
-    const auto event = g_logic.accept(sample);
-    if (!event) {
-      continue;
+    const auto edge = g_logic.accept(sample);
+    if (const auto immediate = g_logic.takeImmediateGesture()) {
+      publishButtonEvent(*immediate);
     }
+    if (edge) {
+      publishButtonEvent(*edge);
+    }
+  }
 
-    if (*event == PushButtonEvent::Down) {
-      publishEvent("button.down", "push-button");
-    } else {
-      publishEvent("button.up", "push-button");
+  const uint64_t nowUs = static_cast<uint64_t>(esp_timer_get_time());
+  while (true) {
+    const auto gesture = g_logic.tick(nowUs);
+    if (!gesture) {
+      break;
     }
+    publishButtonEvent(*gesture);
   }
 }

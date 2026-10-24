@@ -78,8 +78,11 @@ function ExtensionsForm({
             </div>
             <p className="hint">
               Wire the switch between GP20 and GND. Active-low with the ESP32 internal pull-up.
-              Publishes <code>button.down</code> / <code>button.up</code> on{" "}
-              <code>ws://&lt;host&gt;:81/events</code> and as serial <code>Evt</code> frames.
+              Publishes immediate <code>button.down</code> / <code>button.up</code>, plus{" "}
+              <code>button.click</code> (350&nbsp;ms after a short release),{" "}
+              <code>button.double_click</code>, and <code>button.long_click</code> (800&nbsp;ms
+              hold) on <code>ws://&lt;host&gt;:81/events</code> and as serial <code>Evt</code>{" "}
+              frames.
             </p>
           </div>
           <Button type="submit" variant="primary">

@@ -25,9 +25,18 @@ Producers publish a versioned JSON envelope to every connected WebSocket client 
 | Field | Meaning |
 | --- | --- |
 | `v` | Envelope version; currently **1** |
-| `type` | Event name (e.g. `button.down`, `button.up`) |
+| `type` | Event name (e.g. `button.down`, `button.up`, `button.click`) |
 | `source` | Producer id (e.g. `push-button`) |
 | `ms` | `millis()` since boot |
+
+Push-button producer (`source` `push-button`) publishes:
+
+| `type` | When |
+| --- | --- |
+| `button.down` / `button.up` | Immediate on debounced press / release |
+| `button.click` | **350 ms** after a short release if no second press in that window |
+| `button.double_click` | Second short press whose down falls within 350 ms of the first short up (no `button.click` for that pair) |
+| `button.long_click` | Still held after **800 ms**; later release is `button.up` only (no click / double_click) |
 
 ### WebSocket `ws://<host>:81/events`
 
@@ -169,7 +178,7 @@ curl http://tiny-engineer.local/settings
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
-| `push_button` | Extension-port push-button reader on GPIO20 (default **false**). When on, publishes `button.down` / `button.up` outbound events. Applies **immediately** |
+| `push_button` | Extension-port push-button reader on GPIO20 (default **false**). When on, publishes immediate `button.down` / `button.up` plus `button.click` / `button.double_click` / `button.long_click` (see [Outbound events](#outbound-events)). Applies **immediately** |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
