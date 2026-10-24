@@ -1,0 +1,17 @@
+# title: ELIZA-style chat
+# background: #f2efe4
+# foreground: #1d1d1d
+# paper-dim: you
+# color you: #6b4f2a
+HOW DO YOU DO. PLEASE STATE YOUR PROBLEM.
+{you}> My robot keeps waving at me.{/}
+WHY DO YOU SAY YOUR ROBOT KEEPS WAVING
+AT YOU?
+{you}> Maybe it wants a coffee.{/}
+YOU DON'T SEEM QUITE CERTAIN.
+{you}> I am never certain before coffee.{/}
+HOW LONG HAVE YOU BEEN NEVER CERTAIN
+BEFORE COFFEE?
+{you}> Since I started writing firmware.{/}
+TELL ME MORE ABOUT WRITING FIRMWARE.
+{you}> {/}_

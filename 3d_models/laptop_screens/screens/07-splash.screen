@@ -1,0 +1,16 @@
+# title: Tiny Engineer splash
+# background: #12100e
+# foreground: #e8a15a
+# paper-dim: dim
+# color dim: #8c6a48
+# align: center
+       .-----.
+       | o o |
+       |  -  |
+       '--+--'
+       /|   |\
+        |___|
+
+    TINY ENGINEER
+{dim}  booting desk robot...{/}
+{dim}  [##########--------]{/}

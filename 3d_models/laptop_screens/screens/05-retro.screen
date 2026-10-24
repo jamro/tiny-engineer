@@ -1,0 +1,19 @@
+# title: Retro computer
+# background: #08260f
+# foreground: #39ff6a
+# paper-dim: dim
+# color dim: #1f9a40
+{dim}**** TINY ENGINEER BASIC V2 ****{/}
+{dim} 64K RAM SYSTEM  38911 BASIC BYTES FREE{/}
+
+READY.
+10 PRINT "HELLO, HUMAN"
+20 GOTO 10
+RUN
+HELLO, HUMAN
+HELLO, HUMAN
+HELLO, HUMAN
+HELLO, HUMAN
+BREAK IN 10
+READY.
+_

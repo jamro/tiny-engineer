@@ -1,0 +1,22 @@
+# title: Source code
+# background: #1e1e1e
+# foreground: #d4d4d4
+# paper-dim: num cm
+# color num: #858585
+# color kw: #569cd6
+# color ty: #4ec9b0
+# color fn: #dcdcaa
+# color str: #ce9178
+# color cm: #6a9955
+{num} 1{/}  {cm}// wave hello, then get back to work{/}
+{num} 2{/}  {kw}void{/} {fn}greet{/}({ty}Robot{/} &bot) {
+{num} 3{/}    {kw}for{/} ({kw}int{/} i = {num}0{/}; i < {num}3{/}; i++) {
+{num} 4{/}      bot.{fn}arm{/}({ty}Side{/}::Right, {num}0.8f{/});
+{num} 5{/}      {fn}delay{/}({num}180{/});
+{num} 6{/}      bot.{fn}arm{/}({ty}Side{/}::Right, {num}-0.2f{/});
+{num} 7{/}      {fn}delay{/}({num}180{/});
+{num} 8{/}    }
+{num} 9{/}    bot.{fn}say{/}({str}"Hello, world!"{/});
+{num}10{/}    bot.{fn}pose{/}({str}"typing"{/});
+{num}11{/}  }
+{num}12{/}

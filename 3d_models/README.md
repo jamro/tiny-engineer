@@ -85,7 +85,7 @@ Same filenames in each `parts/{servo_id}/3mf/` folder (and matching `stl/` / `st
 | `DeskTop.3mf` | Desk top surface |
 | `DeskPad.3mf` | Desk pad |
 | `LaptopCase.3mf` | Miniature laptop body |
-| `LaptopScreen.3mf` | Laptop screen |
+| `LaptopScreen.3mf` | Laptop screen — optional printed paper screens: [laptop screen inserts](laptop_screens/README.md) |
 | `Bell.3mf` | Service bell |
 | `LampBase.3mf` | Desk lamp base |
 | `LampCap.3mf` | Lamp cap |

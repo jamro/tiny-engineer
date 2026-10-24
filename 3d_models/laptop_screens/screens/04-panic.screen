@@ -1,0 +1,21 @@
+# title: Crash / stack trace
+# background: #0a0a0a
+# foreground: #d0d0d0
+# paper-dim: dim
+# color err: #ff5f56
+# color dim: #7a7a7a
+# color hi: #ffbd2e
+{err}Guru Meditation Error: Core 0 panic'ed{/}
+{err}(Load access fault). Exception was unhandled.{/}
+
+{dim}Core 0 register dump:{/}
+MEPC    : {hi}0x42008a3e{/}  RA      : 0x42008a1c
+SP      : 0x3fc9b2f0  GP      : 0x3fc8e400
+MTVAL   : {hi}0x00000000{/}  <- null pointer
+
+{dim}Backtrace:{/}
+  0x42008a3e in Coffee::refill() at mug.cpp:42
+  0x42004f10 in Engineer::morning() at day.cpp:7
+  0x42003c88 in loop() at main.cpp:118
+
+{err}Rebooting...{/}

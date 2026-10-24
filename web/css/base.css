@@ -637,3 +637,370 @@ esp-web-install-button .button,
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+/* Laptop screen generator (/screens/) */
+
+.page-screens main {
+  gap: 1.25rem;
+}
+
+.page-screens .wrap {
+  width: min(100% - 2rem, 72rem);
+}
+
+/* Setup once across the top; below it the editor and the preview start at
+   the same height, and the preview stays in view while the text scrolls. */
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 0.85rem 1.1rem;
+  align-items: start;
+}
+
+.setup .choice-row {
+  grid-template-columns: 1fr 1fr;
+}
+
+.setup .choice {
+  padding: 0.45rem 0.6rem;
+}
+
+.workspace {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.side,
+.preview-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.source-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: end;
+}
+
+.preview-panel {
+  gap: 0.6rem;
+}
+
+.preview-panel .panel-label {
+  margin-bottom: 0;
+}
+
+.preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 1rem;
+  font-size: 0.8rem;
+}
+
+.muted-label {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+}
+
+.preview-meta .check {
+  font-size: 0.8rem;
+}
+
+.actions {
+  gap: 0.85rem;
+}
+
+.page-screens .textarea {
+  min-height: 20rem;
+}
+
+@media (min-width: 760px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  }
+
+  /* The side column is as tall as the editor, so the preview and its
+     controls can stay pinned while the download buttons follow below. */
+  .side {
+    align-self: stretch;
+  }
+
+  .preview-stack {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+/* Phones: the preview sticks to the top of the screen, the text box sits
+   right under it, and the download controls follow the editor. */
+@media (max-width: 759px) {
+  .side,
+  .preview-stack {
+    display: contents;
+  }
+
+  .source {
+    order: 0;
+  }
+
+  .editor {
+    order: 1;
+  }
+
+  .preview-panel {
+    order: -1;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0.6rem 0.75rem;
+  }
+
+  /* Keep the pinned preview short so the text under it stays usable. */
+  .preview-panel .panel-label,
+  .preview-panel .preview-meta {
+    display: none;
+  }
+
+  .preview-panel .preview-frame {
+    padding: 0.4rem;
+  }
+
+  .preview-panel .preview-frame canvas {
+    width: auto;
+    max-height: 30vh;
+    margin: 0 auto;
+  }
+
+  .preview-panel .status-message {
+    font-size: 0.8rem;
+  }
+
+  .actions {
+    order: 2;
+  }
+
+  .page-screens .textarea {
+    min-height: 14rem;
+    scroll-margin-top: calc(30vh + 4.5rem);
+  }
+}
+
+.page-screens [hidden] {
+  display: none !important;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+.textarea {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  resize: vertical;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.input:focus,
+.textarea:focus,
+.range:focus-visible,
+.seg input:focus-visible + *,
+.check input:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.choices {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.choices legend {
+  padding: 0;
+  margin-bottom: 0.4rem;
+}
+
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--raised);
+  cursor: pointer;
+  transition: border-color var(--dur) ease;
+}
+
+.choice-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.4rem;
+}
+
+.choice:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.choice input {
+  margin-top: 0.25rem;
+  accent-color: var(--accent);
+}
+
+.choice strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.paper-swatch {
+  display: flex;
+  margin-top: 0.5rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.paper-swatch input {
+  flex: none;
+}
+
+.choice input:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.seg {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.seg label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.seg label + label {
+  border-left: 1px solid var(--border-strong);
+}
+
+.seg label:has(input:checked) {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+.seg input,
+.check input {
+  accent-color: var(--accent);
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.55rem 0.25rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--raised);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.swatch input {
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.check input {
+  margin-top: 0.2rem;
+}
+
+.file {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.range {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.preview-frame {
+  padding: 0.75rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: repeating-linear-gradient(45deg, #1b1b1b 0 6px, #1e1e1e 6px 12px);
+  transition: border-color var(--dur) ease;
+}
+
+.preview-frame.is-over {
+  border-color: var(--accent);
+}
+
+.preview-frame canvas {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
