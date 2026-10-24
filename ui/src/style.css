@@ -459,23 +459,72 @@ nav a.active {
   color: var(--error);
 }
 
-.ext-api {
-  margin-top: 0.15rem;
+.ext-events-lede {
+  margin: 0.15rem 0 0.45rem;
 }
 
-.ext-api > .hint:first-child {
-  margin-top: 0;
+.ext-events {
+  display: grid;
+  gap: 0;
+  margin: 0 0 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.35rem;
+  overflow: hidden;
+  background: var(--card);
 }
 
-.ext-api-list {
-  margin: 0.35rem 0 0.5rem;
-  padding-left: 1.15rem;
-  font-size: 0.8rem;
+.ext-event-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6.5rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.45rem 0.65rem;
+  border-top: 1px solid var(--border);
+}
+
+.ext-event-row:first-child {
+  border-top: none;
+}
+
+.ext-event-head {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  background: color-mix(in srgb, var(--border) 35%, var(--card));
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
-.ext-api-list li + li {
-  margin-top: 0.2rem;
+.ext-event-meta {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.ext-event-row label {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.ext-event-row label code {
+  font-size: 0.82rem;
+}
+
+.ext-event-when {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.ext-event-row select {
+  width: 100%;
+  margin: 0;
+  font-size: 0.85rem;
 }
 
 .servo-actions {

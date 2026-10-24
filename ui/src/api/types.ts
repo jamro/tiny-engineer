@@ -38,6 +38,11 @@ export interface Settings {
   serial_log: boolean;
   push_button: boolean;
   push_button_pin: number;
+  push_button_sound_down: "none" | "bell" | "click";
+  push_button_sound_up: "none" | "bell" | "click";
+  push_button_sound_click: "none" | "bell" | "click";
+  push_button_sound_double_click: "none" | "bell" | "click";
+  push_button_sound_long_click: "none" | "bell" | "click";
   continuous_timeout: number;
   loading: LoadingMode;
   eyes_style: string;

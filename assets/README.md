@@ -15,6 +15,7 @@ WAV clips played by animations and the setup wizard. Format: **44100 Hz, mono, 1
 | [`abort.wav`](abort.wav) | 2.5 s | Fine! I didn't want to finish that anyway! |
 | [`attention.wav`](attention.wav) | 3.0 s | Psst, Human! I might want to take a look. |
 | [`bell.wav`](bell.wav) | 2.0 s | Bell sound, no voiceover. |
+| [`click.wav`](click.wav) | 0.05 s | Short click SFX for push-button event sounds. |
 | [`dead.wav`](dead.wav) | 3.4 s | Insufficient resources, shutting dooooowwwwwnnnn.... |
 | [`error.wav`](error.wav) | 2.2 s | O-oh, human! We have a problem! |
 | [`welcome.wav`](welcome.wav) | 2.7 s | Hello human! What are we building today? |

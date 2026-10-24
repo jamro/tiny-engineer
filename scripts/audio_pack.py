@@ -12,6 +12,7 @@ PACKED_RATE = SOURCE_RATE // 2
 
 STOCK_WAVS = (
     "bell.wav",
+    "click.wav",
     "welcome.wav",
     "attention.wav",
     "error.wav",

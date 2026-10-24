@@ -54,7 +54,7 @@ bool readField(JsonVariantConst list, uint8_t (&out)[SETTINGS_SERVO_COUNT]) {
 // Fills the patch from the body. Returns the 400 message, or an empty string
 // when every field is known and has the right JSON type.
 String readPatch(JsonObjectConst body, SettingsPatch& patch) {
-  const char* known[20] = {};
+  const char* known[24] = {};
   size_t knownCount = 0;
   const char* wrong = nullptr;
 
@@ -78,6 +78,11 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("serial_log", patch.serialLog);
   read("push_button", patch.pushButton);
   read("push_button_pin", patch.pushButtonPin);
+  read("push_button_sound_down", patch.pushButtonSoundDown);
+  read("push_button_sound_up", patch.pushButtonSoundUp);
+  read("push_button_sound_click", patch.pushButtonSoundClick);
+  read("push_button_sound_double_click", patch.pushButtonSoundDoubleClick);
+  read("push_button_sound_long_click", patch.pushButtonSoundLongClick);
   read("continuous_timeout", patch.continuousTimeoutMin);
   read("loading", patch.loading);
   read("eyes_style", patch.eyesStyle);
@@ -126,6 +131,11 @@ JsonDocument settingsJson() {
   doc["serial_log"] = settingsSerialLogEnabled();
   doc["push_button"] = settingsPushButton();
   doc["push_button_pin"] = settingsPushButtonPin();
+  doc["push_button_sound_down"] = settingsPushButtonSoundDown();
+  doc["push_button_sound_up"] = settingsPushButtonSoundUp();
+  doc["push_button_sound_click"] = settingsPushButtonSoundClick();
+  doc["push_button_sound_double_click"] = settingsPushButtonSoundDoubleClick();
+  doc["push_button_sound_long_click"] = settingsPushButtonSoundLongClick();
   doc["continuous_timeout"] = settingsContinuousTimeoutMin();
   doc["loading"] = settingsLoading();
   doc["eyes_style"] = settingsEyesStyle();

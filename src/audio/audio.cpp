@@ -4,8 +4,10 @@
 #include <LittleFS.h>
 #include <math.h>
 
+#include "api/busy.h"
 #include "audio/audio_cues.h"
 #include "audio/wav_stream.h"
+#include "extensions/push_button_sfx.h"
 #include "pins.h"
 #include "display/oled.h"
 #include "settings/settings.h"
@@ -214,6 +216,16 @@ void playSilence(int durationMs) {
 
 void stopAllWavPlayback() {
   wavStreamStop();
+}
+
+bool tryStartButtonEventSound(const char* sound) {
+  const ButtonSfxClip sfx = parseButtonSfx(sound);
+  if (!shouldStartButtonSfx(sfx, wavStreamIsActive(), apiBusyHeld())) {
+    return false;
+  }
+
+  const WavClip clip = sfx == ButtonSfxClip::Bell ? WavClip::Bell : WavClip::Click;
+  return wavStreamStart(clip);
 }
 
 void stopBellPlayback() {

@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <esp_timer.h>
 
+#include "audio/audio.h"
 #include "events/hub.h"
 #include "extensions/pin_claims_settings.h"
 #include "extensions/push_button_logic.h"
@@ -91,8 +92,25 @@ const char* eventTypeName(PushButtonEvent event) {
   return "button.unknown";
 }
 
+const char* soundSettingFor(PushButtonEvent event) {
+  switch (event) {
+    case PushButtonEvent::Down:
+      return settingsPushButtonSoundDown();
+    case PushButtonEvent::Up:
+      return settingsPushButtonSoundUp();
+    case PushButtonEvent::Click:
+      return settingsPushButtonSoundClick();
+    case PushButtonEvent::DoubleClick:
+      return settingsPushButtonSoundDoubleClick();
+    case PushButtonEvent::LongClick:
+      return settingsPushButtonSoundLongClick();
+  }
+  return SETTINGS_DEFAULT_PUSH_BUTTON_SOUND;
+}
+
 void publishButtonEvent(PushButtonEvent event) {
   publishEvent(eventTypeName(event), "push-button");
+  tryStartButtonEventSound(soundSettingFor(event));
 }
 
 }  // namespace

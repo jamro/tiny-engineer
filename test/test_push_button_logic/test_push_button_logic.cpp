@@ -1,6 +1,7 @@
 #include <unity.h>
 
 #include "extensions/push_button_logic.h"
+#include "extensions/push_button_sfx.h"
 
 namespace {
 
@@ -129,6 +130,30 @@ void test_disable_clears_pending_click() {
   TEST_ASSERT_FALSE(logic.tick(u + kPushButtonDoubleWaitUs).has_value());
 }
 
+void test_button_sfx_parse_and_busy_gate() {
+  TEST_ASSERT_EQUAL(
+    static_cast<int>(ButtonSfxClip::None),
+    static_cast<int>(parseButtonSfx("none"))
+  );
+  TEST_ASSERT_EQUAL(
+    static_cast<int>(ButtonSfxClip::Bell),
+    static_cast<int>(parseButtonSfx("bell"))
+  );
+  TEST_ASSERT_EQUAL(
+    static_cast<int>(ButtonSfxClip::Click),
+    static_cast<int>(parseButtonSfx("click"))
+  );
+  TEST_ASSERT_EQUAL(
+    static_cast<int>(ButtonSfxClip::None),
+    static_cast<int>(parseButtonSfx("welcome"))
+  );
+  TEST_ASSERT_FALSE(shouldStartButtonSfx(ButtonSfxClip::None, false, false));
+  TEST_ASSERT_TRUE(shouldStartButtonSfx(ButtonSfxClip::Bell, false, false));
+  TEST_ASSERT_TRUE(shouldStartButtonSfx(ButtonSfxClip::Click, false, false));
+  TEST_ASSERT_FALSE(shouldStartButtonSfx(ButtonSfxClip::Bell, true, false));
+  TEST_ASSERT_FALSE(shouldStartButtonSfx(ButtonSfxClip::Click, false, true));
+}
+
 int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_enable_samples_without_event);
@@ -141,5 +166,6 @@ int main(int, char**) {
   RUN_TEST(test_long_click_on_hold_then_up_only);
   RUN_TEST(test_second_press_long_cancels_click_and_double);
   RUN_TEST(test_disable_clears_pending_click);
+  RUN_TEST(test_button_sfx_parse_and_busy_gate);
   return UNITY_END();
 }

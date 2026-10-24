@@ -16,6 +16,11 @@ struct SettingsValues {
   bool serialLog;
   bool pushButton;
   uint8_t pushButtonPin;
+  char pushButtonSoundDown[SETTINGS_PUSH_BUTTON_SOUND_MAX_LEN + 1];
+  char pushButtonSoundUp[SETTINGS_PUSH_BUTTON_SOUND_MAX_LEN + 1];
+  char pushButtonSoundClick[SETTINGS_PUSH_BUTTON_SOUND_MAX_LEN + 1];
+  char pushButtonSoundDoubleClick[SETTINGS_PUSH_BUTTON_SOUND_MAX_LEN + 1];
+  char pushButtonSoundLongClick[SETTINGS_PUSH_BUTTON_SOUND_MAX_LEN + 1];
   uint32_t continuousTimeoutMin;
   char loading[SETTINGS_LOADING_MAX_LEN + 1];
   char eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1];

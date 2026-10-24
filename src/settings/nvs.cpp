@@ -71,6 +71,12 @@ void SettingsValues::load() {
     }
   }
 
+  loadText(pushButtonSoundDown, kKeyBtnSndDn, settingsValidatePushButtonSound);
+  loadText(pushButtonSoundUp, kKeyBtnSndUp, settingsValidatePushButtonSound);
+  loadText(pushButtonSoundClick, kKeyBtnSndClk, settingsValidatePushButtonSound);
+  loadText(pushButtonSoundDoubleClick, kKeyBtnSndDbl, settingsValidatePushButtonSound);
+  loadText(pushButtonSoundLongClick, kKeyBtnSndLng, settingsValidatePushButtonSound);
+
   loadMinutes(continuousTimeoutMin, kKeyContTo, settingsValidateContinuousTimeout);
   loadText(loading, kKeyLoading, settingsValidateLoading);
   loadText(eyesStyle, kKeyEyesStyle, settingsValidateEyesStyle);
@@ -141,6 +147,11 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
   putBool(kKeySerialLog, values.serialLog, before.serialLog);
   putBool(kKeyPushButton, values.pushButton, before.pushButton);
   putUInt(kKeyPushButtonPin, values.pushButtonPin, before.pushButtonPin);
+  putText(kKeyBtnSndDn, values.pushButtonSoundDown, before.pushButtonSoundDown);
+  putText(kKeyBtnSndUp, values.pushButtonSoundUp, before.pushButtonSoundUp);
+  putText(kKeyBtnSndClk, values.pushButtonSoundClick, before.pushButtonSoundClick);
+  putText(kKeyBtnSndDbl, values.pushButtonSoundDoubleClick, before.pushButtonSoundDoubleClick);
+  putText(kKeyBtnSndLng, values.pushButtonSoundLongClick, before.pushButtonSoundLongClick);
   putUInt(kKeyContTo, values.continuousTimeoutMin, before.continuousTimeoutMin);
   putText(kKeyLoading, values.loading, before.loading);
   putText(kKeyEyesStyle, values.eyesStyle, before.eyesStyle);

@@ -127,6 +127,52 @@ export function ApiReference() {
           </tr>
           <tr>
             <td>
+              <code>push_button_sound_down</code>
+            </td>
+            <td>string</td>
+            <td>
+              <code>none</code>, <code>bell</code>, or <code>click</code> (default none; persists
+              when off; immediate; skip if speaker busy)
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>push_button_sound_up</code>
+            </td>
+            <td>string</td>
+            <td>
+              <code>none</code>, <code>bell</code>, or <code>click</code> (default none)
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>push_button_sound_click</code>
+            </td>
+            <td>string</td>
+            <td>
+              <code>none</code>, <code>bell</code>, or <code>click</code> (default none)
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>push_button_sound_double_click</code>
+            </td>
+            <td>string</td>
+            <td>
+              <code>none</code>, <code>bell</code>, or <code>click</code> (default none)
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>push_button_sound_long_click</code>
+            </td>
+            <td>string</td>
+            <td>
+              <code>none</code>, <code>bell</code>, or <code>click</code> (default none)
+            </td>
+          </tr>
+          <tr>
+            <td>
               <code>continuous_timeout</code>
             </td>
             <td>integer</td>
