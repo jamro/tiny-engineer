@@ -727,9 +727,14 @@ esp-web-install-button .button,
   }
 
   /* The side column is as tall as the editor, so the preview and its
-     controls can stay pinned while the download buttons follow below. */
+     controls stay pinned until the editor ends. */
   .side {
     align-self: stretch;
+  }
+
+  /* The download buttons sit below, under the preview column. */
+  .workspace-foot .actions {
+    grid-column: 2;
   }
 
   .preview-stack {
@@ -738,8 +743,8 @@ esp-web-install-button .button,
   }
 }
 
-/* Phones: the preview sticks to the top of the screen, the text box sits
-   right under it, and the download controls follow the editor. */
+/* Phones: the preview sticks to the top of the screen until the editor
+   ends, with the text box right under it. */
 @media (max-width: 759px) {
   .side,
   .preview-stack {
@@ -780,10 +785,6 @@ esp-web-install-button .button,
 
   .preview-panel .status-message {
     font-size: 0.8rem;
-  }
-
-  .actions {
-    order: 2;
   }
 
   .page-screens .textarea {
