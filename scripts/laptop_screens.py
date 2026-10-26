@@ -610,7 +610,7 @@ def pdf_content(data):
 
 
 def xref_ok(data):
-    """startxref finds the table and every entry points at its own object."""
+    """startxref finds the table, /Size matches it, and every entry points at its own object."""
     m = re.search(rb"startxref\n(\d+)\n%%EOF\n$", data)
     if not m:
         return False
@@ -619,8 +619,8 @@ def xref_ok(data):
     if not head:
         return False
     count = int(head.group(1)) - 1
-    entries = re.match(rb"(?:\d{10} 00000 n \n){%d}trailer\n" % count, data[xref + head.end():])
-    if not entries:
+    entries = re.match(rb"(?:\d{10} 00000 n \n){%d}trailer\n<< /Size (\d+) " % count, data[xref + head.end():])
+    if not entries or int(entries.group(1)) != count + 1:
         return False
     offsets = re.findall(rb"(\d{10}) 00000 n \n", entries.group(0))
     return all(data.startswith(b"%d 0 obj\n" % i, int(o)) for i, o in enumerate(offsets, 1))
