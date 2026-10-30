@@ -22,6 +22,7 @@ constexpr Route kRoutes[] = {
   {"/animations", HTTP_GET, handleIndex, Access::Public},
   {"/servo", HTTP_GET, handleIndex, Access::Public},
   {"/tests", HTTP_GET, handleIndex, Access::Public},
+  {"/extensions", HTTP_GET, handleIndex, Access::Public},
   {"/api", HTTP_GET, handleIndex, Access::Public},
   {"/config", HTTP_GET, handleIndex, Access::Public},
   {"/auth", HTTP_GET, handleAuth, Access::Public},

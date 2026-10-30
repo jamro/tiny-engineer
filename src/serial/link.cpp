@@ -441,3 +441,33 @@ void serialLinkEmitLog(const char* text) {
   header.id = 0;
   sendPacked(header, reinterpret_cast<const uint8_t*>(json), len);
 }
+
+void serialLinkEmitEvent(const char* json, size_t jsonLen) {
+  if (!g_ready || json == nullptr || jsonLen == 0 || jsonLen > kSerialMaxPayload) {
+    return;
+  }
+
+  SerialHeader header;
+  header.type = SerialMsgType::Evt;
+  header.ver = kSerialProtoVersion;
+  header.id = 0;
+
+  static uint8_t message[kSerialHeaderSize + kSerialMaxPayload];
+  const size_t n =
+    serialPackMessage(header, reinterpret_cast<const uint8_t*>(json), jsonLen, message, sizeof(message));
+  if (n == 0) {
+    return;
+  }
+
+  const size_t encoded = serialFrameEncode(message, n, g_encodeBuf, sizeof(g_encodeBuf));
+  if (encoded == 0) {
+    return;
+  }
+
+  // Drop rather than block when the CDC TX queue cannot take the whole frame.
+  if (static_cast<size_t>(Serial.availableForWrite()) < encoded) {
+    return;
+  }
+
+  Serial.write(g_encodeBuf, encoded);
+}

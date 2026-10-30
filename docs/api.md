@@ -4,6 +4,8 @@ JSON HTTP server on the ESP32-C3. Source: [`src/http/`](../src/http/). Every rou
 
 Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `http://192.168.4.1/`. Base URL is the board IP (OLED / serial) or `http://tiny-engineer.local` (mDNS, 2.4 GHz only).
 
+Outbound events (device → host) use a separate WebSocket on **port 81** at path `/events` while this HTTP server is running, and the same JSON on USB serial as `Evt` frames. See [Outbound events](#outbound-events).
+
 Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). Replies are `Content-Type: application/json`. Routes that take parameters (except `POST /anim` and `/play`) read a JSON object body sent with `Content-Type: application/json`; query parameters or form fields on those routes → **400** `send a JSON body with Content-Type: application/json`, and a body that is not a JSON object → **400** `body must be a JSON object`. CORS: requests with an `Origin` header get `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization, Content-Type` and `Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS`; a preflight `OPTIONS` gets **200**.
 
 When the robot is not yet provisioned (no connection mode chosen), control APIs (`/anim`, `/test/*`, `/play`) return **503** `{"ok":false,"error":"not provisioned"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/servos/park`) stay available on the setup AP. Connection mode is `wifi` or `usb` (`link_mode` in settings/auth/health). USB-only mode disables Wi‑Fi station and the HTTP API after reboot; control then uses the USB serial protocol ([serial.md](serial.md)).
@@ -11,6 +13,48 @@ When the robot is not yet provisioned (no connection mode chosen), control APIs 
 If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a five-step setup wizard at `/config` (servo hub: guided calibration / skip / assembly centering, then OLED orientation, RGB LED, speaker test, then connection). If saved credentials fail, it reopens setup AP mode. The setup AP acts as a captive portal: DHCP sends the portal URL (option 114) and DNS answers every name with the AP IP, so a phone that joins the network opens the wizard on its own. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
 Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s on a missing AAAA. If a client still pauses on the hostname, force IPv4 (`curl -4`). The IP on the OLED skips DNS entirely.
+
+## Outbound events
+
+Producers publish a versioned JSON envelope to every connected WebSocket client and as one serial `Evt` frame. REST stays inbound-only; WebSocket client payloads are ignored. There is no replay of past events. Binary WebSocket frames are reserved for later audio streaming and are not sent yet.
+
+```json
+{"v":1,"type":"button.down","source":"push-button","ms":123456}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `v` | Envelope version; currently **1** |
+| `type` | Event name (e.g. `button.down`, `button.up`, `button.click`) |
+| `source` | Producer id (e.g. `push-button`) |
+| `ms` | `millis()` since boot |
+
+Push-button producer (`source` `push-button`) publishes:
+
+| `type` | When |
+| --- | --- |
+| `button.down` / `button.up` | Immediate on debounced press / release |
+| `button.click` | **350 ms** after a short release if no second press in that window |
+| `button.double_click` | Second short press whose down falls within 350 ms of the first short up (no `button.click` for that pair) |
+| `button.long_click` | Still held after **800 ms**; later release is `button.up` only (no click / double_click) |
+
+### WebSocket `ws://<host>:81/events`
+
+Starts and stops with the HTTP server (Wi‑Fi or setup AP). USB-only mode does not listen. Cap is **4** clients. The device has **no TLS** on port 81 — use `ws://` from an `http:` robot base URL only. `tiny-engineer watch` rejects `https:` bases (no `wss://` and no plain `ws://` fallback).
+
+When an access token is set, append `?token=<access_token>` (same secret as Bearer). When no token is configured, connect without a query. The device does not log the token. Setting or rotating a non-empty `access_token` disconnects current WebSocket subscribers; they must reconnect with the new `?token=…`. Clearing the token does not disconnect.
+
+```bash
+websocat "ws://tiny-engineer.local:81/events"
+# with auth:
+websocat "ws://tiny-engineer.local:81/events?token=YOUR_TOKEN"
+```
+
+### Serial `Evt` frames
+
+Same JSON payload as the WebSocket text frame, packed as a typed serial message (`Evt`). No Bearer. Best-effort: if the CDC transmit buffer cannot take the frame, that serial copy is dropped and WebSocket delivery is unaffected. See [serial.md](serial.md).
+
+CLI: `tiny-engineer watch` (`http:` base → WebSocket; `--transport serial` → `Evt` frames).
 
 ## Endpoints
 
@@ -112,6 +156,13 @@ curl http://tiny-engineer.local/settings
   "volume": 70,
   "welcome": true,
   "serial_log": false,
+  "push_button": false,
+  "push_button_pin": 20,
+  "push_button_sound_down": "none",
+  "push_button_sound_up": "none",
+  "push_button_sound_click": "none",
+  "push_button_sound_double_click": "none",
+  "push_button_sound_long_click": "none",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -133,6 +184,13 @@ curl http://tiny-engineer.local/settings
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
+| `push_button` | Extension-port push-button reader (default **false**). When on, publishes immediate `button.down` / `button.up` plus `button.click` / `button.double_click` / `button.long_click` (see [Outbound events](#outbound-events)). Applies **immediately** |
+| `push_button_pin` | GPIO on the Extension port for the push-button: **6**, **7**, **20**, or **21** (default **20**). Persists when `push_button` is off. Applies **immediately** when the extension is on |
+| `push_button_sound_down` | Local SFX for `button.down`: `none`, `bell`, or `click` (default **`none`**). Persists when off. Applies **immediately**. Skipped when the speaker is busy |
+| `push_button_sound_up` | Same allowlist for `button.up` (default **`none`**) |
+| `push_button_sound_click` | Same allowlist for `button.click` (default **`none`**) |
+| `push_button_sound_double_click` | Same allowlist for `button.double_click` (default **`none`**) |
+| `push_button_sound_long_click` | Same allowlist for `button.long_click` (default **`none`**) |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
@@ -148,7 +206,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `push_button_sound_down`, `push_button_sound_up`, `push_button_sound_click`, `push_button_sound_double_click`, `push_button_sound_long_click`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings" \
@@ -170,6 +228,13 @@ curl -X POST "http://192.168.4.1/settings" \
   "volume": 70,
   "welcome": true,
   "serial_log": false,
+  "push_button": false,
+  "push_button_pin": 20,
+  "push_button_sound_down": "none",
+  "push_button_sound_up": "none",
+  "push_button_sound_click": "none",
+  "push_button_sound_double_click": "none",
+  "push_button_sound_long_click": "none",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -192,17 +257,24 @@ curl -X POST "http://192.168.4.1/settings" \
 | `volume` | integer | 0–100 percent |
 | `welcome` | boolean | Boot welcome animation |
 | `serial_log` | boolean | USB serial debug logging |
+| `push_button` | boolean | Extension-port push-button (default **false**) |
+| `push_button_pin` | integer | Extension-port GPIO **6**, **7**, **20**, or **21** (default **20**); persists when off |
+| `push_button_sound_down` | string | `none`, `bell`, or `click` (default **`none`**); persists when off |
+| `push_button_sound_up` | string | `none`, `bell`, or `click` (default **`none`**) |
+| `push_button_sound_click` | string | `none`, `bell`, or `click` (default **`none`**) |
+| `push_button_sound_double_click` | string | `none`, `bell`, or `click` (default **`none`**) |
+| `push_button_sound_long_click` | string | `none`, `bell`, or `click` (default **`none`**) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
-| `access_token` | string | 0–64 printable ASCII, no space at either end; empty string clears the token and disables auth |
+| `access_token` | string | 0–64 printable ASCII, no space at either end; empty string clears the token and disables auth. Setting or rotating a non-empty value disconnects WebSocket `/events` subscribers (they must reconnect with the new token); clearing does not |
 | `link_mode` | string | `wifi` or `usb`; setup Connection step uses `usb` for USB-only; Wi-Fi mode is usually set when saving networks via [`PUT /settings/wifi`](#put-settingswifi) |
 | `servo_mins` | integer array | Five integers `0`–`180` (`head, neck, left, right, body`); setup AP only; must be sent with `servo_maxs` |
 | `servo_maxs` | integer array | Five integers `0`–`180`; setup AP only; each value must be greater than the matching min |
 | `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR`; setup AP only; default `GRB` |
 | `oled_rotate_180` | boolean | Setup AP only; default `false` |
 
-Leave out a field to keep its saved value. An empty object → **400** `send at least one setting`. A field this route does not know → **400** `unknown field <field>`. A field with the wrong type or out of range → **400** `invalid <field>` (servo ranges that overlap or exceed 180: `invalid servo_mins or servo_maxs`). Only one of `servo_mins` / `servo_maxs` → **400** `servo_mins and servo_maxs go together`. On any 400, nothing is saved. Outside setup AP mode, servo ranges → **400** `servo setup only in AP mode`, `rgb_order` → **400** `rgb setup only in AP mode`, `oled_rotate_180` → **400** `oled setup only in AP mode`. Replies carry `reboot_required` as in `GET /settings`.
+Leave out a field to keep its saved value. An empty object → **400** `send at least one setting`. A field this route does not know → **400** `unknown field <field>`. A field with the wrong type or out of range → **400** `invalid <field>` (servo ranges that overlap or exceed 180: `invalid servo_mins or servo_maxs`). Only one of `servo_mins` / `servo_maxs` → **400** `servo_mins and servo_maxs go together`. Enabling extensions (or changing their pins) so two enabled extensions would share a GPIO → **400** `pin conflict on GP… (…)` and nothing is saved. Outside setup AP mode, servo ranges → **400** `servo setup only in AP mode`, `rgb_order` → **400** `rgb setup only in AP mode`, `oled_rotate_180` → **400** `oled setup only in AP mode`. On any 400, nothing is saved. Replies carry `reboot_required` as in `GET /settings`.
 
 ### `PUT /settings/wifi`
 
@@ -241,6 +313,13 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "volume": 70,
   "welcome": true,
   "serial_log": false,
+  "push_button": false,
+  "push_button_pin": 20,
+  "push_button_sound_down": "none",
+  "push_button_sound_up": "none",
+  "push_button_sound_click": "none",
+  "push_button_sound_double_click": "none",
+  "push_button_sound_long_click": "none",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",

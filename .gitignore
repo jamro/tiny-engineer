@@ -20,6 +20,7 @@ web/flash/releases.json
 
 # platform.io
 .pio
+.pio-home
 
 # Prerequisites
 *.d
