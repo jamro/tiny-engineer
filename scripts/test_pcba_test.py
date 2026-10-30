@@ -18,6 +18,7 @@ from pcba_test import (  # noqa: E402
     display,
     port_open_message,
     encode_key,
+    windows_key,
     feed_line,
     new_state,
     next_action_text,
@@ -61,6 +62,26 @@ def play(script):
 
 
 class HostTests(unittest.TestCase):
+    def test_windows_key_ignores_unmapped_and_extended(self):
+        extra = []
+
+        def read_extended():
+            extra.append("scan")
+
+        for ch in ("x", " ", "\x03"):
+            extra.clear()
+            self.assertIsNone(windows_key(ch, read_extended))
+            self.assertEqual(extra, [])
+
+        for prefix in ("\x00", "\xe0"):
+            extra.clear()
+            self.assertIsNone(windows_key(prefix, read_extended))
+            self.assertEqual(extra, ["scan"])
+
+        self.assertEqual(windows_key("\r", read_extended), "enter")
+        self.assertEqual(windows_key("n", read_extended), "n")
+        self.assertEqual(windows_key("+", read_extended), "+")
+
     def test_busy_port_waits_without_a_traceback(self):
         self.assertIn("Port is busy", port_open_message(OSError("Resource busy")))
         self.assertIn("keep waiting", port_open_message(OSError("[Errno 16] Resource busy")))

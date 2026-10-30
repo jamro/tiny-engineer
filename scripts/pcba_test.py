@@ -184,6 +184,24 @@ def display(state):
     return state["shown"]
 
 
+KEY_CHARS = frozenset("nrcaq+-=")
+
+
+def token_for_char(ch):
+    if ch in ("\n", "\r"):
+        return "enter"
+    if ch in KEY_CHARS:
+        return ch
+    return None
+
+
+def windows_key(ch, read_extended):
+    if ch in ("\x00", "\xe0"):
+        read_extended()
+        return None
+    return token_for_char(ch)
+
+
 def encode_key(key):
     if key == "enter":
         return b"\n"
@@ -346,20 +364,12 @@ def read_key_nonblocking():
 
         if not msvcrt.kbhit():
             return None
-        ch = msvcrt.getwch()
-        if ch in ("\r", "\n"):
-            return "enter"
-        return ch
+        return windows_key(msvcrt.getwch(), msvcrt.getwch)
     import select
 
     if not select.select([sys.stdin], [], [], 0)[0]:
         return None
-    ch = sys.stdin.read(1)
-    if ch in ("\n", "\r"):
-        return "enter"
-    if ch in ("n", "r", "c", "a", "q", "+", "-", "="):
-        return ch
-    return None
+    return token_for_char(sys.stdin.read(1))
 
 
 def configure_stdin():
