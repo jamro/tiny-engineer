@@ -3,7 +3,7 @@
 ## 1. PCBA test image
 
 - [x] 1.1 Add `[env:pcba-test]` and `examples/pcba-test/main.cpp` that prints `PCBA-TEST v1` on USB CDC and does not attach product `extra_scripts`. Verify `pio run -e pcba-test` exits 0 and `default_envs` in `platformio.ini` is still `esp32-c3-devkitm-1`.
-- [x] 1.2 Implement the session in that `main`: PCA probe at `0x40`, steps `tone`, `servos`, and `oe`, keys Enter/`n`/`r`/`c`/`a`/`q`, repeating tone until Enter or `n`, OE high during `oe` while PWM keeps pulsing on all five channels and enabled again on Enter, `c`, or `a`, `n` after `RESULT` ignored, and lines `PCBA-TEST v1`, `STEP`, `FAIL`, `RESULT PASS`, `RESULT FAIL` with space-separated names, and `STOP`. Verify `pio run -e pcba-test` exits 0 and the example source names `tone`, `servos`, and `oe` in that order.
+- [x] 1.2 Implement the session in that `main`: PCA probe at `0x40`, steps `tone`, `servos`, and `oe`, keys Enter/`n`/`r`/`c`/`a`/`q`, repeating tone until Enter or `n`, OE high during `oe` while PWM keeps pulsing on all five channels, stays disabled after Enter or `c` finish the board, and `a` enables it again through restart, `n` after `RESULT` ignored, and lines `PCBA-TEST v1`, `STEP`, `FAIL`, `RESULT PASS`, `RESULT FAIL` with space-separated names, and `STOP`. Verify `pio run -e pcba-test` exits 0 and the example source names `tone`, `servos`, and `oe` in that order.
 - [x] 1.3 Hold the onboard LED on GPIO10 steady white with equal channels from boot through STOP, including a PCA failure. Do not blink it and do not read `rgb_order`. Verify `pio run -e pcba-test` exits 0 and the example source writes equal channel values to that pin.
 
 ## 2. Host and operator card
