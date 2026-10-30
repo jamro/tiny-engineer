@@ -305,7 +305,7 @@ def serve(open_port, out, key_source=None, max_lines=None):
         if key and port is not None:
             try:
                 port.write(encode_key(key))
-            except PortLost:
+            except OSError:
                 port = None
                 pending = b""
         if max_lines is None and not raw and key is None and not hasattr(port, "fileno"):

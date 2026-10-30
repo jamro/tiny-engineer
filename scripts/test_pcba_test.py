@@ -234,6 +234,31 @@ class HostTests(unittest.TestCase):
         self.assertIn("RESULT FAIL tone body", log)
         self.assertIn("PCBA-TEST v1", state["shown"])
 
+    def test_write_oserror_opens_the_next_port(self):
+        class WriteFails(FakePort):
+            def write(self, data):
+                raise OSError("device disconnected")
+
+        ports = [
+            WriteFails(["READY"]),
+            FakePort(["PCBA-TEST v1"]),
+        ]
+        keys = iter(["q"])
+
+        def open_port():
+            if not ports:
+                return None
+            return ports.pop(0)
+
+        def key_source():
+            return next(keys, None)
+
+        out = io.StringIO()
+        state = serve(open_port, out, key_source=key_source, max_lines=2)
+
+        self.assertNotIn("Traceback", out.getvalue())
+        self.assertIn("PCBA-TEST v1", state["shown"])
+
     def test_result_says_what_to_do_and_stop_returns(self):
         port = FakePort(["RESULT PASS", "STOP"])
 
