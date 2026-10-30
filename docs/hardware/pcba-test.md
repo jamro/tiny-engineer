@@ -35,9 +35,9 @@ USB-C data cable. Speaker on J1. Cards stay on screen. Act on the latest one.
 
 ## Testing board
 
-The testing board seats on one column at a time. The silk-side pin is blue (SIG). The middle pin is red (5 V). Treat the square pad as GND.
+The testing board seats on one column at a time. The silk-side pin is yellow (SIG). The middle pin is red (5 V). Treat the square pad as GND.
 
-During `servos`, signal is on all five servo outputs. Take the testing board and plug it into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. On every column, red stays on and blue pulses.
+During `servos`, signal is on all five servo outputs. Take the testing board and plug it into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. On every column, red stays on and yellow pulses.
 
 ## What you see
 
@@ -63,10 +63,10 @@ Enter starts step `1/3`. `n` rejects a step. On a test step that is `Enter = goo
 | Card | What you do | Look |
 | --- | --- | --- |
 | `1/3` `tone` | Speaker on the JST speaker port. `+` louder, `-` quieter. | A repeating tone until Enter or `n`. |
-| `2/3` `servos` | Signal is on all five servo outputs. Plug the testing board into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. Check the LEDs on every column. | Red stays on and blue pulses. |
-| `3/3` OE OUTPUT ENABLE | Look at the testing board on one column. No need to test each servo column. | The red LED stays on. Only the blue LED goes out. |
+| `2/3` `servos` | Signal is on all five servo outputs. Plug the testing board into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. Check the LEDs on every column. | Red stays on and yellow pulses. |
+| `3/3` OE OUTPUT ENABLE | Look at the testing board on one column. No need to test each servo column. | The red LED stays on. Only the yellow LED goes out. |
 
-A column whose blue LED does not pulse is a failure. Judge every column before Enter.
+A column whose yellow LED does not pulse is a failure. Judge every column before Enter.
 
 ## Keys
 

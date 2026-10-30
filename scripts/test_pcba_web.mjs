@@ -117,14 +117,14 @@ function assertSession() {
   assert.match(display(host), /Plug it into one column at a time/);
   assert.match(display(host), /Columns are HEAD, NECK, ARM L, ARM R, and BODY/);
   assert.match(display(host), /Check the LEDs on every column/);
-  assert.match(display(host), /Red stays on and blue pulses/);
+  assert.match(display(host), /Red stays on and yellow pulses/);
   assert.doesNotMatch(display(host), /No key between columns/);
   assert.doesNotMatch(display(host), /STEP servos/);
   feed(host, "STEP oe");
   assert.match(display(host), /3\/3/);
   assert.match(display(host), /OE OUTPUT ENABLE/);
   assert.match(display(host), /The red LED stays on/);
-  assert.match(display(host), /Only the blue LED goes out/);
+  assert.match(display(host), /Only the yellow LED goes out/);
   assert.match(display(host), /No need to test each servo column/);
   assert.doesNotMatch(display(host), /PWM/);
   assert.doesNotMatch(display(host), /5 V/);
@@ -149,7 +149,7 @@ function assertSession() {
   feed(host, "VOL 8");
   assert.match(display(host), /Volume 8\/10/);
   feed(host, "FAIL servos");
-  assert.match(display(host), /Red stays on and blue pulses/);
+  assert.match(display(host), /Red stays on and yellow pulses/);
   assert.match(display(host), /r = try this step again/);
   assert.match(display(host), /c = keep the fail, go on/);
   assert.match(display(host), /a = start this board over/);

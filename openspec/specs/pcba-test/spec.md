@@ -183,19 +183,19 @@ The procedure card MUST describe the bench, the step order, the expected lamps, 
 - **THEN** the card says the golden module stays with the tester
 
 ### Requirement: Plug position and lamp pattern
-The procedure card MUST say signal is on all five servo outputs and the operator plugs the testing board into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. The card MUST name the silk-side pin as blue, the middle pin as red, and the square pad as GND. Each column MUST show red on and blue pulsing. Tone MUST be judged by ear on J1.
+The procedure card MUST say signal is on all five servo outputs and the operator plugs the testing board into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. The card MUST name the silk-side pin as yellow, the middle pin as red, and the square pad as GND. Each column MUST show red on and yellow pulsing. Tone MUST be judged by ear on J1.
 
 #### Scenario: Servo step is one plug sweep
 - **WHEN** the operator reads the servos step on the card
 - **THEN** the card says signal is on all five servo outputs
 - **AND** it says to plug the testing board into one column at a time
 - **AND** the columns are HEAD, NECK, ARM L, ARM R, and BODY
-- **AND** the expected look is red stays on and blue pulses
+- **AND** the expected look is red stays on and yellow pulses
 
 #### Scenario: Plug faces the square pad
 - **WHEN** the operator reads how to seat the plug
 - **THEN** the card names the square pad as GND
-- **AND** it names the silk-side pin as the blue LED
+- **AND** it names the silk-side pin as the yellow LED
 
 ### Requirement: Module LED shows the test image is running
 While the test image has USB power it MUST hold the onboard LED steady white, including during a step, the failure menu, a PCA failure, RESULT, and STOP. The three channels MUST be equal. The LED MUST NOT blink. The procedure card MUST say this steady white means the test image is running, and that board pass or fail is the ear on J1 and the plug lamps.
@@ -226,19 +226,19 @@ Each host MUST show English text for the current step: what is tested, what to d
 #### Scenario: Servo step is one sweep
 - **WHEN** the module prints STEP servos
 - **THEN** the host shows 2/3
-- **AND** it shows Signal is on all five servo outputs. Take the testing board. Plug it into one column at a time. Columns are HEAD, NECK, ARM L, ARM R, and BODY. Check the LEDs on every column. Red stays on and blue pulses.
+- **AND** it shows Signal is on all five servo outputs. Take the testing board. Plug it into one column at a time. Columns are HEAD, NECK, ARM L, ARM R, and BODY. Check the LEDs on every column. Red stays on and yellow pulses.
 - **AND** it does not show the token STEP servos
 
 #### Scenario: OE step releases the outputs
 - **WHEN** the module prints STEP oe
 - **THEN** the host shows 3/3 OE OUTPUT ENABLE
-- **AND** it shows The red LED stays on. Only the blue LED goes out.
+- **AND** it shows The red LED stays on. Only the yellow LED goes out.
 - **AND** it shows No need to test each servo column.
 - **AND** it does not show the token STEP oe
 
 #### Scenario: Step failure names the keys
 - **WHEN** the module prints FAIL servos
-- **THEN** the host shows Red stays on and blue pulses.
+- **THEN** the host shows Red stays on and yellow pulses.
 - **AND** it shows r = try this step again
 - **AND** it shows c = keep the fail, go on
 - **AND** it shows a = start this board over

@@ -158,13 +158,13 @@ class HostTests(unittest.TestCase):
         self.assertIn("Plug it into one column at a time.", shown[2])
         self.assertIn("Columns are HEAD, NECK, ARM L, ARM R, and BODY.", shown[2])
         self.assertIn("Check the LEDs on every column.", shown[2])
-        self.assertIn("Red stays on and blue pulses.", shown[2])
+        self.assertIn("Red stays on and yellow pulses.", shown[2])
         self.assertNotIn("No key between columns.", shown[2])
         self.assertNotIn("STEP servos", shown[2])
         self.assertIn("3/3", shown[3])
         self.assertIn("OE OUTPUT ENABLE", shown[3])
         self.assertIn("The red LED stays on.", shown[3])
-        self.assertIn("Only the blue LED goes out.", shown[3])
+        self.assertIn("Only the yellow LED goes out.", shown[3])
         self.assertIn("No need to test each servo column.", shown[3])
         self.assertNotIn("PWM", shown[3])
         self.assertNotIn("5 V", shown[3])
@@ -189,7 +189,7 @@ class HostTests(unittest.TestCase):
         )
         self.assertIn("2/3", shown[0])
         self.assertNotIn("STEP servos", shown[0])
-        self.assertIn("Red stays on and blue pulses.", shown[1])
+        self.assertIn("Red stays on and yellow pulses.", shown[1])
         self.assertIn("r = try this step again", shown[1])
         self.assertIn("c = keep the fail, go on", shown[1])
         self.assertIn("a = start this board over", shown[1])
@@ -313,14 +313,14 @@ class HostTests(unittest.TestCase):
             "oe",
             "+ = louder",
             "- = quieter",
-            "Only the blue LED goes out",
+            "Only the yellow LED goes out",
             "No need to test each servo column",
             "RESULT PASS",
             "RESULT FAIL tone servos",
             "python3 scripts/pcba_test.py",
             WEB_TESTER,
             "main control board rev 3",
-            "Red stays on and blue pulses",
+            "Red stays on and yellow pulses",
             "square pad as GND",
             "J1",
             "golden module stays with the tester",

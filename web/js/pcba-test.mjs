@@ -127,12 +127,12 @@ const STEPS = [
   [
     "servos",
     "SERVOS",
-    "Signal is on all five servo outputs. Take the testing board. Plug it into one column at a time. Columns are HEAD, NECK, ARM L, ARM R, and BODY. Check the LEDs on every column. Red stays on and blue pulses.",
+    "Signal is on all five servo outputs. Take the testing board. Plug it into one column at a time. Columns are HEAD, NECK, ARM L, ARM R, and BODY. Check the LEDs on every column. Red stays on and yellow pulses.",
   ],
   [
     "oe",
     "OE OUTPUT ENABLE",
-    "The red LED stays on. Only the blue LED goes out. No need to test each servo column.",
+    "The red LED stays on. Only the yellow LED goes out. No need to test each servo column.",
   ],
 ];
 
@@ -317,7 +317,7 @@ function lineRole(text) {
     text.startsWith("Check the LEDs") ||
     text.startsWith("Red stays") ||
     text.startsWith("The red LED") ||
-    text.startsWith("Only the blue")
+    text.startsWith("Only the yellow")
   ) {
     return "look";
   }
