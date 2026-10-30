@@ -266,6 +266,13 @@ void onMenuKey(char key) {
 }
 
 void onResultKey(char key) {
+  if (key == '?') {
+    if (!gPcaOk) {
+      Serial.println("FAIL pca");
+      Serial.println("RESULT FAIL pca");
+    }
+    return;
+  }
   if (key == 'q') {
     Serial.println("STOP");
     gPhase = PhaseStop;

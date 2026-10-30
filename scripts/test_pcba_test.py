@@ -327,6 +327,10 @@ class HostTests(unittest.TestCase):
             "The ESP32 must already run the test firmware",
             "pio run -e pcba-test -t upload",
             "The product firmware cannot run this test",
+            "J2",
+            "OLED",
+            "Wi-Fi",
+            "2 A load",
         ):
             self.assertIn(phrase, card)
         for key in ("r", "c", "a", "n", "q"):
