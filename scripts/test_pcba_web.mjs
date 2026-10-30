@@ -12,6 +12,7 @@ import {
   releasePort,
   display,
   encodeKey,
+  acceptKeyEvent,
   keyToken,
   feed,
   grant,
@@ -137,6 +138,13 @@ function assertSession() {
   assert.equal(encodeKey("+"), "+");
   assert.equal(encodeKey("="), "+");
   assert.equal(encodeKey("-"), "-");
+  assert.equal(acceptKeyEvent({ key: "Enter", repeat: true }), "");
+  assert.equal(acceptKeyEvent({ key: "a", ctrlKey: true }), "");
+  assert.equal(acceptKeyEvent({ key: "a", metaKey: true }), "");
+  assert.equal(acceptKeyEvent({ key: "r", altKey: true }), "");
+  assert.equal(acceptKeyEvent({ key: "Enter" }), "\n");
+  assert.equal(acceptKeyEvent({ key: "a" }), "a");
+  assert.equal(acceptKeyEvent({ key: "+", shiftKey: true }), "+");
   feed(host, "STEP tone");
   feed(host, "VOL 8");
   assert.match(display(host), /Volume 8\/10/);

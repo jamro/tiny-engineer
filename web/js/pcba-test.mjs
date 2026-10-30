@@ -281,6 +281,14 @@ export function encodeKey(key) {
   return "";
 }
 
+export function acceptKeyEvent(event) {
+  if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) {
+    return "";
+  }
+  const key = event.key === "Enter" ? "enter" : event.key;
+  return encodeKey(key);
+}
+
 function ledClass(card, text) {
   if (text.includes(PORT_LOST) || text.includes("RESULT FAIL") || text.includes("FAIL ")) {
     return "led led-err";
@@ -712,8 +720,7 @@ function boot() {
     if (!host.connected || !grantedPort?.writable) {
       return;
     }
-    const key = event.key === "Enter" ? "enter" : event.key;
-    const encoded = encodeKey(key);
+    const encoded = acceptKeyEvent(event);
     if (!encoded) {
       return;
     }
