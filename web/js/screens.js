@@ -20,7 +20,7 @@ const MARKUP = /\{([a-z][a-z0-9_-]*|\/)\}/g;
 const $ = (id) => document.getElementById(id);
 const state = {
   presets: [], designs: [], preset: null, source: 'text', design: null,
-  image: null, zoom: 1, panX: 0.5, panY: 0.5, print: 'colour', paperColour: '#fff1a8', mask: true,
+  image: null, imageError: '', zoom: 1, panX: 0.5, panY: 0.5, print: 'colour', paperColour: '#fff1a8', mask: true,
 };
 
 // ------------------------------------------------------------ .screen format
@@ -244,7 +244,10 @@ function renderPreview() {
   const status = $('scr-status');
   const weak = state.source === 'text' && (state.print === 'colour' || state.print === 'mono')
     ? lowContrastColours(state.design) : [];
-  if (state.source === 'image' && !state.image) {
+  if (state.source === 'image' && state.imageError) {
+    status.textContent = state.imageError;
+    status.className = 'status-message is-err';
+  } else if (state.source === 'image' && !state.image) {
     status.textContent = 'No image yet. Pick a file or drop one on the preview.';
     status.className = 'status-message';
   } else if (weak.length) {
@@ -424,12 +427,19 @@ function syncColours() {
 }
 
 function loadImage(file) {
-  if (!file || !file.type.startsWith('image/')) return;
-
+  if (!file) return;
+  // Drop the previous image so the preview and PDF never show a stale one.
+  state.image = null;
   if (state.imageUrl) {
     URL.revokeObjectURL(state.imageUrl);
     state.imageUrl = null;
   }
+  if (!file.type.startsWith('image/')) {
+    state.imageError = `${file.name} is not an image. Pick a PNG, JPEG or WebP file.`;
+    renderPreview();
+    return;
+  }
+  state.imageError = '';
 
   const url = URL.createObjectURL(file);
   state.imageUrl = url;
@@ -444,13 +454,15 @@ function loadImage(file) {
     renderPreview();
   };
   img.onerror = () => {
-    if (state.imageUrl === url) {
-      URL.revokeObjectURL(url);
-      state.imageUrl = null;
-    }
+    if (state.imageUrl !== url) return;
+    URL.revokeObjectURL(url);
+    state.imageUrl = null;
+
+    state.imageError = `Could not load ${file.name}. The file may be corrupted or in an unsupported format. Try another image.`;
+    renderPreview();
   };
   img.src = url;
-
+  renderPreview();
 }
 
 function setSource(source) {
@@ -485,7 +497,11 @@ function bind() {
     renderPreview();
   });
   document.querySelectorAll('input[name="scr-source"]').forEach((r) => r.addEventListener('change', () => setSource(r.value)));
-  $('scr-image').addEventListener('change', (e) => loadImage(e.target.files[0]));
+  $('scr-image').addEventListener('change', (e) => {
+    loadImage(e.target.files[0]);
+    // Let the same file be picked again, e.g. after a failed one.
+    e.target.value = '';
+  });
   const drop = $('scr-drop');
   drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('is-over'); });
   drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
