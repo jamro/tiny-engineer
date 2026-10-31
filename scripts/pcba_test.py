@@ -54,10 +54,6 @@ def prep_text():
 
 
 READY_COACH = "The board is connected."
-BANNER_COACH = (
-    "The module LED stays steady white while the test image has power. "
-    "That lamp is not the board verdict."
-)
 PCA_COACH = (
     "PCA9685 did not answer at I2C 0x40. "
     "That chip drives the servos, so this board stops before the speaker test. "
@@ -182,7 +178,7 @@ def feed_line(state, line):
         state["shown"] = coach_ready()
         state["menu"] = False
     elif text.startswith("PCBA-TEST"):
-        state["shown"] = "%s\n%s" % (BANNER_COACH, text)
+        state["shown"] = text
         state["menu"] = False
     elif text == "STOP":
         state["shown"] = text

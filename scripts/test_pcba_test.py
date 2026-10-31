@@ -197,10 +197,7 @@ class HostTests(unittest.TestCase):
         self.assertEqual(writes, [b"n", b"c"])
 
         banner, _writes, _state = play([("line", "PCBA-TEST v1")])
-        self.assertIn(
-            "The module LED stays steady white while the test image has power. That lamp is not the board verdict.",
-            banner[0],
-        )
+        self.assertNotIn("module LED stays steady white", banner[0])
         self.assertIn("PCBA-TEST v1", banner[0])
 
         pca, _writes, _state = play([("line", "FAIL pca")])
