@@ -217,16 +217,23 @@
 				)
 			)
 		)
+		(property "FT Rotation Offset" "-90"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "a5ad7176-9e22-4b99-bc89-01c30fe8e2de")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "Connector*:*_1x??_*")
 		(path "/b0391479-ebcd-4dd9-aa59-b2cdbb297f0c")
 		(sheetname "/")
 		(sheetfile "main-control-board-servo-tester.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2" "3")
-			)
-		)
 		(attr through_hole)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
