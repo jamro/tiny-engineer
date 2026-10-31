@@ -155,14 +155,14 @@ function assertSession() {
   assert.match(display(host), /a = start this board over/);
   assert.match(display(host), /FAIL servos/);
   feed(host, "FAIL pca");
-  assert.match(display(host), /PCA9685 did not answer at I2C 0x40/);
+  assert.match(display(host), /PCA9685 probe failed at I2C 0x40/);
   assert.match(display(host), /this board stops before the speaker test/);
   assert.match(display(host), /3\.3 V, not 5 V/);
   assert.doesNotMatch(display(host), /r = try this step again/);
   assert.doesNotMatch(display(host), /c = keep the fail, go on/);
   assert.doesNotMatch(display(host), /a = start this board over/);
   feed(host, "RESULT FAIL pca");
-  assert.match(display(host), /PCA9685 did not answer at I2C 0x40/);
+  assert.match(display(host), /PCA9685 probe failed at I2C 0x40/);
   assert.match(display(host), /this board stops before the speaker test/);
   assert.match(display(host), /3\.3 V, not 5 V/);
   assert.match(display(host), /RESULT FAIL pca/);

@@ -251,7 +251,7 @@ Each host MUST show English text for the current step: what is tested, what to d
 
 #### Scenario: PCA failure explains the stop
 - **WHEN** the module prints FAIL pca
-- **THEN** the host shows PCA9685 did not answer at I2C 0x40
+- **THEN** the host shows PCA9685 probe failed at I2C 0x40
 - **AND** it shows That chip drives the servos, so this board stops before the speaker test
 - **AND** it shows Seat the ESP32 and match the USB mark
 - **AND** it shows VCC must be 3.3 V, not 5 V
@@ -260,7 +260,7 @@ Each host MUST show English text for the current step: what is tested, what to d
 
 #### Scenario: PCA verdict keeps the explanation
 - **WHEN** the module prints RESULT FAIL pca
-- **THEN** the host shows PCA9685 did not answer at I2C 0x40
+- **THEN** the host shows PCA9685 probe failed at I2C 0x40
 - **AND** it shows That chip drives the servos, so this board stops before the speaker test
 - **AND** it shows unplug USB for the next board, or q to stop
 - **AND** it does not show r, c, or a

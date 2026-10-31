@@ -116,7 +116,7 @@ export function onPortReturn(host) {
 const READY_COACH = "The board is connected.";
 const BANNER_COACH =
   "The module LED stays steady white while the test image has power. That lamp is not the board verdict.";
-const PCA_COACH = "PCA9685 did not answer at I2C 0x40. That chip drives the servos, so this board stops before the speaker test. Seat the ESP32 and match the USB mark. VCC must be 3.3 V, not 5 V. Solder GND, SDA, and SCL.";
+const PCA_COACH = "PCA9685 probe failed at I2C 0x40. That chip drives the servos, so this board stops before the speaker test. Seat the ESP32 and match the USB mark. VCC must be 3.3 V, not 5 V. Solder GND, SDA, and SCL.";
 const NEXT_ACTION = "unplug USB for the next board, or q to stop";
 const WAIT_KEYS = "Enter = good\nn = bad";
 const TONE_KEYS = "+ = louder\n- = quieter";

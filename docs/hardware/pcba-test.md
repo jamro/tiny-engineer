@@ -80,7 +80,7 @@ After `RESULT PASS` or `RESULT FAIL`, the card says to unplug USB for the next b
 
 `RESULT PASS` covers the speaker, the five servo columns, and output enable. It does not cover J2, J3, J4, the OLED, Wi-Fi, or a 2 A load. A fault in those can still be present.
 
-No PCA answer prints `FAIL pca` and `RESULT FAIL pca`, with no beep. The verdict card keeps the explanation: the PCA9685 did not answer at I2C 0x40, the chip drives the servos so the board stops before the speaker test, seat the ESP32 on the USB mark, keep VCC at 3.3 V rather than 5 V, and solder GND, SDA, and SCL. There is no `r` / `c` / `a`. Unplug or `q`, same as any other verdict.
+A failed PCA probe prints `FAIL pca` and `RESULT FAIL pca`, with no beep. The verdict card keeps the explanation: the PCA9685 probe failed at I2C 0x40, the chip drives the servos so the board stops before the speaker test, seat the ESP32 on the USB mark, keep VCC at 3.3 V rather than 5 V, and solder GND, SDA, and SCL. There is no `r` / `c` / `a`. Unplug or `q`, same as any other verdict.
 
 ## Dialogue
 

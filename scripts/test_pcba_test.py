@@ -201,7 +201,7 @@ class HostTests(unittest.TestCase):
         self.assertIn("PCBA-TEST v1", banner[0])
 
         pca, _writes, _state = play([("line", "FAIL pca")])
-        self.assertIn("PCA9685 did not answer at I2C 0x40.", pca[0])
+        self.assertIn("PCA9685 probe failed at I2C 0x40.", pca[0])
         self.assertIn("this board stops before the speaker test.", pca[0])
         self.assertIn("3.3 V, not 5 V.", pca[0])
         self.assertNotIn("r = try this step again", pca[0])
@@ -211,7 +211,7 @@ class HostTests(unittest.TestCase):
         verdict, _writes, _state = play(
             [("line", "FAIL pca"), ("line", "RESULT FAIL pca")]
         )
-        self.assertIn("PCA9685 did not answer at I2C 0x40.", verdict[-1])
+        self.assertIn("PCA9685 probe failed at I2C 0x40.", verdict[-1])
         self.assertIn("this board stops before the speaker test.", verdict[-1])
         self.assertIn("3.3 V, not 5 V.", verdict[-1])
         self.assertIn("RESULT FAIL pca", verdict[-1])
