@@ -58,7 +58,13 @@ BANNER_COACH = (
     "The module LED stays steady white while the test image has power. "
     "That lamp is not the board verdict."
 )
-PCA_COACH = "PCA9685 did not answer. This board fails before the speaker test."
+PCA_COACH = (
+    "PCA9685 did not answer at I2C 0x40. "
+    "That chip drives the servos, so this board stops before the speaker test. "
+    "Seat the ESP32 and match the USB mark. "
+    "VCC must be 3.3 V, not 5 V. "
+    "Solder GND, SDA, and SCL."
+)
 WAIT_KEYS = ("Enter = good", "n = bad")
 TONE_KEYS = ("+ = louder", "- = quieter")
 TONE_LEVELS = 10
@@ -138,6 +144,13 @@ def coach_ready():
     return card(["CONNECTED", ""] + prose(READY_COACH), footer=("Enter = continue",))
 
 
+def coach_result(text):
+    if text == "RESULT FAIL pca":
+        lines = ["PCA", ""] + prose(PCA_COACH) + ["", text]
+        return card(lines, footer=(next_action_text().strip(),))
+    return card(["BOARD", "", text, "", next_action_text().strip()])
+
+
 def feed_line(state, line):
     text = line.strip()
     if not text:
@@ -163,7 +176,7 @@ def feed_line(state, line):
         state["shown"] = coach_fail(name, text)
         state["menu"] = name in STEP_TEXT
     elif text.startswith("RESULT "):
-        state["shown"] = card(["BOARD", "", text, "", next_action_text().strip()])
+        state["shown"] = coach_result(text)
         state["menu"] = False
     elif text == "READY":
         state["shown"] = coach_ready()

@@ -204,11 +204,22 @@ class HostTests(unittest.TestCase):
         self.assertIn("PCBA-TEST v1", banner[0])
 
         pca, _writes, _state = play([("line", "FAIL pca")])
-        self.assertIn("PCA9685 did not answer.", pca[0])
-        self.assertIn("This board fails before the speaker test.", pca[0])
+        self.assertIn("PCA9685 did not answer at I2C 0x40.", pca[0])
+        self.assertIn("this board stops before the speaker test.", pca[0])
+        self.assertIn("3.3 V, not 5 V.", pca[0])
         self.assertNotIn("r = try this step again", pca[0])
         self.assertNotIn("c = keep the fail, go on", pca[0])
         self.assertNotIn("a = start this board over", pca[0])
+
+        verdict, _writes, _state = play(
+            [("line", "FAIL pca"), ("line", "RESULT FAIL pca")]
+        )
+        self.assertIn("PCA9685 did not answer at I2C 0x40.", verdict[-1])
+        self.assertIn("this board stops before the speaker test.", verdict[-1])
+        self.assertIn("3.3 V, not 5 V.", verdict[-1])
+        self.assertIn("RESULT FAIL pca", verdict[-1])
+        self.assertIn("unplug USB for the next board, or q to stop", verdict[-1])
+        self.assertNotIn("r = try this step again", verdict[-1])
 
         page = (ROOT / "web" / "js" / "pcba-test.mjs").read_text()
         script = (ROOT / "scripts" / "pcba_test.py").read_text()

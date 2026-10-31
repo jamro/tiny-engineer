@@ -15,15 +15,16 @@ The PCBA test image MUST start the PCBA session on USB connect. It MUST NOT join
 - **AND** it does not open the product setup AP or HTTP server
 
 ### Requirement: PCA probe gates the session
-Before the power chime, the tone step, or any servo step, the image MUST probe I2C address 0x40. If nothing acknowledges, it MUST print a PCA failure and a final FAIL result and MUST NOT play the power chime, the tone, or servo steps. When the probe succeeds, the image MUST play a short power chime, then wait. That chime means the board has power and is ready for the test. It is not the tone step.
+Before the power chime, the tone step, or any servo step, the image MUST read PCA9685 register 0x00 (MODE1) at I2C address 0x40 twice. The probe succeeds only when both reads complete, return the same byte, and that byte is not 0xFF. An address ACK alone MUST NOT count as success. If the probe fails, the image MUST print a PCA failure and a final FAIL result and MUST NOT play the power chime, the tone, or servo steps. When the probe succeeds, the image MUST play a short power chime, then wait. That chime means the board has power and is ready for the test. It is not the tone step.
 
 #### Scenario: PCA missing
-- **WHEN** the session starts and address 0x40 does not acknowledge
+- **WHEN** the session starts and a MODE1 read fails or returns 0xFF
 - **THEN** the image prints FAIL pca and RESULT FAIL pca
 - **AND** it does not play the power chime or a tone, and it does not offer retry, continue, or restart
+- **AND** it does not print READY
 
 #### Scenario: PCA present
-- **WHEN** address 0x40 acknowledges
+- **WHEN** both MODE1 reads return the same byte other than 0xFF
 - **THEN** the image plays the power chime and prints READY
 - **AND** the tone step has not started until the operator sends Enter
 
@@ -100,7 +101,7 @@ During the tone step `+` MUST make the tone louder and `-` MUST make it quieter 
 - **THEN** the servo pulse continues unchanged
 
 ### Requirement: One verdict line per board
-When the step list finishes, the image MUST print a single RESULT line. RESULT PASS MUST be used only when every completed step was accepted. Otherwise the line MUST be RESULT FAIL followed by the failed step names separated by spaces, in step order.
+When the step list finishes, the image MUST print a single RESULT line. RESULT PASS MUST be used only when every completed step was accepted. Otherwise the line MUST be RESULT FAIL followed by the failed step names separated by spaces, in step order. A `?` byte marks that the USB link is up. It is not Enter. When the PCA probe has already failed, `?` MUST repeat `FAIL pca` and `RESULT FAIL pca`. That repeat is the same board, not a new verdict. In every other phase, and after any other verdict, `?` MUST be ignored.
 
 #### Scenario: All steps accepted
 - **WHEN** the operator has accepted tone, servos, and oe
@@ -109,6 +110,11 @@ When the step list finishes, the image MUST print a single RESULT line. RESULT P
 #### Scenario: Continue past two failures
 - **WHEN** the operator continued past failed tone and failed servos
 - **THEN** the image prints RESULT FAIL tone servos
+
+#### Scenario: Link mark repeats a PCA failure
+- **WHEN** the image has already printed RESULT FAIL pca and the host sends `?`
+- **THEN** the image prints FAIL pca and RESULT FAIL pca again
+- **AND** it does not start the tone or servo steps
 
 ### Requirement: Next board or stop after the verdict
 After RESULT, removing USB power MUST end the session, and the next USB connect MUST start a new session at the banner. `q` MUST print STOP and MUST NOT start another step until power is removed and restored. `n` after RESULT MUST be ignored.
@@ -205,7 +211,7 @@ While the test image has USB power it MUST hold the onboard LED steady white, in
 - **THEN** the onboard LED is steady white
 
 #### Scenario: PCA failure stays white
-- **WHEN** address 0x40 does not acknowledge
+- **WHEN** the MODE1 probe fails
 - **THEN** the onboard LED is steady white
 - **AND** the image still prints RESULT FAIL pca
 
@@ -245,7 +251,18 @@ Each host MUST show English text for the current step: what is tested, what to d
 
 #### Scenario: PCA failure explains the stop
 - **WHEN** the module prints FAIL pca
-- **THEN** the host shows PCA9685 did not answer. This board fails before the speaker test.
+- **THEN** the host shows PCA9685 did not answer at I2C 0x40
+- **AND** it shows That chip drives the servos, so this board stops before the speaker test
+- **AND** it shows Seat the ESP32 and match the USB mark
+- **AND** it shows VCC must be 3.3 V, not 5 V
+- **AND** it shows Solder GND, SDA, and SCL
+- **AND** it does not show r, c, or a
+
+#### Scenario: PCA verdict keeps the explanation
+- **WHEN** the module prints RESULT FAIL pca
+- **THEN** the host shows PCA9685 did not answer at I2C 0x40
+- **AND** it shows That chip drives the servos, so this board stops before the speaker test
+- **AND** it shows unplug USB for the next board, or q to stop
 - **AND** it does not show r, c, or a
 
 ### Requirement: Banner lamp sentence is page only

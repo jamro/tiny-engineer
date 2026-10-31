@@ -118,9 +118,26 @@ void servicePulse() {
   }
 }
 
-bool probePca() {
+bool readPcaMode1(uint8_t& value) {
   Wire.beginTransmission(PCA9685_ADDRESS);
-  return Wire.endTransmission() == 0;
+  Wire.write(static_cast<uint8_t>(0));
+  if (Wire.endTransmission(false) != 0) {
+    return false;
+  }
+  if (Wire.requestFrom(PCA9685_ADDRESS, static_cast<uint8_t>(1)) != 1) {
+    return false;
+  }
+  value = static_cast<uint8_t>(Wire.read());
+  return value != 0xFF;
+}
+
+bool probePca() {
+  uint8_t first = 0;
+  uint8_t second = 0;
+  if (!readPcaMode1(first) || !readPcaMode1(second)) {
+    return false;
+  }
+  return first == second;
 }
 
 void printResult() {
@@ -400,6 +417,9 @@ void servicePrompt() {
 
 void beginSession() {
   Serial.println("PCBA-TEST v1");
+  // Idle the bus high before the controller claims the pins. Wire.begin keeps the pulls.
+  pinMode(I2C_SDA, INPUT_PULLUP);
+  pinMode(I2C_SCL, INPUT_PULLUP);
   Wire.begin(I2C_SDA, I2C_SCL);
   gPcaOk = probePca();
   if (!gPcaOk) {

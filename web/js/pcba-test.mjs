@@ -116,7 +116,8 @@ export function onPortReturn(host) {
 const READY_COACH = "The board is connected.";
 const BANNER_COACH =
   "The module LED stays steady white while the test image has power. That lamp is not the board verdict.";
-const PCA_COACH = "PCA9685 did not answer. This board fails before the speaker test.";
+const PCA_COACH = "PCA9685 did not answer at I2C 0x40. That chip drives the servos, so this board stops before the speaker test. Seat the ESP32 and match the USB mark. VCC must be 3.3 V, not 5 V. Solder GND, SDA, and SCL.";
+const NEXT_ACTION = "unplug USB for the next board, or q to stop";
 const WAIT_KEYS = "Enter = good\nn = bad";
 const TONE_KEYS = "+ = louder\n- = quieter";
 const TONE_LEVELS = 10;
@@ -164,6 +165,13 @@ function coachStep(name, volume) {
   return `${body}\nVolume ${level}/${TONE_LEVELS}.\n\n${TONE_KEYS}\n${WAIT_KEYS}`;
 }
 
+function coachResult(text) {
+  if (text === "RESULT FAIL pca") {
+    return `PCA\n\n${prose(PCA_COACH)}\n\n${text}\n\n${NEXT_ACTION}`;
+  }
+  return text;
+}
+
 function coachFail(name, token) {
   if (name === "pca") {
     return `PCA\n\n${prose(PCA_COACH)}\n\n${token}`;
@@ -202,7 +210,7 @@ export function feed(host, line) {
     host.shown = coachFail(name, text);
     host.menu = Boolean(stepSentence(name));
   } else if (text.startsWith("RESULT ")) {
-    host.shown = text;
+    host.shown = coachResult(text);
     host.menu = false;
   } else if (text === "READY") {
     host.shown = `CONNECTED\n\n${prose(READY_COACH)}\n\nEnter = continue`;
