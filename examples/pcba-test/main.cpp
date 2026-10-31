@@ -108,7 +108,8 @@ void servicePulse() {
     return;
   }
   gPulseAt = now;
-  constexpr uint32_t kHalf = 500;
+  // Rise 375 ms, full cycle 750 ms.
+  constexpr uint32_t kHalf = 375;
   const uint32_t t = now % (kHalf * 2);
   const uint32_t rise = t < kHalf ? t : (kHalf * 2 - t);
   const uint16_t duty = static_cast<uint16_t>(rise * 4095 / kHalf);
