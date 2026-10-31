@@ -89,6 +89,13 @@ export class SerialRobotClient {
   }
 
   /**
+   * @param {() => void} handler
+   */
+  setCloseHandler(handler) {
+    this._onClose = handler;
+  }
+
+  /**
    * @returns {Promise<void>}
    */
   async open() {
@@ -108,6 +115,9 @@ export class SerialRobotClient {
 
     port.on("data", (chunk) => {
       this._decoder.feed(chunk);
+    });
+    port.on("close", () => {
+      this._onClose?.();
     });
 
     this._port = port;
@@ -406,10 +416,6 @@ export async function connectSerialRobot({
  * @returns {Promise<Record<string, unknown>>}
  */
 export async function serialRequest(op, fields = {}, opts = {}) {
-  const { client, port } = await connectSerialRobot({ port: opts.port });
-  try {
-    return await client.request(op, fields, { timeoutMs: opts.timeoutMs });
-  } finally {
-    await client.close().catch(() => {});
-  }
+  const { daemonRobotRequest } = await import("../../daemon/client.js");
+  return daemonRobotRequest(op, fields, { port: opts.port ?? null });
 }

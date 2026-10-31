@@ -63,6 +63,16 @@ node packages/tiny-engineer-cli/bin/tiny-engineer.js setup
 node packages/tiny-engineer-cli/bin/tiny-engineer.js doctor
 ```
 
+That checkout is the `dev` channel. A registry install is the `npm` channel. See [Serial host daemon](#serial-host-daemon).
+
+### Serial host daemon
+
+Serial commands (`anim`, `play`, `watch`, `monitor`, settings, doctor, hooks, and the rest) auto-start `tiny-engineer daemon` and talk to it on a local socket. The daemon keeps the USB port until `tiny-engineer daemon stop`. HTTP commands do not start it. Closing the terminal does not stop it.
+
+`tiny-engineer daemon status` prints the channel and package root. Registry installs (`npx -y tiny-engineer`, or a global install) are `npm`. `node packages/tiny-engineer-cli/bin/tiny-engineer.js` from this repo is `dev`. A dev checkout replaces a running npm daemon. An npm command leaves a dev daemon running. `daemon restart` from the tree you want replaces a different checkout.
+
+`tiny-engineer daemon stop` frees the port for other serial tools. `tiny-engineer daemon stop --yield` also refuses auto-start for 180 seconds so a firmware upload can open USB. `tiny-engineer daemon start` clears that yield. Details: [`serial.md`](serial.md).
+
 ### Setup wizard
 
 ```bash

@@ -1,5 +1,5 @@
 import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
-import { connectSerialRobot } from "../robot/serial/client.js";
+import { followDaemonChannel } from "../daemon/client.js";
 import { parseMessage, SerialMsgType } from "../robot/serial/protocol.js";
 import { parseCommonArgs } from "../util/args.js";
 
@@ -82,7 +82,7 @@ Print outbound device events as one JSON line each.
 
 HTTP opens ws://<host>:81/events from an http: robot URL only
 (token query when Bearer would be sent). https: is rejected.
-Serial prints Evt frame payloads only.
+Serial prints Evt payloads from the host daemon and does not open the tty.
 `);
     return;
   }
@@ -95,19 +95,18 @@ Serial prints Evt frame payloads only.
   }
 
   if (resolved.transport === "serial") {
-    let session;
+    out.info("watch serial (Ctrl+C to stop)");
     try {
-      session = await connectSerialRobot({ port: opts.port });
+      await followDaemonChannel({
+        channel: "serial.events",
+        port: opts.port ?? null,
+        onLine: (line) => console.log(line),
+        onLinkDown: () => out.error("serial link down"),
+      });
     } catch (err) {
       out.error(err instanceof Error ? err.message : String(err));
       process.exitCode = 1;
-      return;
     }
-
-    out.info(`watch serial ${session.port} (Ctrl+C to stop)`);
-    session.client.setEventHandler((payload) => {
-      console.log(payload.toString("utf8"));
-    });
     return;
   }
 

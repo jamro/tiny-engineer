@@ -1,6 +1,8 @@
+import { resolve } from "node:path";
+
 import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
 import { formatRobotError, postAnim, postPlay, robotFetch } from "./client.js";
-import { connectSerialRobot, serialRequest } from "./serial/client.js";
+import { serialRequest } from "./serial/client.js";
 
 /**
  * @typedef {{
@@ -58,7 +60,7 @@ export async function robotSetAnim(name, opts = {}) {
 }
 
 /**
- * @param {{ wav: Uint8Array, name?: string } & TransportOpts} opts
+ * @param {{ wav: Uint8Array, wavPath?: string, name?: string } & TransportOpts} opts
  * @returns {Promise<import("./client.js").RobotResult & { target?: string }>}
  */
 export async function robotPlay(opts) {
@@ -67,10 +69,16 @@ export async function robotPlay(opts) {
     return { ok: false, error: resolved.error };
   }
   if (resolved.transport === "serial") {
-    let session;
+    if (!opts.wavPath) {
+      return { ok: false, error: "serial play needs a WAV file path", target: "serial" };
+    }
     try {
-      session = await connectSerialRobot({ port: opts.port });
-      const body = await session.client.play(opts.wav, opts.name ?? "talking");
+      const { daemonPlay } = await import("../daemon/client.js");
+      const body = await daemonPlay({
+        path: resolve(opts.wavPath),
+        name: opts.name ?? "talking",
+        port: opts.port ?? null,
+      });
       if (body.ok === false) {
         return {
           ok: false,
@@ -81,8 +89,6 @@ export async function robotPlay(opts) {
       return { ok: true, target: "serial", body: JSON.stringify(body) };
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : String(err), target: "serial" };
-    } finally {
-      await session?.client.close().catch(() => {});
     }
   }
 

@@ -11,6 +11,7 @@ import {
   runSettings,
   runTest,
 } from "./commands/parity.js";
+import { runDaemon } from "./daemon/commands.js";
 import { runMonitor } from "./commands/monitor.js";
 import { runWatch } from "./commands/watch.js";
 import { get as getIntegration, list as listIntegrations } from "./integrations/registry.js";
@@ -52,8 +53,11 @@ Commands:
   park                    Center servos and hold PWM (flash-safe)
   health                  Fetch health JSON/summary
   reset [--yes]           Factory-reset device (confirm or --yes)
-  monitor                 Print serial LOG frames
+  monitor                 Print serial LOG frames (via the host daemon)
   watch                   Print outbound events (WebSocket or serial Evt)
+  daemon start|stop|status|restart
+                          Host session. Serial keeps the USB port until stop.
+                          stop --yield refuses auto-start for 180s
 
 Options (most commands):
   --url <base>            Robot base URL (default: TINY_ENGINEER_URL, else ${DEFAULT_URL})
@@ -235,6 +239,7 @@ async function runPlay(out, argv, quietGlobal) {
   const pose = opts.name ?? "talking";
   const result = await robotPlay({
     wav,
+    wavPath: opts.wavPath,
     name: opts.name,
     url: opts.url,
     transport: opts.transport,
@@ -317,6 +322,9 @@ export async function run(argv) {
       return;
     case "watch":
       await runWatch(out, rest);
+      return;
+    case "daemon":
+      await runDaemon(out, rest);
       return;
     default:
       out.error(`Unknown command: ${command}`);
