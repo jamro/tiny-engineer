@@ -1087,7 +1087,7 @@
 		(uuid "58f84d9d-3b89-402e-a931-1579bcf5796b")
 	)
 	(junction
-		(at 106.68 110.49)
+		(at 92.71 110.49)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "5a9e4b17-55ae-42f3-b3c5-60f88a94a351")
@@ -1099,7 +1099,7 @@
 		(uuid "7f460358-8ac2-4fc5-bda5-9d3d26c9e5d2")
 	)
 	(junction
-		(at 113.03 110.49)
+		(at 99.06 110.49)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "eeaf9b87-f67a-4190-9e47-c75b53b13dae")
@@ -1126,7 +1126,7 @@
 	)
 	(wire
 		(pts
-			(xy 113.03 115.57) (xy 113.03 110.49)
+			(xy 99.06 115.57) (xy 99.06 110.49)
 		)
 		(stroke
 			(width 0)
@@ -1136,7 +1136,7 @@
 	)
 	(wire
 		(pts
-			(xy 113.03 110.49) (xy 113.03 106.68)
+			(xy 99.06 110.49) (xy 99.06 106.68)
 		)
 		(stroke
 			(width 0)
@@ -1156,7 +1156,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 110.49) (xy 113.03 110.49)
+			(xy 85.09 110.49) (xy 99.06 110.49)
 		)
 		(stroke
 			(width 0)
@@ -1166,7 +1166,7 @@
 	)
 	(wire
 		(pts
-			(xy 113.03 106.68) (xy 119.38 106.68)
+			(xy 99.06 106.68) (xy 105.41 106.68)
 		)
 		(stroke
 			(width 0)
@@ -1176,7 +1176,7 @@
 	)
 	(wire
 		(pts
-			(xy 119.38 115.57) (xy 113.03 115.57)
+			(xy 105.41 115.57) (xy 99.06 115.57)
 		)
 		(stroke
 			(width 0)
@@ -1216,7 +1216,7 @@
 	)
 	(wire
 		(pts
-			(xy 127 106.68) (xy 134.62 106.68)
+			(xy 113.03 106.68) (xy 134.62 106.68)
 		)
 		(stroke
 			(width 0)
@@ -1236,13 +1236,33 @@
 	)
 	(wire
 		(pts
-			(xy 127 115.57) (xy 134.62 115.57)
+			(xy 113.03 115.57) (xy 134.62 115.57)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "f93bae35-f857-4d48-a350-77328a011acc")
+	)
+	(label "RED_PWR"
+		(at 119.38 115.57 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "1814789e-3295-4092-9653-1b67e7e038f1")
+	)
+	(label "YELLOW_PWR"
+		(at 119.38 106.68 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "820946cc-9f6a-4dbf-a6fd-e3a1a5611bfc")
 	)
 	(symbol
 		(lib_id "power:+5V")
@@ -1323,7 +1343,7 @@
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
-		(at 106.68 110.49 0)
+		(at 92.71 110.49 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -1334,7 +1354,7 @@
 		(fields_autoplaced yes)
 		(uuid "230e02fa-846c-43c6-8dab-0185b1493594")
 		(property "Reference" "#FLG03"
-			(at 106.68 108.585 0)
+			(at 92.71 108.585 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1345,7 +1365,7 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 106.68 105.41 0)
+			(at 92.71 105.41 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -1355,7 +1375,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 106.68 110.49 0)
+			(at 92.71 110.49 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1366,7 +1386,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 106.68 110.49 0)
+			(at 92.71 110.49 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1377,7 +1397,7 @@
 			)
 		)
 		(property "Description" "Special symbol for telling ERC where power comes from"
-			(at 106.68 110.49 0)
+			(at 92.71 110.49 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1401,7 +1421,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 99.06 110.49 270)
+		(at 85.09 110.49 270)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -1412,7 +1432,7 @@
 		(fields_autoplaced yes)
 		(uuid "305965eb-4879-4cfa-85c1-a87586c72c4b")
 		(property "Reference" "#PWR03"
-			(at 92.71 110.49 0)
+			(at 78.74 110.49 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1423,7 +1443,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 97.79 106.68 90)
+			(at 83.82 106.68 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -1433,7 +1453,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 99.06 110.49 0)
+			(at 85.09 110.49 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1444,7 +1464,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 99.06 110.49 0)
+			(at 85.09 110.49 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1455,7 +1475,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 99.06 110.49 0)
+			(at 85.09 110.49 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1748,7 +1768,7 @@
 	)
 	(symbol
 		(lib_id "Device:LED")
-		(at 123.19 106.68 0)
+		(at 109.22 106.68 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -1758,7 +1778,7 @@
 		(dnp no)
 		(uuid "587fb663-5726-425c-ba5f-387c9bee1d97")
 		(property "Reference" "D1"
-			(at 122.936 100.33 0)
+			(at 108.966 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -1768,7 +1788,7 @@
 			)
 		)
 		(property "Value" "YELLOW_LED"
-			(at 122.936 102.87 0)
+			(at 108.966 102.87 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -1778,7 +1798,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
-			(at 123.19 106.68 0)
+			(at 109.22 106.68 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1789,7 +1809,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 123.19 106.68 0)
+			(at 109.22 106.68 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1800,7 +1820,7 @@
 			)
 		)
 		(property "Description" "Light emitting diode"
-			(at 123.19 106.68 0)
+			(at 109.22 106.68 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1811,7 +1831,7 @@
 			)
 		)
 		(property "Sim.Pins" "1=K 2=A"
-			(at 123.19 106.68 0)
+			(at 109.22 106.68 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1822,7 +1842,7 @@
 			)
 		)
 		(property "LCSC Part #" "C2287"
-			(at 123.19 106.68 0)
+			(at 109.22 106.68 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1833,7 +1853,7 @@
 			)
 		)
 		(property "MPN" "KT-0603Y"
-			(at 123.19 106.68 0)
+			(at 109.22 106.68 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1844,7 +1864,7 @@
 			)
 		)
 		(property "Manufacturer" "Hubei KENTO Elec"
-			(at 123.19 106.68 0)
+			(at 109.22 106.68 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2223,7 +2243,7 @@
 	)
 	(symbol
 		(lib_id "Device:LED")
-		(at 123.19 115.57 0)
+		(at 109.22 115.57 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -2233,7 +2253,7 @@
 		(dnp no)
 		(uuid "b6ddd916-9a02-430e-a918-b76f295b3ecd")
 		(property "Reference" "D2"
-			(at 123.444 118.872 0)
+			(at 109.474 118.872 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2243,7 +2263,7 @@
 			)
 		)
 		(property "Value" "RED_LED"
-			(at 123.444 121.412 0)
+			(at 109.474 121.412 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2253,7 +2273,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
-			(at 123.19 115.57 0)
+			(at 109.22 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2264,7 +2284,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 123.19 115.57 0)
+			(at 109.22 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2275,7 +2295,7 @@
 			)
 		)
 		(property "Description" "Light emitting diode"
-			(at 123.19 115.57 0)
+			(at 109.22 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2286,7 +2306,7 @@
 			)
 		)
 		(property "Sim.Pins" "1=K 2=A"
-			(at 123.19 115.57 0)
+			(at 109.22 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2297,7 +2317,7 @@
 			)
 		)
 		(property "LCSC Part #" "C2286"
-			(at 123.19 115.57 0)
+			(at 109.22 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2308,7 +2328,7 @@
 			)
 		)
 		(property "MPN" "KT-0603R"
-			(at 123.19 115.57 0)
+			(at 109.22 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2319,7 +2339,7 @@
 			)
 		)
 		(property "Manufacturer" "Hubei KENTO Elec"
-			(at 123.19 115.57 0)
+			(at 109.22 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

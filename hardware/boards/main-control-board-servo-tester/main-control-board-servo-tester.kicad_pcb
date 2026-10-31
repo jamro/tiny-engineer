@@ -597,7 +597,7 @@
 			(size 0.8 0.95)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(D1-A)")
+			(net "/YELLOW_PWR")
 			(pintype "passive")
 			(uuid "b1ee53a5-dad5-49b6-8218-ec4e52ec0309")
 		)
@@ -784,7 +784,7 @@
 			(size 0.8 0.95)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(D2-A)")
+			(net "/RED_PWR")
 			(pintype "passive")
 			(uuid "8a193071-8f11-48b6-a035-7dfe708fd5db")
 		)
@@ -1043,7 +1043,7 @@
 			(size 0.875 0.95)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(D1-A)")
+			(net "/YELLOW_PWR")
 			(pinfunction "A_2")
 			(pintype "passive")
 			(uuid "c43c0253-e886-4132-99c3-c1b76798f0e6")
@@ -1294,7 +1294,7 @@
 			(size 0.875 0.95)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(roundrect_rratio 0.25)
-			(net "Net-(D2-A)")
+			(net "/RED_PWR")
 			(pinfunction "A_2")
 			(pintype "passive")
 			(uuid "d842a600-b555-423c-b561-fc0d190151c3")
@@ -1313,8 +1313,8 @@
 		)
 	)
 	(gr_line
-		(start 162.814 96.52)
-		(end 162.814 86.36)
+		(start 162.2 96.2)
+		(end 162.2 86.6)
 		(stroke
 			(width 0.15)
 			(type dot)
@@ -1769,6 +1769,16 @@
 		(uuid "e765da29-0974-4ae3-afd6-5e758c5afed9")
 	)
 	(gr_line
+		(start 162.2 96.3)
+		(end 162.2 86.7)
+		(stroke
+			(width 0.15)
+			(type dot)
+		)
+		(layer "B.SilkS")
+		(uuid "6086d316-ca15-4e29-9d79-12cae7e8e394")
+	)
+	(gr_line
 		(start 142.24 87)
 		(end 142.24 96)
 		(stroke
@@ -1955,7 +1965,7 @@
 		)
 	)
 	(gr_text "SERVO\nTESTER"
-		(at 161.798 91.44 270)
+		(at 161.184 91.44 270)
 		(layer "F.SilkS")
 		(uuid "a999aebf-8c5d-4073-b0bc-256ea7d8ef68")
 		(effects
@@ -1964,6 +1974,18 @@
 				(thickness 0.15)
 			)
 			(justify top)
+		)
+	)
+	(gr_text "R1 · MAIN R3\n2026-10-31"
+		(at 167.2 91.7 0)
+		(layer "B.SilkS")
+		(uuid "55344503-1e4a-4dd4-ae28-ad57fc8fa2cf")
+		(effects
+			(font
+				(size 0.7 0.7)
+				(thickness 0.1)
+			)
+			(justify top mirror)
 		)
 	)
 	(gr_text "tinyengineer.dev"
@@ -1976,6 +1998,19 @@
 				(thickness 0.1)
 			)
 			(justify left bottom mirror)
+		)
+	)
+	(gr_text "SERVO TESTER"
+		(at 167.1 89.7 0)
+		(layer "B.SilkS")
+		(uuid "8c3be3e9-338b-4ad9-a903-feaff253765e")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.14)
+				(bold yes)
+			)
+			(justify top mirror)
 		)
 	)
 	(segment
@@ -2015,7 +2050,7 @@
 		(end 169.3925 88.9)
 		(width 0.25)
 		(layer "F.Cu")
-		(net "Net-(D1-A)")
+		(net "/YELLOW_PWR")
 		(uuid "83b5d58f-124f-4227-82d7-ef0413aac261")
 	)
 	(segment
@@ -2023,7 +2058,7 @@
 		(end 169.3925 94)
 		(width 0.5)
 		(layer "F.Cu")
-		(net "Net-(D2-A)")
+		(net "/RED_PWR")
 		(uuid "9da4786b-7d20-4e87-ae2d-4e08f58664ba")
 	)
 	(segment
@@ -2031,7 +2066,7 @@
 		(end 169.3725 93.98)
 		(width 0.5)
 		(layer "F.Cu")
-		(net "Net-(D2-A)")
+		(net "/RED_PWR")
 		(uuid "d70c6d1e-815d-4a0f-a81f-2004c73cb62a")
 	)
 	(zone
