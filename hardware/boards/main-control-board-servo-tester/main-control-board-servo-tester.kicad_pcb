@@ -89,7 +89,6 @@
 		)
 		(capping no)
 		(filling no)
-		(zone_defaults)
 		(pcbplotparams
 			(layerselection 0x00000000_00000000_55555555_5755f5ff)
 			(plot_on_all_layers_selection 0x00000000_00000000_00000000_00000000)
@@ -675,7 +674,7 @@
 				)
 			)
 		)
-		(property "LCSC Part #" "0603WAF1001T5E"
+		(property "LCSC Part #" "C21190"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -688,7 +687,7 @@
 				)
 			)
 		)
-		(property "MPN" "C21190"
+		(property "MPN" "0603WAF1001T5E"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -1976,18 +1975,6 @@
 			(justify top)
 		)
 	)
-	(gr_text "R1 · MAIN R3\n2026-10-31"
-		(at 167.2 91.7 0)
-		(layer "B.SilkS")
-		(uuid "55344503-1e4a-4dd4-ae28-ad57fc8fa2cf")
-		(effects
-			(font
-				(size 0.7 0.7)
-				(thickness 0.1)
-			)
-			(justify top mirror)
-		)
-	)
 	(gr_text "tinyengineer.dev"
 		(at 159.2046 93.804948 0)
 		(layer "B.SilkS")
@@ -2000,8 +1987,20 @@
 			(justify left bottom mirror)
 		)
 	)
+	(gr_text "R1 · MAIN R3\n2026-10-31"
+		(at 167.2 91.7 0)
+		(layer "B.SilkS")
+		(uuid "55344503-1e4a-4dd4-ae28-ad57fc8fa2cf")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.1)
+			)
+			(justify top mirror)
+		)
+	)
 	(gr_text "SERVO TESTER"
-		(at 167.1 89.7 0)
+		(at 167.1 89.4 0)
 		(layer "B.SilkS")
 		(uuid "8c3be3e9-338b-4ad9-a903-feaff253765e")
 		(effects
