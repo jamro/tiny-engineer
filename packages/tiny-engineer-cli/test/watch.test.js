@@ -1,12 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import {
   eventsWebSocketUrl,
   handleWatchSerialMessage,
   redactEventsUrl,
+  runWatch,
 } from "../src/commands/watch.js";
+import { stopDaemon } from "../src/daemon/client.js";
+import { daemonPaths } from "../src/daemon/paths.js";
+import { delay } from "../src/daemon/proc.js";
+import { serveDaemon } from "../src/daemon/server.js";
 import { packMessage, SerialMsgType } from "../src/robot/serial/protocol.js";
+import { createOutput } from "../src/util/output.js";
 
 test("eventsWebSocketUrl rewrites http to ws port 81 /events", () => {
   assert.equal(
@@ -46,4 +55,53 @@ test("handleWatchSerialMessage prints Evt frames only", () => {
   const log = packMessage(SerialMsgType.Log, 0, '{"t":"noise"}');
   assert.equal(handleWatchSerialMessage(log, (l) => lines.push(l)), false);
   assert.deepEqual(lines, ['{"v":1,"type":"button.down"}']);
+});
+
+test("serial watch runs without a robot URL", async () => {
+  const dir = mkdtempSync(join(existsSync("/tmp") ? "/tmp" : tmpdir(), "te-watch-"));
+  const prevCfg = process.env.TINY_ENGINEER_CONFIG_DIR;
+  const prevUrl = process.env.TINY_ENGINEER_URL;
+  process.env.TINY_ENGINEER_CONFIG_DIR = dir;
+  delete process.env.TINY_ENGINEER_URL;
+  const exitCode = process.exitCode;
+  /** @type {string[]} */
+  const lines = [];
+  const out = createOutput({
+    log: (m) => lines.push(String(m)),
+    error: (m) => lines.push(`E:${m}`),
+  });
+  const serving = serveDaemon({
+    configDir: dir,
+    exitProcess: false,
+    connect: async ({ port }) => ({
+      port: port || "/dev/fake",
+      client: {
+        request: async () => ({ ok: true }),
+        play: async () => ({ ok: true }),
+        setEventHandler() {},
+        setLogHandler() {},
+        setCloseHandler() {},
+        close: async () => {},
+      },
+    }),
+  });
+  try {
+    for (let i = 0; i < 50 && !existsSync(daemonPaths(dir).sock); i += 1) await delay(20);
+    const pending = runWatch(out, ["--transport", "serial"]);
+    await delay(80);
+    await stopDaemon({ configDir: dir });
+    await pending;
+    await serving;
+    assert.ok(lines.some((line) => line.includes("watch serial")));
+    assert.equal(lines.some((line) => line.includes("error:")), false);
+    assert.equal(process.exitCode ?? 0, 0);
+  } finally {
+    process.exitCode = exitCode;
+    await stopDaemon({ configDir: dir }).catch(() => {});
+    if (prevCfg === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prevCfg;
+    if (prevUrl === undefined) delete process.env.TINY_ENGINEER_URL;
+    else process.env.TINY_ENGINEER_URL = prevUrl;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

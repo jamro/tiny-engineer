@@ -22,11 +22,19 @@ tiny-engineer setup cursor --yes --transport serial
 
 tiny-engineer anim ring --transport serial
 tiny-engineer doctor --transport serial
-tiny-engineer monitor          # prints LOG frames (exclusive port use)
+tiny-engineer monitor          # prints LOG frames from the host daemon
 tiny-engineer reset --yes      # factory reset; confirm or --yes
 ```
 
 Serial port: `--port` / `TINY_ENGINEER_PORT`, else autodetect (Espressif VID `303A` preferred) with cache under the user config directory (`serial-port.json`; invalidated on open/probe failure).
+
+## Host daemon
+
+Serial commands share one host process, `tiny-engineer daemon`. The first serial command auto-starts it. It keeps the USB port until `tiny-engineer daemon stop` or `tiny-engineer daemon restart`. Closing the terminal does not stop it. `watch` and `monitor` subscribe to that process. Ctrl+C on either one leaves the daemon running.
+
+`tiny-engineer daemon status` prints pid, version, channel (`npm` or `dev`), package root, protocol, and port. A registry install (`npx -y tiny-engineer` or a global install) is channel `npm`. Running `node packages/tiny-engineer-cli/bin/tiny-engineer.js` from this repo is channel `dev`. A dev checkout replaces a running npm daemon. A published npm command does not replace a dev daemon. The same npm version keeps the process that is already running. `daemon status` shows which one you have. `daemon restart` from the checkout you want replaces a different dev tree.
+
+Before another program opens the USB serial device, run `tiny-engineer daemon stop`. Firmware upload parks servos, then runs `tiny-engineer daemon stop --yield` so auto-start stays off while the flash tool has the port. `tiny-engineer daemon start` clears that yield.
 
 ## Protocol overview
 
@@ -41,7 +49,7 @@ Ops (JSON `op`): `ping`/`sync`, `servos_park`, `anim`, `settings.get`/`settings.
 
 ## PlatformIO monitor
 
-Stock PlatformIO serial monitor expects text. Framed COBS sessions look like noise. Prefer `tiny-engineer monitor` for LOG lines. Close the CLI monitor (and any other holder) before `pio run -t upload` so the pre-upload park can open the port. An optional PIO LOG filter is a follow-up, not required.
+Stock PlatformIO serial monitor expects text. Framed COBS sessions look like noise. Prefer `tiny-engineer monitor` for LOG lines. The pre-upload step parks servos, then runs `daemon stop --yield` so the host daemon releases the port for the flash tool. Close any other serial program before `pio run -t upload`. An optional PIO LOG filter is a follow-up, not required.
 
 ## Related
 

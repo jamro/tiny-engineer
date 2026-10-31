@@ -1,6 +1,4 @@
-Import("env")
-
-"""Pre-upload: shell tiny-engineer park --transport serial (fail-open)."""
+"""Pre-upload: shell tiny-engineer park, then daemon stop --yield (fail-open)."""
 
 import os
 import shutil
@@ -12,60 +10,81 @@ def _warn(msg):
     print("park_servos_before_upload: %s" % msg)
 
 
-def _cli_argv(project_dir, upload_port):
-    """Prefer PATH tiny-engineer; else node repo CLI entry."""
-    on_path = shutil.which("tiny-engineer")
+def cli_base(project_dir, which=None):
+    """Prefer PATH tiny-engineer; else node plus the repo CLI entry."""
+    which = which or shutil.which
+    project_dir = Path(project_dir)
+    on_path = which("tiny-engineer")
     if on_path:
-        argv = [on_path, "park", "--transport", "serial"]
-    else:
-        entry = project_dir / "packages" / "tiny-engineer-cli" / "bin" / "tiny-engineer.js"
-        if not entry.is_file():
-            return None
-        node = shutil.which("node")
-        if not node:
-            return None
-        argv = [node, str(entry), "park", "--transport", "serial"]
+        return [on_path]
+    entry = project_dir / "packages" / "tiny-engineer-cli" / "bin" / "tiny-engineer.js"
+    if not entry.is_file():
+        return None
+    node = which("node")
+    if not node:
+        return None
+    return [node, str(entry)]
 
+
+def command_argvs(project_dir, upload_port, which=None):
+    """Park argv, then `daemon stop --yield`. None when the CLI cannot be resolved."""
+    base = cli_base(project_dir, which=which)
+    if base is None:
+        return None
+    park = base + ["park", "--transport", "serial"]
     if upload_port:
-        argv.extend(["--port", upload_port])
-    return argv
+        park = park + ["--port", upload_port]
+    stop = base + ["daemon", "stop", "--yield"]
+    return [park, stop]
 
 
-def park_servos(source, target, env):
-    project_dir = Path(env.subst("$PROJECT_DIR"))
-    upload_port = env.subst("$UPLOAD_PORT").strip()
-
-    argv = _cli_argv(project_dir, upload_port)
-    if argv is None:
-        _warn("CLI not found; skip park (upload continues)")
-        return
-
+def _invoke(runner, argv, project_dir, timeout, label):
     print("park_servos_before_upload: %s" % " ".join(argv))
     try:
-        completed = subprocess.run(
+        completed = runner(
             argv,
             cwd=str(project_dir),
             capture_output=True,
             text=True,
-            timeout=45,
+            timeout=timeout,
             env=os.environ.copy(),
         )
     except subprocess.TimeoutExpired:
-        _warn("park timed out; upload continues")
+        _warn("%s timed out; upload continues" % label)
         return
     except OSError as exc:
-        _warn("park failed to start (%s); upload continues" % exc)
+        _warn("%s failed to start (%s); upload continues" % (label, exc))
         return
 
     if completed.returncode == 0:
-        print("park_servos_before_upload: parked")
+        if label == "park":
+            print("park_servos_before_upload: parked")
         return
 
     detail = (completed.stderr or completed.stdout or "").strip()
     if detail:
-        _warn("park failed (%s); upload continues" % detail.splitlines()[-1])
+        _warn("%s failed (%s); upload continues" % (label, detail.splitlines()[-1]))
     else:
-        _warn("park exit %s; upload continues" % completed.returncode)
+        _warn("%s exit %s; upload continues" % (label, completed.returncode))
 
 
-env.AddPreAction("upload", park_servos)
+def park_servos(source, target, env, runner=None):
+    project_dir = Path(env.subst("$PROJECT_DIR"))
+    upload_port = env.subst("$UPLOAD_PORT").strip()
+    argvs = command_argvs(project_dir, upload_port)
+    if argvs is None:
+        _warn("CLI not found; skip park (upload continues)")
+        return
+
+    run = runner or subprocess.run
+    _invoke(run, argvs[0], project_dir, 45, "park")
+    _invoke(run, argvs[1], project_dir, 15, "daemon stop --yield")
+
+
+try:
+    Import("env")  # noqa: F821 — SCons injects this when PlatformIO loads the script
+except Exception:
+    env = None
+
+if env is not None:
+    env.AddPreAction("upload", park_servos)
