@@ -330,6 +330,8 @@ class HostTests(unittest.TestCase):
             "main control board rev 3",
             "Red stays on and yellow pulses",
             "square pad as GND",
+            "pin labels on both boards",
+            "PWM to PWM",
             "J1",
             "golden module stays with the tester",
             "The ESP32 must already run the test firmware",

@@ -189,7 +189,7 @@ The procedure card MUST describe the bench, the step order, the expected lamps, 
 - **THEN** the card says the golden module stays with the tester
 
 ### Requirement: Plug position and lamp pattern
-The procedure card MUST say signal is on all five servo outputs and the operator plugs the testing board into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. The card MUST name the silk-side pin as yellow, the middle pin as red, and the square pad as GND. Each column MUST show red on and yellow pulsing. Tone MUST be judged by ear on J1.
+The procedure card MUST say signal is on all five servo outputs and the operator plugs the testing board into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. The card MUST name the silk-side pin as yellow, the middle pin as red, and the square pad as GND. The card MUST say to read the pin labels on both boards before plugging in and to match PWM, 5 V, and GND. Each column MUST show red on and yellow pulsing. Tone MUST be judged by ear on J1.
 
 #### Scenario: Servo step is one plug sweep
 - **WHEN** the operator reads the servos step on the card
@@ -202,6 +202,7 @@ The procedure card MUST say signal is on all five servo outputs and the operator
 - **WHEN** the operator reads how to seat the plug
 - **THEN** the card names the square pad as GND
 - **AND** it names the silk-side pin as the yellow LED
+- **AND** it says to read the pin labels on both boards and match PWM, 5 V, and GND
 
 ### Requirement: Module LED shows the test image is running
 While the test image has USB power it MUST hold the onboard LED steady white, including during a step, the failure menu, a PCA failure, RESULT, and STOP. The three channels MUST be equal. The LED MUST NOT blink. The procedure card MUST say this steady white means the test image is running, and that board pass or fail is the ear on J1 and the plug lamps.
