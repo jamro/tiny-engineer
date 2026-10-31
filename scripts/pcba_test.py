@@ -29,7 +29,7 @@ HEADER = """\
 
 
 def startup_text():
-    return "%sWeb tester: %s\n%s\n%s\nHow to get one: %s\n" % (
+    return "%sAlternative web tester: %s\n\n%s\n%s\nHow to get one: %s\n" % (
         HEADER,
         WEB_TESTER,
         BOARD_REV,

@@ -1,10 +1,12 @@
 # PCBA test
 
-Check a produced main control board rev 3 with a golden ESP32-C3-Zero and one operator. The test is compatible with main control board rev 3. The product firmware cannot do this check. Power is the USB cable through the module. No servo supply.
+Check a produced main control board rev 3 with a golden ESP32-C3-Zero and one operator. The test is compatible with main control board rev 3. The product firmware cannot do this check.
 
 The golden module stays with the tester. The ESP32 must already run the test firmware. How to get one is below. Do not ship that module on a board.
 
 ## Get an ESP32 with the test firmware
+
+If you already have an ESP32-C3-Zero with the test firmware, skip this section.
 
 The ESP32 must already run the test firmware. The product firmware cannot run this test. The script and the page do not flash the module.
 
@@ -14,7 +16,7 @@ Seat a Waveshare ESP32-C3-Zero on a main control board. Match the USB mark. Plug
 pio run -e pcba-test -t upload
 ```
 
-When the test firmware is running, the onboard LED stays steady white. That lamp is not a board pass or fail. Before a module leaves the bench, flash the product image again.
+When the test firmware is running, the onboard LED stays steady white.
 
 The module LED stays steady white while the test image has power, including after a failed PCA probe, a verdict, and `q`. Steady white means the test image is running. It is not the board verdict. Judge the board by the ear on J1 and the plug lamps. Unplugging USB is what turns the module LED off.
 
@@ -27,21 +29,21 @@ python3 -m pip install pyserial
 python3 scripts/pcba_test.py
 ```
 
-The script prints a header, the web tester address, and a prepare card. It opens the board USB port. If that port is busy, the script says so and waits. Close the other program using the board. Keys match the page: Enter accepts a step, `n` rejects it. On SPEAKER, `+` is louder and `-` is quieter. After `RESULT`, unplug USB for the next board, or `q` to stop.
+The script prints a header, and a prepare card. It opens the board USB port. If that port is busy, the script says so and waits. Close the other program using the board. Keys match the page: Enter accepts a step, `n` rejects it. On SPEAKER, `+` is louder and `-` is quieter. After `RESULT`, unplug USB for the next board, or `q` to stop.
 
 The other path is the web tester: [https://tinyengineer.dev/pcba_test](https://tinyengineer.dev/pcba_test). Chrome or Edge only. If the browser cannot open a serial port, the page says so and names `python3 scripts/pcba_test.py`.
 
-USB-C data cable. Speaker on J1. Cards stay on screen. Act on the latest one.
-
 ## Testing board
 
-The testing board seats on one column at a time. The silk-side pin is yellow (SIG). The middle pin is red (5 V). Treat the square pad as GND. Before each plug, read the pin labels on both boards and make sure they match: PWM to PWM, 5 V to 5 V, and GND to GND. The capacitor beside the servo header blocks the other way around.
+![Testing board](../../hardware/boards/main-control-board-servo-tester/servo-tester-preview.png)
 
-During `servos`, signal is on all five servo outputs. Take the testing board and plug it into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. On every column, red stays on and yellow pulses.
+The testing board seats on one servo column at a time. The top pin is yellow (SIG). The middle pin is red (5 V). The bottom pin is GND. Before each plug, read the pin labels on both boards and make sure they match: PWM to PWM, 5 V to 5 V, and GND to GND.
+
+During `servos` test step, signal is on all five servo outputs. Take the testing board and plug it into one column at a time: HEAD, NECK, ARM L, ARM R, and BODY. On every column, red stays on and yellow pulses.
 
 ## What you see
 
-The first card is prepare. Do that, then connect the board. The next card waits until the board is on USB, then waits for Enter before the first test step.
+The first test step card is prepare. Do that, then connect the board. The next card waits until the board is on USB, then waits for Enter before the first test step.
 
 1. Take the board.
 2. Plug in the ESP32. Match the USB mark on the board.
@@ -81,22 +83,3 @@ After `RESULT PASS` or `RESULT FAIL`, the card says to unplug USB for the next b
 `RESULT PASS` covers the speaker, the five servo columns, and output enable. It does not cover J2, J3, J4, the OLED, Wi-Fi, or a 2 A load. A fault in those can still be present.
 
 A failed PCA probe prints `FAIL pca` and `RESULT FAIL pca`, with no beep. The verdict card keeps the explanation: the PCA9685 probe failed at I2C 0x40, the chip drives the servos so the board stops before the speaker test, seat the ESP32 on the USB mark, keep VCC at 3.3 V rather than 5 V, and solder GND, SDA, and SCL. There is no `r` / `c` / `a`. Unplug or `q`, same as any other verdict.
-
-## Dialogue
-
-The wire under each card is a short token. All accepted:
-
-```
-STEP tone
-STEP servos
-STEP oe
-RESULT PASS
-```
-
-`tone` and `servos` rejected with `c`:
-
-```
-FAIL tone
-FAIL servos
-RESULT FAIL tone servos
-```
