@@ -1639,7 +1639,7 @@
 				)
 			)
 		)
-		(property "LCSC Part #" "0603WAF1001T5E"
+		(property "LCSC Part #" "C21190"
 			(at 138.43 115.57 90)
 			(hide yes)
 			(show_name no)
@@ -1650,7 +1650,7 @@
 				)
 			)
 		)
-		(property "MPN" "C21190"
+		(property "MPN" "0603WAF1001T5E"
 			(at 138.43 115.57 90)
 			(hide yes)
 			(show_name no)
