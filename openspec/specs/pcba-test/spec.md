@@ -15,17 +15,17 @@ The PCBA test image MUST start the PCBA session on USB connect. It MUST NOT join
 - **AND** it does not open the product setup AP or HTTP server
 
 ### Requirement: PCA probe gates the session
-Before the tone or any servo step, the image MUST probe I2C address 0x40. If nothing acknowledges, it MUST print a PCA failure and a final FAIL result and MUST NOT start the tone or servo steps.
+Before the power chime, the tone step, or any servo step, the image MUST probe I2C address 0x40. If nothing acknowledges, it MUST print a PCA failure and a final FAIL result and MUST NOT play the power chime, the tone, or servo steps. When the probe succeeds, the image MUST play a short power chime, then wait. That chime means the board has power and is ready for the test. It is not the tone step.
 
 #### Scenario: PCA missing
 - **WHEN** the session starts and address 0x40 does not acknowledge
 - **THEN** the image prints FAIL pca and RESULT FAIL pca
-- **AND** it does not play a tone or offer retry, continue, or restart
+- **AND** it does not play the power chime or a tone, and it does not offer retry, continue, or restart
 
 #### Scenario: PCA present
 - **WHEN** address 0x40 acknowledges
-- **THEN** the image prints READY
-- **AND** the tone has not started until the operator sends Enter
+- **THEN** the image plays the power chime and prints READY
+- **AND** the tone step has not started until the operator sends Enter
 
 ### Requirement: Fixed step order
 A board session MUST run three steps in this order: tone, then servos, then oe. The oe step MUST disable the PCA9685 outputs and MUST keep pulsing PWM on channels 0, 1, 2, 3, and 4. The servos step MUST pulse every servo column at the same time.

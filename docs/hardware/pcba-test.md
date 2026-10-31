@@ -80,7 +80,7 @@ After `RESULT PASS` or `RESULT FAIL`, the card says to unplug USB for the next b
 
 `RESULT PASS` covers the speaker, the five servo columns, and output enable. It does not cover J2, J3, J4, the OLED, Wi-Fi, or a 2 A load. A fault in those can still be present.
 
-No PCA answer prints `FAIL pca` and `RESULT FAIL pca`. The card says the PCA9685 did not answer and this board fails before the speaker test. There is no `r` / `c` / `a` for that failure. Unplug or `q`, same as any other verdict.
+No PCA answer prints `FAIL pca` and `RESULT FAIL pca`, with no beep. The card says the PCA9685 did not answer and this board fails before the speaker test. There is no `r` / `c` / `a` for that failure. Unplug or `q`, same as any other verdict.
 
 ## Dialogue
 

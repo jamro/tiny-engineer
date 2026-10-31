@@ -349,7 +349,8 @@ void playNote(int hz, int frames) {
 }
 
 void playPowerChime() {
-  // 40 ms notes a fifth apart. 882 frames closes both.
+  // Ready signal after PCA ACK: power is up and the board can be tested.
+  // Not the tone step. 40 ms notes a fifth apart. 882 frames closes both.
   playNote(800, 882);
   writeSilenceMs(20);
   playNote(1200, 882);
@@ -420,6 +421,7 @@ void beginSession() {
   }
   gPhase = PhaseStart;
   gToneOn = false;
+  playPowerChime();
 }
 
 }  // namespace
@@ -436,7 +438,6 @@ void setup() {
   }
   startI2s();
   prepareTone();
-  playPowerChime();
   beginSession();
 }
 
