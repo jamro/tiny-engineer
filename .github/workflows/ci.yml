@@ -40,6 +40,10 @@ jobs:
         run: pip install -U platformio
       - name: Audio pack tests
         run: python3 scripts/test_audio_pack.py
+      - name: PCBA host tests
+        run: python3 scripts/test_pcba_test.py
+      - name: PCBA web tests
+        run: node scripts/test_pcba_web.mjs
       - name: Laptop screen inserts PDF up to date
         run: python3 scripts/laptop_screens.py --check
       - name: Build firmware
@@ -59,6 +63,8 @@ jobs:
           if-no-files-found: error
       - name: Build OLED expression demo
         run: pio run -e expression-demo
+      - name: Build PCBA test image
+        run: pio run -e pcba-test
       - name: Host Unity tests
         run: pio test -e native
 

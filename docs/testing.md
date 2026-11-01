@@ -22,9 +22,12 @@ node scripts/expressions/generate.js --check
 node scripts/expressions/test-assets.js
 pio test -e native
 pio run -e expression-demo
+pio run -e pcba-test
+python3 scripts/test_pcba_test.py
+node scripts/test_pcba_web.mjs
 ```
 
-The `expression-demo` environment builds a separate OLED-only application without changing the default robot build. For a later bench test, follow its [wiring and upload notes](../lib/TinyEngineerExpressions/README.md#standalone-oled-demo), leave the separate servo supply off, and observe all 16 faces through a complete 48-second cycle. Report physical display results separately from host tests and compilation.
+The `expression-demo` environment builds a separate OLED-only application without changing the default robot build. `pcba-test` builds the PCBA session the same way. Bench steps: [hardware/pcba-test.md](hardware/pcba-test.md). For a later expression-demo bench test, follow the [wiring and upload notes](../lib/TinyEngineerExpressions/README.md#standalone-oled-demo), leave the separate servo supply off, and observe all 16 faces through a complete 48-second cycle. Report physical display results separately from host tests and compilation.
 
 ## Web UI
 

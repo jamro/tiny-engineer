@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>PCBA test · Tiny Engineer</title>
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="pcba.css">
+</head>
+<body class="page-pcba">
+  <div class="wrap">
+    <header class="site-header">
+      <a class="brand" href="../">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Tiny Engineer
+      </a>
+    </header>
+    <main class="pcba-main">
+      <div class="pcba-intro">
+        <p class="eyebrow">Line test · ESP32-C3</p>
+        <h1>Board test</h1>
+        <p class="lede">Compatible with main control board rev 3. Listen, look, then press the key on the latest card.</p>
+        <p class="callout pcba-firmware">The ESP32 must already run the test firmware. <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/pcba-test.md#get-an-esp32-with-the-test-firmware">How to get one</a>.</p>
+      </div>
+      <p id="incompatible" class="callout">This browser cannot run the test. Use python3 scripts/pcba_test.py</p>
+      <section class="panel pcba-card" aria-live="polite">
+        <div class="pcba-head">
+          <span id="pcba-led" class="led led-warn" aria-hidden="true"></span>
+          <h2 id="pcba-title">PREPARE</h2>
+        </div>
+        <div id="step" class="pcba-body">
+          <p class="pcba-step"><span class="pcba-step-n">1</span><span>Take the board.</span></p>
+          <p class="pcba-step"><span class="pcba-step-n">2</span><span>Plug in the ESP32.</span></p>
+          <p class="pcba-note">Match the USB mark on the board.</p>
+          <p class="pcba-step"><span class="pcba-step-n">3</span><span>Plug the speaker into the JST speaker port.</span></p>
+          <p class="pcba-step"><span class="pcba-step-n">4</span><span>Connect USB to the board.</span></p>
+          <p class="pcba-note">Use the board socket, not the ESP32.</p>
+        </div>
+        <div class="pcba-bar">
+          <div id="pcba-keys" class="pcba-keys" hidden></div>
+          <div class="pcba-actions">
+            <button id="connect" class="btn btn-primary" type="button" hidden>Connect</button>
+            <button id="disconnect" class="btn" type="button" hidden>Disconnect</button>
+          </div>
+        </div>
+      </section>
+      <div class="pcba-hint">
+        <p>Use Chrome or Edge.</p>
+        <p>For the next board, unplug USB first.</p>
+        <p>Same test from a terminal: <span class="mono">python3 scripts/pcba_test.py</span></p>
+        <p><a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/pcba-test.md">How to run the script</a></p>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="../js/pcba-test.mjs"></script>
+</body>
+</html>

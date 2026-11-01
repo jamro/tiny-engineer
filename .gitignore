@@ -4,6 +4,8 @@ data/*.*
 data/*/
 artifacts/
 
+.venv
+
 node_modules/
 
 *.bak
