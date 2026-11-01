@@ -408,14 +408,3 @@ export async function connectSerialRobot({
 
   throw lastError ?? new Error("failed to open a Tiny Engineer serial port");
 }
-
-/**
- * @param {string} op
- * @param {Record<string, unknown>} [fields]
- * @param {{ port?: string | null, timeoutMs?: number }} [opts]
- * @returns {Promise<Record<string, unknown>>}
- */
-export async function serialRequest(op, fields = {}, opts = {}) {
-  const { daemonRobotRequest } = await import("../../daemon/client.js");
-  return daemonRobotRequest(op, fields, { port: opts.port ?? null });
-}
