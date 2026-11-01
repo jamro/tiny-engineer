@@ -22,8 +22,16 @@ constexpr int16_t kToneLevels[] = {
 };
 constexpr int kToneLevelCount = sizeof(kToneLevels) / sizeof(kToneLevels[0]);
 constexpr int kToneLevelDefault = 5;
-// 441 frames closes both partials, so the loop junction stays continuous.
-constexpr int kToneFrames = 441;
+// MAX98357A locks LRCLK only at 8, 16, 32, 44.1, 48, 88.2, and 96 kHz.
+// 22050 Hz is not on that list. 44100 Hz is, but on this socketed C3 the
+// DMA queue is only ~33 ms and BCLK is 1.4 MHz, so USB prints underrun it
+// (auto_clear inserts zeros — a click). 16 kHz stays on the list, keeps
+// BCLK at 512 kHz, and gives the 6×240-frame DMA queue ~90 ms of audio.
+constexpr int kI2sHz = 16000;
+// 640 frames is 40 ms and closes both partials.
+constexpr int kToneFrames = 640;
+// 40 ms at kI2sHz. Closes 800 Hz and 1200 Hz.
+constexpr int kChimeFrames = 640;
 
 enum Phase : uint8_t { PhaseStart, PhaseWait, PhaseMenu, PhaseResult, PhaseStop };
 
@@ -63,8 +71,10 @@ uint32_t gPulseAt = 0;
 uint32_t gPromptAt = 0;
 int16_t gTonePcm[kToneFrames * 2];
 
-static_assert(kToneFrames * kToneLowHz % SAMPLE_RATE == 0, "low partial must close");
-static_assert(kToneFrames * kToneHighHz % SAMPLE_RATE == 0, "high partial must close");
+static_assert(kToneFrames * kToneLowHz % kI2sHz == 0, "low partial must close");
+static_assert(kToneFrames * kToneHighHz % kI2sHz == 0, "high partial must close");
+static_assert(kChimeFrames * 800 % kI2sHz == 0, "chime low must close");
+static_assert(kChimeFrames * 1200 % kI2sHz == 0, "chime high must close");
 
 void setOe(bool enabled) {
   if (!PCA9685_OE_WIRED) {
@@ -323,8 +333,8 @@ void pollKeys() {
 
 void prepareTone() {
   for (int frame = 0; frame < kToneFrames; frame++) {
-    const float low = sinf(2.0f * PI * frame * kToneLowHz / SAMPLE_RATE);
-    const float high = sinf(2.0f * PI * frame * kToneHighHz / SAMPLE_RATE);
+    const float low = sinf(2.0f * PI * frame * kToneLowHz / kI2sHz);
+    const float high = sinf(2.0f * PI * frame * kToneHighHz / kI2sHz);
     float raw = (low + high) * kToneLevels[gToneLevel];
     if (raw > 32767.0f) {
       raw = 32767.0f;
@@ -346,7 +356,7 @@ void writeSamples(const int16_t* samples, size_t bytes) {
 
 void writeSilenceMs(int ms) {
   int16_t zeros[128 * 2] = {};
-  int frames = SAMPLE_RATE * ms / 1000;
+  int frames = kI2sHz * ms / 1000;
   while (frames > 0) {
     const int count = frames > 128 ? 128 : frames;
     writeSamples(zeros, static_cast<size_t>(count) * 2 * sizeof(int16_t));
@@ -356,9 +366,9 @@ void writeSilenceMs(int ms) {
 
 void playNote(int hz, int frames) {
   constexpr int16_t kChimeAmplitude = 9000;
-  static int16_t buffer[882 * 2];
+  static int16_t buffer[kChimeFrames * 2];
   for (int frame = 0; frame < frames; frame++) {
-    const float raw = sinf(2.0f * PI * frame * hz / SAMPLE_RATE) * kChimeAmplitude;
+    const float raw = sinf(2.0f * PI * frame * hz / kI2sHz) * kChimeAmplitude;
     const int16_t sample = static_cast<int16_t>(raw);
     buffer[frame * 2] = sample;
     buffer[frame * 2 + 1] = sample;
@@ -368,10 +378,10 @@ void playNote(int hz, int frames) {
 
 void playPowerChime() {
   // Ready signal after PCA ACK: power is up and the board can be tested.
-  // Not the tone step. 40 ms notes a fifth apart. 882 frames closes both.
-  playNote(800, 882);
+  // Not the tone step. 40 ms notes a fifth apart. kChimeFrames closes both.
+  playNote(800, kChimeFrames);
   writeSilenceMs(20);
-  playNote(1200, 882);
+  playNote(1200, kChimeFrames);
   writeSilenceMs(20);
 }
 
@@ -386,7 +396,7 @@ void startI2s() {
   I2S.setPins(I2S_BCLK, I2S_LRC, I2S_DIN);
   gI2sReady = I2S.begin(
       I2S_MODE_STD,
-      SAMPLE_RATE,
+      kI2sHz,
       I2S_DATA_BIT_WIDTH_16BIT,
       I2S_SLOT_MODE_STEREO);
 }
@@ -466,8 +476,10 @@ void loop() {
   if (gPhase == PhaseStop) {
     return;
   }
-  servicePrompt();
+  // Fill I2S before USB serial. A print that blocks with an empty DMA
+  // queue becomes a click (driver auto_clear writes zeros).
   serviceTone();
+  servicePrompt();
   servicePulse();
   pollKeys();
 }
