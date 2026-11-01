@@ -30,6 +30,50 @@ bool pathIsEvents(const char* url) {
   return url[7] == '\0' || url[7] == '?' || url[7] == '#';
 }
 
+int hexNibble(char c) {
+  if (c >= '0' && c <= '9') {
+    return c - '0';
+  }
+  if (c >= 'a' && c <= 'f') {
+    return c - 'a' + 10;
+  }
+  if (c >= 'A' && c <= 'F') {
+    return c - 'A' + 10;
+  }
+  return -1;
+}
+
+// Percent-decode a token query value. '+' stays '+'. A bad % sequence or a
+// decoded length past the token limit rejects the value.
+bool percentDecodeToken(const char* value, size_t valueLen, char* out, size_t* outLen) {
+  size_t n = 0;
+  for (size_t i = 0; i < valueLen;) {
+    unsigned char byte = 0;
+    if (value[i] == '%') {
+      if (i + 2 >= valueLen) {
+        return false;
+      }
+      const int hi = hexNibble(value[i + 1]);
+      const int lo = hexNibble(value[i + 2]);
+      if (hi < 0 || lo < 0) {
+        return false;
+      }
+      byte = static_cast<unsigned char>((hi << 4) | lo);
+      i += 3;
+    } else {
+      byte = static_cast<unsigned char>(value[i]);
+      i += 1;
+    }
+    if (n >= SETTINGS_ACCESS_TOKEN_MAX_LEN) {
+      return false;
+    }
+    out[n] = static_cast<char>(byte);
+    n += 1;
+  }
+  *outLen = n;
+  return true;
+}
+
 bool tokenOk(const char* url) {
   if (!settingsAccessTokenSet()) {
     return true;
@@ -54,7 +98,12 @@ bool tokenOk(const char* url) {
     if (partLen > 6 && strncmp(p, "token=", 6) == 0) {
       const char* value = p + 6;
       const size_t valueLen = partLen - 6;
-      if (valueLen == tokenLen && memcmp(value, token, tokenLen) == 0) {
+      char decoded[SETTINGS_ACCESS_TOKEN_MAX_LEN];
+      size_t decodedLen = 0;
+      if (!percentDecodeToken(value, valueLen, decoded, &decodedLen)) {
+        return false;
+      }
+      if (decodedLen == tokenLen && memcmp(decoded, token, tokenLen) == 0) {
         return true;
       }
       return false;
