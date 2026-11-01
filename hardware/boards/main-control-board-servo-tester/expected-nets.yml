@@ -1,0 +1,28 @@
+# Critical net → pin memberships and net classes for review.
+# Pin tokens = KiCad netlist RefDes.PinNum:PinName (pin number + symbol pin name).
+# Net classes = KiCad netlist `class` list, effective class first.
+# Compare with: kicad-cli sch export netlist
+# See docs/pcb.md#expected-nets-yml
+#
+# J1 = 1x03 servo socket. Pin 1 +3.3V, pin 2 +5V, pin 3 GND.
+# This project has only the Default net class.
+
+netclasses:
+  "+3.3V":
+    - Default
+  "+5V":
+    - Default
+  GND:
+    - Default
+
+nets:
+  "+3.3V":
+    - J1.1:Pin_1
+    - R1.2:2
+  "+5V":
+    - J1.2:Pin_2
+    - R2.2:2
+  GND:
+    - D1.1:K
+    - D2.1:K
+    - J1.3:Pin_3

@@ -1,0 +1,15 @@
+# title: TE-9000 console
+# background: #070707
+# foreground: #d8d8d8
+# paper-dim: dim
+# color dim: #808080
+# color ring: #a8a8a8
+# color eye: #ff3b30
+{ring}      .-------.{/}       TE-9000 DESK UNIT
+{ring}    .'  .---.  '.{/}     {dim}all systems nominal{/}
+{ring}   /   ( {/}{eye}(@){/}{ring} )   \{/}
+{ring}   \    '---'    /{/}   > open the pod bay doors
+{ring}    '.         .'{/}
+{ring}      '-------'{/}       I can't do that.
+                      I can open a pull
+                      request, though.

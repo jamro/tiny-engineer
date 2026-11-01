@@ -113,6 +113,22 @@ test("runSetup --yes writes cursor hooks and user env not project .env", async (
     const hooks = JSON.parse(readFileSync(join(dir, ".cursor", "hooks.json"), "utf8"));
     assert.equal(hooks.hooks.stop[0].command, "npx -y tiny-engineer hook cursor");
     assert.equal(hooks.hooks.stop[0].timeout, 30);
+    assert.equal(
+      hooks.hooks.afterShellExecution[0].command,
+      "npx -y tiny-engineer hook cursor",
+    );
+    assert.equal(
+      hooks.hooks.beforeMCPExecution[0].command,
+      "npx -y tiny-engineer hook cursor",
+    );
+    assert.equal(
+      hooks.hooks.afterMCPExecution[0].command,
+      "npx -y tiny-engineer hook cursor",
+    );
+    assert.equal(
+      hooks.hooks.postToolUseFailure[0].command,
+      "npx -y tiny-engineer hook cursor",
+    );
     assert.equal(existsSync(join(dir, ".env")), false);
     const env = readFileSync(join(cfg, "env"), "utf8");
     assert.ok(env.includes("TINY_ENGINEER_URL=http://robot.test"));

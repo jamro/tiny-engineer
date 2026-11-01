@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tiny Engineer</title>
-  <meta name="description" content="Tiny Engineer — a desk robot for AI coding agents. Flash firmware in the browser.">
+  <meta name="description" content="Tiny Engineer — a desk robot for AI coding agents. Build one from open hardware, flash firmware in the browser, and hook Cursor, Claude Code, or any script that can POST.">
   <link rel="preconnect" href="https://fonts.bunny.net">
   <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
   <link rel="stylesheet" href="css/tokens.css">
@@ -13,71 +13,257 @@
 <body class="page-home">
   <div class="wrap">
     <header class="site-header">
-      <a class="brand" href="./">
+      <a class="brand" href="./" aria-current="page">
         <span class="brand-mark" aria-hidden="true"></span>
         Tiny Engineer
       </a>
       <nav class="nav" aria-label="Site">
-        <a href="flash/">Flash</a>
-        <a href="https://github.com/jamro/tiny-engineer">GitHub</a>
         <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/getting-started.md">Build</a>
+        <a href="flash/">Flash</a>
+        <a href="screens/">Screens</a>
+        <a href="https://github.com/jamro/tiny-engineer">GitHub</a>
       </nav>
     </header>
 
     <main>
-      <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Desk robot · ESP32-C3</p>
-          <h1>Your smallest engineering teammate.</h1>
-          <p class="lede">
-            A physical companion for AI coding agents. Flash over USB, then let it act out the work.
-          </p>
-          <div class="cta-row">
-            <a class="btn btn-primary" href="flash/">Flash firmware</a>
-            <a class="btn" href="https://github.com/jamro/tiny-engineer">GitHub</a>
+      <section class="hero-block" aria-labelledby="hero-title">
+        <div class="hero hero-home">
+          <div class="hero-copy">
+            <p class="eyebrow">Desk robot · ESP32-C3</p>
+            <h1 id="hero-title">Your smallest engineering teammate.</h1>
+            <p class="lede">
+              Stop watching the terminal. Your teammate will ring when the job’s done.
+            </p>
+            <div class="hero-actions">
+              <div class="cta-row">
+                <a class="btn btn-primary" href="https://github.com/jamro/tiny-engineer/blob/main/docs/getting-started.md">
+                  <svg class="icon" aria-hidden="true"><use href="media/icons.svg#i-wrench"></use></svg>
+                  Build one
+                </a>
+                <a class="btn" href="https://github.com/jamro/tiny-engineer/discussions/categories/show-and-tell">
+                  <svg class="icon" aria-hidden="true"><use href="media/icons.svg#i-users"></use></svg>
+                  Community builds
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <aside class="hero-media" aria-label="Demo video">
+            <div class="video-module">
+              <div class="video-frame" data-youtube-id="RX_QRxdXMjg">
+                <button type="button" class="video-poster" aria-label="Play Tiny Engineer demo">
+                  <img
+                    src="media/video_preview.jpg"
+                    width="1280"
+                    height="720"
+                    alt=""
+                    decoding="async"
+                    draggable="false"
+                  >
+                  <span class="video-play" aria-hidden="true"></span>
+                </button>
+              </div>
+              <div class="video-module-foot">
+                <span class="status-row">
+                  <span class="led led-ok led-pulse" aria-hidden="true"></span>
+                  <span class="mono device-status">LIVE DEMO</span>
+                </span>
+                <span class="mono device-sku">TE · C3</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <ul class="pose-strip" aria-label="Agent to robot mapping">
+          <li>
+            <svg class="icon icon-pose" aria-hidden="true"><use href="media/icons.svg#i-book"></use></svg>
+            <span class="pose-from">Reads</span><span class="pose-arrow" aria-hidden="true">→</span><span class="pose-to">looks around</span>
+          </li>
+          <li>
+            <svg class="icon icon-pose" aria-hidden="true"><use href="media/icons.svg#i-keyboard"></use></svg>
+            <span class="pose-from">Writes</span><span class="pose-arrow" aria-hidden="true">→</span><span class="pose-to">types</span>
+          </li>
+          <li>
+            <svg class="icon icon-pose" aria-hidden="true"><use href="media/icons.svg#i-brain"></use></svg>
+            <span class="pose-from">Thinks</span><span class="pose-arrow" aria-hidden="true">→</span><span class="pose-to">looks up</span>
+          </li>
+          <li>
+            <svg class="icon icon-pose" aria-hidden="true"><use href="media/icons.svg#i-bell"></use></svg>
+            <span class="pose-from">Done</span><span class="pose-arrow" aria-hidden="true">→</span><span class="pose-to">rings bell</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="home-section" id="control-it" aria-labelledby="control-it-title">
+        <div class="section-intro">
+          <h2 id="control-it-title">
+            <svg class="icon icon-heading" aria-hidden="true"><use href="media/icons.svg#i-terminal"></use></svg>
+            Control it
+          </h2>
+          <p class="section-lede">One CLI for the common IDEs. Any script that can POST works too.</p>
+        </div>
+
+        <div class="control-grid">
+          <div class="control-snippets">
+            <pre class="code-block" tabindex="0"><code><span class="code-prompt">$</span> npx -y tiny-engineer setup</code></pre>
+            <pre class="code-block code-block-last" tabindex="0"><code><span class="code-prompt">$</span> curl -X POST \
+    "http://tiny-engineer.local/anim?name=thinking"</code></pre>
+          </div>
+
+          <div class="table-scroll panel panel-inset control-map">
+            <table class="data-table data-table-mono">
+              <thead>
+                <tr>
+                  <th scope="col">You send</th>
+                  <th scope="col">Robot does</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>POST /anim?name=typing</code></td>
+                  <td>types</td>
+                </tr>
+                <tr>
+                  <td><code>POST /anim?name=reading</code></td>
+                  <td>reads</td>
+                </tr>
+                <tr>
+                  <td><code>POST /anim?name=thinking</code></td>
+                  <td>looks up</td>
+                </tr>
+                <tr>
+                  <td><code>POST /play</code></td>
+                  <td>speaks</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <aside class="device-module" aria-label="Device module">
-          <div class="device-module-inner">
-            <div class="device-top">
-              <span class="status-row">
-                <span class="led led-ok led-pulse" aria-hidden="true"></span>
-                <span class="mono device-status">READY TO FLASH</span>
-              </span>
-              <span class="mono device-sku">TE · C3</span>
-            </div>
+        <div class="control-foot">
+          <p class="muted ide-line">Cursor · Claude Code · Antigravity</p>
+          <p class="section-body">
+            Codex, Windsurf, CI, or a custom agent: <code class="mono">POST /anim</code> over Wi‑Fi, or USB serial when the network is locked down.
+          </p>
+          <p class="section-links section-links-inline">
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md">
+              <svg class="icon icon-inline" aria-hidden="true"><use href="media/icons.svg#i-plug"></use></svg>
+              Integrations →
+            </a>
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md">
+              <svg class="icon icon-inline" aria-hidden="true"><use href="media/icons.svg#i-code"></use></svg>
+              HTTP API →
+            </a>
+          </p>
+        </div>
+      </section>
 
-            <div class="device-body">
-              <p class="device-title">Tiny Engineer</p>
-              <p class="device-sub">USB flash · stock audio · REST poses</p>
+      <section class="home-section home-section-build" id="build" aria-labelledby="build-title">
+        <div class="section-intro">
+          <h2 id="build-title">
+            <svg class="icon icon-heading" aria-hidden="true"><use href="media/icons.svg#i-wrench"></use></svg>
+            Build your own
+          </h2>
+          <p class="section-lede funnel-line mono">Print → Connect → Flash → Assemble</p>
+        </div>
 
-              <div class="pin-row" aria-label="Hardware tags">
-                <span class="pin">ESP32-C3</span>
-                <span class="pin">PCA9685</span>
-                <span class="pin">I2S</span>
-                <span class="pin">OLED</span>
-              </div>
+        <div class="build-layout">
+          <ol class="build-steps">
+            <li>
+              <a class="build-step" href="https://github.com/jamro/tiny-engineer/blob/main/docs/getting-started.md">
+                <span class="build-step-icon" aria-hidden="true">
+                  <svg class="icon"><use href="media/icons.svg#i-checklist"></use></svg>
+                  <span class="build-step-num mono">01</span>
+                </span>
+                <span class="build-step-body">
+                  <span class="build-step-title">Full checklist</span>
+                  <span class="build-step-note">Getting started</span>
+                </span>
+                <span class="build-step-go mono" aria-hidden="true">→</span>
+              </a>
+            </li>
+            <li>
+              <a class="build-step" href="https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md">
+                <span class="build-step-icon" aria-hidden="true">
+                  <svg class="icon"><use href="media/icons.svg#i-package"></use></svg>
+                  <span class="build-step-num mono">02</span>
+                </span>
+                <span class="build-step-body">
+                  <span class="build-step-title">Parts</span>
+                  <span class="build-step-note">Shopping list</span>
+                </span>
+                <span class="build-step-go mono" aria-hidden="true">→</span>
+              </a>
+            </li>
+            <li>
+              <a class="build-step" href="flash/">
+                <span class="build-step-icon" aria-hidden="true">
+                  <svg class="icon"><use href="media/icons.svg#i-usb"></use></svg>
+                  <span class="build-step-num mono">03</span>
+                </span>
+                <span class="build-step-body">
+                  <span class="build-step-title">Flash</span>
+                  <span class="build-step-note">Browser install</span>
+                </span>
+                <span class="build-step-go mono" aria-hidden="true">→</span>
+              </a>
+            </li>
+            <li>
+              <a class="build-step" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md">
+                <span class="build-step-icon" aria-hidden="true">
+                  <svg class="icon"><use href="media/icons.svg#i-wrench"></use></svg>
+                  <span class="build-step-num mono">04</span>
+                </span>
+                <span class="build-step-body">
+                  <span class="build-step-title">Assemble</span>
+                  <span class="build-step-note">Mechanical joins</span>
+                </span>
+                <span class="build-step-go mono" aria-hidden="true">→</span>
+              </a>
+            </li>
+          </ol>
 
-              <div class="bus-line mono" aria-hidden="true">
-                ESP32-C3 <span class="bus-sep">──</span> I2C <span class="bus-sep">──</span> PCA9685
-              </div>
-            </div>
+          <figure class="media-frame build-photo">
+            <img
+              src="media/tiny-engineer-preview.jpg"
+              width="960"
+              height="720"
+              alt="Tiny Engineer desk robot with OLED face and servo arms"
+              loading="lazy"
+            >
+          </figure>
+        </div>
 
-            <dl class="meta-grid device-meta">
-              <dt>Bus</dt>
-              <dd>I2C · I2S · Wi-Fi</dd>
-              <dt>Flash</dt>
-              <dd><a href="flash/">/flash/</a></dd>
-            </dl>
+        <div class="build-foot">
+          <ul class="also-useful">
+            <li>No printer: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/order-parts.md">order printed parts</a></li>
+            <li>New to electronics: optional <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware-for-software-engineers/README.md">From Code to Circuits</a></li>
+            <li>Agent hooks after prove: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md">integrations</a></li>
+          </ul>
+
+          <div class="cta-row">
+            <a class="btn btn-primary" href="https://github.com/jamro/tiny-engineer/blob/main/docs/getting-started.md">
+              <svg class="icon" aria-hidden="true"><use href="media/icons.svg#i-wrench"></use></svg>
+              Build one
+            </a>
+            <a class="btn" href="https://github.com/jamro/tiny-engineer">
+              <svg class="icon" aria-hidden="true"><use href="media/icons.svg#i-star"></use></svg>
+              Star on GitHub
+            </a>
           </div>
-        </aside>
+        </div>
       </section>
     </main>
 
     <footer class="site-footer">
       <p>Built because software engineers apparently needed another coworker.</p>
+      <p class="footer-licenses">
+        Software <a href="https://github.com/jamro/tiny-engineer/blob/main/LICENSE">MIT</a>
+        · Hardware <a href="https://github.com/jamro/tiny-engineer/blob/main/LICENSING.md">CERN-OHL-S-2.0</a>
+        · Name and logo reserved
+      </p>
     </footer>
   </div>
+  <script src="js/video-poster.js" defer></script>
 </body>
 </html>

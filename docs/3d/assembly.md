@@ -175,7 +175,7 @@ Seat the **main control board** in `Desk`. This step mounts what you already con
 
 ## 14. Desk props — laptop, mug, bell
 
-1. **Laptop** — slide `LaptopScreen` into the pocket on the underside of `LaptopCase`. Place the laptop on the desk and fasten with one M2 screw from under the desk (M2×8 mm works).
+1. **Laptop** — slide `LaptopScreen` into the pocket on the underside of `LaptopCase`. Place the laptop on the desk and fasten with one M2 screw from under the desk (M2×8 mm works). Optional: put a printed paper screen in front of the plate — [laptop screen inserts](../../3d_models/laptop_screens/README.md).
 2. **Mug** — seat `Coffee` inside `Mug`. Place the mug in its dedicated spot on the desk and fasten the same way: one M2 screw from under the desk (M2×8 mm works).
 3. **Bell** — first drive the M2 screw fully into `Bell` alone (M2×16 mm works). Then, with the screw already in the bell, drive that screw down into the desk from above and secure with an M2 nut underneath.
 

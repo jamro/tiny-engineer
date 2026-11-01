@@ -1,0 +1,19 @@
+# title: Linux boot (Tux)
+# background: #0b0b0b
+# foreground: #d0d0d0
+# paper-dim: dim
+# color dim: #7f7f7f
+# color ok: #4ec94e
+# color tux: #f2f2f2
+# color feet: #ffb000
+{tux}    .--.{/}      {dim}[    0.000000] Linux version 6.12-te{/}
+{tux}   |o_o |{/}     {dim}[    0.412718] esp32: hello from below{/}
+{tux}   |:{feet}_{/}{tux}/ |{/}     [  {ok}OK{/}  ] Mounted /desk
+{tux}  //   \ \{/}    [  {ok}OK{/}  ] Started coffee.service
+{tux} (|     | ){/}   [  {ok}OK{/}  ] Started tiny-engineer.service
+{tux}/'\_   _/`\{/}   [  {ok}OK{/}  ] Reached target Productivity
+{tux}\{feet}___){/}{tux}={/}{feet}(___{/}{tux}/{/}
+
+tiny-engineer login: _
+
+{dim}Tux by Larry Ewing, made with The GIMP{/}

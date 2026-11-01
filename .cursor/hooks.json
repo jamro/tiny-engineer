@@ -71,6 +71,46 @@
         "timeout": 2
       }
     ],
+    "afterShellExecution": [
+      {
+        "command": ".cursor/hooks/tiny-engineer-cursor.sh",
+        "timeout": 30
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh afterShellExecution",
+        "timeout": 2
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": ".cursor/hooks/tiny-engineer-cursor.sh",
+        "timeout": 30
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh beforeMCPExecution",
+        "timeout": 2
+      }
+    ],
+    "afterMCPExecution": [
+      {
+        "command": ".cursor/hooks/tiny-engineer-cursor.sh",
+        "timeout": 30
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh afterMCPExecution",
+        "timeout": 2
+      }
+    ],
+    "postToolUseFailure": [
+      {
+        "command": ".cursor/hooks/tiny-engineer-cursor.sh",
+        "timeout": 30
+      },
+      {
+        "command": ".cursor/hooks/log-event.sh postToolUseFailure",
+        "timeout": 2
+      }
+    ],
     "subagentStart": [
       {
         "command": ".cursor/hooks/tiny-engineer-cursor.sh",

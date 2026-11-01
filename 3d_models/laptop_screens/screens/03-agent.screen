@@ -1,0 +1,19 @@
+# title: AI agent chat
+# background: #191919
+# foreground: #e6e6e6
+# paper-dim: dim
+# color you: #8ab4f8
+# color bot: #f0a868
+# color dim: #8a8a8a
+# color ok: #81c995
+{you}> fix the failing servo test{/}
+
+{bot}*{/} Reading test/servos/test_park.cpp
+{bot}*{/} The test expects the elbow to park at
+  0.0, but the default is now -0.1.
+{bot}*{/} Updating the expected value...
+{dim}  - TEST_ASSERT_EQUAL_FLOAT(0.0f, pose);{/}
+{ok}  + TEST_ASSERT_EQUAL_FLOAT(-0.1f, pose);{/}
+{bot}*{/} Ran pio test -e native: {ok}42 passed{/}
+
+{you}> {/}_

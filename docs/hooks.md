@@ -98,6 +98,30 @@ Use `timeout` **≥ 30** (cold `npx` can exceed 2s).
         "timeout": 30
       }
     ],
+    "afterShellExecution": [
+      {
+        "command": "npx -y tiny-engineer hook cursor",
+        "timeout": 30
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "npx -y tiny-engineer hook cursor",
+        "timeout": 30
+      }
+    ],
+    "afterMCPExecution": [
+      {
+        "command": "npx -y tiny-engineer hook cursor",
+        "timeout": 30
+      }
+    ],
+    "postToolUseFailure": [
+      {
+        "command": "npx -y tiny-engineer hook cursor",
+        "timeout": 30
+      }
+    ],
     "subagentStart": [
       {
         "command": "npx -y tiny-engineer hook cursor",
@@ -153,6 +177,10 @@ That shorthand makes npm fetch via **SSH** (`git@github.com:…`). Cursor hooks 
 | `preToolUse` (edit/search/shell tools) | `typing` | Agent is about to write, shell, search, task, etc. |
 | `beforeReadFile` | `reading` | File is about to be read |
 | `beforeShellExecution` | `typing` | Shell command is about to run |
+| `afterShellExecution` | `typing` | Shell command finished (`duration` excludes approval wait) |
+| `beforeMCPExecution` | `typing` | MCP tool is about to run |
+| `afterMCPExecution` | `typing` | MCP tool finished |
+| `postToolUseFailure` | `none` | Tool failed / timed out / denied (mapped to `none` — Cursor fires many false positives) |
 | `subagentStart` | `typing` | Subagent starts |
 | `afterFileEdit` | `typing` | Agent finished an edit |
 | `stop` (`status: completed` or missing) | `ring` | Agent turn completes |

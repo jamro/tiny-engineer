@@ -1,5 +1,7 @@
 # Hardware testing
 
+A produced main control board is checked with the [PCBA session](pcba-test.md), not this product boot. The golden module stays with the tester.
+
 Firmware is [`src/main.cpp`](../../src/main.cpp). Boot **inits** hardware and starts HTTP. Demos (OLED, tones, servo sweep) run on demand via REST. Helpers:
 
 - [`src/hardware/rgb.cpp`](../../src/hardware/rgb.cpp)

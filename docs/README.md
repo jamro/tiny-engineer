@@ -16,6 +16,7 @@ Pick a path. Depth lives in the linked pages.
 | **Print / parts inventory** | [../3d_models/README.md](../3d_models/README.md) |
 | **Order printed parts** (no 3D printer) | [3d/order-parts.md](3d/order-parts.md) |
 | **Order main control board** (PCB / PCBA) | [hardware/order-main-control-board.md](hardware/order-main-control-board.md) |
+| **Test a produced board** (PCBA, rev 3) | [hardware/pcba-test.md](hardware/pcba-test.md) |
 | **Adapt CAD to a different servo** | [3d/parametric-design.md](3d/parametric-design.md) |
 | **Add a new CAD / printable part** | [3d/adding-parts.md](3d/adding-parts.md) |
 | **Optional mods** | [../mods/README.md](../mods/README.md) |
@@ -34,6 +35,7 @@ Pick a path. Depth lives in the linked pages.
 | **AI coding agents (repo rules)** | [AGENTS.md](../AGENTS.md) |
 | **Contribute / report a vuln** | [CONTRIBUTING.md](../CONTRIBUTING.md); [SECURITY.md](../SECURITY.md) |
 | **Share a finished build** | [Show and tell](https://github.com/jamro/tiny-engineer/discussions/categories/show-and-tell) — [how to post](../CONTRIBUTING.md#share-your-build) |
+| **Public landing content** (tinyengineer.dev `/`) | [`web/landing-page.md`](../web/landing-page.md) — messaging brief; visuals in [`web/STYLE.md`](../web/STYLE.md) |
 
 Also: [robot-movement.md](robot-movement.md) (servo axes and safe ranges); optional [macos-lock-unlock.md](macos-lock-unlock.md) (sleep/wake on Mac screen lock).
 

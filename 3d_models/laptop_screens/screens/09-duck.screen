@@ -1,0 +1,18 @@
+# title: Rubber duck debugging
+# background: #10151c
+# foreground: #d8dee9
+# paper-dim: dim
+# color dim: #7b8494
+# color duck: #ffd23f
+# color beak: #ff8c42
+{dim}$ explain --to duck src/servos/park.cpp{/}
+
+{duck}          __{/}
+        {beak}<{/}{duck}(o )___{/}       So the elbow parks at 0.0
+{duck}         ( ._> /{/}       because the default is...
+{duck}          `---'{/}
+
+                       ...-0.1. Oh.
+                       Never mind. Thanks, duck.
+
+{dim}duck: *squeak*{/}

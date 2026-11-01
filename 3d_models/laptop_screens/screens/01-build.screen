@@ -1,0 +1,21 @@
+# title: Build output
+# background: #0d1117
+# foreground: #c9d1d9
+# paper-dim: dim
+# color dim: #6e7681
+# color ok: #3fb950
+# color cmd: #79c0ff
+# color warn: #d29922
+{cmd}~/tiny-engineer${/} pio run
+{dim}Processing esp32-c3-devkitm-1 (espressif32){/}
+{dim}-------------------------------------------{/}
+Compiling .pio/build/src/anim/poses.cpp.o
+Compiling .pio/build/src/http/routes.cpp.o
+Compiling .pio/build/src/servos/park.cpp.o
+Linking .pio/build/firmware.elf
+{warn}Checking size .pio/build/firmware.elf{/}
+RAM:   [==        ]  17.4% (57012 bytes)
+Flash: [=====     ]  52.1% (1023890 bytes)
+Building .pio/build/firmware.bin
+{ok}========== [SUCCESS] Took 12.84 seconds =========={/}
+{cmd}~/tiny-engineer${/} _

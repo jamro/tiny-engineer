@@ -27,8 +27,13 @@ const EVENT_ANIM = {
   afterAgentThought: "thinking",
   preCompact: "thinking",
   beforeShellExecution: "typing",
+  afterShellExecution: "typing",
+  beforeMCPExecution: "typing",
+  afterMCPExecution: "typing",
   subagentStart: "typing",
   afterFileEdit: "typing",
+  // Cursor fires this often on non-errors (timeouts, cancelled tools, etc.).
+  postToolUseFailure: "none",
 };
 
 /**

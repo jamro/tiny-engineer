@@ -13,6 +13,10 @@ test("planInstall lists cursor events", () => {
   assert.equal(plan.ide, "cursor");
   assert.ok(plan.events.includes("stop"));
   assert.ok(plan.events.includes("afterFileEdit"));
+  assert.ok(plan.events.includes("afterShellExecution"));
+  assert.ok(plan.events.includes("beforeMCPExecution"));
+  assert.ok(plan.events.includes("afterMCPExecution"));
+  assert.ok(plan.events.includes("postToolUseFailure"));
   assert.equal(plan.commandPreview, ctx.cliCommand);
 });
 
