@@ -1,8 +1,8 @@
 import { resolve } from "node:path";
 
 import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
+import { serialPlay, serialRequest } from "../daemon/robot.js";
 import { formatRobotError, postAnim, postPlay, robotFetch } from "./client.js";
-import { serialRequest } from "./serial/client.js";
 
 /**
  * @typedef {{
@@ -73,8 +73,7 @@ export async function robotPlay(opts) {
       return { ok: false, error: "serial play needs a WAV file path", target: "serial" };
     }
     try {
-      const { daemonPlay } = await import("../daemon/client.js");
-      const body = await daemonPlay({
+      const body = await serialPlay({
         path: resolve(opts.wavPath),
         name: opts.name ?? "talking",
         port: opts.port ?? null,

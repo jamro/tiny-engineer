@@ -1,6 +1,6 @@
 import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
+import { serialRequest } from "../daemon/robot.js";
 import { robotFetch } from "./client.js";
-import { serialRequest } from "./serial/client.js";
 
 /**
  * @typedef {{ transport?: string, url?: string, port?: string | null }} TransportOpts
