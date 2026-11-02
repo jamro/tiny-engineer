@@ -2079,3 +2079,62 @@ esp-web-install-button .button,
 .asm-outline button[aria-current="true"] {
   color: var(--accent);
 }
+
+.asm-joints {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.asm-joints-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.6rem;
+}
+
+.asm-joints-head .select {
+  width: auto;
+  min-height: 2.1rem;
+  padding-block: 0.25rem;
+}
+
+.asm-joints-head .btn {
+  min-height: 2.1rem;
+  padding: 0.35rem 0.8rem;
+}
+
+.asm-joints-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.asm-joint-sliders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.4rem 1rem;
+}
+
+.asm-joint {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr 2.6rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.86rem;
+}
+
+.asm-joint input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.asm-joint output {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-align: right;
+}

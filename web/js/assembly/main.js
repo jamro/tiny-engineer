@@ -6,6 +6,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createStage, smoothNormals } from './stage.js';
 import { PALETTE, TRANSLUCENT, decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors } from './colors.js';
 import { createBuild } from './build.js';
+import { rig } from './joints.js';
+import { ANIMATIONS, CENTRE, JOINT_IDS, blendPoses, normalizePose } from './poses.js';
 
 const PRESET = 'sg90';
 const MODEL_URL = `models/${PRESET}.glb`;
@@ -140,6 +142,11 @@ async function main() {
     part.explode = offset.multiplyScalar(EXPLODE_SCALE);
   }
   stage.frame(robotBox);
+
+  // Servo joints: parts move under pivots on the shafts; positions are now in
+  // the pivots' frames.
+  const joints = rig(root, new Map(parts.map((part) => [part.id, part.node])));
+  for (const part of parts) part.base = part.node.position.clone();
 
   let changes = readSavedColors(parts);
   let colors = resolveColors(parts, changes);
@@ -281,12 +288,23 @@ async function main() {
   const explode = $('#asm-explode');
   const electronics = $('#asm-electronics');
   let build = null;
+  const rootRotation = new THREE.Quaternion();
+  const parentRotation = new THREE.Quaternion();
+  const shift = new THREE.Vector3();
   function layout() {
     const amount = Number(explode.value) / 100;
+    root.getWorldQuaternion(rootRotation).invert();
     for (const part of parts) {
-      part.node.position.copy(part.base).addScaledVector(part.explode, amount);
+      // Explode and step offsets are in the CAD frame; turn them into the
+      // frame of the joint the part hangs on.
+      shift.copy(part.explode).multiplyScalar(amount);
       const offset = build?.offsetOf(part.id);
-      if (offset) part.node.position.add(offset);
+      if (offset) shift.add(offset);
+      if (part.node.parent !== root) {
+        part.node.parent.getWorldQuaternion(parentRotation).premultiply(rootRotation).invert();
+        shift.applyQuaternion(parentRotation);
+      }
+      part.node.position.copy(part.base).add(shift);
       part.node.visible = (build ? build.shown(part.id) : true) && (part.kind !== 'hardware' || electronics.checked);
       const ghost = build?.ghost(part.id) ?? false;
       const material = part.mesh.material;
@@ -303,6 +321,78 @@ async function main() {
   explode.addEventListener('change', () => stage.refit(new THREE.Box3().setFromObject(root)));
   electronics.addEventListener('change', layout);
 
+  // Joints: sliders per servo, a few animation loops built from the firmware's poses.
+  const sliders = new Map();
+  const range = $('#asm-range');
+  const animSelect = $('#asm-anim');
+  const animPlay = $('#asm-anim-play');
+  let pose = { ...CENTRE };
+  let stopAnimation = null;
+  const applyPose = (next) => {
+    pose = normalizePose(next);
+    for (const id of JOINT_IDS) {
+      joints.set(id, pose[id], Number(range.value));
+      const slider = sliders.get(id);
+      if (slider) {
+        slider.input.value = String(Math.round(pose[id] * 100));
+        slider.output.value = pose[id].toFixed(2);
+      }
+    }
+    layout();
+  };
+  const stopPlaying = () => {
+    if (stopAnimation) stopAnimation();
+    stopAnimation = null;
+    animPlay.textContent = 'Play';
+    animPlay.setAttribute('aria-pressed', 'false');
+  };
+  const play = (name) => {
+    stopPlaying();
+    const animation = ANIMATIONS[name];
+    if (!animation) return;
+    const start = performance.now();
+    const from = { ...pose };
+    stopAnimation = stage.onTick((time) => {
+      const t = (time - start) / 1000;
+      // Ease in from the current pose over the first half second.
+      applyPose(blendPoses(from, normalizePose(animation.pose(t)), Math.min(1, t / 0.5)));
+      return true;
+    });
+    animPlay.textContent = 'Pause';
+    animPlay.setAttribute('aria-pressed', 'true');
+  };
+  if (joints.joints.length) {
+    $('#asm-joints').hidden = false;
+    for (const [name, animation] of Object.entries(ANIMATIONS)) animSelect.add(new Option(animation.label, name));
+    const holder = $('#asm-joint-sliders');
+    for (const joint of joints.joints) {
+      const row = document.createElement('label');
+      row.className = 'asm-joint';
+      row.title = `${joint.hint} · servo ${joint.index}`;
+      const name = document.createElement('span');
+      name.textContent = joint.label;
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.min = '-100';
+      input.max = '100';
+      input.value = '0';
+      input.setAttribute('aria-label', `${joint.label} (${joint.hint})`);
+      const output = document.createElement('output');
+      output.value = '0.00';
+      input.addEventListener('input', () => {
+        stopPlaying();
+        applyPose({ ...pose, [joint.id]: Number(input.value) / 100 });
+      });
+      row.append(name, input, output);
+      holder.append(row);
+      sliders.set(joint.id, { input, output });
+    }
+    animPlay.addEventListener('click', () => (stopAnimation ? stopPlaying() : play(animSelect.value)));
+    animSelect.addEventListener('change', () => { if (stopAnimation) play(animSelect.value); });
+    $('#asm-pose-centre').addEventListener('click', () => { stopPlaying(); applyPose(CENTRE); });
+    range.addEventListener('change', () => applyPose(pose));
+  }
+
   // Build steps and colour tabs.
   const tabs = { build: $('#asm-tab-build'), colors: $('#asm-tab-colors') };
   const panels = { build: $('#asm-build'), colors: $('#asm-colors') };
@@ -318,6 +408,10 @@ async function main() {
       onActive: (on) => {
         $('#asm-build-intro').hidden = on;
         $('#asm-build-player').hidden = !on;
+        // Steps show the robot as assembled: every servo at 90°.
+        if (on) { stopPlaying(); applyPose(CENTRE); }
+        $('#asm-joints').classList.toggle('is-disabled', on);
+        for (const control of $('#asm-joints').querySelectorAll('input, select, button')) control.disabled = on;
       },
       elements: {
         section: $('#asm-step-section'), title: $('#asm-step-title'), text: $('#asm-step-text'),
@@ -400,6 +494,10 @@ async function main() {
     get parts() { return parts.map(({ id, kind, printGroup, node }) => ({ id, kind, printGroup, color: colors[id], visible: node.visible })); },
     select,
     setColor,
+    get pose() { return { ...pose }; },
+    applyPose,
+    play,
+    stopPlaying,
     get build() { return build && { active: build.active, index: build.index, count: build.steps.length, go: build.go }; },
     stage,
   };

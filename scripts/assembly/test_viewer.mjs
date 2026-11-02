@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { flatten, sceneAt, startOffset, validate } from '../../web/js/assembly/steps.js';
+import { ANIMATIONS, CENTRE, JOINT_IDS, REST, blendPoses, normalizePose } from '../../web/js/assembly/poses.js';
 import { decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors, GROUP_COLORS, HARDWARE_COLORS } from '../../web/js/assembly/colors.js';
 
 const parts = [
@@ -74,5 +75,22 @@ assert.ok(validate(twice, ['Head', 'Hat', 'Desk']).some((problem) => problem.inc
 const shipped = JSON.parse(readFileSync(new URL('../../web/assembly/steps.json', import.meta.url), 'utf8'));
 const shippedIds = [...new Set(flatten(shipped).flatMap((step) => step.add))];
 assert.deepEqual(validate(shipped, shippedIds), []);
+
+// Poses.
+assert.deepEqual(normalizePose({ head: 3, neck: -2, body: 'x' }), { head: 1, neck: -1, 'hand-left': 0, 'hand-right': 0, body: 0 });
+assert.deepEqual(blendPoses(CENTRE, REST, 1), { ...REST });
+assert.equal(blendPoses(CENTRE, REST, 0.5)['hand-left'], 0.5);
+// Rest: both hands down over the keyboard (left at max, right at min).
+assert.equal(REST['hand-left'], 1);
+assert.equal(REST['hand-right'], -1);
+for (const [name, animation] of Object.entries(ANIMATIONS)) {
+  for (let t = 0; t < 10; t += 0.13) {
+    const pose = animation.pose(t);
+    for (const id of JOINT_IDS) {
+      assert.ok(Number.isFinite(pose[id]), `${name} ${id} at ${t}`);
+      assert.ok(pose[id] >= -1 - 1e-9 && pose[id] <= 1 + 1e-9, `${name} ${id} = ${pose[id]} at ${t}`);
+    }
+  }
+}
 
 console.log('viewer tests passed');
