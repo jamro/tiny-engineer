@@ -40,7 +40,7 @@
         <p class="eyebrow">3D · SG90 preset</p>
         <h1>Assembly</h1>
         <p class="lede">
-          The robot from the meshes you print. Click a part to colour it, or colour a whole print set, then share the link.
+          The robot from the meshes you print. Walk through the build step by step, or colour every part and share the link.
         </p>
       </div>
 
@@ -61,7 +61,46 @@
           </div>
         </section>
 
-        <aside class="panel asm-side" aria-label="Parts and colours">
+        <aside class="panel asm-side" aria-label="Build steps and colours">
+          <div class="asm-tabs" role="tablist" aria-label="Mode">
+            <button id="asm-tab-build" class="asm-tab" type="button" role="tab" aria-selected="true" aria-controls="asm-build">Build steps</button>
+            <button id="asm-tab-colors" class="asm-tab" type="button" role="tab" aria-selected="false" aria-controls="asm-colors">Colours</button>
+          </div>
+
+          <div id="asm-build" class="asm-build" role="tabpanel" aria-labelledby="asm-tab-build">
+            <div id="asm-build-intro" class="asm-build-intro">
+              <h2 class="asm-step-title">Build it step by step</h2>
+              <p id="asm-build-summary" class="asm-step-text">Follows the assembly guide, one small step at a time: each step shows the robot so far and slides the new parts in.</p>
+              <button id="asm-build-start" class="btn btn-primary" type="button">Start building</button>
+            </div>
+            <div id="asm-build-player" class="asm-build-player" hidden>
+            <div class="asm-step-head">
+              <p id="asm-step-counter" class="panel-label">Step 1</p>
+              <progress id="asm-step-progress" value="1" max="1"></progress>
+            </div>
+            <p id="asm-step-section" class="asm-step-section mono"></p>
+            <h2 id="asm-step-title" class="asm-step-title"></h2>
+            <p id="asm-step-text" class="asm-step-text"></p>
+            <p id="asm-step-adds" class="hint mono"></p>
+            <p id="asm-step-screws" class="asm-step-screws mono"></p>
+            <div class="asm-step-nav">
+              <button id="asm-step-prev" class="btn" type="button">← Back</button>
+              <button id="asm-step-play" class="btn btn-ghost" type="button" aria-pressed="false">Play</button>
+              <button id="asm-step-next" class="btn btn-primary" type="button">Next →</button>
+            </div>
+            <a id="asm-step-photo" class="asm-step-photo" href="#" target="_blank" rel="noopener" hidden>
+              <img id="asm-step-photo-image" alt="" loading="lazy">
+            </a>
+            <p class="hint"><a id="asm-step-doc" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md" target="_blank" rel="noopener">This section in the assembly guide</a> · ← → keys step through.</p>
+            <button id="asm-build-exit" class="btn btn-ghost" type="button">Show the finished robot</button>
+            </div>
+            <details class="asm-outline">
+              <summary>All sections</summary>
+              <ol id="asm-step-outline"></ol>
+            </details>
+          </div>
+
+          <div id="asm-colors" class="asm-colors" role="tabpanel" aria-labelledby="asm-tab-colors" hidden>
           <div class="asm-side-head">
             <p class="panel-label">Parts</p>
             <div class="asm-side-actions">
@@ -90,6 +129,7 @@
 
           <div id="asm-parts" class="asm-parts"></div>
           <p class="hint">Colours as designed: copper set, black set, white diffuser. Print sets: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/order-parts.md">order printed parts</a>.</p>
+          </div>
         </aside>
       </div>
     </main>

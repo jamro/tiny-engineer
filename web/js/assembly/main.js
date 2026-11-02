@@ -5,9 +5,13 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createStage, smoothNormals } from './stage.js';
 import { PALETTE, TRANSLUCENT, decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors } from './colors.js';
+import { createBuild } from './build.js';
 
 const PRESET = 'sg90';
 const MODEL_URL = `models/${PRESET}.glb`;
+const STEPS_URL = 'steps.json';
+/** Opacity of a part drawn as a ghost (see-through) in a build step. */
+const GHOST_OPACITY = 0.16;
 const STORAGE_KEY = 'te-assembly-colors';
 const GROUP_TITLES = {
   PartsSetA: 'Copper set',
@@ -32,8 +36,20 @@ export function partLabel(id) {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+const hashParams = () => new URLSearchParams(location.hash.slice(1));
+
+/** Set (or with null, remove) one parameter of the URL hash, keeping the others. */
+function setHashParam(key, value) {
+  const params = hashParams();
+  if (value === null || value === '') params.delete(key);
+  else params.set(key, value);
+  const url = new URL(location.href);
+  url.hash = params.toString().replace(/%7E/gi, '~');
+  history.replaceState(null, '', url);
+}
+
 function readSavedColors(parts) {
-  const hash = new URLSearchParams(location.hash.slice(1)).get('c');
+  const hash = hashParams().get('c');
   if (hash !== null) return decodeColors(hash, parts);
   try {
     return decodeColors(localStorage.getItem(STORAGE_KEY) ?? '', parts);
@@ -44,9 +60,7 @@ function readSavedColors(parts) {
 
 function saveColors(parts, changes) {
   const encoded = encodeColors(parts, changes);
-  const url = new URL(location.href);
-  url.hash = encoded ? `c=${encoded}` : '';
-  history.replaceState(null, '', url);
+  setHashParam('c', encoded || null);
   try { localStorage.setItem(STORAGE_KEY, encoded); } catch { /* private mode */ }
 }
 
@@ -65,10 +79,13 @@ async function main() {
   }
 
   let gltf;
+  let stepData = null;
   try {
+    const stepsRequest = fetch(STEPS_URL).then((response) => (response.ok ? response.json() : null)).catch(() => null);
     gltf = await new GLTFLoader().loadAsync(MODEL_URL, (event) => {
       if (event.total) status.textContent = `Loading model… ${Math.round((event.loaded / event.total) * 100)} %`;
     });
+    stepData = await stepsRequest;
   } catch (error) {
     status.textContent = `Could not load the model (${MODEL_URL}). ${error?.message ?? ''}`;
     status.dataset.state = 'error';
@@ -107,6 +124,7 @@ async function main() {
     part.mesh.receiveShadow = true;
     part.mesh.userData.partId = part.id;
     part.base = part.node.position.clone();
+    part.opacity = part.mesh.material.opacity;
   }
   stage.content.add(gltf.scene);
   gltf.scene.updateMatrixWorld(true);
@@ -259,19 +277,85 @@ async function main() {
     if (id) document.querySelector(`[data-part="${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'nearest' });
   });
 
-  // Explode.
+  // Where every part is and whether it shows: explode, the build step, the electronics toggle.
   const explode = $('#asm-explode');
-  const applyExplode = () => {
+  const electronics = $('#asm-electronics');
+  let build = null;
+  function layout() {
     const amount = Number(explode.value) / 100;
-    for (const part of parts) part.node.position.copy(part.base).addScaledVector(part.explode, amount);
+    for (const part of parts) {
+      part.node.position.copy(part.base).addScaledVector(part.explode, amount);
+      const offset = build?.offsetOf(part.id);
+      if (offset) part.node.position.add(offset);
+      part.node.visible = (build ? build.shown(part.id) : true) && (part.kind !== 'hardware' || electronics.checked);
+      const ghost = build?.ghost(part.id) ?? false;
+      const material = part.mesh.material;
+      const transparent = ghost || part.opacity < 1;
+      if (material.transparent !== transparent) material.needsUpdate = true;
+      material.transparent = transparent;
+      material.opacity = ghost ? GHOST_OPACITY : part.opacity;
+      material.depthWrite = !ghost;
+      part.mesh.castShadow = !ghost;
+    }
     stage.invalidate();
-  };
-  explode.addEventListener('input', applyExplode);
+  }
+  explode.addEventListener('input', layout);
   explode.addEventListener('change', () => stage.refit(new THREE.Box3().setFromObject(root)));
+  electronics.addEventListener('change', layout);
 
-  $('#asm-electronics').addEventListener('change', (event) => {
-    for (const part of parts) if (part.kind === 'hardware') part.node.visible = event.target.checked;
-    stage.invalidate();
+  // Build steps and colour tabs.
+  const tabs = { build: $('#asm-tab-build'), colors: $('#asm-tab-colors') };
+  const panels = { build: $('#asm-build'), colors: $('#asm-colors') };
+  if (stepData) {
+    build = createBuild({
+      data: stepData,
+      parts,
+      stage,
+      root,
+      layout,
+      label: partLabel,
+      onStep: (index) => setHashParam('s', String(index + 1)),
+      onActive: (on) => {
+        $('#asm-build-intro').hidden = on;
+        $('#asm-build-player').hidden = !on;
+      },
+      elements: {
+        section: $('#asm-step-section'), title: $('#asm-step-title'), text: $('#asm-step-text'),
+        counter: $('#asm-step-counter'), progress: $('#asm-step-progress'), screws: $('#asm-step-screws'),
+        adds: $('#asm-step-adds'), doc: $('#asm-step-doc'), photo: $('#asm-step-photo'),
+        photoImage: $('#asm-step-photo-image'), prev: $('#asm-step-prev'), next: $('#asm-step-next'),
+        play: $('#asm-step-play'), outline: $('#asm-step-outline'),
+      },
+    });
+  } else {
+    tabs.build.hidden = true;
+  }
+  const setBuilding = (on, at) => {
+    if (!build) return;
+    if (on) build.setActive(true, at);
+    else if (build.active) {
+      build.setActive(false);
+      setHashParam('s', null);
+    }
+  };
+  const showTab = (name) => {
+    for (const key of Object.keys(tabs)) {
+      tabs[key].setAttribute('aria-selected', String(key === name));
+      panels[key].hidden = key !== name;
+    }
+    if (name === 'colors') setBuilding(false);
+  };
+  if (build) {
+    $('#asm-build-summary').textContent = `${stepData.sections.length} sections, ${build.steps.length} steps, following the assembly guide. Each step shows the robot so far and slides the new parts in.`;
+    $('#asm-build-start').addEventListener('click', () => setBuilding(true, 0));
+    $('#asm-build-exit').addEventListener('click', () => setBuilding(false));
+  }
+  tabs.build.addEventListener('click', () => showTab('build'));
+  tabs.colors.addEventListener('click', () => showTab('colors'));
+  document.addEventListener('keydown', (event) => {
+    if (!build?.active || event.target.closest?.('input, textarea, select')) return;
+    if (event.key === 'ArrowRight') { build.next(); event.preventDefault(); }
+    if (event.key === 'ArrowLeft') { build.prev(); event.preventDefault(); }
   });
   $('#asm-reset-view').addEventListener('click', () => stage.reset());
   $('#asm-reset-colors').addEventListener('click', () => {
@@ -299,6 +383,15 @@ async function main() {
   });
 
   applyColors();
+  // A link to a step (#s=12) opens it; a link with colours opens the colours.
+  const linkedStep = Number(hashParams().get('s'));
+  if (build && linkedStep) {
+    showTab('build');
+    setBuilding(true, linkedStep - 1);
+  } else {
+    showTab(build && !hashParams().get('c') ? 'build' : 'colors');
+    layout();
+  }
   status.textContent = `${parts.filter((part) => part.kind !== 'hardware').length} printed parts · ${parts.filter((part) => part.kind === 'hardware').length} electronics · ${PRESET.toUpperCase()}`;
   status.dataset.state = 'ready';
   document.body.dataset.ready = 'true';
@@ -307,6 +400,7 @@ async function main() {
     get parts() { return parts.map(({ id, kind, printGroup, node }) => ({ id, kind, printGroup, color: colors[id], visible: node.visible })); },
     select,
     setColor,
+    get build() { return build && { active: build.active, index: build.index, count: build.steps.length, go: build.go }; },
     stage,
   };
 }

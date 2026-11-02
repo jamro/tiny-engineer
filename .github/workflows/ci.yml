@@ -122,6 +122,8 @@ jobs:
           node scripts/assembly/test_viewer.mjs
       - name: Extract SG90 assembly
         run: python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
+      - name: Assembly steps cover every part
+        run: node scripts/assembly/check_steps.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
       - name: Build SG90 GLB
         run: node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb
       - name: Upload assembly model

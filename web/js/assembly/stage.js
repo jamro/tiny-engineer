@@ -77,6 +77,7 @@ export function createStage(element, label) {
   };
 
   let framed = null;
+  let flight = null;
   let userMoved = false;
   controls.addEventListener('start', () => { userMoved = true; });
 
@@ -128,6 +129,33 @@ export function createStage(element, label) {
 
   return {
     renderer, scene, camera, controls, content, invalidate, reset, frame,
+    /**
+     * Glide the camera to frame `box`, keeping the direction it looks from.
+     * `margin` scales the distance (1 = fits snugly).
+     */
+    flyTo(box, { duration = 700, margin = 1.35, minRadius = 30 } = {}) {
+      const size = box.getSize(new THREE.Vector3());
+      const centre = box.getCenter(new THREE.Vector3());
+      const vertical = THREE.MathUtils.degToRad(camera.fov);
+      const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * camera.aspect);
+      const radius = Math.max(size.length() / 2, minRadius);
+      const distance = Math.min(controls.maxDistance, (radius / Math.sin(Math.min(vertical, horizontal) / 2)) * margin * 0.75);
+      const direction = camera.position.clone().sub(controls.target).normalize();
+      const fromPosition = camera.position.clone();
+      const fromTarget = controls.target.clone();
+      const toPosition = centre.clone().addScaledVector(direction, distance);
+      const start = performance.now();
+      if (flight) flight();
+      const remove = this.onTick((time) => {
+        const f = Math.min(1, (time - start) / duration);
+        const e = f * f * (3 - 2 * f);
+        camera.position.lerpVectors(fromPosition, toPosition, e);
+        controls.target.lerpVectors(fromTarget, centre, e);
+        if (f >= 1) { remove(); flight = null; }
+        return true;
+      });
+      flight = remove;
+    },
     /** Frame `box` again unless the user has moved the camera since the last framing. */
     refit(box) { if (!userMoved) frame(box, { keepFloor: true }); },
     /** Calls `tick(time)` every frame; a true return redraws. Returns a remover. */

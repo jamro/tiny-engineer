@@ -129,6 +129,7 @@ Commit and PR title: `type(mods): summary` — name the mod in the summary. `fea
 ## Checklist
 
 - [ ] Source of truth: `.f3d` edited; exports re-generated (no hand-edited meshes)
+- [ ] 3D viewer: part added to a step in [`web/assembly/steps.json`](../../web/assembly/steps.json) (CI fails otherwise; [assembly-viewer.md](assembly-viewer.md))
 - [ ] Naming: component = `PRINT_LAYOUT` child = export basename = README parts table
 - [ ] Parametric (user params / referenced geometry); works for all presets
 - [ ] No invented `servos.json` keys (Fusion user params first)
