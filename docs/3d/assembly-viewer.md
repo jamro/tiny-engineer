@@ -1,6 +1,6 @@
 # 3D assembly model
 
-A 3D model of the assembled robot, made from the same meshes you print, for a browser assembly viewer. CI builds it from the repository. Nothing generated is committed.
+The **[assembly viewer](https://jamro.github.io/tiny-engineer/assembly/)** shows the robot assembled from the same meshes you print. CI builds its 3D model from the repository. Nothing generated is committed.
 
 ```mermaid
 flowchart LR
@@ -13,6 +13,16 @@ flowchart LR
   stl --> extract
   extract --> json --> glb
 ```
+
+## Viewer
+
+[`web/assembly/`](../../web/assembly/) on GitHub Pages, plain ES modules in [`web/js/assembly/`](../../web/js/assembly/), with Three.js from a CDN. It loads `models/sg90.glb`, which the [Pages workflow](../../.github/workflows/pages.yml) builds on deploy.
+
+- **Colours:** click a part, or its name in the list, and pick a filament colour or a custom one. Each print set (copper `PartsSetA`, black `PartsSetB`) has one control for all its parts. Defaults are the colours as designed ([order-parts.md](order-parts.md)).
+- **Share:** changed colours live in the URL hash (`#c=Head.c8312c~Hat.c8312c`) and in the browser's storage. **Copy link** copies the URL.
+- **Explode** spreads the parts out. **Electronics** hides the servos, OLED and control board.
+
+Local preview: build the GLB into `web/assembly/models/sg90.glb` (commands below), then `python3 -m http.server -d web 8000` and open `http://localhost:8000/assembly/`.
 
 ## How placements are found
 
@@ -45,10 +55,11 @@ python3 -m venv .venv && .venv/bin/pip install -r scripts/assembly/requirements.
 .venv/bin/python scripts/assembly/test_assembly.py
 node scripts/assembly/test_build_glb.mjs
 .venv/bin/python scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
-node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb
+node scripts/assembly/test_viewer.mjs
+node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json web/assembly/models/sg90.glb
 ```
 
-`artifacts/` is git-ignored. CI runs the same commands (`assembly` job) and uploads `assembly.json` and the GLB as the `assembly-<sha>` artifact.
+`artifacts/` and `web/assembly/models/` are git-ignored. CI runs the same commands (`assembly` job) and uploads `assembly.json` and the GLB as the `assembly-<sha>` artifact.
 
 ### `assembly.json`
 

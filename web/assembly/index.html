@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assembly · Tiny Engineer</title>
+  <meta name="description" content="Tiny Engineer assembled in 3D, from the same meshes you print. Pick a colour for every part and share the result.">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="../js/assembly/main.js"></script>
+</head>
+<body class="page-assembly">
+  <div class="wrap">
+    <header class="site-header">
+      <a class="brand" href="../">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Tiny Engineer
+      </a>
+      <nav class="nav" aria-label="Site">
+        <a href="../flash/">Flash</a>
+        <a href="../screens/">Screens</a>
+        <a href="./" aria-current="page">Assembly</a>
+        <a href="https://github.com/jamro/tiny-engineer">GitHub</a>
+        <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md">Docs</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="flash-intro">
+        <p class="eyebrow">3D · SG90 preset</p>
+        <h1>Assembly</h1>
+        <p class="lede">
+          The robot from the meshes you print. Click a part to colour it, or colour a whole print set, then share the link.
+        </p>
+      </div>
+
+      <div class="asm-layout">
+        <section class="panel asm-view" aria-label="3D view">
+          <div id="asm-stage" class="asm-stage"></div>
+          <p id="asm-status" class="asm-status mono" role="status" data-state="loading">Loading model…</p>
+          <div class="asm-toolbar">
+            <label class="asm-range" for="asm-explode">
+              <span class="field-label">Explode</span>
+              <input id="asm-explode" type="range" min="0" max="100" value="0">
+            </label>
+            <label class="asm-check" for="asm-electronics">
+              <input id="asm-electronics" type="checkbox" checked>
+              <span>Electronics</span>
+            </label>
+            <button id="asm-reset-view" class="btn btn-ghost" type="button">Reset view</button>
+          </div>
+        </section>
+
+        <aside class="panel asm-side" aria-label="Parts and colours">
+          <div class="asm-side-head">
+            <p class="panel-label">Parts</p>
+            <div class="asm-side-actions">
+              <button id="asm-reset-colors" class="btn btn-ghost" type="button">Reset colours</button>
+              <button id="asm-share" class="btn" type="button">Copy link</button>
+            </div>
+          </div>
+
+          <div id="asm-detail" class="asm-detail" hidden>
+            <div class="asm-detail-head">
+              <div>
+                <p id="asm-detail-name" class="asm-detail-name"></p>
+                <p id="asm-detail-meta" class="hint mono"></p>
+              </div>
+              <button id="asm-detail-close" class="btn btn-ghost" type="button" aria-label="Close">×</button>
+            </div>
+            <div class="asm-palette" role="group" aria-label="Filament colours"></div>
+            <div class="asm-detail-row">
+              <label class="asm-custom" for="asm-detail-custom">
+                <input id="asm-detail-custom" type="color">
+                <span>Custom colour</span>
+              </label>
+              <button id="asm-detail-reset" class="btn btn-ghost" type="button">As designed</button>
+            </div>
+          </div>
+
+          <div id="asm-parts" class="asm-parts"></div>
+          <p class="hint">Colours as designed: copper set, black set, white diffuser. Print sets: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/order-parts.md">order printed parts</a>.</p>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p class="mono">Model built from <a href="https://github.com/jamro/tiny-engineer/tree/main/3d_models">3d_models/</a> · CERN-OHL-S-2.0</p>
+    </footer>
+  </div>
+</body>
+</html>

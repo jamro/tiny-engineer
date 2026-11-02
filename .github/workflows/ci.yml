@@ -119,6 +119,7 @@ jobs:
         run: |
           python3 scripts/assembly/test_assembly.py
           node scripts/assembly/test_build_glb.mjs
+          node scripts/assembly/test_viewer.mjs
       - name: Extract SG90 assembly
         run: python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
       - name: Build SG90 GLB

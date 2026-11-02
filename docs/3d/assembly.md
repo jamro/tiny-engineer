@@ -4,6 +4,8 @@ How to join the printed parts and seat the five micro servos. Use **M2 screws** 
 
 Follow [getting-started.md](../getting-started.md) for overall build order; this file is the mechanical procedure. Start here **after** connecting and flashing.
 
+See the robot assembled in 3D, and try colours for every part: [assembly viewer](https://jamro.github.io/tiny-engineer/assembly/).
+
 Screw lengths called out below (M2×4 / ×8 / ×16) match the reference list. If you substitute nearby lengths, **test-fit** first. Totals: [3d_models/README.md → Screws](../../3d_models/README.md#screws). Buyer cart: [shopping.md](../shopping.md).
 
 **Before you start:** the main control board is connected on the desk and firmware is flashed ([main-control-board.md](../hardware/main-control-board.md), then [flash.md](../flash.md)). Print or order the set for your servo model ([3d_models/README.md](../../3d_models/README.md), [order-parts.md](order-parts.md)). All five servos are the same type; the printed pockets match that model. Breakout modules: [assembly-modular.md](assembly-modular.md) replaces §12 and §13 below.

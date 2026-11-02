@@ -1683,3 +1683,263 @@ esp-web-install-button .button,
   max-width: 100%;
   box-shadow: 0 0 0 1px var(--border-strong);
 }
+
+/* Assembly viewer (/assembly/) */
+
+.page-assembly .wrap {
+  width: min(100% - 2rem, 80rem);
+}
+
+.page-assembly main {
+  gap: 1.25rem;
+}
+
+.page-assembly [hidden] {
+  display: none !important;
+}
+
+.asm-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .asm-layout {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+  }
+
+  .asm-view {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+.asm-view {
+  padding: 0;
+  overflow: hidden;
+}
+
+.asm-stage {
+  position: relative;
+  height: min(72vh, 44rem);
+  min-height: 20rem;
+  background: #161616;
+  touch-action: none;
+}
+
+.asm-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.asm-stage canvas:active {
+  cursor: grabbing;
+}
+
+.asm-status {
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.asm-status[data-state="error"] {
+  color: var(--error);
+}
+
+.asm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.1rem;
+  padding: 0.7rem 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.asm-range {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1 1 14rem;
+}
+
+.asm-range input {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.asm-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+}
+
+.asm-check input {
+  accent-color: var(--accent);
+}
+
+.page-assembly .btn-ghost {
+  background: transparent;
+  min-height: 2.1rem;
+  padding: 0.35rem 0.75rem;
+  font-weight: 500;
+}
+
+.asm-side {
+  gap: 0.9rem;
+}
+
+.asm-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.asm-side-head .panel-label {
+  margin: 0;
+}
+
+.asm-side-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.asm-side-actions .btn {
+  min-height: 2.1rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.asm-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--raised);
+}
+
+.asm-detail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.asm-detail-name {
+  margin: 0;
+  font-weight: 600;
+}
+
+.asm-palette {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.35rem;
+}
+
+.asm-palette button {
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.asm-palette button[aria-pressed="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.asm-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.asm-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.page-assembly input[type="color"] {
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.asm-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.asm-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.asm-part-list {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+}
+
+.asm-part {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.86rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.asm-part:hover {
+  background: var(--raised);
+}
+
+.asm-part[aria-selected="true"] {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.asm-swatch {
+  flex: none;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 959px) {
+  .asm-stage {
+    height: min(62vh, 34rem);
+  }
+}
