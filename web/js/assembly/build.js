@@ -64,7 +64,7 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     const added = step.add.map(label);
     elements.adds.hidden = !added.length;
     elements.adds.textContent = added.length ? `Adds: ${added.join(', ')}` : '';
-    elements.doc.href = `${data.docs}${step.section.doc ?? ''}`;
+    elements.doc.href = `${step.section.docs ?? data.docs}${step.section.doc ?? ''}`;
     const photo = step.section.photo;
     elements.photo.hidden = !photo;
     if (photo) {

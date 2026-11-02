@@ -2,6 +2,7 @@
 // Tests for build_glb.mjs: node scripts/assembly/test_build_glb.mjs
 import assert from 'node:assert/strict';
 import { buildGlb, readStl, weld } from './build_glb.mjs';
+import { mergeMod } from './merge_mod.mjs';
 
 /** A binary STL of the given triangles (each 9 numbers). */
 function stl(triangles) {
@@ -71,6 +72,48 @@ function parseGlb(glb) {
   assert.deepEqual(position.min, [0, 0, 0]);
   assert.deepEqual(position.max, [10, 10, 10]);
   assert.ok(bin.byteLength >= 2 * (12 * 4 + 12 * 2));
+}
+
+{
+  // merge_mod: a group sharing a component frame, a group centred on a stock part, a prop on the floor.
+  const I = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  const at = (x, y, z) => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1];
+  const stock = {
+    format: 1, preset: 'test',
+    parts: [
+      { id: 'Head', mesh: 'tetra.stl', matrix: at(100, 0, 50), occurrence: at(100, 0, 50) },
+      { id: 'Hat', mesh: 'tetra.stl', matrix: I },
+      { id: 'Mug', mesh: 'tetra.stl', matrix: at(30, 40, 20) },
+      { id: 'Desk', mesh: 'tetra.stl', matrix: at(0, 0, -5) },
+    ],
+    hardware: [],
+  };
+  const mod = {
+    format: 1, preset: 'test',
+    parts: [
+      { id: 'Head', mesh: 'tetra.stl', matrix: I, occurrence: I },
+      { id: 'Cover', mesh: 'tetra.stl', matrix: at(0, 0, 10), occurrence: at(0, 0, 10) },
+      { id: 'Pot', mesh: 'tetra.stl', matrix: at(-7, -7, -7), occurrence: I },
+      { id: 'Pumpkin', mesh: 'tetra.stl', matrix: I, occurrence: I },
+    ],
+  };
+  const config = {
+    id: 'test', replace: { Mug: 'Pot' }, remove: ['Hat'], colors: { Cover: '#ef7d1a' },
+    align: [
+      { parts: ['Head', 'Cover'], component: 'Head' },
+      { parts: ['Pot'], centre: { part: 'Pot', onto: 'Mug' }, floor: { part: 'Pot', onto: 'Mug' } },
+      { parts: ['Pumpkin'], at: [200, 0] },
+    ],
+  };
+  const merged = mergeMod(stock, mod, config, () => tetra);
+  const byId = Object.fromEntries(merged.parts.map((part) => [part.id, part]));
+  assert.deepEqual(Object.keys(byId).sort(), ['Cover', 'Desk', 'Head', 'Pot', 'Pumpkin']);
+  assert.deepEqual(byId.Cover.matrix.slice(12, 15), [100, 0, 60], 'cover follows the shared Head frame');
+  assert.deepEqual(byId.Pot.matrix.slice(12, 15), [30, 40, 20], 'pot takes the mug spot');
+  assert.deepEqual(byId.Pumpkin.matrix.slice(12, 15), [195, -5, -5], 'prop on the floor, footprint centred at [200, 0]');
+  assert.equal(byId.Cover.color, '#ef7d1a');
+  assert.equal(byId.Cover.mod, 'test');
+  assert.throws(() => mergeMod(stock, mod, { ...config, align: config.align.slice(0, 2) }, () => tetra), /Pumpkin: in the mod but in no align group/);
 }
 
 console.log('build_glb tests passed');

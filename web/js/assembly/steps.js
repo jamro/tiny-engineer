@@ -69,3 +69,32 @@ export function validate(data, ids) {
   for (const id of ids) if (!added.has(id)) problems.push(`no step adds ${id}`);
   return problems;
 }
+
+/**
+ * The steps for a mod (web/assembly/mods/<id>.json): sections it rewrites,
+ * steps it patches, sections it appends, and part ids it replaces or removes.
+ */
+export function applyMod(data, mod) {
+  const edits = mod?.steps ?? {};
+  const replace = mod?.replace ?? {};
+  const removed = new Set(mod?.remove ?? []);
+  const map = (ids) => (ids ?? []).map((id) => replace[id] ?? id).filter((id) => !removed.has(id));
+  const fix = (step) => {
+    const result = { ...step, add: map(step.add) };
+    if (step.focus) result.focus = map(step.focus);
+    if (step.ghost) result.ghost = map(step.ghost);
+    if (step.fromEach) {
+      result.fromEach = Object.fromEntries(
+        Object.entries(step.fromEach).map(([id, value]) => [replace[id] ?? id, value]).filter(([id]) => !removed.has(id)),
+      );
+    }
+    return result;
+  };
+  const sections = data.sections.map((section) => {
+    const rewritten = edits.sections?.[section.id];
+    const base = rewritten ? { ...section, photo: undefined, ...rewritten, id: section.id } : section;
+    const patch = edits.patch?.[section.id] ?? {};
+    return { ...base, steps: base.steps.map((step, index) => fix({ ...step, ...(patch[index] ?? {}) })) };
+  });
+  return { ...data, sections: [...sections, ...(edits.append ?? []).map((section) => ({ ...section, steps: section.steps.map(fix) }))] };
+}

@@ -3,7 +3,7 @@
 //   node scripts/assembly/test_viewer.mjs
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { flatten, sceneAt, startOffset, validate } from '../../web/js/assembly/steps.js';
+import { applyMod, flatten, sceneAt, startOffset, validate } from '../../web/js/assembly/steps.js';
 import { ANIMATIONS, CENTRE, JOINT_IDS, REST, blendPoses, normalizePose } from '../../web/js/assembly/poses.js';
 import { decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors, GROUP_COLORS, HARDWARE_COLORS } from '../../web/js/assembly/colors.js';
 
@@ -75,6 +75,32 @@ assert.ok(validate(twice, ['Head', 'Hat', 'Desk']).some((problem) => problem.inc
 const shipped = JSON.parse(readFileSync(new URL('../../web/assembly/steps.json', import.meta.url), 'utf8'));
 const shippedIds = [...new Set(flatten(shipped).flatMap((step) => step.add))];
 assert.deepEqual(validate(shipped, shippedIds), []);
+
+// A mod's steps: rewritten sections, patched steps, replaced and removed ids, appended sections.
+const stock = {
+  format: 1,
+  sections: [
+    { id: 'head', title: 'Head', photo: 'head.jpg', steps: [{ title: 'h', text: 't', add: ['Head', 'Hat'] }] },
+    { id: 'props', title: 'Props', steps: [{ title: 'mug', text: 'Mug', add: ['Mug', 'Coffee'], fromEach: { Coffee: [0, 0, 5] } }] },
+  ],
+};
+const modded = applyMod(stock, {
+  replace: { Mug: 'Pot', Coffee: 'Mixture' },
+  remove: ['Hat'],
+  steps: {
+    sections: { head: { title: 'Pumpkin', steps: [{ title: 'p', text: 't', add: ['Head', 'PumpkinCover'] }] } },
+    patch: { props: { 0: { title: 'Cauldron' } } },
+    append: [{ id: 'pumpkin', title: 'Pumpkin', steps: [{ title: 'x', text: 't', add: ['Pumpkin'] }] }],
+  },
+});
+assert.equal(modded.sections[0].title, 'Pumpkin');
+assert.equal(modded.sections[0].photo, undefined, 'a rewritten section drops the stock photo');
+assert.deepEqual(modded.sections[1].steps[0].add, ['Pot', 'Mixture']);
+assert.deepEqual(modded.sections[1].steps[0].fromEach, { Mixture: [0, 0, 5] });
+assert.equal(modded.sections[1].steps[0].title, 'Cauldron');
+assert.equal(modded.sections[2].id, 'pumpkin');
+assert.deepEqual(validate(modded, ['Head', 'PumpkinCover', 'Pot', 'Mixture', 'Pumpkin']), []);
+assert.deepEqual(stock.sections[1].steps[0].add, ['Mug', 'Coffee'], 'the stock steps are not changed');
 
 // Poses.
 assert.deepEqual(normalizePose({ head: 3, neck: -2, body: 'x' }), { head: 1, neck: -1, 'hand-left': 0, 'hand-right': 0, body: 0 });

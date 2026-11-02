@@ -6,16 +6,19 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createStage, smoothNormals } from './stage.js';
 import { PALETTE, TRANSLUCENT, decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors } from './colors.js';
 import { createBuild } from './build.js';
+import { applyMod } from './steps.js';
 import { rig } from './joints.js';
 import { ANIMATIONS, CENTRE, JOINT_IDS, blendPoses, normalizePose } from './poses.js';
 
 const PRESET = 'sg90';
-const MODEL_URL = `models/${PRESET}.glb`;
+/** Mods the viewer can show (web/assembly/mods/<id>.json, models/<preset>-<id>.glb). */
+const MODS = ['halloween'];
 const STEPS_URL = 'steps.json';
 /** Opacity of a part drawn as a ghost (see-through) in a build step. */
 const GHOST_OPACITY = 0.16;
-const STORAGE_KEY = 'te-assembly-colors';
+const STORAGE_KEY_BASE = 'te-assembly-colors';
 const GROUP_TITLES = {
+  mod: 'Mod parts',
   PartsSetA: 'Copper set',
   PartsSetB: 'Black set',
   single: 'Printed on its own',
@@ -39,6 +42,9 @@ export function partLabel(id) {
 }
 
 const hashParams = () => new URLSearchParams(location.hash.slice(1));
+/** The mod shown (#m=halloween), or null for the stock robot. */
+const currentMod = () => (MODS.includes(hashParams().get('m')) ? hashParams().get('m') : null);
+const storageKey = () => `${STORAGE_KEY_BASE}${currentMod() ? `-${currentMod()}` : ''}`;
 
 /** Set (or with null, remove) one parameter of the URL hash, keeping the others. */
 function setHashParam(key, value) {
@@ -54,7 +60,7 @@ function readSavedColors(parts) {
   const hash = hashParams().get('c');
   if (hash !== null) return decodeColors(hash, parts);
   try {
-    return decodeColors(localStorage.getItem(STORAGE_KEY) ?? '', parts);
+    return decodeColors(localStorage.getItem(storageKey()) ?? '', parts);
   } catch {
     return {};
   }
@@ -63,16 +69,28 @@ function readSavedColors(parts) {
 function saveColors(parts, changes) {
   const encoded = encodeColors(parts, changes);
   setHashParam('c', encoded || null);
-  try { localStorage.setItem(STORAGE_KEY, encoded); } catch { /* private mode */ }
+  try { localStorage.setItem(storageKey(), encoded); } catch { /* private mode */ }
 }
 
 function groupOf(part) {
   if (part.kind === 'hardware') return 'hardware';
+  if (part.mod) return 'mod';
   return part.printGroup ?? 'single';
 }
 
 async function main() {
   const status = $('#asm-status');
+  const mod = currentMod();
+  const MODEL_URL = `models/${PRESET}${mod ? `-${mod}` : ''}.glb`;
+  for (const link of document.querySelectorAll('.asm-model')) {
+    link.setAttribute('aria-current', String((link.dataset.model || null) === mod));
+    // Switching model reloads the page with its own colours and steps.
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      location.hash = link.dataset.model ? `m=${link.dataset.model}` : '';
+      location.reload();
+    });
+  }
   const stage = createStage($('#asm-stage'), 'Tiny Engineer, assembled. Drag to orbit, scroll to zoom, right-drag to pan.');
   if (!stage) {
     status.textContent = 'The 3D view needs WebGL. Turn on hardware acceleration in your browser and reload.';
@@ -83,7 +101,9 @@ async function main() {
   let gltf;
   let stepData = null;
   try {
-    const stepsRequest = fetch(STEPS_URL).then((response) => (response.ok ? response.json() : null)).catch(() => null);
+    const json = (url) => fetch(url).then((response) => (response.ok ? response.json() : null)).catch(() => null);
+    const stepsRequest = Promise.all([json(STEPS_URL), mod ? json(`mods/${mod}.json`) : null])
+      .then(([steps, config]) => (steps && config ? applyMod(steps, config) : steps));
     gltf = await new GLTFLoader().loadAsync(MODEL_URL, (event) => {
       if (event.total) status.textContent = `Loading model… ${Math.round((event.loaded / event.total) * 100)} %`;
     });
@@ -105,6 +125,8 @@ async function main() {
       component: extras.component ?? node.name,
       kind: extras.kind ?? 'printed',
       printGroup: extras.print_group ?? null,
+      color: extras.color ?? null,
+      mod: extras.mod ?? null,
       node,
       mesh,
     });

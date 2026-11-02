@@ -1,0 +1,197 @@
+{
+  "format": 1,
+  "id": "halloween",
+  "title": "Halloween",
+  "about": "mods/halloween: pumpkin head, lamp and cauldron mug, plus a standalone pumpkin. How its parts join the stock robot in the 3D viewer (scripts/assembly/merge_mod.mjs) and how the build steps change (web/js/assembly/steps.js applyMod).",
+  "f3d": "mods/halloween/3d_models/cad/TinyEngineerHalloween.f3d",
+  "parts": "mods/halloween/3d_models/parts",
+  "replace": {
+    "Mug": "Pot",
+    "Coffee": "Mixture"
+  },
+  "remove": [
+    "Hat"
+  ],
+  "align": [
+    {
+      "parts": [
+        "Head",
+        "PumpkinCover",
+        "PumpkinTop"
+      ],
+      "how": "The mod keeps the stock Head component, so its frame is the stock Head's.",
+      "component": "Head"
+    },
+    {
+      "parts": [
+        "LampBase",
+        "LampDiffuser",
+        "LampCap"
+      ],
+      "how": "The lamp stands where the stock lamp does: diffuser on the stock diffuser's axis, base on the desk top.",
+      "centre": {
+        "part": "LampDiffuser",
+        "onto": "LampDiffuser"
+      },
+      "floor": {
+        "part": "LampBase",
+        "onto": "LampBase"
+      },
+      "check": {
+        "part": "LampBase",
+        "onto": "LampBase",
+        "max_mm": 2.0
+      }
+    },
+    {
+      "parts": [
+        "Pot",
+        "Mixture"
+      ],
+      "how": "The cauldron takes the mug's spot on the desk.",
+      "centre": {
+        "part": "Pot",
+        "onto": "Mug"
+      },
+      "floor": {
+        "part": "Pot",
+        "onto": "Mug"
+      }
+    },
+    {
+      "parts": [
+        "Pumpkin"
+      ],
+      "how": "A desk prop, not mounted: on the floor beside the desk, on the robot's left.",
+      "at": [
+        55,
+        100
+      ]
+    }
+  ],
+  "colors": {
+    "Head": "#262624",
+    "PumpkinCover": "#ef7d1a",
+    "PumpkinTop": "#ef7d1a",
+    "LampBase": "#262624",
+    "LampDiffuser": "#f2efe6",
+    "LampCap": "#c08a3e",
+    "Pot": "#262624",
+    "Mixture": "#ef7d1a",
+    "Pumpkin": "#ef7d1a"
+  },
+  "steps": {
+    "sections": {
+      "head": {
+        "title": "Head: servo holder",
+        "doc": "#1-head--oled-and-servo",
+        "steps": [
+          {
+            "title": "Head (servo holder)",
+            "text": "The Halloween Head only holds the servo. Mount it like the stock head: seat the servo, no horn yet.",
+            "add": [
+              "Head"
+            ],
+            "from": [
+              0,
+              0,
+              40
+            ]
+          },
+          {
+            "title": "Seat the head servo",
+            "text": "Seat a servo in the holder and route its lead out the back.",
+            "add": [
+              "servo-head"
+            ],
+            "from": [
+              0,
+              -40,
+              0
+            ]
+          }
+        ]
+      },
+      "hat": {
+        "title": "Pumpkin head",
+        "docs": "https://github.com/jamro/tiny-engineer/blob/main/mods/halloween/README.md",
+        "doc": "#head-assembly",
+        "steps": [
+          {
+            "title": "Screw PumpkinTop into PumpkinCover",
+            "text": "Do this off the robot. The head itself (Head with its servo) is mounted on the robot first, in the steps that follow.",
+            "add": [
+              "PumpkinCover",
+              "PumpkinTop"
+            ],
+            "from": [
+              0,
+              0,
+              60
+            ],
+            "fromEach": {
+              "PumpkinTop": [
+                0,
+                0,
+                90
+              ]
+            }
+          },
+          {
+            "title": "Seat the OLED in PumpkinCover",
+            "text": "Plug the OLED cable in first, then seat the display in the cover's window. Slide the cover onto Head once Head is on the robot, route the servo and OLED cords through the two slots on the back, and optionally fasten it with an M2 screw.",
+            "add": [
+              "OLED"
+            ],
+            "from": [
+              40,
+              0,
+              0
+            ],
+            "screws": "optional 1 × M2",
+            "ghost": [
+              "PumpkinCover",
+              "PumpkinTop"
+            ]
+          }
+        ]
+      }
+    },
+    "append": [
+      {
+        "id": "pumpkin",
+        "title": "Standalone pumpkin",
+        "docs": "https://github.com/jamro/tiny-engineer/blob/main/mods/halloween/README.md",
+        "doc": "#standalone-pumpkin",
+        "steps": [
+          {
+            "title": "Set a pumpkin by the desk",
+            "text": "Print Pumpkin at any size, as many as you like, and place them next to the desk.",
+            "add": [
+              "Pumpkin"
+            ],
+            "from": [
+              0,
+              0,
+              60
+            ]
+          }
+        ]
+      }
+    ],
+    "patch": {
+      "props": {
+        "1": {
+          "title": "Cauldron",
+          "text": "Seat Mixture in Pot, place the pot on the mug's spot and fasten it with one M2×8 from under the desk."
+        }
+      },
+      "lamp": {
+        "0": {
+          "title": "Cap on diffuser, into LampBase",
+          "text": "No screws. Put LampCap on LampDiffuser and push the stack into the Halloween LampBase."
+        }
+      }
+    }
+  }
+}

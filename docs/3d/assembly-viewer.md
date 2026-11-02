@@ -40,6 +40,20 @@ CI checks the steps against the extracted model (`check_steps.mjs`). When a part
 
 Local preview: build the GLB into `web/assembly/models/sg90.glb` (commands below), then `python3 -m http.server -d web 8000` and open `http://localhost:8000/assembly/`.
 
+## Mods
+
+A mod shows on the viewer when it has a config in [`web/assembly/mods/`](../../web/assembly/mods/) (`#m=<id>`, the **Model** switch). [`halloween.json`](../../web/assembly/mods/halloween.json) is the example:
+
+- `f3d`, `parts`: the mod's design and its exported parts (`mods/<id>/3d_models/`). `extract.py --mod` reads only the parts the mod exports, checked against its STLs as for stock.
+- `align`: how each group of the mod's parts lines up with the stock robot. A mod design is its own arrangement, not the stock robot's frame:
+  - `component`: the mod keeps a stock component (the Halloween head keeps `Head`), so its frame is shared. Exact.
+  - `centre` + `floor`: centre a part on a stock part and stand it on that part's floor (the lamp on the stock lamp's axis, the cauldron on the mug's spot). `check` fails the build if a footprint lands off.
+  - `at`: a prop on the floor beside the desk.
+- `replace` (`Mug` → `Pot`), `remove` (`Hat`), and same-id parts (`Head`, `LampBase`, …) take the stock parts' places. `colors` are the mod's defaults.
+- `steps`: rewritten `sections`, `patch`ed steps and `append`ed sections on top of `steps.json`. Replaced and removed ids follow automatically.
+
+[`build.sh`](../../scripts/assembly/build.sh) builds every mod in that folder after the stock model, and checks its steps against its parts.
+
 ## How placements are found
 
 The Fusion add-in exports each part in its **print** pose (flat on the bed, see [adding parts](adding-parts.md#print-ready-copy-print_layout)). To place it in the robot, the extractor reads the `.f3d` directly. It does not need Fusion:
@@ -72,8 +86,7 @@ python3 -m venv .venv && .venv/bin/pip install -r scripts/assembly/requirements.
 node scripts/assembly/test_build_glb.mjs
 .venv/bin/python scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
 node scripts/assembly/test_viewer.mjs
-node scripts/assembly/check_steps.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
-node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json web/assembly/models/sg90.glb
+PYTHON=.venv/bin/python scripts/assembly/build.sh   # stock + mods -> web/assembly/models/
 ```
 
 `artifacts/` and `web/assembly/models/` are git-ignored. CI runs the same commands (`assembly` job) and uploads `assembly.json` and the GLB as the `assembly-<sha>` artifact.

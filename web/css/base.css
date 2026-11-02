@@ -2138,3 +2138,29 @@ esp-web-install-button .button,
   font-size: 0.78rem;
   text-align: right;
 }
+
+.asm-models {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+
+.asm-model {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.asm-model:hover {
+  text-decoration: none;
+  border-color: #55554c;
+}
+
+.asm-model[aria-current="true"] {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}

@@ -51,6 +51,7 @@ export function normalizeHex(value) {
 
 /** The colour a part has before anyone changes it. */
 export function defaultColor(part) {
+  if (normalizeHex(part.color)) return normalizeHex(part.color);
   if (part.kind === 'hardware') return HARDWARE_COLORS[part.component] ?? '#555555';
   return PART_COLORS[part.id] ?? GROUP_COLORS[part.printGroup] ?? GROUP_COLORS.PartsSetB;
 }

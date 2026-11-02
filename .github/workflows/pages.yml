@@ -9,6 +9,7 @@ on:
       - "scripts/assembly/**"
       - "3d_models/cad/**"
       - "3d_models/parts/sg90/stl/**"
+      - "mods/*/3d_models/**"
       - ".github/workflows/pages.yml"
   release:
     types: [published, edited]
@@ -44,8 +45,7 @@ jobs:
       - name: Build 3D assembly model
         run: |
           pip install -r scripts/assembly/requirements.txt
-          python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
-          node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json web/assembly/models/sg90.glb
+          scripts/assembly/build.sh web/assembly/models
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

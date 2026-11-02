@@ -14,7 +14,7 @@
 // Node 18+, no dependencies.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -111,6 +111,8 @@ export function buildGlb(manifest, load) {
   const add = (entry, kind) => {
     const extras = { kind, component: entry.component };
     if (entry.print_group) extras.print_group = entry.print_group;
+    if (entry.color) extras.color = entry.color;
+    if (entry.mod) extras.mod = entry.mod;
     json.nodes.push({ name: entry.id, mesh: mesh(entry.mesh), matrix: entry.matrix, extras });
     json.nodes[0].children.push(json.nodes.length - 1);
   };
@@ -145,7 +147,7 @@ function main([manifestPath, outPath]) {
   if (manifest.format !== 1) throw new Error(`${manifestPath}: unsupported format ${manifest.format}`);
   const here = dirname(resolve(manifestPath));
   // Printed parts name repository paths; hardware meshes sit beside the manifest.
-  const load = (path) => readFileSync(path.startsWith('3d_models/') || path.startsWith('mods/') ? resolve(ROOT, path) : resolve(here, path));
+  const load = (path) => readFileSync(isAbsolute(path) ? path : path.startsWith('3d_models/') || path.startsWith('mods/') ? resolve(ROOT, path) : resolve(here, path));
   const glb = buildGlb(manifest, load);
   mkdirSync(dirname(resolve(outPath)), { recursive: true });
   writeFileSync(outPath, glb);

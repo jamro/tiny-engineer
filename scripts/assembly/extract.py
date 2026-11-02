@@ -17,6 +17,9 @@ land on its exported mesh, or if a joint disagrees with the transforms.
 
     pip install -r scripts/assembly/requirements.txt   # Python 3.13
     python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
+
+A mod's design (``--mod``) yields only the parts the mod exports, in its own
+frame; ``merge_mod.mjs`` puts them on the stock robot.
 """
 
 from __future__ import annotations
@@ -226,7 +229,10 @@ def hardware_mesh(design: Design, component: str) -> tuple[np.ndarray, np.ndarra
     return mesh.vertices * 10.0, mesh.triangles
 
 
-def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path) -> dict:
+def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path, *, mod: bool = False) -> dict:
+    """The manifest for one design. With ``mod``, the design is a mod's: only
+    the parts the mod exports are taken (the others come from the stock robot)
+    and hardware is left out."""
     design = Design(f3d)
     occurrences = design.occurrences()
     stl_dir = parts_dir / preset / "stl"
@@ -256,9 +262,17 @@ def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path)
                     servo_names.setdefault(oid, SERVO_JOINTS[joint.name])
 
     hardware_meshes: dict[str, str] = {}
-    for occurrence in sorted(assembled, key=lambda o: o.path):
+    seen: set[str] = set()
+    for occurrence in sorted(assembled, key=lambda o: (o.path, o.source != "record")):
         name = occurrence.component
-        if name in NOT_IN_ROBOT:
+        if name in NOT_IN_ROBOT or name == "PRINT_LAYOUT" or name.startswith("PartsSet"):
+            continue
+        # A component placed once (hardware is placed per occurrence).
+        if name not in HARDWARE:
+            if name in seen:
+                continue
+            seen.add(name)
+        if name in HARDWARE and mod:
             continue
         if name in HARDWARE:
             if name not in hardware_meshes:
@@ -282,7 +296,8 @@ def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path)
         stl_name = name.replace("(Mirror)", "")
         stl = stl_dir / f"{stl_name}.stl"
         if not stl.exists():
-            problems.append(f"{name}: no {stl.relative_to(repo_root)}")
+            if not mod:
+                problems.append(f"{name}: no {stl.resolve().relative_to(repo_root)}")
             continue
         stl_points = read_stl(stl)
         targets = stl_targets(stl_points)
@@ -323,15 +338,18 @@ def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path)
                 "id": name.replace("(Mirror)", "Mirror"),
                 "component": name,
                 "print_group": print_group.get(name),
-                "mesh": stl.relative_to(repo_root).as_posix(),
+                "mesh": stl.resolve().relative_to(repo_root).as_posix(),
                 # print pose (STL) -> component frame -> assembled robot
                 "matrix": column_major(occurrence.matrix @ inverse(to_print)),
+                # component frame -> assembled robot (to align a mod's parts)
+                "occurrence": column_major(occurrence.matrix),
                 "method": method,
                 **(check or {"matched_vertices": [result.matched, result.total]}),
             }
         )
 
-    placed = {o.instances[-1]: o.matrix for o in occurrences}
+    # Joints are checked against solved transforms only, not assumed ones.
+    placed = {o.instances[-1]: o.matrix for o in occurrences if o.source != "identity"}
     checked = []
     for joint in joints:
         if not joint.name or len(joint.name) == 36 and joint.name.count("-") == 4:
@@ -345,7 +363,7 @@ def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path)
 
     servos = [h for h in hardware if h["component"] == "Servo"]
     unnamed = [h for h in servos if h["id"] == "Servo"]
-    if unnamed:
+    if unnamed and not mod:
         problems.append(f"{len(unnamed)} servo(s) not seated by any of the joints {sorted(SERVO_JOINTS)}")
 
     manifest = {
@@ -369,9 +387,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--parts", type=Path, default=DEFAULT_PARTS, help="folder holding <preset>/stl/")
     parser.add_argument("--preset", default="sg90", help="servo preset the design was saved with")
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--mod", action="store_true", help="a mod's design: only its exported parts, no hardware")
     args = parser.parse_args(argv)
     args.out.mkdir(parents=True, exist_ok=True)
-    manifest = extract(args.f3d, args.preset, args.parts, args.out, ROOT)
+    manifest = extract(args.f3d, args.preset, args.parts, args.out, ROOT, mod=args.mod)
     (args.out / "assembly.json").write_text(json.dumps(manifest, indent=1) + "\n")
     print(
         f"{len(manifest['parts'])} parts, {len(manifest['hardware'])} hardware, "

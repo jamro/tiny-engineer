@@ -188,12 +188,23 @@ class Design:
             if oid in placed or oid not in self.instance_component:
                 continue
             matrices = rigid_matrices(self.raw(oid))
-            if len(matrices) != 1:
+            if len(matrices) > 1:
                 continue
-            found[(oid,)] = Occurrence(
-                (self.instance_component[oid],), (oid,), to_mm(matrices[0][1]), source="instance"
-            )
+            if not matrices and not self._places_bodies(oid):
+                continue
+            # No transform at all: the component sits where it was modelled.
+            matrix, source = (to_mm(matrices[0][1]), "instance") if matrices else (np.eye(4), "identity")
+            found[(oid,)] = Occurrence((self.instance_component[oid],), (oid,), matrix, source=source)
         return list(found.values())
+
+    def _places_bodies(self, oid: int) -> bool:
+        """True for an instance of a component with bodies of its own (not the
+        root, not an assembly such as ServoPack whose children carry the
+        transforms)."""
+        if oid == self.graph.roots.get("rootInstance"):
+            return False
+        name = self.instance_component.get(oid)
+        return any(c.name == name and c.bodies for c in self.graph.components)
 
     # -- joints ------------------------------------------------------------
 
