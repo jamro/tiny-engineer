@@ -99,6 +99,40 @@ jobs:
       - name: Claude Code package tests
         run: npm test --prefix packages/tiny-engineer-claude-code
 
+  assembly:
+    # The 3D assembly viewer's model: read part placements from the Fusion
+    # design, check them against the exported STLs, and pack the GLB.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: scripts/assembly/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install extractor
+        run: pip install -r scripts/assembly/requirements.txt
+      - name: Extractor and GLB tests
+        run: |
+          python3 scripts/assembly/test_assembly.py
+          node scripts/assembly/test_build_glb.mjs
+      - name: Extract SG90 assembly
+        run: python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
+      - name: Build SG90 GLB
+        run: node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb
+      - name: Upload assembly model
+        uses: actions/upload-artifact@v4
+        with:
+          name: assembly-${{ github.sha }}
+          path: |
+            artifacts/assembly/sg90/assembly.json
+            artifacts/assembly/sg90.glb
+          retention-days: 30
+          if-no-files-found: error
+
   pcb:
     runs-on: ubuntu-24.04
     env:
