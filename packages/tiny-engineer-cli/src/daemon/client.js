@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync, openSync, closeSync, writeSync } from "node:fs";
 import { connect as netConnect } from "node:net";
+import { SerialPort } from "serialport";
 
 import { userConfigDir } from "../config/paths.js";
 import { createPeer } from "./ipc.js";
@@ -10,10 +11,13 @@ import {
   loadIdentity,
   packageRootFromScript,
   resolveCliScript,
+  DISABLE_ERROR,
   YIELD_ERROR,
   YIELD_MS,
 } from "./policy.js";
+import { writeDaemonTarget } from "./target.js";
 import { classifyPid, delay, pidLiveness, terminatePid } from "./proc.js";
+import { wrapperAlive } from "./wrapper.js";
 
 /**
  * @param {string} configDir
@@ -43,6 +47,36 @@ export function yieldActive(configDir, now = Date.now()) {
  */
 export function clearYield(configDir) {
   rmSync(daemonPaths(configDir).yieldFile, { force: true });
+}
+
+/**
+ * @param {string} configDir
+ */
+export function writeDisable(configDir) {
+  const paths = daemonPaths(configDir);
+  mkdirSync(paths.dir, { recursive: true, mode: 0o700 });
+  writeFileSync(paths.disabled, "{}\n", { mode: 0o600 });
+}
+
+/**
+ * @param {string} configDir
+ */
+export function disableActive(configDir) {
+  return existsSync(daemonPaths(configDir).disabled);
+}
+
+/**
+ * @param {string} configDir
+ */
+export function clearDisable(configDir) {
+  rmSync(daemonPaths(configDir).disabled, { force: true });
+}
+
+/**
+ * @param {string} configDir
+ */
+export function supervisorInstalled(configDir) {
+  return existsSync(daemonPaths(configDir).supervisor);
 }
 
 /**
@@ -200,6 +234,22 @@ export function spawnDaemonProcess({ script, configDir, port = null }) {
 }
 
 /**
+ * Start the login wrapper when it is not already alive.
+ * Does not spawn `daemon --serve` itself.
+ * @param {string} configDir
+ */
+export async function startWrapperProcess(configDir) {
+  if (await wrapperAlive(configDir)) return;
+  const paths = daemonPaths(configDir);
+  const child = spawn(process.execPath, [paths.wrapper], {
+    detached: true,
+    stdio: "ignore",
+    env: { ...process.env, TINY_ENGINEER_CONFIG_DIR: configDir },
+  });
+  child.unref();
+}
+
+/**
  * @param {string} script
  * @param {string | null | undefined} port
  */
@@ -217,6 +267,7 @@ export function daemonServeArgs(script, port) {
  *   forceStart?: boolean,
  *   now?: number,
  *   spawnFn?: (opts: { script: string, configDir: string, port?: string | null }) => void,
+ *   wrapperStart?: (configDir: string) => void | Promise<void>,
  *   probePid?: (pid: number | undefined) => "none" | "dead" | "ours" | "foreign" | "unknown",
  *   terminate?: (pid: number) => Promise<void>,
  *   script?: string,
@@ -230,6 +281,9 @@ export async function ensureDaemon(opts = {}) {
   const configDir = opts.configDir ?? userConfigDir();
   const paths = daemonPaths(configDir);
   const now = opts.now ?? Date.now();
+  if (!opts.forceStart && disableActive(configDir)) {
+    throw new Error(DISABLE_ERROR);
+  }
   if (!opts.forceStart && yieldActive(configDir, now)) {
     throw new Error(YIELD_ERROR);
   }
@@ -266,9 +320,14 @@ export async function ensureDaemon(opts = {}) {
         await (opts.terminate ?? terminatePid)(state.pid);
       }
       if (kind === "ours" || kind === "foreign" || kind === "dead") clearStale(configDir);
-      ctx.spawns += 1;
-      const spawnFn = opts.spawnFn ?? spawnDaemonProcess;
-      spawnFn({ script, configDir, port: opts.port ?? null });
+      if (supervisorInstalled(configDir)) {
+        const start = opts.wrapperStart ?? startWrapperProcess;
+        await start(configDir);
+      } else {
+        ctx.spawns += 1;
+        const spawnFn = opts.spawnFn ?? spawnDaemonProcess;
+        spawnFn({ script, configDir, port: opts.port ?? null });
+      }
       const hello = await pollHello(paths.sock, 3000);
       if (!hello) throw new Error("daemon failed to start");
       return hello;
@@ -290,6 +349,9 @@ export async function ensureDaemon(opts = {}) {
     throw new Error("daemon protocol unrecognized; update the CLI");
   }
   if (action === "replace") {
+    if (supervisorInstalled(configDir)) {
+      writeDaemonTarget(configDir, { execPath: process.execPath, script });
+    }
     const stopped = await conn.peer.request("daemon.stop", { reason: "replace" }, 5000);
     if (stopped.error === "play-active") {
       return conn;
@@ -433,30 +495,114 @@ export async function followDaemonChannel(opts) {
       drops = 0;
       continue;
     }
+    const supervised = Boolean(opts.configDir && supervisorInstalled(opts.configDir));
+    if (supervised) {
+      drops += 1;
+      if (drops > 40) throw new Error("daemon connection lost");
+      await delay(30);
+      continue;
+    }
     drops += 1;
     if (drops > 1) throw new Error("daemon connection lost");
   }
 }
 
 /**
- * @param {{ configDir?: string }} [opts]
+ * @param {string} configDir
+ */
+function installStatusLine(configDir) {
+  return `install: ${supervisorInstalled(configDir) ? "on" : "off"}`;
+}
+
+/**
+ * @param {string} configDir
+ * @param {number} [now]
+ */
+function yieldStatusLine(configDir, now = Date.now()) {
+  try {
+    const until = JSON.parse(readFileSync(daemonPaths(configDir).yieldFile, "utf8")).until;
+    if (typeof until !== "number" || until <= now) return "yield: off";
+    const left = Math.ceil((until - now) / 1000);
+    return `yield: ${left}s`;
+  } catch {
+    return "yield: off";
+  }
+}
+
+/**
+ * macOS lists `tty.*` while the daemon may hold the matching `cu.*` node.
+ * @param {string} path
+ */
+function serialPortKey(path) {
+  return path.replace(/^\/dev\/(?:tty|cu)\./, "");
+}
+
+/**
+ * @param {string | null} openPort
+ * @param {Array<{ path?: string }> | null} listed null when enumeration failed
+ * @returns {string[]}
+ */
+function portStatusLines(openPort, listed) {
+  const open = openPort && openPort !== "down" ? openPort : null;
+  /** @type {string[]} */
+  const lines = [`port: ${open ?? "down"}`];
+  if (!listed) {
+    lines.push("ports: unavailable");
+    return lines;
+  }
+  const paths = listed.map((entry) => entry.path).filter((path) => typeof path === "string" && path);
+  if (paths.length === 0) {
+    lines.push("ports: none");
+    return lines;
+  }
+  const openKey = open ? serialPortKey(open) : null;
+  lines.push("ports:");
+  for (const path of paths) {
+    const mark = openKey && serialPortKey(path) === openKey ? " connected" : "";
+    lines.push(`  ${path}${mark}`);
+  }
+  return lines;
+}
+
+/**
+ * @param {{
+ *   configDir?: string,
+ *   now?: number,
+ *   listPorts?: () => Promise<Array<{ path?: string }>>,
+ * }} [opts]
  */
 export async function daemonStatusText(opts = {}) {
   const configDir = opts.configDir ?? userConfigDir();
+  const install = installStatusLine(configDir);
+  const yieldLine = yieldStatusLine(configDir, opts.now ?? Date.now());
+  const listPorts = opts.listPorts ?? (() => SerialPort.list());
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let timer;
+  /** @type {Array<{ path?: string }> | null} */
+  const listed = await Promise.race([
+    (async () => listPorts())().catch(() => null),
+    new Promise((resolve) => {
+      timer = setTimeout(() => resolve(null), 1500);
+    }),
+  ]).finally(() => clearTimeout(timer));
   const conn = await tryConnect(daemonPaths(configDir).sock, 300);
-  if (!conn) return "daemon is not running\n";
+  if (!conn) {
+    return [`daemon is not running`, install, yieldLine, ...portStatusLines(null, listed), ""].join("\n");
+  }
   try {
     const res = await conn.peer.request("daemon.status", {}, 1000);
     const body = /** @type {Record<string, unknown>} */ (res.result ?? {});
-    const port = body.port ? String(body.port) : "down";
+    const port = body.port ? String(body.port) : null;
     return [
       "daemon running",
+      install,
+      yieldLine,
       `pid: ${body.pid}`,
       `version: ${body.version}`,
       `channel: ${body.channel}`,
       `packageRoot: ${body.packageRoot}`,
       `proto: ${body.proto}`,
-      `port: ${port}`,
+      ...portStatusLines(port, listed),
       "",
     ].join("\n");
   } finally {
@@ -465,23 +611,53 @@ export async function daemonStatusText(opts = {}) {
 }
 
 /**
+ * Close the serial port and leave the process up.
+ * `yield` writes the 180s refusal and forces the port closed during play.
  * @param {{ configDir?: string, yield?: boolean, now?: number }} [opts]
  */
-export async function stopDaemon(opts = {}) {
+export async function releaseDaemon(opts = {}) {
   const configDir = opts.configDir ?? userConfigDir();
   const paths = daemonPaths(configDir);
   if (opts.yield) writeYield(configDir, opts.now ?? Date.now());
   const conn = await tryConnect(paths.sock, 300);
   if (!conn) return;
   try {
-    await conn.peer.request("daemon.stop", { reason: "stop" }, 2000);
+    const res = await conn.peer.request("daemon.release", { force: opts.yield === true }, 2000);
+    if (typeof res.error === "string") throw new Error(res.error);
+  } finally {
+    conn.socket.destroy();
+  }
+}
+
+/**
+ * `daemon stop` without yield is a port release. `--yield` also refuses open.
+ * @param {{ configDir?: string, yield?: boolean, now?: number }} [opts]
+ */
+export async function stopDaemon(opts = {}) {
+  await releaseDaemon(opts);
+}
+
+/**
+ * Ask the process to exit. Does not write a disable file.
+ * A refused replace returns "play-active" without waiting for the socket.
+ * @param {string} configDir
+ * @param {"stop" | "replace"} [reason]
+ * @returns {Promise<"play-active" | void>}
+ */
+export async function shutdownDaemon(configDir, reason = "stop") {
+  const paths = daemonPaths(configDir);
+  const conn = await tryConnect(paths.sock, 300);
+  if (!conn) return;
+  /** @type {Record<string, unknown> | undefined} */
+  let reply;
+  try {
+    reply = await conn.peer.request("daemon.stop", { reason }, 2000);
   } catch {
     // process may already be gone
   } finally {
     conn.socket.destroy();
   }
-  // The stop reply is sent before shutdown finishes. Wait until the socket
-  // is gone so restart cannot attach to the process that is exiting.
+  if (reply?.error === "play-active") return "play-active";
   const deadline = Date.now() + 2000;
   while (Date.now() < deadline) {
     if (process.platform === "win32") {
@@ -493,4 +669,14 @@ export async function stopDaemon(opts = {}) {
     }
     await delay(30);
   }
+}
+
+/**
+ * Sticky opt-out. The process exits and auto-start stays refused.
+ * @param {{ configDir?: string }} [opts]
+ */
+export async function disableDaemon(opts = {}) {
+  const configDir = opts.configDir ?? userConfigDir();
+  writeDisable(configDir);
+  await shutdownDaemon(configDir, "stop");
 }

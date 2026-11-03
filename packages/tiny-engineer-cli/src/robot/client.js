@@ -76,17 +76,48 @@ function errorFromBody(body, status) {
 }
 
 /**
+ * Nested connect failures. Undici wraps them in an AggregateError whose own
+ * message is empty, which used to print "robot unreachable: ".
+ * @param {unknown} err
+ * @returns {unknown[]}
+ */
+function causeErrors(err) {
+  if (!err || typeof err !== "object" || !("cause" in err)) return [];
+  const cause = /** @type {{ cause?: unknown }} */ (err).cause;
+  if (cause instanceof AggregateError) return cause.errors;
+  if (cause instanceof Error) return [cause];
+  return [];
+}
+
+/**
+ * @param {unknown} err
+ * @returns {string}
+ */
+export function networkErrorDetail(err) {
+  const parts = [];
+  for (const item of causeErrors(err)) {
+    if (item instanceof Error && item.message) parts.push(item.message);
+    else if (item && typeof item === "object" && "code" in item && item.code) {
+      parts.push(String(item.code));
+    }
+  }
+  let detail = parts.filter(Boolean).join("; ");
+  if (!detail) {
+    detail = err instanceof Error && err.message ? err.message : String(err);
+  }
+  if (process.platform === "darwin" && detail.includes("EHOSTUNREACH")) {
+    detail +=
+      ". macOS is blocking this node from the local network; allow the terminal or Cursor in System Settings → Privacy & Security → Local Network";
+  }
+  return detail;
+}
+
+/**
  * @param {unknown} err
  * @returns {string}
  */
 function unreachableMessage(err) {
-  const detail =
-    err && typeof err === "object" && "cause" in err && err.cause instanceof Error
-      ? err.cause.message
-      : err instanceof Error
-        ? err.message
-        : String(err);
-  return `robot unreachable: ${detail}`;
+  return `robot unreachable: ${networkErrorDetail(err)}`;
 }
 
 /**

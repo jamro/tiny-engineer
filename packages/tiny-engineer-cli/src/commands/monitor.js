@@ -1,4 +1,5 @@
 import { resolveTransport } from "../config/env.js";
+import { userConfigDir } from "../config/paths.js";
 import { followDaemonChannel } from "../daemon/client.js";
 import { parseMessage, SerialMsgType } from "../robot/serial/protocol.js";
 import { parseCommonArgs } from "../util/args.js";
@@ -70,6 +71,7 @@ The host daemon owns the serial port; this command only subscribes.
     await followDaemonChannel({
       channel: "serial.logs",
       port: opts.port ?? null,
+      configDir: userConfigDir(),
       onLine: (line) => {
         const text = logTextFromPayload(Buffer.from(line));
         if (text !== null) console.log(text);

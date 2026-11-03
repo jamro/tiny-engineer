@@ -23,18 +23,23 @@ tiny-engineer setup cursor --yes --transport serial
 tiny-engineer anim ring --transport serial
 tiny-engineer doctor --transport serial
 tiny-engineer monitor          # prints LOG frames from the host daemon
+tiny-engineer port             # serial ports and which one auto-detect would open
 tiny-engineer reset --yes      # factory reset; confirm or --yes
 ```
 
-Serial port: `--port` / `TINY_ENGINEER_PORT`, else autodetect (Espressif VID `303A` preferred) with cache under the user config directory (`serial-port.json`; invalidated on open/probe failure).
+Serial port: `--port` / `TINY_ENGINEER_PORT`, else the cache, else autodetect (Espressif VID `303A` preferred). `tiny-engineer port` prints that choice and every host port's score. `tiny-engineer port --probe` sends `sync` and does not write the cache. A successful serial open still writes `serial-port.json` and drops it when open or `sync` fails.
 
 ## Host daemon
 
-Serial commands share one host process, `tiny-engineer daemon`. The first serial command auto-starts it. It keeps the USB port until `tiny-engineer daemon stop` or `tiny-engineer daemon restart`. Closing the terminal does not stop it. `watch` and `monitor` subscribe to that process. Ctrl+C on either one leaves the daemon running.
+Serial commands share one host process, `tiny-engineer daemon`. The first serial command auto-starts it, unless the daemon is disabled or the port is yielded. Closing the terminal does not stop it. `watch` and `monitor` subscribe to that process. Ctrl+C on either one leaves the daemon running. A live process is assured only after `tiny-engineer daemon install`. Without that, a crash stays down until the next serial command.
 
-`tiny-engineer daemon status` prints pid, version, channel (`npm` or `dev`), package root, protocol, and port. A registry install (`npx -y tiny-engineer` or a global install) is channel `npm`. Running `node packages/tiny-engineer-cli/bin/tiny-engineer.js` from this repo is channel `dev`. A dev checkout replaces a running npm daemon. A published npm command does not replace a dev daemon. The same npm version keeps the process that is already running. `daemon status` shows which one you have. `daemon restart` from the checkout you want replaces a different dev tree.
+`tiny-engineer daemon release` and plain `tiny-engineer daemon stop` close the USB port and leave the process running. The next serial command may open the port again. `tiny-engineer daemon stop --yield` leaves the process running, refuses serial open for 180 seconds, and does not reopen the port when that window ends. `tiny-engineer daemon start` clears a yield. `tiny-engineer daemon disable` exits the process and refuses auto-start until `tiny-engineer daemon start`.
 
-Before another program opens the USB serial device, run `tiny-engineer daemon stop`. Firmware upload parks servos, then runs `tiny-engineer daemon stop --yield` so auto-start stays off while the flash tool has the port. `tiny-engineer daemon start` clears that yield.
+`tiny-engineer daemon install` registers a per-user login wrapper. It is not a system-boot service. The wrapper is what restarts the process after a crash. `tiny-engineer daemon uninstall` removes that wrapper and does not disable auto-start.
+
+`tiny-engineer daemon status` prints whether `daemon install` is on, the yield timer when a yield is active, plus pid, version, channel (`npm` or `dev`), package root, protocol, and port. It also lists the host serial ports and marks the one the daemon has open. The install line and the port list are there even when the process is down. A registry install (`npx -y tiny-engineer` or a global install) is channel `npm`. Running `node packages/tiny-engineer-cli/bin/tiny-engineer.js` from this repo is channel `dev`. A dev checkout replaces a running npm daemon. A published npm command does not replace a dev daemon. The same npm version keeps the process that is already running. `daemon status` shows which one you have. `daemon restart` from the checkout you want replaces a different dev tree.
+
+Before another program opens the USB serial device, run `tiny-engineer daemon release` or plain `tiny-engineer daemon stop`. Firmware upload parks servos, then runs `tiny-engineer daemon stop --yield` so auto-start stays off while the flash tool has the port. `tiny-engineer daemon start` clears that yield.
 
 ## Protocol overview
 

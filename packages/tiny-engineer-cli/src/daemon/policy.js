@@ -7,6 +7,8 @@ export const DAEMON_PROTO = 1;
 export const YIELD_MS = 180_000;
 export const YIELD_ERROR =
   "serial yielded for upload; run tiny-engineer daemon start to clear it";
+export const DISABLE_ERROR =
+  "daemon disabled; run tiny-engineer daemon start to clear it";
 
 /**
  * @param {string} value

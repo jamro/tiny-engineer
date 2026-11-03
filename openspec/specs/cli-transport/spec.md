@@ -121,7 +121,7 @@ The CLI MUST provide a monitor command that displays the text of typed serial lo
 - **THEN** the anim command completes and monitor is still running afterward
 
 ### Requirement: Hooks and doctor respect transport
-Hook posting, doctor health checks, and other robot-facing CLI entry points MUST use the same explicit transport configuration as `anim` / `play`. When that transport is `serial`, they MUST use the host daemon, including auto-start, so a running serial `watch` or `monitor` does not make the call fail because the port is busy.
+Hook posting, doctor health checks, and other robot-facing CLI entry points MUST use the same explicit transport configuration as `anim` / `play`. When that transport is `serial`, they MUST use the host daemon, including auto-start, so a running serial `watch` or `monitor` does not make the call fail because the port is busy. They MUST NOT auto-start while a disable or a yield is active. A serial command in that window MUST fail with that error and MUST NOT start a daemon.
 
 #### Scenario: Doctor over serial
 - **WHEN** transport is `serial` and the user runs doctor
@@ -134,6 +134,14 @@ Hook posting, doctor health checks, and other robot-facing CLI entry points MUST
 #### Scenario: Hook while watch holds serial
 - **WHEN** transport is `serial`, `watch` is running, and a hook maps to an animation
 - **THEN** the hook posts that animation through the host daemon instead of failing because the port is open
+
+#### Scenario: Hook during disable
+- **WHEN** transport is `serial`, a disable is set, and a hook maps to an animation
+- **THEN** the hook fails, names the disable, and does not start a daemon
+
+#### Scenario: Hook during yield
+- **WHEN** transport is `serial`, a yield is active, and a hook maps to an animation
+- **THEN** the hook fails, names the yield, and does not start a daemon
 
 ### Requirement: Serial play ends session on host failure
 After a successful serial `play` open, if streaming fails before normal completion, the CLI MUST attempt `play_end` while the serial port is still open (best-effort). Finishing the command MUST NOT release the serial device; the host daemon keeps it. This MUST NOT suppress the original stream failure error to the user.

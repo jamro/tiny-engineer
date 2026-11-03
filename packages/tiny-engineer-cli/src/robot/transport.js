@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 
 import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
 import { serialPlay, serialRequest } from "../daemon/robot.js";
-import { formatRobotError, postAnim, postPlay, robotFetch } from "./client.js";
+import { formatRobotError, networkErrorDetail, postAnim, postPlay, robotFetch } from "./client.js";
 
 /**
  * @typedef {{
@@ -147,7 +147,7 @@ export async function robotHealth(opts = {}) {
   } catch (err) {
     return {
       ok: false,
-      detail: err instanceof Error ? err.message : String(err),
+      detail: networkErrorDetail(err),
       target: baseUrl,
     };
   }
