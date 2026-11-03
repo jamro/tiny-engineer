@@ -6,6 +6,10 @@ on:
     paths:
       - "web/**"
       - "scripts/build_flash_catalog.py"
+      - "scripts/assembly/**"
+      - "3d_models/cad/**"
+      - "3d_models/parts/sg90/stl/**"
+      - "mods/*/3d_models/**"
       - ".github/workflows/pages.yml"
   release:
     types: [published, edited]
@@ -33,6 +37,15 @@ jobs:
           python-version: "3.11"
       - name: Build flash release catalog
         run: python3 scripts/build_flash_catalog.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: scripts/assembly/requirements.txt
+      - name: Build 3D assembly model
+        run: |
+          pip install -r scripts/assembly/requirements.txt
+          scripts/assembly/build.sh web/assembly/models
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

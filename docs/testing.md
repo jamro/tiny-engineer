@@ -53,6 +53,17 @@ npm test --prefix packages/tiny-engineer-antigravity
 npm test --prefix packages/tiny-engineer-claude-code
 ```
 
+## 3D assembly model
+
+Python 3.13 with [`scripts/assembly/requirements.txt`](../scripts/assembly/requirements.txt), and Node 18+. Reads the Fusion design, checks every part's placement against its exported STL, and packs the GLB. CI job `assembly`. Details: [3d/assembly-viewer.md](3d/assembly-viewer.md).
+
+```bash
+python3 scripts/assembly/test_assembly.py
+node scripts/assembly/test_build_glb.mjs
+python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
+node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb
+```
+
 ## PCB
 
 KiCad 10 (`kicad-cli`). Stdlib Python only — no pip packages. ERC (errors), DRC (errors + schematic parity), and `expected-nets.yml` for every board under `hardware/boards/`.

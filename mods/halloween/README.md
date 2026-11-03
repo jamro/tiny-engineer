@@ -4,6 +4,8 @@ Optional Halloween mod for Tiny Engineer. [`3d_models/`](3d_models/) holds alter
 
 ![Halloween mod parts](halloween_preview.jpg)
 
+See it assembled in 3D, with the build steps: [assembly viewer → Halloween](https://jamro.github.io/tiny-engineer/assembly/#m=halloween).
+
 ## Parts
 
 | Role | Files |

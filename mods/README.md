@@ -35,6 +35,10 @@ Firmware loads `/welcome.cue` (and the other clip names) from LittleFS at boot. 
 | `abort` | `fine_end_ms`, `didnt_want_end_ms`, `finish_end_ms`, `end_ms` |
 | `dead` | `dense_ms`, `shutdown_ms`, `end_ms` |
 
+## 3D viewer
+
+A mod can appear in the [assembly viewer](https://jamro.github.io/tiny-engineer/assembly/) next to the stock robot: add `web/assembly/mods/<mod_name>.json` saying how its parts line up with the stock ones and how the build steps change. Example and format: [`halloween.json`](../web/assembly/mods/halloween.json), [docs/3d/assembly-viewer.md](../docs/3d/assembly-viewer.md#mods).
+
 ## Workflow
 
 Design, timeline, `PRINT_LAYOUT`, export, and checklist: [docs/3d/adding-parts.md](../docs/3d/adding-parts.md).

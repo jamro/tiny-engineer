@@ -19,6 +19,7 @@ Pick a path. Depth lives in the linked pages.
 | **Test a produced board** (PCBA, rev 3) | [hardware/pcba-test.md](hardware/pcba-test.md) |
 | **Adapt CAD to a different servo** | [3d/parametric-design.md](3d/parametric-design.md) |
 | **Add a new CAD / printable part** | [3d/adding-parts.md](3d/adding-parts.md) |
+| **3D assembly model** (browser viewer data, built by CI) | [3d/assembly-viewer.md](3d/assembly-viewer.md) |
 | **Optional mods** | [../mods/README.md](../mods/README.md) |
 | **Use with an agent** (Wi‑Fi or USB serial) | [integration.md](integration.md) (`tiny-engineer` CLI or REST) · [serial.md](serial.md) · Cursor: [hooks.md](hooks.md) |
 
