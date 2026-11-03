@@ -55,6 +55,16 @@ step 17 (belly 1) "Thread the three leads": Belly × servo-body clips 6.40 mm at
 
 A failure names the step (number overall, then section and number in it), the two parts, how deep they meet and where along the move. To fix one, slide the part in from a direction that clears what is already there, or build it into a sub-assembly that is mounted later with `move`. Stock takes about 35 s, the Halloween mod about a minute. `build.sh` runs it for stock and every mod. A mod's config can add `fits` for overlaps that come from how its parts are lined up with the stock robot (`align`).
 
+### Pose check
+
+[`check_poses.mjs`](../../scripts/assembly/check_poses.mjs) turns the parts about the servo shafts as the viewer does (`JOINTS` in [`poses.js`](../../web/js/assembly/poses.js), at ±25°) and checks parts that move relative to each other for clipping, at 90°, at rest and every 0.1 s through each animation loop. `fits` apply as in the step check. It also checks that the ring loop's strike lands the right hand on the bell (within 0.5 mm, not in it). Stock only, about 80 s; `build.sh` runs it.
+
+```bash
+node scripts/assembly/check_poses.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json [--tolerance 0.3] [--range 25]
+```
+
+The ring loop follows the firmware ([`ring.cpp`](../../src/animation/ring.cpp)): body turned fully right (−1), right hand up, strike, bounce to −5/9. The firmware strikes to −8/9 of a calibrated range; at the viewer's ±25° that stops 2 mm above the bell, so the viewer strikes to `RING_RIGHT_HIT` (−0.97), where the hand meets it.
+
 Local preview: build the GLB into `web/assembly/models/sg90.glb` (commands below), then `python3 -m http.server -d web 8000` and open `http://localhost:8000/assembly/`.
 
 ## Mods

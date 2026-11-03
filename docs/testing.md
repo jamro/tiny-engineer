@@ -55,7 +55,7 @@ npm test --prefix packages/tiny-engineer-claude-code
 
 ## 3D assembly model
 
-Python 3.13 with [`scripts/assembly/requirements.txt`](../scripts/assembly/requirements.txt), and Node 18+. Reads the Fusion design, checks every part's placement against its exported STL, and packs the GLB. Then checks the viewer's build steps on the meshes: no part may pass through another while it moves in, and no two parts may sit inside each other when assembled. CI job `assembly`. Details: [3d/assembly-viewer.md](3d/assembly-viewer.md#clipping-check).
+Python 3.13 with [`scripts/assembly/requirements.txt`](../scripts/assembly/requirements.txt), and Node 18+. Reads the Fusion design, checks every part's placement against its exported STL, and packs the GLB. Then checks the viewer's build steps on the meshes: no part may pass through another while it moves in, and no two parts may sit inside each other when assembled. Then checks the joint poses and animation loops the same way, and that the bell-ringing strike lands on the bell. CI job `assembly`. Details: [3d/assembly-viewer.md](3d/assembly-viewer.md#clipping-check), [pose check](3d/assembly-viewer.md#pose-check).
 
 ```bash
 python3 scripts/assembly/test_assembly.py
@@ -65,9 +65,10 @@ node scripts/assembly/test_clipping.mjs
 python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
 node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb
 node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
+node scripts/assembly/check_poses.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
 ```
 
-`scripts/assembly/build.sh` runs the extraction, both step checks and the GLB build for stock and every mod.
+`scripts/assembly/build.sh` runs the extraction, both step checks and the GLB build for stock and every mod, and the pose check for stock.
 
 ## PCB
 
