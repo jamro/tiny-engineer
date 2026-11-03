@@ -671,6 +671,49 @@ test("overlapping ensure opens the port once", async () => {
   assert.equal(opens, 1);
 });
 
+test("stale close leaves the replacement session", async () => {
+  /** @type {(() => void) | null} */
+  let finishFirstClose = null;
+  let opens = 0;
+  const link = createSerialLink({
+    connect: async ({ port }) => {
+      opens += 1;
+      const which = opens;
+      /** @type {(() => void) | null} */
+      let onClose = null;
+      return {
+        port: port || "/dev/a",
+        client: {
+          setEventHandler() {},
+          setLogHandler() {},
+          setCloseHandler(fn) { onClose = fn; },
+          close: () => new Promise((resolve) => {
+            const finish = () => {
+              onClose?.();
+              resolve(undefined);
+            };
+            if (which === 1) finishFirstClose = finish;
+            else finish();
+          }),
+        },
+      };
+    },
+  });
+  let downs = 0;
+  link.onLinkDown(() => { downs += 1; });
+  await link.ensure("/dev/old");
+  const releasing = link.release();
+  await link.ensure("/dev/new");
+  assert.equal(link.port, "/dev/new");
+  assert.equal(downs, 1);
+  assert.ok(finishFirstClose);
+  finishFirstClose();
+  assert.equal(await releasing, true);
+  assert.equal(link.port, "/dev/new");
+  assert.equal(downs, 1);
+  assert.equal(opens, 2);
+});
+
 test("tryConnect ignores chunks after hello", async () => {
   const dir = tempConfig();
   const sock = join(dir, "t.sock");
