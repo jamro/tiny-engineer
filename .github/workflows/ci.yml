@@ -101,7 +101,8 @@ jobs:
 
   assembly:
     # The 3D assembly viewer's model: read part placements from the Fusion
-    # design, check them against the exported STLs, and pack the GLB.
+    # design, check them against the exported STLs, check the build steps for
+    # parts clipping through each other, and pack the GLB.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -120,7 +121,8 @@ jobs:
           python3 scripts/assembly/test_assembly.py
           node scripts/assembly/test_build_glb.mjs
           node scripts/assembly/test_viewer.mjs
-      - name: Build assembly models (stock and mods)
+          node scripts/assembly/test_clipping.mjs
+      - name: Build assembly models (stock and mods), check steps for clipping
         run: scripts/assembly/build.sh artifacts/assembly/models
       - name: Upload assembly model
         uses: actions/upload-artifact@v4
