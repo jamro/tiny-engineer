@@ -11,6 +11,9 @@
 // it to glTF's Y up. Meshes carry positions and indices only; the viewer
 // computes normals with a crease angle, so CAD edges stay sharp. A mesh used
 // more than once (the five servos, the mirrored upper arm) is stored once.
+// An STL with colours in its triangles' attribute bytes (VisCAM: bit 15 set,
+// 5 bits each of red, green, blue, sRGB; the ESP32-C3-Zero from
+// canfactory_board.ts) also gets vertex colours (COLOR_0, linear).
 // Node 18+, no dependencies.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -36,28 +39,59 @@ export function readStl(bytes) {
   return corners;
 }
 
-/** Shared vertices and indices from triangle corners; drops degenerate triangles. */
-export function weld(corners) {
+/**
+ * Per-triangle colours of a binary STL (linear RGB, three per triangle), or
+ * null when not every triangle has one (bit 15 of its attribute bytes).
+ */
+export function readStlColors(bytes) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const count = view.getUint32(80, true);
+  if (!count) return null;
+  const linear = (five) => { const c = five / 31; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const colors = new Float32Array(count * 3);
+  for (let t = 0; t < count; t++) {
+    const word = view.getUint16(84 + t * 50 + 48, true);
+    if (!(word & 0x8000)) return null;
+    colors[t * 3] = linear((word >> 10) & 31);
+    colors[t * 3 + 1] = linear((word >> 5) & 31);
+    colors[t * 3 + 2] = linear(word & 31);
+  }
+  return colors;
+}
+
+/**
+ * Shared vertices and indices from triangle corners; drops degenerate
+ * triangles. With per-triangle `colors`, a vertex is shared only between
+ * triangles of one colour, and `colors` comes back per vertex.
+ */
+export function weld(corners, triangleColors = null) {
   const lookup = new Map();
   const positions = [];
+  const colors = [];
   const indices = [];
   const key = (x, y, z) => `${Math.round(x / WELD_MM)},${Math.round(y / WELD_MM)},${Math.round(z / WELD_MM)}`;
   for (let t = 0; t < corners.length / 9; t++) {
     const triangle = [];
+    const tint = triangleColors ? `|${triangleColors[t * 3]},${triangleColors[t * 3 + 1]},${triangleColors[t * 3 + 2]}` : '';
     for (let c = 0; c < 3; c++) {
       const o = t * 9 + c * 3;
-      const k = key(corners[o], corners[o + 1], corners[o + 2]);
+      const k = key(corners[o], corners[o + 1], corners[o + 2]) + tint;
       let index = lookup.get(k);
       if (index === undefined) {
         index = positions.length / 3;
         lookup.set(k, index);
         positions.push(corners[o], corners[o + 1], corners[o + 2]);
+        if (triangleColors) colors.push(triangleColors[t * 3], triangleColors[t * 3 + 1], triangleColors[t * 3 + 2]);
       }
       triangle.push(index);
     }
     if (triangle[0] !== triangle[1] && triangle[1] !== triangle[2] && triangle[0] !== triangle[2]) indices.push(...triangle);
   }
-  return { positions: Float32Array.from(positions), indices: positions.length / 3 > 65535 ? Uint32Array.from(indices) : Uint16Array.from(indices) };
+  return {
+    positions: Float32Array.from(positions),
+    colors: triangleColors ? Float32Array.from(colors) : null,
+    indices: positions.length / 3 > 65535 ? Uint32Array.from(indices) : Uint16Array.from(indices),
+  };
 }
 
 function bounds(positions) {
@@ -98,13 +132,18 @@ export function buildGlb(manifest, load) {
   const meshIndex = new Map();
   const mesh = (path) => {
     if (meshIndex.has(path)) return meshIndex.get(path);
-    const { positions, indices } = weld(readStl(load(path)));
+    const bytes = load(path);
+    const { positions, colors, indices } = weld(readStl(bytes), readStlColors(bytes));
     if (!indices.length) throw new Error(`${path}: no triangles`);
     const { min, max } = bounds(positions);
     json.accessors.push({ bufferView: push(positions, 34962), componentType: 5126, count: positions.length / 3, type: 'VEC3', min, max });
-    const position = json.accessors.length - 1;
+    const attributes = { POSITION: json.accessors.length - 1 };
+    if (colors) {
+      json.accessors.push({ bufferView: push(colors, 34962), componentType: 5126, count: colors.length / 3, type: 'VEC3' });
+      attributes.COLOR_0 = json.accessors.length - 1;
+    }
     json.accessors.push({ bufferView: push(indices, 34963), componentType: indices instanceof Uint32Array ? 5125 : 5123, count: indices.length, type: 'SCALAR' });
-    json.meshes.push({ name: path.split('/').pop().replace(/\.stl$/i, ''), primitives: [{ attributes: { POSITION: position }, indices: json.accessors.length - 1 }] });
+    json.meshes.push({ name: path.split('/').pop().replace(/\.stl$/i, ''), primitives: [{ attributes, indices: json.accessors.length - 1 }] });
     meshIndex.set(path, json.meshes.length - 1);
     return json.meshes.length - 1;
   };

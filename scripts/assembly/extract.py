@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import itertools
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -108,6 +109,48 @@ def rotation_candidates(design: Design) -> list[np.ndarray]:
         add(occurrence.matrix[:3, :3])
         add(occurrence.matrix[:3, :3].T)
     return candidates
+
+
+#: The ESP32-C3-Zero is not in the design. Its mesh comes from canfactory's
+#: drawing of the board (scripts/assembly/canfactory_board.ts): component side
+#: up, PCB corner at the origin, pins in two columns along +Y, USB-C toward +Y.
+ESP32_MESH = ROOT / "scripts" / "assembly" / "hardware" / "ESP32-C3-Zero.stl"
+#: Its pin grid (canfactory: two columns of 9, 15.24 mm apart, 2.54 mm pitch),
+#: centre and first-column X in the board's own frame.
+ESP32_PIN_CENTRE = np.array([9.0, 11.75])
+ESP32_ROW_SPACING = 15.24
+ESP32_PIN_ROW_LENGTH = 8 * 2.54
+#: Largest mismatch (mm) between the module's pin rows and the sockets.
+MAX_SEAT_MM = 0.1
+
+
+def esp32_seat(board_vertices: np.ndarray) -> np.ndarray:
+    """Where the ESP32-C3-Zero sits in MainControlBoard's frame (4x4).
+
+    The board is modelled with the two 9-pin sockets (J7, J8) and the
+    module's header spacer on its back, which faces down in its own frame:
+    the module sits on that stack's top face (the board mesh's lowest face).
+    J7 carries 5 V, GND and 3.3 V on pins 1-3 (hardware/boards/
+    main-control-board/expected-nets.yml), so the module's 5 V column goes in
+    the socket at -Y of the board frame and its USB-C end toward +X: that
+    puts its RESET button under LampButton and its LED under the lamp, as
+    the guide has it (docs/3d/assembly.md, section 13).
+    """
+    floor = board_vertices[:, 2].min()
+    top = board_vertices[np.abs(board_vertices[:, 2] - floor) < 1e-3]
+    ys = np.unique(top[:, 1].round(3))
+    if len(ys) != 4:
+        raise SystemExit(f"MainControlBoard: expected two socket rows on the stack's top face, found y {ys}")
+    rows = np.array([(ys[0] + ys[1]) / 2, (ys[2] + ys[3]) / 2])
+    centre_x = (top[:, 0].min() + top[:, 0].max()) / 2
+    if abs(rows[1] - rows[0] - ESP32_ROW_SPACING) > MAX_SEAT_MM or np.ptp(top[:, 0]) < ESP32_PIN_ROW_LENGTH:
+        raise SystemExit(f"MainControlBoard: sockets at y {rows.round(3)} do not take the ESP32-C3-Zero's pins")
+    # Module X (across the pins) along the board's +Y, module Y (toward USB-C)
+    # along its +X, component side away from the board (its -Z).
+    seat = np.eye(4)
+    seat[:3, :3] = np.array([[0, 1, 0], [1, 0, 0], [0, 0, -1]], dtype=float)
+    seat[:3, 3] = np.array([centre_x, rows.mean(), floor]) - seat[:3, :3] @ np.array([*ESP32_PIN_CENTRE, 0.0])
+    return seat
 
 
 def rotation_about(origin: np.ndarray, axis: np.ndarray, degrees: float) -> np.ndarray:
@@ -411,6 +454,24 @@ def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path,
 
     if not mod:
         lower_arms(parts, hardware)
+        board = next((h for h in hardware if h["id"] == "MainControlBoard"), None)
+        if board is None:
+            problems.append("no MainControlBoard to seat the ESP32-C3-Zero on")
+        else:
+            vertices = np.asarray(read_stl(out / board["mesh"]), dtype=float).reshape(-1, 3)
+            frame = np.array(board["matrix"]).reshape(4, 4).T
+            path = out / "hardware" / ESP32_MESH.name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ESP32_MESH, path)
+            hardware.append(
+                {
+                    "id": "ESP32-C3-Zero",
+                    "component": "ESP32-C3-Zero",
+                    "mesh": path.relative_to(out).as_posix(),
+                    "matrix": column_major(frame @ esp32_seat(vertices)),
+                    "source": "canfactory",
+                }
+            )
 
     manifest = {
         "format": FORMAT,

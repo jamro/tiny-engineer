@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Tests for build_glb.mjs: node scripts/assembly/test_build_glb.mjs
 import assert from 'node:assert/strict';
-import { buildGlb, readStl, weld } from './build_glb.mjs';
+import { buildGlb, readStl, readStlColors, weld } from './build_glb.mjs';
 import { mergeMod } from './merge_mod.mjs';
 
 /** A binary STL of the given triangles (each 9 numbers). */
@@ -114,6 +114,22 @@ function parseGlb(glb) {
   assert.equal(byId.Cover.color, '#ef7d1a');
   assert.equal(byId.Cover.mod, 'test');
   assert.throws(() => mergeMod(stock, mod, { ...config, align: config.align.slice(0, 2) }, () => tetra), /Pumpkin: in the mod but in no align group/);
+}
+
+// Colours in the attribute bytes (VisCAM): vertices are shared only within one colour.
+{
+  const coloured = stl([[...a, ...c, ...b], [...a, ...b, ...d]]);
+  const view = new DataView(coloured.buffer);
+  view.setUint16(84 + 48, 0x8000 | (31 << 10), true); // red
+  view.setUint16(84 + 50 + 48, 0x8000 | 31, true); // blue
+  const colors = readStlColors(coloured);
+  assert.deepEqual([...colors], [1, 0, 0, 0, 0, 1]);
+  const welded = weld(readStl(coloured), colors);
+  assert.equal(welded.positions.length / 3, 6, 'a and b are not shared across colours');
+  assert.deepEqual([...welded.colors.subarray(0, 3)], [1, 0, 0]);
+  assert.equal(readStlColors(tetra), null, 'no colours without bit 15');
+  const json = parseGlb(buildGlb({ preset: 'sg90', parts: [], hardware: [{ id: 'ESP32-C3-Zero', component: 'ESP32-C3-Zero', mesh: 'board.stl', matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }] }, () => coloured)).json;
+  assert.ok(json.meshes[0].primitives[0].attributes.COLOR_0 !== undefined, 'COLOR_0');
 }
 
 console.log('build_glb tests passed');

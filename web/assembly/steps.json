@@ -139,7 +139,7 @@
       "title": "ESP32, smoke test and LampBase",
       "doc": "#13-esp32-powerap-smoke-test-and-lampbase",
       "steps": [
-        {"title": "Seat the ESP32-C3-Zero from above", "text": "Pins through the desk-top cut into the board headers; orient by the USB marking. It sits flush. Optional: power on the board USB-C and check that the setup access point starts, then power down.", "add": [], "focus": ["DeskTop", "MainControlBoard"]},
+        {"title": "Seat the ESP32-C3-Zero from above", "text": "Pins through the desk-top cut into the board headers; orient by the USB marking. It sits flush. Optional: power on the board USB-C and check that the setup access point starts, then power down.", "add": ["ESP32-C3-Zero"], "from": [0, 0, 30], "focus": ["ESP32-C3-Zero", "DeskTop", "MainControlBoard"]},
         {"title": "LampButton under LampBase", "text": "Place LampButton under LampBase so it can press the ESP32 reset button.", "add": ["LampButton"], "from": [0, 0, 25]},
         {"title": "Fasten LampBase", "text": "Opening over the ESP32 status LED. Two M2×8 screws; this also holds the ESP32.", "add": ["LampBase"], "screws": "2 × M2×8", "from": [0, 0, 35]}
       ]
@@ -171,7 +171,7 @@
       "doc": "#16-fasten-chair-to-desk",
       "photo": "body_1.jpg",
       "steps": [
-        {"title": "Join Chair and Desk", "text": "Slide the desk up to the chair until the holes line up. Six M2×8 screws, three per side. Keep cables out of the screw paths.", "add": [], "move": ["Desk", "DeskPad", "DeskTop", "AiEmblem", "MainControlBoard", "LampButton", "LampBase", "LaptopCase", "LaptopScreen", "Mug", "Coffee", "Bell"], "focus": ["Chair", "Desk"], "screws": "6 × M2×8", "from": [80, 0, 0]},
+        {"title": "Join Chair and Desk", "text": "Slide the desk up to the chair until the holes line up. Six M2×8 screws, three per side. Keep cables out of the screw paths.", "add": [], "move": ["Desk", "DeskPad", "DeskTop", "AiEmblem", "MainControlBoard", "ESP32-C3-Zero", "LampButton", "LampBase", "LaptopCase", "LaptopScreen", "Mug", "Coffee", "Bell"], "focus": ["Chair", "Desk"], "screws": "6 × M2×8", "from": [80, 0, 0]},
         {"title": "BottomCover", "text": "Turn the robot over without loading the arms or props. Keep cables inside the perimeter. Fasten BottomCover with six M2×8 pan-head screws (heads ≤ 4.0 × 2.0 mm): four into the desk, two into the chair.", "add": ["BottomCover"], "screws": "6 × M2×8", "from": [0, 0, -40]}
       ]
     },
