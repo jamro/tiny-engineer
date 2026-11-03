@@ -1,34 +1,15 @@
-// The robot's five servo joints, as a kinematic tree over the model's parts.
+// The robot's five servo joints (JOINTS in poses.js) rigged over the model's parts.
 //
 // Each servo turns about its shaft: the servo mesh's frame has the shaft on
 // its +Y axis through the origin, so a joint's pivot is the servo node's
 // position and its axis the node's +Y. The table follows
 // docs/robot-movement.md: body → (neck → head, left hand, right hand).
 import * as THREE from 'three';
+import { DEFAULT_RANGE, JOINTS } from './poses.js';
 
-/**
- * `moves`: parts the joint turns (besides its child joints). `index` is the
- * firmware's servo index. `sense` says what +1 (the joint's saved max) looks
- * like, as a rotation about a CAD axis (+x the robot's front, +y its left,
- * +z up): body and neck turn left (+z), the head tilts up (−y), the left hand
- * goes down (+y) and the right hand up (−y) (docs/robot-movement.md).
- */
-export const JOINTS = [
-  {
-    id: 'body', index: 4, label: 'Body', servo: 'servo-body', sense: ['z', 1],
-    moves: ['BellyJoint', 'Belly', 'Chest', 'servo-neck', 'servo-arm-left', 'servo-arm-right'],
-    hint: 'Torso left / right',
-  },
-  { id: 'neck', index: 1, label: 'Neck', servo: 'servo-neck', parent: 'body', sense: ['z', 1], moves: ['Neck'], hint: 'Head left / right' },
-  { id: 'head', index: 0, label: 'Head', servo: 'servo-head', parent: 'neck', sense: ['y', -1], moves: ['Head', 'Hat', 'OLED', 'servo-head'], hint: 'Face up / down' },
-  { id: 'hand-left', index: 2, label: 'Left hand', servo: 'servo-arm-left', parent: 'body', sense: ['y', 1], moves: ['UpperArm', 'ForearmLeft'], hint: 'Down at +1' },
-  { id: 'hand-right', index: 3, label: 'Right hand', servo: 'servo-arm-right', parent: 'body', sense: ['y', -1], moves: ['UpperArmMirror', 'ForearmRight'], hint: 'Up at +1' },
-];
+export { DEFAULT_RANGE, JOINTS };
 
 const AXES = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
-
-/** Degrees either side of 90° that a −1..1 pose reaches in the viewer. */
-export const DEFAULT_RANGE = 25;
 
 /**
  * Builds pivots under `root` (the CAD-frame node) and moves the parts under

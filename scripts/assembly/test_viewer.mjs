@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { applyMod, flatten, offsetsAt, sceneAt, startOffset, validate } from '../../web/js/assembly/steps.js';
-import { ANIMATIONS, CENTRE, JOINT_IDS, REST, blendPoses, normalizePose } from '../../web/js/assembly/poses.js';
+import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, REST, RING_HIT_POSE, RING_RIGHT_HIT, blendPoses, normalizePose } from '../../web/js/assembly/poses.js';
 import { decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors, GROUP_COLORS, HARDWARE_COLORS } from '../../web/js/assembly/colors.js';
 
 const parts = [
@@ -156,5 +156,14 @@ for (const [name, animation] of Object.entries(ANIMATIONS)) {
     }
   }
 }
+
+assert.deepEqual(JOINTS.map((joint) => joint.id).sort(), [...JOINT_IDS].sort(), 'one joint per pose id');
+// Ring: turned to the bell, the right hand comes down onto it and bounces off.
+const ring = [...Array(240).keys()].map((i) => ANIMATIONS.ring.pose(i / 100));
+assert.ok(ring.every((pose) => pose.body === RING_HIT_POSE.body), 'turned towards the bell throughout');
+assert.equal(Math.min(...ring.map((pose) => pose['hand-right'])), RING_RIGHT_HIT, 'the strike stops on the bell');
+assert.ok(ring.some((pose) => pose['hand-right'] === 1), 'the hand lifts all the way');
+assert.deepEqual(ANIMATIONS.ring.pose(0.85), RING_HIT_POSE, 'on the bell, looking at it');
+assert.ok(ANIMATIONS.ring.pose(1.2)['hand-right'] > RING_RIGHT_HIT, 'bounces off');
 
 console.log('viewer tests passed');
