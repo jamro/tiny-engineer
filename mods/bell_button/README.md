@@ -2,7 +2,7 @@
 
 Standalone desk bell. The plunger closes a 6 mm momentary switch. Wire it to the push-button extension and the robot publishes button events, and can play `bell.wav`.
 
-![Bell button](bell_button_preview.png)
+![Bell button](bell_button_preview.jpg)
 
 Fusion source: [`3d_models/cad/TinyEngineerBellButton.f3d`](3d_models/cad/TinyEngineerBellButton.f3d). No `3mf`, `stl`, or `step` exports yet.
 
