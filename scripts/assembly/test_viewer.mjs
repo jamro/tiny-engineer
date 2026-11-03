@@ -3,7 +3,7 @@
 //   node scripts/assembly/test_viewer.mjs
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { applyMod, flatten, sceneAt, startOffset, validate } from '../../web/js/assembly/steps.js';
+import { applyMod, flatten, offsetsAt, sceneAt, startOffset, validate } from '../../web/js/assembly/steps.js';
 import { ANIMATIONS, CENTRE, JOINT_IDS, REST, blendPoses, normalizePose } from '../../web/js/assembly/poses.js';
 import { decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors, GROUP_COLORS, HARDWARE_COLORS } from '../../web/js/assembly/colors.js';
 
@@ -71,6 +71,37 @@ const twice = structuredClone(data);
 twice.sections[1].steps[0].add = ['Head'];
 assert.ok(validate(twice, ['Head', 'Hat', 'Desk']).some((problem) => problem.includes('adds Head again')));
 
+// Sub-assemblies: parts wait at the sum of the moves still ahead of them.
+const staged = {
+  format: 1,
+  sections: [{ id: 'a', title: 'A', steps: [
+    { title: 'head', text: 't', add: ['Head'], from: [0, 0, 10] },
+    { title: 'hat', text: 't', add: ['Hat'], from: [0, 0, 5] },
+    { title: 'desk', text: 't', add: ['Desk'] },
+    { title: 'mount', text: 't', add: [], move: ['Head', 'Hat'], from: [0, 0, 40] },
+    { title: 'slide', text: 't', add: [], move: ['Head', 'Hat', 'Desk'], fromEach: { Head: [20, 0, 0], Hat: [20, 0, 0], Desk: [0, 9, 0] } },
+  ] }],
+};
+const stagedSteps = flatten(staged);
+assert.deepEqual(Object.fromEntries(offsetsAt(stagedSteps, 0, 0)), { Head: [20, 0, 50] }, 'arrives at its waiting place + from');
+assert.deepEqual(Object.fromEntries(offsetsAt(stagedSteps, 0, 1)), { Head: [20, 0, 40] });
+assert.deepEqual(Object.fromEntries(offsetsAt(stagedSteps, 1, 0.5)), { Head: [20, 0, 40], Hat: [20, 0, 42.5] });
+assert.deepEqual(Object.fromEntries(offsetsAt(stagedSteps, 3, 0.25)), { Head: [20, 0, 30], Hat: [20, 0, 30], Desk: [0, 9, 0] });
+assert.deepEqual(Object.fromEntries(offsetsAt(stagedSteps, 4, 1)), {}, 'all home');
+assert.deepEqual([...sceneAt(stagedSteps, 3).moving].sort(), ['Hat', 'Head']);
+assert.deepEqual(sceneAt(stagedSteps, 3).focus.sort(), ['Hat', 'Head'], 'a move frames what it moves');
+assert.deepEqual(validate(staged, ['Head', 'Hat', 'Desk']), []);
+const badMove = structuredClone(staged);
+badMove.sections[0].steps[0].move = ['Desk'];
+badMove.sections[0].steps[3].from = undefined;
+badMove.sections[0].steps[4].allow = [{ parts: ['Head', 'Nope'], mm: 0 }];
+const badProblems = validate(badMove, ['Head', 'Hat', 'Desk']);
+assert.ok(badProblems.some((problem) => problem.includes('moves Desk, which no earlier step adds')));
+assert.ok(badProblems.some((problem) => problem.includes('moves parts without a from')));
+assert.ok(badProblems.some((problem) => problem.includes('unknown part Nope')));
+assert.ok(badProblems.some((problem) => problem.includes('mm must be a positive number')));
+assert.ok(badProblems.some((problem) => problem.includes('say why')));
+
 // The shipped steps are well formed (part ids are checked against the model by check_steps.mjs).
 const shipped = JSON.parse(readFileSync(new URL('../../web/assembly/steps.json', import.meta.url), 'utf8'));
 const shippedIds = [...new Set(flatten(shipped).flatMap((step) => step.add))];
@@ -84,7 +115,11 @@ const stock = {
     { id: 'props', title: 'Props', steps: [{ title: 'mug', text: 'Mug', add: ['Mug', 'Coffee'], fromEach: { Coffee: [0, 0, 5] } }] },
   ],
 };
+stock.fits = [{ parts: ['Mug', 'Coffee'], mm: 0.4, why: 'w' }, { parts: ['Hat', 'Head'], mm: 0.4, why: 'w' }];
+stock.sections[1].steps[0].move = undefined;
+stock.sections.push({ id: 'mount', title: 'Mount', steps: [{ title: 'm', text: 't', add: [], move: ['Mug', 'Coffee', 'Hat'], from: [0, 0, 9], allow: [{ parts: ['Mug', 'Hat'], mm: 1, why: 'w' }] }] });
 const modded = applyMod(stock, {
+  fits: [{ parts: ['Pot', 'Pumpkin'], mm: 1, why: 'mod' }],
   replace: { Mug: 'Pot', Coffee: 'Mixture' },
   remove: ['Hat'],
   steps: {
@@ -98,7 +133,10 @@ assert.equal(modded.sections[0].photo, undefined, 'a rewritten section drops the
 assert.deepEqual(modded.sections[1].steps[0].add, ['Pot', 'Mixture']);
 assert.deepEqual(modded.sections[1].steps[0].fromEach, { Mixture: [0, 0, 5] });
 assert.equal(modded.sections[1].steps[0].title, 'Cauldron');
-assert.equal(modded.sections[2].id, 'pumpkin');
+assert.equal(modded.sections[3].id, 'pumpkin');
+assert.deepEqual(modded.sections[2].steps[0].move, ['Pot', 'Mixture'], 'moves follow replace / remove');
+assert.deepEqual(modded.sections[2].steps[0].allow, [], 'an allowance for a removed part goes');
+assert.deepEqual(modded.fits.map((fit) => fit.parts), [['Pot', 'Mixture'], ['Pot', 'Pumpkin']]);
 assert.deepEqual(validate(modded, ['Head', 'PumpkinCover', 'Pot', 'Mixture', 'Pumpkin']), []);
 assert.deepEqual(stock.sections[1].steps[0].add, ['Mug', 'Coffee'], 'the stock steps are not changed');
 
