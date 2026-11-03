@@ -43,7 +43,7 @@ export function createSerialLink({ connect, preferredPort = null }) {
     });
     if (typeof opened.client.setCloseHandler === "function") {
       opened.client.setCloseHandler(() => {
-        markDown();
+        if (session === opened) markDown();
       });
     }
     session = opened;
