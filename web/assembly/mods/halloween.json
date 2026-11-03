@@ -266,6 +266,17 @@
           "text": "Seat Mixture in Pot, place the pot on the mug's spot and fasten it with one M2×8 from under the desk."
         }
       },
+      "arms": {
+        "2": {
+          "allow": [
+            {
+              "parts": ["ForearmLeft", "LampBase"],
+              "mm": 1.4,
+              "why": "The Halloween lamp stands in the left hand's way: tilt the hand up over the lamp's rim while pressing the arm on (the viewer only slides parts straight)."
+            }
+          ]
+        }
+      },
       "lamp": {
         "0": {
           "title": "Cap on diffuser, into LampBase",

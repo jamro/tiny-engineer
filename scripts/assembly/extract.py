@@ -71,6 +71,16 @@ MIN_MATCHED_FRACTION = 0.5
 CONCLUSIVE_MATCHED_VERTICES = 100
 #: Largest acceptable mismatch (mm) between a named joint and the transforms.
 MAX_JOINT_MM = 0.05
+#: The design is saved with the hands raised about 30° above the shoulders. The
+#: guide mounts each arm so that, with the servos at 90°, the hand sits at
+#: shoulder height and the forearm points forward (docs/3d/assembly.md, step
+#: 18), and the viewer's poses start from there. Each arm is turned this many
+#: degrees down about its servo's shaft (the servo frame's +Y).
+ARM_REST_DOWN_DEG = 29.0
+ARM_PARTS = {
+    "servo-arm-left": ("UpperArm", "ForearmLeft"),
+    "servo-arm-right": ("UpperArmMirror", "ForearmRight"),
+}
 
 
 def column_major(matrix: np.ndarray) -> list[float]:
@@ -98,6 +108,39 @@ def rotation_candidates(design: Design) -> list[np.ndarray]:
         add(occurrence.matrix[:3, :3])
         add(occurrence.matrix[:3, :3].T)
     return candidates
+
+
+def rotation_about(origin: np.ndarray, axis: np.ndarray, degrees: float) -> np.ndarray:
+    """4x4 rotation by ``degrees`` (right hand) about the line through ``origin`` along ``axis``."""
+    x, y, z = axis / np.linalg.norm(axis)
+    c, s = np.cos(np.radians(degrees)), np.sin(np.radians(degrees))
+    k = np.array([[0, -z, y], [z, 0, -x], [-y, x, 0]])
+    result = np.eye(4)
+    result[:3, :3] = np.eye(3) + s * k + (1 - c) * k @ k
+    result[:3, 3] = origin - result[:3, :3] @ origin
+    return result
+
+
+def lower_arms(parts: list[dict], hardware: list[dict], degrees: float = ARM_REST_DOWN_DEG) -> None:
+    """Turn each arm down about its servo shaft, to the pose the guide mounts it in."""
+    servos = {h["id"]: np.array(h["matrix"]).reshape(4, 4).T for h in hardware}
+    by_id = {part["id"]: part for part in parts}
+    for servo, ids in ARM_PARTS.items():
+        if servo not in servos:
+            continue
+        frame = servos[servo]
+        axis = frame[:3, 1]
+        # Down is about +y of the robot (+x, its front, turns toward -z).
+        sign = 1.0 if axis[1] > 0 else -1.0
+        turn = rotation_about(frame[:3, 3], axis, sign * degrees)
+        for part_id in ids:
+            part = by_id.get(part_id)
+            if part is None:
+                continue
+            for key in ("matrix", "occurrence"):
+                matrix = np.array(part[key]).reshape(4, 4).T
+                part[key] = column_major(turn @ matrix)
+            part["rest"] = f"turned {degrees:g} deg down about {servo}"
 
 
 def kabsch(source: np.ndarray, target: np.ndarray) -> np.ndarray:
@@ -365,6 +408,9 @@ def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path,
     unnamed = [h for h in servos if h["id"] == "Servo"]
     if unnamed and not mod:
         problems.append(f"{len(unnamed)} servo(s) not seated by any of the joints {sorted(SERVO_JOINTS)}")
+
+    if not mod:
+        lower_arms(parts, hardware)
 
     manifest = {
         "format": FORMAT,

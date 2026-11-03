@@ -181,9 +181,9 @@
       "doc": "#17-arms--elbow-joints",
       "photo": "arms_1.jpg",
       "steps": [
-        {"title": "Left elbow", "text": "Fasten ForearmLeft to an UpperArm with one M2×8 screw.", "add": ["UpperArm", "ForearmLeft"], "fromEach": {"UpperArm": [0, 0, 0], "ForearmLeft": [20, 0, -6]}, "screws": "1 × M2×8"},
-        {"title": "Right elbow", "text": "Fasten ForearmRight to the other UpperArm with one M2×8 screw.", "add": ["UpperArmMirror", "ForearmRight"], "fromEach": {"UpperArmMirror": [0, 0, 0], "ForearmRight": [20, 0, -6]}, "screws": "1 × M2×8"},
-        {"title": "Mount the arms on the chest servos", "text": "Center the hand servos. Press each arm onto its shaft (the upper arms have pockets for them), hand at shoulder height and forearm pointing toward the desk. Fasten with the servo screws.", "add": [], "move": ["UpperArm", "ForearmLeft", "UpperArmMirror", "ForearmRight"], "fromEach": {"UpperArm": [0, 40, 0], "ForearmLeft": [0, 40, 0], "UpperArmMirror": [0, -40, 0], "ForearmRight": [0, -40, 0]}, "focus": ["UpperArm", "UpperArmMirror", "Chest"], "screws": "2 × servo screw"}
+        {"title": "Left elbow", "text": "Fasten ForearmLeft to an UpperArm with one M2×8 screw.", "add": ["UpperArm", "ForearmLeft"], "fromEach": {"UpperArm": [0, 0, 0], "ForearmLeft": [14.6, 0, -15]}, "screws": "1 × M2×8"},
+        {"title": "Right elbow", "text": "Fasten ForearmRight to the other UpperArm with one M2×8 screw.", "add": ["UpperArmMirror", "ForearmRight"], "fromEach": {"UpperArmMirror": [0, 0, 0], "ForearmRight": [14.6, 0, -15]}, "screws": "1 × M2×8"},
+        {"title": "Mount the arms on the chest servos", "text": "Center the hand servos. Press each arm onto its shaft (the upper arms have pockets for them), hand at shoulder height and forearm pointing toward the desk. Fasten with the servo screws.", "add": [], "move": ["UpperArm", "ForearmLeft", "UpperArmMirror", "ForearmRight"], "fromEach": {"UpperArm": [0, 80, 0], "ForearmLeft": [0, 80, 0], "UpperArmMirror": [0, -80, 0], "ForearmRight": [0, -80, 0]}, "focus": ["UpperArm", "UpperArmMirror", "Chest"], "screws": "2 × servo screw"}
       ]
     },
     {
