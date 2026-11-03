@@ -121,6 +121,21 @@ export function createSerialLink({ connect, preferredPort = null }) {
       linkDownSubs.add(fn);
       return () => linkDownSubs.delete(fn);
     },
+    /**
+     * Close the tty and tell subscribers. Refuses while a play is active
+     * unless `force` is set (upload yield).
+     * @param {boolean} [force]
+     * @returns {Promise<boolean>} false when play blocked the release
+     */
+    async release(force = false) {
+      if (playActive && !force) return false;
+      const current = session;
+      session = null;
+      if (!current) return true;
+      for (const fn of linkDownSubs) fn();
+      await current.client.close().catch(() => {});
+      return true;
+    },
     async close() {
       const current = session;
       session = null;

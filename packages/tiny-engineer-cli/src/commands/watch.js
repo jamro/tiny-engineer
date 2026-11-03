@@ -1,4 +1,5 @@
 import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
+import { userConfigDir } from "../config/paths.js";
 import { followDaemonChannel } from "../daemon/client.js";
 import { parseMessage, SerialMsgType } from "../robot/serial/protocol.js";
 import { parseCommonArgs } from "../util/args.js";
@@ -100,6 +101,7 @@ Serial prints Evt payloads from the host daemon and does not open the tty.
       await followDaemonChannel({
         channel: "serial.events",
         port: opts.port ?? null,
+        configDir: userConfigDir(),
         onLine: (line) => console.log(line),
         onLinkDown: () => out.error("serial link down"),
       });

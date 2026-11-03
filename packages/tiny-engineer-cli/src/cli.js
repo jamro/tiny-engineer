@@ -13,6 +13,7 @@ import {
 } from "./commands/parity.js";
 import { runDaemon } from "./daemon/commands.js";
 import { runMonitor } from "./commands/monitor.js";
+import { runPort } from "./commands/port.js";
 import { runWatch } from "./commands/watch.js";
 import { get as getIntegration, list as listIntegrations } from "./integrations/registry.js";
 import { validateAnimName, validatePlayAnimName } from "./robot/client.js";
@@ -55,9 +56,11 @@ Commands:
   reset [--yes]           Factory-reset device (confirm or --yes)
   monitor                 Print serial LOG frames (via the host daemon)
   watch                   Print outbound events (WebSocket or serial Evt)
-  daemon start|stop|status|restart
-                          Host session. Serial keeps the USB port until stop.
-                          stop --yield refuses auto-start for 180s
+  port [--probe]          List serial ports and the auto-detect choice
+  daemon start|stop|release|disable|status|restart|install|uninstall
+                          Host session. stop and release close USB and stay up.
+                          stop --yield refuses serial open for 180s.
+                          disable refuses auto-start until start.
 
 Options (most commands):
   --url <base>            Robot base URL (default: TINY_ENGINEER_URL, else ${DEFAULT_URL})
@@ -322,6 +325,9 @@ export async function run(argv) {
       return;
     case "watch":
       await runWatch(out, rest);
+      return;
+    case "port":
+      await runPort(out, rest);
       return;
     case "daemon":
       await runDaemon(out, rest);

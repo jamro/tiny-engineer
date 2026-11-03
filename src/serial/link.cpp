@@ -5,6 +5,12 @@
 #include <cobs.h>
 #include <cstring>
 
+#if SOC_USB_SERIAL_JTAG_SUPPORTED
+#include <HWCDC.h>
+
+#include "hal/usb_serial_jtag_ll.h"
+#endif
+
 #include "animation.h"
 #include "api/commands.h"
 #include "firmware_version.h"
@@ -17,7 +23,58 @@
 namespace {
 
 bool g_ready = false;
+bool g_usbReset = false;
 SerialFrameDecoder g_decoder;
+uint32_t g_lastUsbRearmMs = 0;
+
+#if SOC_USB_SERIAL_JTAG_SUPPORTED
+// Bytes already in the FIFO do not raise SERIAL_OUT_RECV again. Drop them so
+// the next host packet is an empty→data edge the ISR can see.
+void discardHardwareRxFifo() {
+  uint8_t dump[64];
+  while (usb_serial_jtag_ll_rxfifo_data_available()) {
+    if (usb_serial_jtag_ll_read_rxfifo(dump, sizeof(dump)) <= 0) {
+      break;
+    }
+  }
+  usb_serial_jtag_ll_clr_intsts_mask(USB_SERIAL_JTAG_INTR_SERIAL_OUT_RECV_PKT);
+}
+
+void recoverHardwareRx() {
+  const bool fifo = usb_serial_jtag_ll_rxfifo_data_available() != 0;
+  const bool irq =
+    (usb_serial_jtag_ll_get_intsts_mask() & USB_SERIAL_JTAG_INTR_SERIAL_OUT_RECV_PKT) != 0;
+  const bool armed =
+    (usb_serial_jtag_ll_get_intr_ena_status() & USB_SERIAL_JTAG_INTR_SERIAL_OUT_RECV_PKT) != 0;
+
+  // A live ISR owns the FIFO while its status bit is set and the mask is armed.
+  if (fifo && !(irq && armed)) {
+    uint8_t buf[64];
+    while (usb_serial_jtag_ll_rxfifo_data_available()) {
+      const int n = usb_serial_jtag_ll_read_rxfifo(buf, sizeof(buf));
+      if (n <= 0) {
+        break;
+      }
+      if (g_ready) {
+        g_decoder.feed(buf, static_cast<size_t>(n));
+      }
+    }
+    if (irq) {
+      usb_serial_jtag_ll_clr_intsts_mask(USB_SERIAL_JTAG_INTR_SERIAL_OUT_RECV_PKT);
+    }
+  }
+
+  if (!armed) {
+    const uint32_t now = millis();
+    if (now - g_lastUsbRearmMs >= 1000) {
+      g_lastUsbRearmMs = now;
+      Serial.begin(115200);
+      Serial.setTxTimeoutMs(0);
+    }
+  }
+}
+#endif
+
 uint8_t g_encodeBuf[1 + kSerialMaxPayload + ((kSerialMaxPayload + 253) / 254) + 1];
 
 void writeFrame(const uint8_t* payload, size_t payloadLen) {
@@ -399,6 +456,26 @@ void onFrame(const uint8_t* payload, size_t length, void* /*user*/) {
 
 }  // namespace
 
+#if SOC_USB_SERIAL_JTAG_SUPPORTED
+extern "C" void tinyEngineerOnUsbBusReset(void*, esp_event_base_t, int32_t, void*) {
+  // Host restart and USB replug reset the bus without resetting the CPU.
+  // begin() arms the RX interrupt again; poll drops a torn frame.
+  Serial.begin(115200);
+  Serial.setTxTimeoutMs(0);
+  g_usbReset = true;
+}
+#endif
+
+void serialLinkWatchUsb() {
+#if SOC_USB_SERIAL_JTAG_SUPPORTED
+  while (Serial.available() > 0) {
+    Serial.read();
+  }
+  discardHardwareRxFifo();
+  Serial.onEvent(ARDUINO_HW_CDC_BUS_RESET_EVENT, tinyEngineerOnUsbBusReset);
+#endif
+}
+
 void serialLinkBegin() {
   g_decoder.reset();
   g_decoder.setHandler(onFrame, nullptr);
@@ -409,6 +486,17 @@ void serialLinkPoll() {
   if (!g_ready) {
     return;
   }
+
+#if SOC_USB_SERIAL_JTAG_SUPPORTED
+  if (g_usbReset) {
+    g_usbReset = false;
+    while (Serial.available() > 0) {
+      Serial.read();
+    }
+    g_decoder.reset();
+  }
+  recoverHardwareRx();
+#endif
 
   while (Serial.available() > 0) {
     const int byte = Serial.read();

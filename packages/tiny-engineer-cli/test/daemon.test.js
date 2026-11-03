@@ -13,10 +13,12 @@ import {
   daemonRobotRequest,
   daemonServeArgs,
   daemonStatusText,
+  disableActive,
+  disableDaemon,
   ensureDaemon,
   followDaemonChannel,
+  releaseDaemon,
   subscribeOnce,
-  stopDaemon,
   tryConnect,
   clearYield,
   yieldActive,
@@ -100,13 +102,15 @@ test("terminatePid sends SIGTERM then SIGKILL", async () => {
   assert.deepEqual(signals, ["SIGTERM", "SIGKILL"]);
 });
 
-test("daemon help lists start, stop, status, restart, and --yield", () => {
+test("daemon help lists release, disable, install, and plain stop stays up", () => {
   const help = daemonHelp();
-  assert.match(help, /start/);
-  assert.match(help, /stop/);
-  assert.match(help, /status/);
-  assert.match(help, /restart/);
+  assert.match(help, /release/);
+  assert.match(help, /disable/);
+  assert.match(help, /install/);
+  assert.match(help, /uninstall/);
+  assert.match(help, /Same as release/);
   assert.match(help, /--yield/);
+  assert.match(help, /ignored while daemon install is on/);
   assert.deepEqual(daemonServeArgs("/bin/tiny-engineer.js", "/dev/b"), [
     "/bin/tiny-engineer.js",
     "daemon",
@@ -116,12 +120,14 @@ test("daemon help lists start, stop, status, restart, and --yield", () => {
   ]);
   const cliHelp = spawnSync(process.execPath, [cli, "--help"], { encoding: "utf8" });
   assert.equal(cliHelp.status, 0);
-  assert.match(cliHelp.stdout, /daemon start\|stop\|status\|restart/);
-  assert.match(cliHelp.stdout, /--yield/);
+  assert.match(cliHelp.stdout, /release/);
+  assert.match(cliHelp.stdout, /disable/);
+  assert.match(cliHelp.stdout, /stop and release close USB and stay up/);
   const daemonCli = spawnSync(process.execPath, [cli, "daemon", "--help"], { encoding: "utf8" });
   assert.equal(daemonCli.status, 0);
-  assert.match(daemonCli.stdout, /restart/);
-  assert.match(daemonCli.stdout, /--yield/);
+  assert.match(daemonCli.stdout, /release/);
+  assert.match(daemonCli.stdout, /disable/);
+  assert.match(daemonCli.stdout, /Same as release/);
   assert.equal(parseDaemonArgs(["stop", "--yield"]).yield, true);
 });
 
@@ -149,7 +155,185 @@ test("stop is idempotent and --yield blocks auto-start until start", async () =>
     const status = await daemonStatusText({ configDir: dir });
     assert.match(status, /daemon running/);
   } finally {
-    spawnSync(process.execPath, [cli, "daemon", "stop"], {
+    spawnSync(process.execPath, [cli, "daemon", "disable"], {
+      env: { ...process.env, TINY_ENGINEER_CONFIG_DIR: dir },
+      stdio: "ignore",
+    });
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("stop without yield keeps the pid and the next request reopens the port", async () => {
+  const dir = tempConfig();
+  let opens = 0;
+  const serving = startServer(dir, async () => {
+    opens += 1;
+    return fakeSession("/dev/fake");
+  });
+  try {
+    await daemonRobotRequest("health", {}, { configDir: dir });
+    const before = await daemonStatusText({ configDir: dir });
+    const pid = before.match(/pid: (\d+)/)?.[1];
+    assert.ok(pid);
+    await releaseDaemon({ configDir: dir });
+    const mid = await daemonStatusText({ configDir: dir });
+    assert.match(mid, new RegExp(`pid: ${pid}`));
+    assert.match(mid, /port: down/);
+    assert.equal(opens, 1);
+    await daemonRobotRequest("health", {}, { configDir: dir });
+    assert.equal(opens, 2);
+    assert.match(await daemonStatusText({ configDir: dir }), new RegExp(`pid: ${pid}`));
+  } finally {
+    await disableDaemon({ configDir: dir });
+    await serving;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("release during play leaves the port open", async () => {
+  const dir = tempConfig();
+  const wav = join(dir, "clip.wav");
+  /** @type {(value: Record<string, unknown>) => void} */
+  let finish = () => {};
+  /** @type {Promise<void> | undefined} */
+  let serving;
+  /** @type {Promise<unknown> | undefined} */
+  let playing;
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(wav, Buffer.alloc(4));
+    /** @type {() => void} */
+    let markStarted = () => {};
+    const started = new Promise((resolve) => {
+      markStarted = resolve;
+    });
+    serving = startServer(dir, async () => ({
+      port: "/dev/fake",
+      client: {
+        request: async () => ({ ok: true }),
+        play: () => {
+          markStarted();
+          return new Promise((resolve) => { finish = resolve; });
+        },
+        setEventHandler() {},
+        setLogHandler() {},
+        setCloseHandler() {},
+        close: async () => {},
+      },
+    }));
+    playing = daemonPlay({ path: wav, configDir: dir });
+    const startedInTime = await Promise.race([
+      started.then(() => true),
+      delay(2000).then(() => false),
+    ]);
+    assert.equal(startedInTime, true);
+    await assert.rejects(() => releaseDaemon({ configDir: dir }), /play-active/);
+    assert.match(await daemonStatusText({ configDir: dir }), /port: \/dev\/fake/);
+  } finally {
+    const played = playing?.catch(() => {});
+    finish({ ok: true });
+    await disableDaemon({ configDir: dir }).catch(() => {});
+    await played;
+    if (serving) await serving;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("yield keeps the daemon and expiry does not reopen for a subscriber", async () => {
+  const dir = tempConfig();
+  let opens = 0;
+  const serving = startServer(dir, async () => {
+    opens += 1;
+    return fakeSession("/dev/fake");
+  });
+  try {
+    await daemonRobotRequest("health", {}, { configDir: dir });
+    const sub = await tryConnect(daemonPaths(dir).sock, 500);
+    assert.ok(sub);
+    const subscribed = await sub.peer.request("subscribe", { channel: "serial.events" }, 1000);
+    assert.equal(subscribed.error, undefined);
+    await releaseDaemon({ configDir: dir, yield: true });
+    assert.match(await daemonStatusText({ configDir: dir }), /daemon running/);
+    assert.match(await daemonStatusText({ configDir: dir }), /port: down/);
+    assert.match(await daemonStatusText({ configDir: dir }), /yield: \d+s/);
+    let spawns = 0;
+    await assert.rejects(
+      () => ensureDaemon({ configDir: dir, spawnFn: () => { spawns += 1; } }),
+      /yielded for upload/,
+    );
+    assert.equal(spawns, 0);
+    writeFileSync(daemonPaths(dir).yieldFile, JSON.stringify({ until: Date.now() - 1 }));
+    await delay(20);
+    assert.equal(opens, 1);
+    assert.match(await daemonStatusText({ configDir: dir }), /port: down/);
+    assert.match(await daemonStatusText({ configDir: dir }), /yield: off/);
+    sub.socket.end();
+  } finally {
+    await disableDaemon({ configDir: dir });
+    await serving;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("disable reports an unwritable config directory", async () => {
+  const dir = tempConfig();
+  const blocked = join(dir, "not-a-directory");
+  writeFileSync(blocked, "x");
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  const exitCode = process.exitCode;
+  process.env.TINY_ENGINEER_CONFIG_DIR = blocked;
+  process.exitCode = undefined;
+  /** @type {string[]} */
+  const errors = [];
+  try {
+    await runDaemon(createOutput({
+      error(line) {
+        errors.push(String(line));
+      },
+    }), ["disable"]);
+    assert.equal(process.exitCode, 1);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /error:/);
+  } finally {
+    process.exitCode = exitCode;
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("disable blocks auto-start until start and plain stop does not", async () => {
+  const dir = tempConfig();
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = dir;
+  const exitCode = process.exitCode;
+  try {
+    await runDaemon(quietOut(), ["stop"]);
+    assert.equal(disableActive(dir), false);
+    await runDaemon(quietOut(), ["disable"]);
+    assert.equal(disableActive(dir), true);
+    assert.equal(statSync(daemonPaths(dir).disabled).mode & 0o777, 0o600);
+    let spawns = 0;
+    await assert.rejects(
+      () => ensureDaemon({ configDir: dir, spawnFn: () => { spawns += 1; } }),
+      /daemon disabled/,
+    );
+    assert.equal(spawns, 0);
+    await runDaemon(quietOut(), ["start"]);
+    assert.equal(process.exitCode ?? 0, 0);
+    assert.equal(disableActive(dir), false);
+    const status = await daemonStatusText({ configDir: dir });
+    assert.match(status, /daemon running/);
+    assert.match(status, /port: down/);
+    await disableDaemon({ configDir: dir });
+    await runDaemon(quietOut(), ["restart"]);
+    assert.equal(disableActive(dir), false);
+    assert.match(await daemonStatusText({ configDir: dir }), /daemon running/);
+  } finally {
+    process.exitCode = exitCode;
+    spawnSync(process.execPath, [cli, "daemon", "disable"], {
       env: { ...process.env, TINY_ENGINEER_CONFIG_DIR: dir },
       stdio: "ignore",
     });
@@ -226,9 +410,9 @@ test("stale lock is replaced once and a fresh live lock is kept", async () => {
     );
     assert.equal(freshSpawns, 0);
   } finally {
-    await stopDaemon({ configDir: deadDir }).catch(() => {});
-    await stopDaemon({ configDir: emptyDir }).catch(() => {});
-    await stopDaemon({ configDir: oldDir }).catch(() => {});
+    await disableDaemon({ configDir: deadDir }).catch(() => {});
+    await disableDaemon({ configDir: emptyDir }).catch(() => {});
+    await disableDaemon({ configDir: oldDir }).catch(() => {});
     await deadServing;
     await emptyServing;
     await oldServing;
@@ -273,7 +457,7 @@ test("foreign pid is not signaled and a dead pid is replaced", async () => {
     });
     assert.deepEqual(killed, []);
     assert.equal(spawns, 1);
-    await stopDaemon({ configDir: dir });
+    await disableDaemon({ configDir: dir });
     await serving;
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -321,7 +505,7 @@ test("wedged daemon is terminated then replaced", async () => {
     });
     assert.deepEqual(killed, [77]);
     assert.equal(spawns, 1);
-    await stopDaemon({ configDir: dir });
+    await disableDaemon({ configDir: dir });
     await serving;
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -368,7 +552,7 @@ test("two starts share one daemon", async () => {
       const mode = statSync(daemonPaths(dir).sock).mode & 0o777;
       assert.equal(mode, 0o600);
     }
-    await stopDaemon({ configDir: dir });
+    await disableDaemon({ configDir: dir });
     await serving;
     const stopped = await daemonStatusText({ configDir: dir });
     assert.match(stopped, /not running/);
@@ -422,7 +606,7 @@ test("serial requests share one open and a subscriber can anim", async () => {
     await daemonRobotRequest("health", {}, { configDir: dir });
     assert.equal(opens, 2);
   } finally {
-    await stopDaemon({ configDir: dir }).catch(() => {});
+    await disableDaemon({ configDir: dir }).catch(() => {});
     await following;
     await serving;
     rmSync(dir, { recursive: true, force: true });
@@ -456,7 +640,7 @@ test("client reset does not kill the daemon", async () => {
     const status = await daemonStatusText({ configDir: dir });
     assert.match(status, /daemon running/);
   } finally {
-    await stopDaemon({ configDir: dir }).catch(() => {});
+    await disableDaemon({ configDir: dir }).catch(() => {});
     await serving;
     rmSync(dir, { recursive: true, force: true });
   }
@@ -546,7 +730,7 @@ test("serial play sends an absolute wav path", async () => {
   } finally {
     if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
     else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
-    await stopDaemon({ configDir: dir }).catch(() => {});
+    await disableDaemon({ configDir: dir }).catch(() => {});
     await serving;
     rmSync(dir, { recursive: true, force: true });
   }
@@ -582,7 +766,7 @@ test("failed play sends play_end and keeps the port", async () => {
     assert.ok(ops.includes("play_end"));
     assert.equal(closed, false);
     assert.equal(client._port.isOpen, true);
-    await stopDaemon({ configDir: dir });
+    await disableDaemon({ configDir: dir });
     await serving;
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -618,7 +802,7 @@ test("replace waits while play is active", async () => {
     conn.socket.end();
     release({ ok: true });
     await playing;
-    await stopDaemon({ configDir: dir });
+    await disableDaemon({ configDir: dir });
     await serving;
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -754,7 +938,7 @@ test("subscribeOnce reports a live subscription before the socket ends", async (
     assert.equal(subscribed, 1);
     assert.match(await daemonStatusText({ configDir: dir }), /daemon running/);
   } finally {
-    await stopDaemon({ configDir: dir }).catch(() => {});
+    await disableDaemon({ configDir: dir }).catch(() => {});
     await following;
     await serving;
     rmSync(dir, { recursive: true, force: true });
@@ -794,7 +978,42 @@ test("daemon start survives the parent and SIGHUP", async () => {
     const after = JSON.parse(readFileSync(daemonPaths(dir).state, "utf8"));
     assert.equal(after.pid, state.pid);
   } finally {
-    spawnSync(process.execPath, [cli, "daemon", "stop"], { env, stdio: "ignore" });
+    spawnSync(process.execPath, [cli, "daemon", "disable"], { env, stdio: "ignore" });
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("start --port warns while daemon install is on", async () => {
+  const dir = tempConfig();
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  const exitCode = process.exitCode;
+  process.env.TINY_ENGINEER_CONFIG_DIR = dir;
+  process.exitCode = 0;
+  /** @type {string[]} */
+  const notes = [];
+  const out = createOutput({
+    error(line) {
+      notes.push(String(line));
+    },
+  });
+  const serving = startServer(dir, async () => fakeSession("/dev/fake"));
+  try {
+    for (let i = 0; i < 50 && !existsSync(daemonPaths(dir).state); i += 1) await delay(20);
+    assert.equal(existsSync(daemonPaths(dir).state), true);
+    await runDaemon(out, ["start", "--port", "/dev/ignored"]);
+    assert.equal(process.exitCode ?? 0, 0);
+    assert.equal(notes.some((line) => line.includes("ignored while daemon install is on")), false);
+    writeFileSync(daemonPaths(dir).supervisor, "{}\n");
+    notes.length = 0;
+    await runDaemon(out, ["start", "--port", "/dev/ignored"]);
+    assert.equal(process.exitCode ?? 0, 0);
+    assert.equal(notes.some((line) => line.includes("warning: --port is ignored while daemon install is on")), true);
+  } finally {
+    process.exitCode = exitCode;
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    await disableDaemon({ configDir: dir }).catch(() => {});
+    await serving;
     rmSync(dir, { recursive: true, force: true });
   }
 });
@@ -815,7 +1034,7 @@ test("daemon restart --port is the port the new process prefers", async () => {
     assert.notEqual(after.pid, before.pid);
     assert.match(String(readProcessCommand(after.pid)), /--port \/dev\/new/);
   } finally {
-    spawnSync(process.execPath, [cli, "daemon", "stop"], { env, stdio: "ignore" });
+    spawnSync(process.execPath, [cli, "daemon", "disable"], { env, stdio: "ignore" });
     rmSync(dir, { recursive: true, force: true });
   }
 });
@@ -836,7 +1055,7 @@ test("preferred port is used when the request omits one", async () => {
     });
     await daemonRobotRequest("health", {}, { configDir: dir });
     assert.deepEqual(seen, ["/dev/preferred"]);
-    await stopDaemon({ configDir: dir });
+    await disableDaemon({ configDir: dir });
     await serving;
   } finally {
     rmSync(dir, { recursive: true, force: true });

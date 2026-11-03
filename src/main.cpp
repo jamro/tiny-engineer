@@ -39,6 +39,7 @@ void setup() {
   Serial.setTxBufferSize(4096);
   Serial.begin(115200);
   Serial.setTxTimeoutMs(0);
+  serialLinkWatchUsb();
   delay(1000);
 
   initSettings();

@@ -92,7 +92,8 @@ export async function serveDaemon(opts) {
     }
     writeState();
     await new Promise((resolve) => server.close(() => resolve(undefined)));
-    if (process.platform !== "win32") rmSync(paths.sock, { force: true });
+    // server.close unlinks a unix socket before this callback. A replacement
+    // daemon may already own the path, so do not rmSync it here.
     process.off("SIGHUP", onHup);
     process.off("SIGTERM", onTerm);
     process.off("SIGINT", onTerm);
@@ -129,6 +130,17 @@ export async function serveDaemon(opts) {
    */
   async function handle(socket, id, method, params) {
     try {
+      if (method === "daemon.release") {
+        const force = params.force === true;
+        const released = await link.release(force);
+        if (!released) {
+          send(socket, { id, error: "play-active" });
+          return;
+        }
+        writeState();
+        send(socket, { id, result: { ok: true, port: link.port } });
+        return;
+      }
       if (method === "daemon.stop") {
         const reason = params.reason === "replace" ? "replace" : "stop";
         if (reason === "replace" && link.playActive) {
@@ -140,7 +152,7 @@ export async function serveDaemon(opts) {
         return;
       }
       if (method === "daemon.status") {
-        send(socket, { id, result: { ok: true, ...helloParams() } });
+        send(socket, { id, result: { ok: true, ...helloParams(), playActive: link.playActive } });
         return;
       }
       if (method === "robot.request") {

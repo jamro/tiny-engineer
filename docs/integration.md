@@ -67,11 +67,11 @@ That checkout is the `dev` channel. A registry install is the `npm` channel. See
 
 ### Serial host daemon
 
-Serial commands (`anim`, `play`, `watch`, `monitor`, settings, doctor, hooks, and the rest) auto-start `tiny-engineer daemon` and talk to it on a local socket. The daemon keeps the USB port until `tiny-engineer daemon stop`. HTTP commands do not start it. Closing the terminal does not stop it.
+Serial commands (`anim`, `play`, `watch`, `monitor`, settings, doctor, hooks, and the rest) auto-start `tiny-engineer daemon` and talk to it on a local socket, unless the daemon is disabled or the port is yielded. HTTP commands do not start it. Closing the terminal does not stop it. A live process is assured only after `tiny-engineer daemon install`.
 
-`tiny-engineer daemon status` prints the channel and package root. Registry installs (`npx -y tiny-engineer`, or a global install) are `npm`. `node packages/tiny-engineer-cli/bin/tiny-engineer.js` from this repo is `dev`. A dev checkout replaces a running npm daemon. An npm command leaves a dev daemon running. `daemon restart` from the tree you want replaces a different checkout.
+`tiny-engineer daemon status` prints whether `daemon install` is on, the host serial ports, which port the daemon has open, plus the channel and package root. Registry installs (`npx -y tiny-engineer`, or a global install) are `npm`. `node packages/tiny-engineer-cli/bin/tiny-engineer.js` from this repo is `dev`. A dev checkout replaces a running npm daemon. An npm command leaves a dev daemon running. `daemon restart` from the tree you want replaces a different checkout.
 
-`tiny-engineer daemon stop` frees the port for other serial tools. `tiny-engineer daemon stop --yield` also refuses auto-start for 180 seconds so a firmware upload can open USB. `tiny-engineer daemon start` clears that yield. Details: [`serial.md`](serial.md).
+`tiny-engineer daemon release` and plain `tiny-engineer daemon stop` free the USB port and leave the process running. `tiny-engineer daemon disable` exits and stays down until `tiny-engineer daemon start`. `tiny-engineer daemon stop --yield` keeps the process, refuses auto-start for 180 seconds, and does not reopen the port when that window ends. `tiny-engineer daemon install` registers a per-user login wrapper (not a system-boot service) that restarts the process after a crash. `start --port` and `restart --port` are ignored while that wrapper is installed. The next open uses the command port, the cache, or autodetect. Details: [`serial.md`](serial.md).
 
 ### Setup wizard
 

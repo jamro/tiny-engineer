@@ -84,6 +84,22 @@ test("postAnim fetch throw → unreachable", async () => {
   assert.ok(result.error?.includes("ECONNREFUSED"));
 });
 
+test("postAnim empty AggregateError uses nested connect errors", async () => {
+  globalThis.fetch = async () => {
+    const inner = new Error("connect EHOSTUNREACH 192.168.68.57:80");
+    const err = new TypeError("fetch failed");
+    err.cause = new AggregateError([inner], "");
+    throw err;
+  };
+  const result = await postAnim("http://robot.test", "ring");
+  assert.equal(result.ok, false);
+  assert.ok(result.error?.includes("connect EHOSTUNREACH 192.168.68.57:80"));
+  assert.equal(result.error?.includes("fetch failed"), false);
+  if (process.platform === "darwin") {
+    assert.ok(result.error?.includes("Local Network"));
+  }
+});
+
 test("postPlay 415 → ok false with body error", async () => {
   mockFetchResponse(415, '{"ok":false,"error":"expected 16-bit mono PCM at 22050 Hz"}');
   const result = await postPlay({

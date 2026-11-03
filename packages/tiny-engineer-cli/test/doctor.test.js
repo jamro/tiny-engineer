@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { stopDaemon } from "../src/daemon/client.js";
+import { disableDaemon } from "../src/daemon/client.js";
 import { daemonPaths } from "../src/daemon/paths.js";
 import { delay } from "../src/daemon/proc.js";
 import { serveDaemon } from "../src/daemon/server.js";
@@ -138,7 +138,7 @@ test("runDoctor serial uses the daemon and does not need HTTP", async () => {
     assert.equal(lines.some((line) => line.includes("url:")), false);
   } finally {
     globalThis.fetch = original;
-    await stopDaemon({ configDir: cfg }).catch(() => {});
+    await disableDaemon({ configDir: cfg }).catch(() => {});
     await serving;
     if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
     else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
