@@ -18,6 +18,8 @@ export const HARDWARE_COLORS = {
   Servo: '#2f55b4',
   OLED: '#1b1d22',
   MainControlBoard: '#1d5a3a',
+  // Drawn in its own colours (vertex colours); white leaves them as they are.
+  'ESP32-C3-Zero': '#ffffff',
 };
 
 /** Swatches offered in the picker: common PLA / PETG colours. */

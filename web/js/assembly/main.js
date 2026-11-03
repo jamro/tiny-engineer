@@ -133,12 +133,14 @@ async function main() {
   }
 
   // One material per part, so each can take its own colour; normals with a crease angle.
+  // A mesh with vertex colours (the ESP32-C3-Zero) shows them, tinted by the part's colour.
   const geometries = new Map();
   for (const part of parts) {
     const source = part.mesh.geometry;
     if (!geometries.has(source)) geometries.set(source, smoothNormals(source));
     part.mesh.geometry = geometries.get(source);
     part.mesh.material = new THREE.MeshStandardMaterial({
+      vertexColors: Boolean(part.mesh.geometry.getAttribute('color')),
       roughness: part.kind === 'hardware' ? 0.5 : 0.62,
       metalness: part.printGroup === 'PartsSetA' ? 0.35 : 0.04,
       transparent: TRANSLUCENT.has(part.id),
