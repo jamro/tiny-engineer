@@ -27,6 +27,14 @@ test("eventsWebSocketUrl rewrites http to ws port 81 /events", () => {
     eventsWebSocketUrl("http://robot.example/path", "secret"),
     "ws://robot.example:81/events?token=secret",
   );
+  assert.equal(
+    eventsWebSocketUrl("http://robot.example", "two words"),
+    "ws://robot.example:81/events?token=two%20words",
+  );
+  assert.equal(
+    eventsWebSocketUrl("http://robot.example", "a+b"),
+    "ws://robot.example:81/events?token=a%2Bb",
+  );
 });
 
 test("eventsWebSocketUrl rejects https bases", () => {

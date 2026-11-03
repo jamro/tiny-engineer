@@ -28,7 +28,7 @@ export function eventsWebSocketUrl(baseUrl, token = null) {
   ws.search = "";
   ws.hash = "";
   if (token) {
-    ws.searchParams.set("token", token);
+    ws.search = `token=${encodeURIComponent(token)}`;
   }
   return ws.toString();
 }
