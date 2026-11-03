@@ -29,14 +29,31 @@ flowchart LR
 [`web/assembly/steps.json`](../../web/assembly/steps.json): sections that follow `assembly.md` (`doc` is the heading anchor, `photo` a file in `assembly_visuals/`), each with steps:
 
 ```json
-{ "title": "Seat the OLED", "text": "…", "add": ["OLED"], "from": [40, 0, 0], "screws": "2 × M2×8" }
+{ "title": "Seat the OLED", "text": "…", "add": ["OLED"], "from": [0, 0, 40], "screws": "2 × M2×8" }
+{ "title": "Lower the body onto BellyJoint", "text": "…", "add": [], "move": ["Belly", "Chest", "…"], "from": [0, 0, 70] }
 ```
 
 - `add`: part ids from the model (`assembly.json`) that appear in this step. Every part is added exactly once.
-- `from` / `fromEach`: where the added parts slide in from (mm, CAD frame: +x the robot's front, +y its left, +z up).
-- `focus`: parts to frame when the step adds none. `ghost`: parts drawn see-through (the desk while the board goes in).
+- `move`: parts added earlier that move into place in this step, together: a sub-assembly built off the robot (the head before it goes on the chest, the whole desk before it meets the chair). Until this step they wait at `from`, added to any later moves of theirs, so a sub-assembly is built where it waits and travels as one piece.
+- `from` / `fromEach`: where the added or moved parts slide in from, relative to where the step leaves them (mm, CAD frame: +x the robot's front, +y its left, +z up).
+- `focus`: parts to frame (default: the parts the step adds or moves). `ghost`: parts drawn see-through (the desk while the board goes in).
+- `allow`: overlaps this step lets through, `{ "parts": [a, b], "mm": 2.5, "why": "…" }`, for joints that only go together by flexing or tilting a part, which the viewer's straight slides cannot show. Top-level `fits` does the same for every step and for the finished robot: the servo shafts, modelled 0.3 mm over their printed pockets.
 
-CI checks the steps against the extracted model (`check_steps.mjs`). When a part is added to the CAD, add it to a step.
+CI checks the steps against the extracted model (`check_steps.mjs`) and for clipping (below). When a part is added to the CAD, add it to a step.
+
+### Clipping check
+
+[`check_clipping.mjs`](../../scripts/assembly/check_clipping.mjs) replays every step on the meshes. Each part that moves is walked along its path in 1 mm steps and tested against every part shown. Then the finished robot is checked pair by pair. Depth is measured on the triangles, not on bounding boxes: points spread 0.8 mm apart over one part's surface are tested inside the other (ray parity over a bounding volume hierarchy), and the deepest one sets the depth ([`clipping.mjs`](../../scripts/assembly/clipping.mjs), no dependencies). Faces that only touch measure 0, so mating parts pass. Anything deeper than 0.3 mm fails, unless `fits` or the step's `allow` covers that pair to that depth. Allowed overlaps are listed in the output.
+
+```bash
+node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json [web/assembly/mods/<id>.json] [--tolerance 0.3] [--step 1]
+```
+
+```text
+step 17 (belly 1) "Thread the three leads": Belly × servo-body clips 6.40 mm at 31 % of the move
+```
+
+A failure names the step (number overall, then section and number in it), the two parts, how deep they meet and where along the move. To fix one, slide the part in from a direction that clears what is already there, or build it into a sub-assembly that is mounted later with `move`. Stock takes about 35 s, the Halloween mod about a minute. `build.sh` runs it for stock and every mod. A mod's config can add `fits` for overlaps that come from how its parts are lined up with the stock robot (`align`).
 
 Local preview: build the GLB into `web/assembly/models/sg90.glb` (commands below), then `python3 -m http.server -d web 8000` and open `http://localhost:8000/assembly/`.
 
@@ -50,7 +67,8 @@ A mod shows on the viewer when it has a config in [`web/assembly/mods/`](../../w
   - `centre` + `floor`: centre a part on a stock part and stand it on that part's floor (the lamp on the stock lamp's axis, the cauldron on the mug's spot). `check` fails the build if a footprint lands off.
   - `at`: a prop on the floor beside the desk.
 - `replace` (`Mug` → `Pot`), `remove` (`Hat`), and same-id parts (`Head`, `LampBase`, …) take the stock parts' places. `colors` are the mod's defaults.
-- `steps`: rewritten `sections`, `patch`ed steps and `append`ed sections on top of `steps.json`. Replaced and removed ids follow automatically.
+- `steps`: rewritten `sections`, `patch`ed steps (by index in the section) and `append`ed sections on top of `steps.json`. Replaced and removed ids follow automatically, in `add`, `move`, `allow` and `fits` alike. A mod part that rides on a stock sub-assembly must be in that sub-assembly's later `move`s: Halloween patches the body's move onto the chair so the pumpkin goes with the head.
+- `fits`: overlaps of the mod's parts that the clipping check lets through, as in `steps.json`.
 
 [`build.sh`](../../scripts/assembly/build.sh) builds every mod in that folder after the stock model, and checks its steps against its parts.
 
@@ -86,6 +104,8 @@ python3 -m venv .venv && .venv/bin/pip install -r scripts/assembly/requirements.
 node scripts/assembly/test_build_glb.mjs
 .venv/bin/python scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
 node scripts/assembly/test_viewer.mjs
+node scripts/assembly/test_clipping.mjs
+node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
 PYTHON=.venv/bin/python scripts/assembly/build.sh   # stock + mods -> web/assembly/models/
 ```
 
