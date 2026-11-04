@@ -17,24 +17,6 @@ on:
       - "3d_models/fusion/TinyEngineerTools/servos.json"
       - "mods/*/3d_models/**"
       - ".github/workflows/pages.yml"
-  # Fork only: deploy pull requests to this fork's GitHub Pages as a preview.
-  # Remove this pull_request trigger before this is merged into upstream main
-  # (jamro/tiny-engineer).
-  pull_request:
-    paths:
-      - "web/**"
-      - "scripts/build_flash_catalog.py"
-      - "scripts/stage_print_files.mjs"
-      - "3d_models/parts/*/3mf/**"
-      - "3d_models/LICENSE"
-      - "3d_models/NOTICE"
-      - "scripts/assembly/**"
-      - "3d_models/cad/**"
-      - "3d_models/parts/*/stl/**"
-      - "3d_models/parts/*/step/**"
-      - "3d_models/fusion/TinyEngineerTools/servos.json"
-      - "mods/*/3d_models/**"
-      - ".github/workflows/pages.yml"
   release:
     types: [published, edited]
   workflow_dispatch:
