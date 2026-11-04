@@ -1,0 +1,29 @@
+{
+  "format": 1,
+  "about": "The M2 screws and nuts the 3D viewer draws (scripts/assembly/fasteners.py). Each entry is one BOM line of 3d_models/README.md#screws: the part the screw head sits on, the part it threads into, its length, how many, and the build step (web/assembly/steps.json title) that drives it in. Positions come from the hole stacks in the parts' STEP exports at each servo preset; a count that does not match fails the build.",
+  "pilot_radius": 1.05,
+  "screw": {"head_diameter": 3.5, "head_height": 1.4, "thread_diameter": 2.0, "about": "pan head as JIS B 1122 (the M2 self-tapping assortments): the FS0307 and HD-1370A tab holes sit 1.9 mm from the gearbox"},
+  "nut": {"width_across_flats": 4.0, "height": 1.6, "about": "ISO 4032 M2"},
+  "screws": [
+    {"id": "hat", "head": "Hat", "into": "Head", "length": 8, "count": 2, "step": "Close the head with the hat"},
+    {"id": "head-neck", "head": "Neck", "into": "Head", "length": 8, "count": 1, "radii": {"Head": [1.2]}, "step": "Fasten both sides",
+     "nut": {"at": "pocket", "in": "Neck", "step": "Drop in the nut"},
+     "why": "The pivot on the robot's right, on the head servo's axis: through Neck's arm and the nut captured in it, into Head's clearance hole as the axle."},
+    {"id": "arm-left", "head": "Chest", "into": "servo-arm-left", "length": 16, "count": 2, "step": "Seat the robot's left servo"},
+    {"id": "arm-right", "head": "Chest", "into": "servo-arm-right", "length": 16, "count": 2, "step": "Seat the robot's right servo"},
+    {"id": "neck-servo", "head": "servo-neck", "into": "Chest", "length": 8, "count": 1, "radii": {"Chest": [1.1]}, "step": "Seat the neck servo in the center pocket"},
+    {"id": "belly", "head": "Belly", "into": "Chest", "length": 8, "count": 4, "step": "Fasten Belly to Chest"},
+    {"id": "seats", "head": "SeatLeft", "into": "SeatRight", "length": 16, "count": 2, "step": "Push the seats together"},
+    {"id": "desk-stack", "head": "DeskTop", "into": "Desk", "length": 16, "count": 4, "step": "Fasten the stack to Desk"},
+    {"id": "emblem", "head": "AiEmblem", "into": "Desk", "length": 4, "count": 2, "step": "Fasten AiEmblem to the front"},
+    {"id": "lamp-base", "head": "LampBase", "into": "Desk", "length": 8, "count": 2, "step": "Fasten LampBase"},
+    {"id": "laptop", "head": "Desk", "into": "LaptopCase", "length": 8, "count": 1, "step": "Laptop on the desk"},
+    {"id": "mug", "head": "Desk", "into": "Mug", "length": 8, "count": 1, "step": "Mug"},
+    {"id": "bell", "head": "Bell", "into": "Desk", "length": 16, "count": 1, "enclosed": true, "step": "Bell", "nut": {"at": "far", "step": "Bell"}},
+    {"id": "chair-desk", "head": "Desk", "into": "Chair", "length": 8, "count": 6, "step": "Join Chair and Desk"},
+    {"id": "cover-desk", "head": "BottomCover", "into": "Desk", "length": 8, "count": 4, "step": "BottomCover"},
+    {"id": "cover-chair", "head": "BottomCover", "into": "Chair", "length": 8, "count": 2, "step": "BottomCover"},
+    {"id": "elbow-left", "head": "ForearmLeft", "into": "UpperArm", "length": 8, "count": 1, "step": "Left elbow"},
+    {"id": "elbow-right", "head": "ForearmRight", "into": "UpperArmMirror", "length": 8, "count": 1, "step": "Right elbow"}
+  ]
+}

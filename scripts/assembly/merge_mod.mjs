@@ -11,7 +11,8 @@
 //     on the stock part's floor (min z);
 //   at: [x, y] on the floor beside the robot (a prop);
 //   check: after aligning, a part's footprint must land on a stock part's.
-// Then it removes `remove`, swaps `replace`, and replaces same-id stock parts.
+// Then it removes `remove`, swaps `replace`, and replaces same-id stock parts,
+// and drops the stock screws and nuts that go through any of those.
 // Node 18+, no dependencies.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -104,7 +105,9 @@ export function mergeMod(stock, mod, config, load) {
   const removed = new Set([...(config.remove ?? []), ...Object.keys(config.replace ?? {}), ...placed]);
   const parts = [...stock.parts.filter((part) => !removed.has(part.id)), ...aligned].map(({ occurrence, ...part }) => part);
   if (problems.length) throw new Error(`mod ${config.id}:\n  ${problems.join('\n  ')}`);
-  return { ...stock, mod: config.id, parts, hardware: stock.hardware };
+  // A screw or nut through a part the mod removes or replaces goes too: the mod part's holes are its own.
+  const hardware = stock.hardware.filter((item) => !item.fastener?.parts.some((id) => removed.has(id)));
+  return { ...stock, mod: config.id, parts, hardware };
 }
 
 function main([stockPath, modPath, configPath, outPath]) {

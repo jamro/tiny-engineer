@@ -125,18 +125,59 @@ def servo_transfer(point: np.ndarray, src, dst) -> np.ndarray:
     return np.array(out)
 
 
+def servo_holes(p: dict[str, float]) -> list[tuple[float, float]]:
+    """The tabs' screw holes (x, z) in the servo frame: on the real tab's centre line (the
+    model's tab less its clearance), moved out by ``mount_hole_width_offset``. Measured on
+    the design's servo at SG90."""
+    xs, _, _ = servo_levels(p)
+    out = p["mount_width"] / 2 + p["mount_hole_width_offset"]
+    return [(xs["body_left"] + 0.3 - out, p["mount_hole_depth_offset"]), (xs["body_right"] - 0.3 + out, p["mount_hole_depth_offset"])]
+
+
+def holed_block(x0: float, x1: float, y0: float, y1: float, z0: float, z1: float, centre: tuple[float, float], radius: float,
+                segments: int = 32) -> tuple[list, list]:
+    """A closed box with a round hole along y through (x, z) = `centre`, outward faces."""
+    cx, cz = centre
+    corners = [(x1, z1), (x0, z1), (x0, z0), (x1, z0)]
+    angles = sorted({2 * np.pi * i / segments for i in range(segments)} | {np.arctan2(z - cz, x - cx) % (2 * np.pi) for x, z in corners})
+    inner, outer = [], []
+    for a in angles:
+        u = np.array([np.cos(a), np.sin(a)])
+        inner.append((cx + radius * u[0], cz + radius * u[1]))
+        # where the ray from the centre leaves the box
+        t = min(((x1 - cx) / u[0] if u[0] > 1e-12 else (x0 - cx) / u[0] if u[0] < -1e-12 else np.inf),
+                ((z1 - cz) / u[1] if u[1] > 1e-12 else (z0 - cz) / u[1] if u[1] < -1e-12 else np.inf))
+        outer.append((cx + t * u[0], cz + t * u[1]))
+    n = len(angles)
+    vertices = [[x, y, z] for y in (y0, y1) for x, z in (*outer, *inner)]
+    ob, ib, ot, it = 0, n, 2 * n, 3 * n
+    triangles = []
+    for i in range(n):
+        j = (i + 1) % n
+        # angles grow from +x towards +z, so about y they turn clockwise: wind the caps to suit
+        triangles += [[ot + i, it + j, ot + j], [ot + i, it + i, it + j]]  # top (+y)
+        triangles += [[ob + i, ob + j, ib + j], [ob + i, ib + j, ib + i]]  # bottom (-y)
+        triangles += [[ob + i, ot + j, ob + j], [ob + i, ot + i, ot + j]]  # sides
+        triangles += [[ib + i, ib + j, it + j], [ib + i, it + j, it + i]]  # hole
+    return vertices, triangles
+
+
 def servo_mesh(p: dict[str, float], segments: int = 32) -> tuple[np.ndarray, np.ndarray]:
-    """The design's servo at a preset's sizes, as closed blocks (body, tabs, gearbox,
-    shaft housing) and the shaft; the tabs' screw holes are left out."""
+    """The design's servo at a preset's sizes, as closed blocks (body, tabs with their screw
+    holes, gearbox, shaft housing) and the shaft."""
     (xs, ys, zs) = servo_levels(p)
     d = zs["front"]
     blocks = [
         (xs["body_left"], xs["body_right"], ys["body_bottom"], ys["tab_bottom"]),
-        (xs["tab_left"], xs["tab_right"], ys["tab_bottom"], ys["tab_top"]),
+        (xs["body_left"], xs["body_right"], ys["tab_bottom"], ys["tab_top"]),
         (xs["body_left"], xs["body_right"], ys["tab_top"], ys["housing_bottom"]),
         (xs["housing_left"], xs["body_right"], ys["housing_bottom"], ys["housing_top"]),
     ]
     vertices, triangles = [], []
+    for (x0, x1), centre in zip(((xs["tab_left"], xs["body_left"]), (xs["body_right"], xs["tab_right"])), servo_holes(p)):
+        v, t = holed_block(x0, x1, ys["tab_bottom"], ys["tab_top"], -d, d, centre, p["mount_hole_radius"], segments)
+        triangles += [[len(vertices) + k for k in tri] for tri in t]
+        vertices += v
     for x0, x1, y0, y1 in blocks:
         base = len(vertices)
         vertices += [[x, y, z] for x in (x0, x1) for y in (y0, y1) for z in (-d, d)]
@@ -729,7 +770,8 @@ def build(preset: str, base: Path, out: Path, f3d: Path = DEFAULT_F3D) -> dict:
     hardware = []
     servos = by_component.get("Servo", [])
     for entry in stock["hardware"]:
-        if entry["id"] == "ESP32-C3-Zero":
+        # The ESP32 is seated again below; screws and nuts are placed by fasteners.py at the preset.
+        if entry["id"] == "ESP32-C3-Zero" or entry.get("source") == "fastener":
             continue
         if entry["component"] == "Servo":
             m = matrix_of(entry)

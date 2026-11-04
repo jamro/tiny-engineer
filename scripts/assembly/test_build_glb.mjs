@@ -54,15 +54,20 @@ function parseGlb(glb) {
       { id: 'Left', component: 'Arm', mesh: 'arm.stl', matrix: identity },
       { id: 'Right', component: 'Arm(Mirror)', mesh: 'arm.stl', matrix: moved },
     ],
-    hardware: [{ id: 'servo-head', component: 'Servo', mesh: 'servo.stl', matrix: identity }],
+    hardware: [
+      { id: 'servo-head', component: 'Servo', mesh: 'servo.stl', matrix: identity },
+      { id: 'screw-hat-1', component: 'M2x8', mesh: 'M2x8.stl', matrix: moved, source: 'fastener', fastener: { kind: 'screw', size: 'M2×8', parent: 'Left' } },
+    ],
   };
   const loads = [];
   const glb = buildGlb(manifest, (path) => { loads.push(path); return tetra; });
   const { json, bin } = parseGlb(glb);
-  assert.deepEqual(loads, ['arm.stl', 'servo.stl'], 'a mesh used twice is read once');
-  assert.equal(json.meshes.length, 2);
-  assert.deepEqual(json.nodes.map((node) => node.name), ['TinyEngineer', 'Left', 'Right', 'servo-head']);
-  assert.deepEqual(json.nodes[0].children, [1, 2, 3]);
+  assert.deepEqual(loads, ['arm.stl', 'servo.stl', 'M2x8.stl'], 'a mesh used twice is read once');
+  assert.equal(json.meshes.length, 3);
+  assert.deepEqual(json.nodes.map((node) => node.name), ['TinyEngineer', 'Left', 'Right', 'servo-head', 'screw-hat-1']);
+  assert.deepEqual(json.nodes[0].children, [1, 2, 3, 4]);
+  assert.equal(json.nodes[4].extras.kind, 'fastener');
+  assert.deepEqual(json.nodes[4].extras.fastener, { kind: 'screw', size: 'M2×8', parent: 'Left' });
   assert.equal(json.nodes[1].mesh, json.nodes[2].mesh, 'mirrored copy shares the mesh');
   assert.deepEqual(json.nodes[2].matrix, moved);
   assert.equal(json.nodes[3].extras.kind, 'hardware');
@@ -86,7 +91,10 @@ function parseGlb(glb) {
       { id: 'Mug', mesh: 'tetra.stl', matrix: at(30, 40, 20) },
       { id: 'Desk', mesh: 'tetra.stl', matrix: at(0, 0, -5) },
     ],
-    hardware: [],
+    hardware: [
+      { id: 'screw-hat-1', mesh: 'M2x8.stl', matrix: I, fastener: { parts: ['Hat', 'Head'] } },
+      { id: 'screw-desk-1', mesh: 'M2x8.stl', matrix: I, fastener: { parts: ['Desk'] } },
+    ],
   };
   const mod = {
     format: 1, preset: 'test',
@@ -113,6 +121,7 @@ function parseGlb(glb) {
   assert.deepEqual(byId.Pumpkin.matrix.slice(12, 15), [195, -5, -5], 'prop on the floor, footprint centred at [200, 0]');
   assert.equal(byId.Cover.color, '#ef7d1a');
   assert.equal(byId.Cover.mod, 'test');
+  assert.deepEqual(merged.hardware.map((item) => item.id), ['screw-desk-1'], 'screws through removed or replaced parts go');
   assert.throws(() => mergeMod(stock, mod, { ...config, align: config.align.slice(0, 2) }, () => tetra), /Pumpkin: in the mod but in no align group/);
 }
 

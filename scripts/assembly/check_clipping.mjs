@@ -17,7 +17,7 @@ import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readStl } from './build_glb.mjs';
 import { makeSolid, penetration, boxesOverlap } from './clipping.mjs';
-import { applyMod, flatten, offsetsAt, sceneAt } from '../../web/js/assembly/steps.js';
+import { applyMod, flatten, offsetsAt, phases, sceneAt, withFasteners } from '../../web/js/assembly/steps.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -90,33 +90,37 @@ export function checkSteps(solids, data, { tolerance = 0.3, sampleMm = 1 } = {})
   for (let s = 0; s < steps.length; s++) {
     const scene = sceneAt(steps, s);
     if (!scene.moving.size) continue;
-    const before = offsetsAt(steps, s, 0);
-    const after = offsetsAt(steps, s, 1);
+    // Every part moves in a straight line within each phase of the step (the
+    // parts, then its screws).
+    const breaks = phases(steps[s]);
+    const at = breaks.map((t) => offsetsAt(steps, s, t));
     // The pairs that move relative to each other in this step.
     const pairs = [];
     for (const m of scene.moving) {
       for (const other of scene.shown) {
         if (other === m || (scene.moving.has(other) && other < m)) continue;
-        const start = sub(offsetOf(before, other), offsetOf(before, m));
-        const end = sub(offsetOf(after, other), offsetOf(after, m));
-        if (length(sub(start, end)) < 1e-9 && !steps[s].add.includes(m) && !steps[s].add.includes(other)) continue;
-        pairs.push([m, other, start, end]);
+        const path = at.map((offsets) => sub(offsetOf(offsets, other), offsetOf(offsets, m)));
+        if (path.every((p) => length(sub(p, path[0])) < 1e-9) && !steps[s].add.includes(m) && !steps[s].add.includes(other)) continue;
+        pairs.push([m, other, path]);
       }
     }
-    for (const [m, other, start, end] of pairs) {
+    for (const [m, other, path] of pairs) {
       const a = solids.get(m);
       const b = solids.get(other);
       if (!a || !b) continue;
       let worst = { depth: 0, at: 0 };
-      // Samples about `sampleMm` apart along the pair's relative path.
-      const samples = Math.max(1, Math.ceil(length(sub(start, end)) / sampleMm));
-      for (let k = 0; k <= samples; k++) {
-        const t = k / samples;
-        const shift = start.map((v, axis) => v + (end[axis] - v) * t);
-        // At their assembled relative pose the parts are checked as assembled.
-        if (length(shift) < 1e-9) continue;
-        const depth = penetration(a, b, shift, 50, tolerance);
-        if (depth > worst.depth) worst = { depth, at: t };
+      for (let leg = 0; leg + 1 < path.length; leg++) {
+        const [start, end] = [path[leg], path[leg + 1]];
+        // Samples about `sampleMm` apart along the pair's relative path.
+        const samples = Math.max(1, Math.ceil(length(sub(start, end)) / sampleMm));
+        for (let k = leg ? 1 : 0; k <= samples; k++) {
+          const t = k / samples;
+          const shift = start.map((v, axis) => v + (end[axis] - v) * t);
+          // At their assembled relative pose the parts are checked as assembled.
+          if (length(shift) < 1e-9) continue;
+          const depth = penetration(a, b, shift, 50, tolerance);
+          if (depth > worst.depth) worst = { depth, at: breaks[leg] + (breaks[leg + 1] - breaks[leg]) * t };
+        }
       }
       if (worst.depth > tolerance) judge({ kind: 'path', step: where(s), title: steps[s].title, a: m, b: other, ...worst }, steps[s]);
     }
@@ -144,6 +148,7 @@ function main(argv) {
   }
   let data = JSON.parse(readFileSync(stepsPath, 'utf8'));
   if (modPath) data = applyMod(data, JSON.parse(readFileSync(modPath, 'utf8')));
+  data = withFasteners(data, JSON.parse(readFileSync(manifestPath, 'utf8')).hardware);
   const solids = loadSolids(manifestPath);
   const { problems, allowed } = checkSteps(solids, data, options);
   const name = `${stepsPath}${modPath ? ` + ${modPath}` : ''}`;

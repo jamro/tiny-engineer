@@ -17,7 +17,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadSolids } from './check_clipping.mjs';
 import { boxesOverlap, makeSolid, penetration } from './clipping.mjs';
-import { ANIMATIONS, CENTRE, DEFAULT_RANGE, JOINTS, REST, ringHitPose } from '../../web/js/assembly/poses.js';
+import { ANIMATIONS, CENTRE, DEFAULT_RANGE, JOINTS, REST, fastenerFollowers, ringHitPose, withFollowers } from '../../web/js/assembly/poses.js';
 
 /** Largest gap (mm) between the striking hand and the bell that still counts as a hit. */
 export const HIT_GAP_MM = 0.5;
@@ -29,8 +29,8 @@ const AXIS = { x: 0, y: 1, z: 2 };
 const byId = Object.fromEntries(JOINTS.map((joint) => [joint.id, joint]));
 
 /** The joints that turn a part, innermost first ([] for a part no joint moves). */
-function chainOf(id) {
-  let joint = JOINTS.find((entry) => entry.moves.includes(id));
+function chainOf(id, joints = JOINTS) {
+  let joint = joints.find((entry) => entry.moves.includes(id));
   const chain = [];
   while (joint) {
     chain.push(joint);
@@ -55,8 +55,8 @@ function turn(p, origin, axis, degrees) {
  * turned to `pose` (−1..1, `range` degrees either side of 90°), as joints.js
  * rigs them: each pivot on its servo's shaft (the servo frame's +Y).
  */
-export function poser(solids, servoFrames, range = DEFAULT_RANGE) {
-  const chains = new Map([...solids.keys()].map((id) => [id, chainOf(id)]));
+export function poser(solids, servoFrames, range = DEFAULT_RANGE, joints = JOINTS) {
+  const chains = new Map([...solids.keys()].map((id) => [id, chainOf(id, joints)]));
   const shafts = Object.fromEntries(
     JOINTS.filter((joint) => servoFrames.has(joint.servo)).map((joint) => {
       const { origin, axis } = servoFrames.get(joint.servo);
@@ -117,8 +117,8 @@ export function posesToCheck(preset = 'sg90') {
  * relative to each other, deeper than `tolerance` and than any declared
  * fit), and a ring strike that misses the bell.
  */
-export function checkPoses(solids, frames, data, { tolerance = 0.3, range = DEFAULT_RANGE, preset = 'sg90', poses = posesToCheck(preset) } = {}) {
-  const { posed, chains } = poser(solids, frames, range);
+export function checkPoses(solids, frames, data, { tolerance = 0.3, range = DEFAULT_RANGE, preset = 'sg90', poses = posesToCheck(preset), joints = JOINTS, strikers = ['Bell'] } = {}) {
+  const { posed, chains } = poser(solids, frames, range, joints);
   const pairKey = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
   const fits = new Map((data?.fits ?? []).map((fit) => [pairKey(...fit.parts), fit.mm]));
   const chainKey = (id) => chains.get(id).map((joint) => joint.id).join('>');
@@ -139,12 +139,12 @@ export function checkPoses(solids, frames, data, { tolerance = 0.3, range = DEFA
       if (depth > limit) problems.push(`${name}: ${a} × ${b} clip ${depth.toFixed(2)} mm`);
     }
   }
-  // The strike lands: the hand touches the bell (raise the bell by the gap and they meet).
+  // The strike lands: the hand touches the bell or the screw head on top of
+  // it (raise them by the gap and they meet).
   if (solids.has('Bell') && solids.has('ForearmRight')) {
     const shaped = posed(ringHitPose(preset));
     const hand = shaped.get('ForearmRight');
-    const bell = shaped.get('Bell');
-    if (penetration(hand, bell, [0, 0, HIT_GAP_MM]) <= 0.02) {
+    if (strikers.filter((id) => shaped.has(id)).every((id) => penetration(hand, shaped.get(id), [0, 0, HIT_GAP_MM]) <= 0.02)) {
       problems.push(`ring strike: the right hand stops more than ${HIT_GAP_MM} mm above the bell`);
     }
   }
@@ -168,7 +168,10 @@ function main(argv) {
   const data = stepsPath ? JSON.parse(readFileSync(stepsPath, 'utf8')) : null;
   const solids = loadSolids(manifestPath);
   const poses = posesToCheck(manifest.preset);
-  const problems = checkPoses(solids, servoFrames(manifest), data, { ...options, preset: manifest.preset, poses });
+  // Screws and nuts turn with the part they are fastened to.
+  const joints = withFollowers(JOINTS, fastenerFollowers(manifest.hardware));
+  const strikers = ['Bell', ...manifest.hardware.filter((entry) => entry.fastener?.parent === 'Bell').map((entry) => entry.id)];
+  const problems = checkPoses(solids, servoFrames(manifest), data, { ...options, preset: manifest.preset, poses, joints, strikers });
   if (problems.length) {
     console.error(`${manifestPath}: ${problems.length} pose problem${problems.length === 1 ? '' : 's'} (±${options.range}°, tolerance ${options.tolerance} mm):`);
     for (const problem of problems) console.error(`  ${problem}`);

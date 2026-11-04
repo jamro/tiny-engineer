@@ -4,6 +4,8 @@
 // Input: the assembly.json that scripts/assembly/extract.py wrote, the printed
 // parts' STLs it names (3d_models/parts/<preset>/stl/) and the hardware STLs
 // beside it. Output: one GLB with a node per part, at its assembled pose.
+// Screws and nuts (hardware with `fastener`, scripts/assembly/fasteners.py)
+// are nodes of kind 'fastener' with that entry in their extras.
 //
 //   node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json web/assembly/models/sg90.glb
 //
@@ -152,11 +154,12 @@ export function buildGlb(manifest, load) {
     if (entry.print_group) extras.print_group = entry.print_group;
     if (entry.color) extras.color = entry.color;
     if (entry.mod) extras.mod = entry.mod;
+    if (entry.fastener) extras.fastener = entry.fastener;
     json.nodes.push({ name: entry.id, mesh: mesh(entry.mesh), matrix: entry.matrix, extras });
     json.nodes[0].children.push(json.nodes.length - 1);
   };
   for (const part of manifest.parts) add(part, 'printed');
-  for (const item of manifest.hardware) add(item, 'hardware');
+  for (const item of manifest.hardware) add(item, item.fastener ? 'fastener' : 'hardware');
   json.buffers[0].byteLength = length;
 
   const text = new TextEncoder().encode(JSON.stringify(json));
@@ -190,7 +193,8 @@ function main([manifestPath, outPath]) {
   const glb = buildGlb(manifest, load);
   mkdirSync(dirname(resolve(outPath)), { recursive: true });
   writeFileSync(outPath, glb);
-  console.log(`${manifest.parts.length} parts, ${manifest.hardware.length} hardware -> ${outPath} (${(glb.byteLength / 1048576).toFixed(2)} MB)`);
+  const fasteners = manifest.hardware.filter((item) => item.fastener).length;
+  console.log(`${manifest.parts.length} parts, ${manifest.hardware.length - fasteners} hardware, ${fasteners} screws and nuts -> ${outPath} (${(glb.byteLength / 1048576).toFixed(2)} MB)`);
   return 0;
 }
 
