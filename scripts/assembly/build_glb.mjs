@@ -14,8 +14,8 @@
 // computes normals with a crease angle, so CAD edges stay sharp. A mesh used
 // more than once (the five servos, the mirrored upper arm) is stored once.
 // An STL with colours in its triangles' attribute bytes (VisCAM: bit 15 set,
-// 5 bits each of red, green, blue, sRGB; the ESP32-C3-Zero from
-// canfactory_board.ts) also gets vertex colours (COLOR_0, linear).
+// 5 bits each of red, green, blue, sRGB; the boards from boards.py) also gets
+// vertex colours (COLOR_0, linear).
 // Node 18+, no dependencies.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -27,6 +27,15 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const WELD_MM = 1e-4;
 /** Z up (CAD) to Y up (glTF), column-major. */
 const Z_UP_TO_Y_UP = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];
+
+/**
+ * Where a manifest's mesh is: printed parts name repository paths
+ * (3d_models/…, mods/…), hardware meshes sit beside the manifest (`dir`).
+ */
+export function meshPath(dir, mesh) {
+  if (isAbsolute(mesh)) return mesh;
+  return mesh.startsWith('3d_models/') || mesh.startsWith('mods/') ? resolve(ROOT, mesh) : resolve(dir, mesh);
+}
 
 /** Triangle corners of a binary STL. */
 export function readStl(bytes) {
@@ -188,9 +197,7 @@ function main([manifestPath, outPath]) {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   if (manifest.format !== 1) throw new Error(`${manifestPath}: unsupported format ${manifest.format}`);
   const here = dirname(resolve(manifestPath));
-  // Printed parts name repository paths; hardware meshes sit beside the manifest.
-  const load = (path) => readFileSync(isAbsolute(path) ? path : path.startsWith('3d_models/') || path.startsWith('mods/') ? resolve(ROOT, path) : resolve(here, path));
-  const glb = buildGlb(manifest, load);
+  const glb = buildGlb(manifest, (path) => readFileSync(meshPath(here, path)));
   mkdirSync(dirname(resolve(outPath)), { recursive: true });
   writeFileSync(outPath, glb);
   const fasteners = manifest.hardware.filter((item) => item.fastener).length;

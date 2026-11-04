@@ -13,23 +13,27 @@
 // Options: --tolerance <mm> (default 0.3), --step <mm> path sampling (default 1).
 // Exit status 1 when anything clips, so CI fails.
 import { readFileSync } from 'node:fs';
-import { dirname, isAbsolute, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readStl } from './build_glb.mjs';
+import { meshPath, readStl } from './build_glb.mjs';
 import { makeSolid, penetration, boxesOverlap } from './clipping.mjs';
 import { applyMod, flatten, offsetsAt, phases, sceneAt, withFasteners } from '../../web/js/assembly/steps.js';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+/** The steps for a manifest's robot: steps.json, as a mod's config changes it, with its screws and nuts. */
+export function loadSteps(stepsPath, modPath, manifest) {
+  let data = JSON.parse(readFileSync(stepsPath, 'utf8'));
+  if (modPath) data = applyMod(data, JSON.parse(readFileSync(modPath, 'utf8')));
+  return withFasteners(data, manifest.hardware);
+}
 
 /** The solids of a manifest, at their assembled poses (CAD frame, mm). */
 export function loadSolids(manifestPath) {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   const here = dirname(resolve(manifestPath));
-  const file = (path) => (isAbsolute(path) ? path : path.startsWith('3d_models/') || path.startsWith('mods/') ? resolve(ROOT, path) : resolve(here, path));
   const solids = new Map();
   const cache = new Map();
   for (const entry of [...manifest.parts, ...manifest.hardware]) {
-    if (!cache.has(entry.mesh)) cache.set(entry.mesh, readStl(readFileSync(file(entry.mesh))));
+    if (!cache.has(entry.mesh)) cache.set(entry.mesh, readStl(readFileSync(meshPath(here, entry.mesh))));
     const corners = cache.get(entry.mesh);
     const m = entry.matrix;
     const out = new Float32Array(corners.length);
@@ -146,9 +150,7 @@ function main(argv) {
     console.error('usage: check_clipping.mjs <assembly.json> <steps.json> [<mod.json>] [--tolerance mm] [--step mm]');
     return 2;
   }
-  let data = JSON.parse(readFileSync(stepsPath, 'utf8'));
-  if (modPath) data = applyMod(data, JSON.parse(readFileSync(modPath, 'utf8')));
-  data = withFasteners(data, JSON.parse(readFileSync(manifestPath, 'utf8')).hardware);
+  const data = loadSteps(stepsPath, modPath, JSON.parse(readFileSync(manifestPath, 'utf8')));
   const solids = loadSolids(manifestPath);
   const { problems, allowed } = checkSteps(solids, data, options);
   const name = `${stepsPath}${modPath ? ` + ${modPath}` : ''}`;

@@ -18,9 +18,8 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readStl } from './build_glb.mjs';
+import { meshPath, readStl } from './build_glb.mjs';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 // 4x4 column-major helpers.
 const multiply = (a, b) => {
@@ -117,7 +116,7 @@ function main([stockPath, modPath, configPath, outPath]) {
   }
   const read = (path) => JSON.parse(readFileSync(path, 'utf8'));
   const stockDir = dirname(resolve(stockPath));
-  const load = (path) => readFileSync(path.startsWith('3d_models/') || path.startsWith('mods/') ? resolve(ROOT, path) : resolve(stockDir, path));
+  const load = (path) => readFileSync(meshPath(stockDir, path));
   const merged = mergeMod(read(stockPath), read(modPath), read(configPath), load);
   // Hardware meshes stay beside the stock manifest.
   merged.hardware = merged.hardware.map((item) => ({ ...item, mesh: resolve(stockDir, item.mesh) }));
