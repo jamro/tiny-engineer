@@ -18,13 +18,15 @@ export function createSerialLink({ connect, preferredPort = null }) {
   const eventSubs = new Set();
   /** @type {Set<(line: string) => void>} */
   const logSubs = new Set();
-  /** @type {Set<() => void>} */
+  /** @type {Set<(reason: "drop" | "release") => void>} */
   const linkDownSubs = new Set();
+  /** @type {((line: string) => void) | null} */
+  let reactionHandler = null;
 
   function markDown() {
     if (!session) return;
     session = null;
-    for (const fn of linkDownSubs) fn();
+    for (const fn of linkDownSubs) fn("drop");
   }
 
   /**
@@ -36,6 +38,7 @@ export function createSerialLink({ connect, preferredPort = null }) {
     opened.client.setEventHandler((payload) => {
       const line = payload.toString("utf8");
       for (const fn of eventSubs) fn(line);
+      reactionHandler?.(line);
     });
     opened.client.setLogHandler((payload) => {
       const line = payload.toString("utf8");
@@ -117,6 +120,18 @@ export function createSerialLink({ connect, preferredPort = null }) {
       set.add(fn);
       return () => set.delete(fn);
     },
+    /**
+     * Reaction runner listener. Not the IPC fanout, so a one-off serial
+     * command cannot double-fire HTTP reactions.
+     * @param {((line: string) => void) | null} fn
+     */
+    setReactionHandler(fn) {
+      reactionHandler = fn;
+    },
+    /**
+     * @param {(reason: "drop" | "release") => void} fn
+     * `drop` is an unplanned close. `release` is daemon release or yield.
+     */
     onLinkDown(fn) {
       linkDownSubs.add(fn);
       return () => linkDownSubs.delete(fn);
@@ -132,7 +147,7 @@ export function createSerialLink({ connect, preferredPort = null }) {
       const current = session;
       session = null;
       if (!current) return true;
-      for (const fn of linkDownSubs) fn();
+      for (const fn of linkDownSubs) fn("release");
       await current.client.close().catch(() => {});
       return true;
     },

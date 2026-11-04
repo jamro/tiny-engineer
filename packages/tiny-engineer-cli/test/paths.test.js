@@ -6,6 +6,7 @@ import { join } from "node:path";
 
 import { defaultCachePath } from "../src/robot/serial/port-cache.js";
 import { userConfigDir, userEnvPath } from "../src/config/paths.js";
+import { daemonPaths } from "../src/daemon/paths.js";
 
 test("TINY_ENGINEER_CONFIG_DIR overrides userConfigDir and cache path", () => {
   const dir = mkdtempSync(join(tmpdir(), "te-cfg-"));
@@ -15,6 +16,8 @@ test("TINY_ENGINEER_CONFIG_DIR overrides userConfigDir and cache path", () => {
     assert.equal(userConfigDir(), dir);
     assert.equal(userEnvPath(), join(dir, "env"));
     assert.equal(defaultCachePath(), join(dir, "serial-port.json"));
+    assert.equal(daemonPaths(dir).rules, join(dir, "rules.json"));
+    assert.notEqual(daemonPaths(dir).rules, daemonPaths(join(homedir(), ".config", "tiny-engineer")).rules);
   } finally {
     if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
     else process.env.TINY_ENGINEER_CONFIG_DIR = prev;

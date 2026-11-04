@@ -2,11 +2,12 @@ import { chmodSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 
 import { connectSerialRobot } from "../robot/serial/client.js";
+import { createPeer } from "./ipc.js";
 import { createSerialLink } from "./link.js";
 import { appendLog } from "./log.js";
 import { daemonPaths } from "./paths.js";
 import { loadIdentity, packageRootFromScript, resolveCliScript } from "./policy.js";
-import { createPeer } from "./ipc.js";
+import { createReactions } from "./reactions.js";
 
 /**
  * @param {import("node:net").Socket} socket
@@ -26,6 +27,13 @@ function send(socket, msg) {
  *   connect?: typeof connectSerialRobot,
  *   identity?: ReturnType<typeof loadIdentity>,
  *   exitProcess?: boolean,
+ *   openWebSocket?: (url: string) => Promise<{
+ *     on: (ev: string, fn: (data?: unknown) => void) => void,
+ *     close?: () => void,
+ *     terminate?: () => void,
+ *   }>,
+ *   retryMs?: number,
+ *   controls?: (api: { reload: () => Promise<void> }) => void,
  * }} opts
  */
 export async function serveDaemon(opts) {
@@ -37,6 +45,13 @@ export async function serveDaemon(opts) {
     connect: opts.connect ?? ((connectOpts) => connectSerialRobot(connectOpts)),
     preferredPort: opts.preferredPort ?? null,
   });
+  const reactions = createReactions({
+    configDir: opts.configDir,
+    link,
+    openWebSocket: opts.openWebSocket,
+    retryMs: opts.retryMs,
+  });
+  opts.controls?.({ reload: () => reactions.reload() });
   mkdirSync(paths.dir, { recursive: true, mode: 0o700 });
 
   /** @type {Set<import("node:net").Socket>} */
@@ -72,6 +87,7 @@ export async function serveDaemon(opts) {
     sourceHash: identity.sourceHash,
     pid: process.pid,
     port: link.port,
+    ...reactions.status(),
   });
 
   /**
@@ -85,6 +101,7 @@ export async function serveDaemon(opts) {
       send(socket, bye);
       socket.end();
     }
+    reactions.stop();
     try {
       await link.close();
     } catch {
@@ -102,7 +119,9 @@ export async function serveDaemon(opts) {
     finish?.();
   };
 
-  const onHup = () => {};
+  const onHup = () => {
+    void reactions.reload();
+  };
   const onTerm = () => {
     void shutdown("stop");
   };
@@ -137,6 +156,7 @@ export async function serveDaemon(opts) {
           send(socket, { id, error: "play-active" });
           return;
         }
+        reactions.noteReleased();
         writeState();
         send(socket, { id, result: { ok: true, port: link.port } });
         return;
@@ -155,6 +175,11 @@ export async function serveDaemon(opts) {
         send(socket, { id, result: { ok: true, ...helloParams(), playActive: link.playActive } });
         return;
       }
+      if (method === "reactions.sync") {
+        await reactions.reload();
+        send(socket, { id, result: { ok: true, ...reactions.status() } });
+        return;
+      }
       if (method === "robot.request") {
         const port = typeof params.port === "string" ? params.port : null;
         const body = await link.request(
@@ -162,6 +187,7 @@ export async function serveDaemon(opts) {
           /** @type {Record<string, unknown>} */ (params.fields ?? {}),
           port,
         );
+        reactions.onPortOpened();
         writeState();
         send(socket, { id, result: { ok: true, body } });
         return;
@@ -169,6 +195,7 @@ export async function serveDaemon(opts) {
       if (method === "play") {
         const port = typeof params.port === "string" ? params.port : null;
         const body = await link.play(String(params.path ?? ""), String(params.name ?? "talking"), port);
+        reactions.onPortOpened();
         writeState();
         send(socket, { id, result: { ok: true, body } });
         return;
@@ -177,6 +204,7 @@ export async function serveDaemon(opts) {
         const channel = params.channel === "serial.logs" ? "serial.logs" : "serial.events";
         const port = typeof params.port === "string" ? params.port : null;
         await link.ensure(port);
+        reactions.onPortOpened();
         writeState();
         const unsub = link.subscribe(channel, (line) => {
           send(socket, { method: "event", params: { channel, data: line } });
@@ -220,5 +248,6 @@ export async function serveDaemon(opts) {
     });
   });
 
+  void reactions.reconcile();
   await done;
 }

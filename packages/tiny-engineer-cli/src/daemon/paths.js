@@ -39,6 +39,8 @@ export function daemonPaths(configDir = userConfigDir()) {
     sock: daemonIpcPath(configDir),
     state: join(configDir, "daemon.json"),
     yieldFile: join(configDir, "daemon.yield"),
+    reactionsSuspended: join(configDir, "daemon.reactions-suspended"),
+    rules: join(configDir, "rules.json"),
     disabled: join(configDir, "daemon.disabled"),
     target: join(configDir, "daemon.target"),
     supervisor: join(configDir, "daemon.supervisor"),

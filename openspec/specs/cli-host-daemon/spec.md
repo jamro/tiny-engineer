@@ -18,11 +18,19 @@ The host daemon MUST remain running after the command that started it exits. It 
 - **THEN** the daemon stays running, releases the serial port, writes no yield and no disable, and the next serial command may open the port
 
 ### Requirement: Start and stop are idempotent
-`daemon start` MUST succeed when a daemon is already running, and `daemon stop` MUST succeed when no daemon is running. Neither command MUST start a second daemon. `daemon start` MUST clear a disable and a yield. `daemon stop` without yield MUST NOT record a disable.
+`daemon start` MUST succeed when a daemon is already running, and `daemon stop` MUST succeed when no daemon is running. Neither command MUST start a second daemon. `daemon start` MUST clear a disable and a yield. `daemon stop` without yield MUST NOT record a disable. When the user-config transport is `serial` and at least one reaction rule is active, `daemon start` MUST open the serial port. Otherwise `daemon start` MUST NOT open a closed serial port.
 
 #### Scenario: Start while running
-- **WHEN** the user runs `daemon start` and a daemon is already running
+- **WHEN** the user runs `daemon start` and a daemon is already running and holds the serial port
 - **THEN** the command exits successfully and the existing daemon keeps the serial port
+
+#### Scenario: Start opens an armed serial port
+- **WHEN** the user runs `daemon start`, the serial port is closed, the user-config transport is `serial`, and at least one reaction rule is active
+- **THEN** the command exits successfully and the daemon opens the serial port
+
+#### Scenario: Start leaves an unarmed port closed
+- **WHEN** no reaction rule is active and the user runs `daemon start`
+- **THEN** the command exits successfully and a closed serial port stays closed
 
 #### Scenario: Stop while absent
 - **WHEN** the user runs `daemon stop` and no daemon is running
@@ -51,11 +59,11 @@ Daemon IPC endpoint, pid record, and log MUST live in the same user config direc
 - **THEN** the daemon IPC endpoint is created inside that directory and not in the default user config directory
 
 ### Requirement: Daemon status
-`daemon status` MUST report whether the daemon is running. When it is running, the report MUST include pid, package version, channel (`npm` or `dev`), package root, protocol id, and the open serial port or that the link is down.
+`daemon status` MUST report whether the daemon is running. When it is running, the report MUST include pid, package version, channel (`npm` or `dev`), package root, protocol id, the open serial port or that the serial link is down, the reaction link state, the loaded rule count and whether the rules file is in error, and the last reaction result or that no reaction has run.
 
 #### Scenario: Status while running
 - **WHEN** the daemon is running and the user runs `daemon status`
-- **THEN** the command exits successfully and prints pid, version, channel, package root, and serial port state
+- **THEN** the command exits successfully and prints pid, version, channel, package root, serial port state, reaction link state, rule count, and last reaction result
 
 #### Scenario: Status while stopped
 - **WHEN** no daemon is running and the user runs `daemon status`
@@ -153,7 +161,7 @@ The daemon MUST keep running if the terminal or parent process that auto-started
 - **THEN** `daemon status` from a new shell still shows the daemon running
 
 ### Requirement: Upload yield blocks auto-start
-A stop that requests yield MUST release the serial port and MUST refuse serial open for 180 seconds. The host daemon process MUST keep running. During that window a serial robot command MUST fail with an error that states the yield, and MUST NOT start a daemon. `daemon start` MUST clear the yield and MUST start the daemon when it is not running. `daemon start` MUST NOT open the serial port by itself. `daemon stop` without a yield request MUST NOT create a yield.
+A stop that requests yield MUST release the serial port and MUST refuse serial open for 180 seconds. The host daemon process MUST keep running. During that window a serial robot command MUST fail with an error that states the yield, and MUST NOT start a daemon. `daemon start` MUST clear the yield and MUST start the daemon when it is not running. `daemon start` MUST NOT open the serial port unless a serial reaction rule is active. `daemon stop` without a yield request MUST NOT create a yield.
 
 #### Scenario: Serial command during yield
 - **WHEN** a yield is active and the user runs a serial `anim`
@@ -162,6 +170,10 @@ A stop that requests yield MUST release the serial port and MUST refuse serial o
 #### Scenario: Manual start clears yield
 - **WHEN** a yield is active and the user runs `daemon start`
 - **THEN** the yield is cleared and the daemon is running
+
+#### Scenario: Manual start leaves the port closed when reactions are unarmed
+- **WHEN** a yield is active, no reaction rule is active, and the user runs `daemon start`
+- **THEN** the yield is cleared, the daemon is running, and the serial port stays closed
 
 #### Scenario: Plain stop does not yield
 - **WHEN** the user runs `daemon stop` without requesting yield and then immediately runs a serial command
@@ -194,19 +206,27 @@ A stop that requests yield MUST release the serial port and MUST refuse serial o
 - **THEN** the command fails, names the disable, and does not start a daemon
 
 #### Scenario: Start clears disable
-- **WHEN** a disable is set and the user runs `daemon start`
+- **WHEN** a disable is set, no reaction rule is active, and the user runs `daemon start`
 - **THEN** the disable is clear, the daemon is running, and the serial port stays closed until a later command asks for it
+
+#### Scenario: Start after disable opens an armed serial port
+- **WHEN** a disable is set, the user-config transport is `serial`, at least one reaction rule is active, and the user runs `daemon start`
+- **THEN** the disable is clear, the daemon is running, and the serial port is open
 
 #### Scenario: Disable while absent
 - **WHEN** no daemon is running and the user runs `daemon disable`
 - **THEN** the command succeeds and a later serial command does not auto-start until `daemon start`
 
 ### Requirement: Restart clears disable and yield
-`daemon restart` MUST clear a disable and a yield, then leave one daemon running. `--port` on restart MUST be the port that process prefers the next time it opens a port. Restart MUST NOT open the port by itself.
+`daemon restart` MUST clear a disable and a yield, then leave one daemon running. `--port` on restart MUST be the port that process prefers the next time it opens a port. Restart MUST NOT open the port by itself unless the user-config transport is `serial` and at least one reaction rule is active, in which case restart MUST open the port.
 
 #### Scenario: Restart after disable
-- **WHEN** a disable is set and the user runs `daemon restart`
-- **THEN** the disable is clear and `daemon status` shows a running daemon
+- **WHEN** a disable is set, no reaction rule is active, and the user runs `daemon restart`
+- **THEN** the disable is clear and `daemon status` shows a running daemon with the serial port closed
+
+#### Scenario: Restart opens an armed serial port
+- **WHEN** the user-config transport is `serial`, at least one reaction rule is active, and the user runs `daemon restart`
+- **THEN** one daemon is running and the serial port is open
 
 ### Requirement: Login install is per user
 `daemon install` MUST register a start at user login for the current user. It MUST NOT register a start at system boot. The registration MUST start the wrapper and MUST NOT restart the wrapper or the daemon after either exits. A later `daemon install` MUST refresh the recorded package target and node path and MUST NOT start a second daemon. `daemon uninstall` MUST remove that registration and MUST NOT record a disable. Uninstall MUST succeed when nothing is installed.

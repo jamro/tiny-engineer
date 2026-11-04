@@ -565,6 +565,37 @@ function portStatusLines(openPort, listed) {
 }
 
 /**
+ * @param {unknown} value
+ */
+function formatLastAction(value) {
+  if (!value || typeof value !== "object") return "none";
+  const action = /** @type {Record<string, unknown>} */ (value);
+  if (action.kind === "none" || typeof action.kind !== "string") return "none";
+  const type = typeof action.type === "string" ? action.type : "";
+  const program = typeof action.program === "string" ? action.program : "";
+  if (action.kind === "exit") return `exit ${type} ${program} ${action.code}`;
+  return `${action.kind} ${type} ${program}`;
+}
+
+/**
+ * @param {Record<string, unknown>} body
+ * @returns {string[]}
+ */
+function reactionStatusLines(body) {
+  const link = typeof body.reactionLink === "string" ? body.reactionLink : "off";
+  const detail = typeof body.reactionDetail === "string" && body.reactionDetail
+    ? ` ${body.reactionDetail}`
+    : "";
+  const count = typeof body.rulesCount === "number" ? body.rulesCount : 0;
+  const file = body.rulesError ? " file error" : " ok";
+  return [
+    `reaction: ${link}${detail}`,
+    `rules: ${count}${file}`,
+    `last: ${formatLastAction(body.lastAction)}`,
+  ];
+}
+
+/**
  * @param {{
  *   configDir?: string,
  *   now?: number,
@@ -603,6 +634,7 @@ export async function daemonStatusText(opts = {}) {
       `packageRoot: ${body.packageRoot}`,
       `proto: ${body.proto}`,
       ...portStatusLines(port, listed),
+      ...reactionStatusLines(body),
       "",
     ].join("\n");
   } finally {

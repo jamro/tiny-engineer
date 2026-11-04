@@ -16,6 +16,8 @@ Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s
 
 ## Outbound events
 
+The default build does not emit events. The WebSocket and serial paths stay up so an extension or a mod can publish. The only built-in producer is the push-button extension, off until `push_button` is enabled. Mods such as the [bell button](../mods/bell_button/README.md) use that extension.
+
 Producers publish a versioned JSON envelope to every connected WebSocket client and as one serial `Evt` frame. REST stays inbound-only; WebSocket client payloads are ignored. There is no replay of past events. Binary WebSocket frames are reserved for later audio streaming and are not sent yet.
 
 ```json
