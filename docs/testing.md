@@ -63,13 +63,15 @@ node scripts/assembly/test_build_glb.mjs
 node scripts/assembly/test_viewer.mjs
 node scripts/assembly/test_clipping.mjs
 python3 scripts/assembly/test_presets.py
+python3 scripts/assembly/test_fasteners.py
 python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
+python3 scripts/assembly/fasteners.py artifacts/assembly/sg90/assembly.json
 node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb
 node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
 node scripts/assembly/check_poses.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
 ```
 
-`scripts/assembly/build.sh` runs the extraction, both step checks and the GLB build for stock, every other servo preset (`presets.py`, plus `check_contacts.mjs`) and every mod, and the pose check for stock and every preset.
+`scripts/assembly/build.sh` runs the extraction, places the M2 screws and nuts (`fasteners.py`, which fails when a line of `fasteners.json` finds another count), both step checks and the GLB build for stock, every other servo preset (`presets.py`, plus `check_contacts.mjs`) and every mod, and the pose check for stock and every preset.
 
 ## PCB
 

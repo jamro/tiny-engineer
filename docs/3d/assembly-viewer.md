@@ -22,7 +22,8 @@ flowchart LR
 - **Colours:** click a part, or its name in the list, and pick a filament colour or a custom one. Each print set (copper `PartsSetA`, black `PartsSetB`) has one control for all its parts. Defaults are the colours as designed ([order-parts.md](order-parts.md)).
 - **Share:** changed colours live in the URL hash (`#c=Head.c8312c~Hat.c8312c`) and in the browser's storage. **Copy link** copies the URL.
 - **Move:** a slider per servo joint, in the firmware's −1..1 pose scale ([robot-movement.md](../robot-movement.md)), and short loops built from the firmware's pose constants (typing, talking, ring the bell, wave). Each servo turns about its shaft, read from the model (`web/js/assembly/joints.js`): body → neck → head, body → hands. The range is a choice (±10° stock, ±25°, ±40°): calibrated limits differ per robot. Build steps show every servo at 90°.
-- **Explode** spreads the parts out. **Electronics** hides the servos, OLED and control board.
+- **Screws and nuts:** the robot's M2 screws and nuts, in their holes ([below](#screws-and-nuts)). In **Colours**, screws and nuts each come in **Silver** (zinc-plated or stainless) or **Black** (black oxide), the finishes M2 assortments are sold in; the choice lives in the URL hash (`#f=black.silver`: screws, then nuts) and the browser's storage. Build steps drive them in once the step's parts are home.
+- **Explode** spreads the parts out (each screw stays in its part). **Electronics** hides the servos, OLED and control board; **Screws** hides the screws and nuts.
 
 ### Steps
 
@@ -41,6 +42,19 @@ flowchart LR
 
 CI checks the steps against the extracted model (`check_steps.mjs`) and for clipping (below). When a part is added to the CAD, add it to a step.
 
+Screws and nuts are not listed in `steps.json`: each one names its step in [`fasteners.json`](../../scripts/assembly/fasteners.json), and `withFasteners` (`steps.js`) adds it there. It rides in with the part its head sits on, then slides in along its axis once the step's parts are home (the last 40 % of the step), and moves with its parts in later steps.
+
+### Screws and nuts
+
+[`fasteners.py`](../../scripts/assembly/fasteners.py) adds the M2 screws and nuts of the [screw list](../../3d_models/README.md#screws) to each robot's `assembly.json`, from [`fasteners.json`](../../scripts/assembly/fasteners.json): per line, the part the head sits on, the part it threads into, the length, how many, and the step. It finds them in the parts' STEP exports at the robot's servo preset, placed where `assembly.json` has each part:
+
+- Every circle of a pilot hole (radius 1.05 mm, `screw_thread_diameter` / 2, and the few other radii a line names: the Head's 2.4 mm clearance hole, the neck servo's pocket) lies on an axis. Circles of several parts on one axis are one hole stack; each part's circles, in pairs, span a stretch of it.
+- A head sits at an end of one of the head part's holes with nothing of the stack just outside it (a counterbore floor, or the end of the stack), in the open (rays under the head leave the part), and the shaft runs inward. It is the line's screw when the shaft, at its length, reaches 1 mm into the part it threads into, or through a servo's tab.
+- A head on a servo's tab sits where rays from the end of the Chest's hole leave the servo.
+- A nut sits on the floor of a hex pocket (the Neck's, on the head servo's axis) or against the far side of the part (the bell's, under the desk).
+
+A line that finds another count than it says fails the build, at every preset. Meshes: pan head 3.5 × 1.4 mm (JIS B 1122, as in M2 self-tapping assortments; at FS0307 and HD-1370A the servo tab's hole is 1.9 mm from the gearbox), 2 mm shaft with a point, ISO 4032 nut (4 mm across flats, 1.6 mm). Not drawn: the breakout boards' screws and nuts of the [modular build](assembly-modular.md) (the stock robot has the main control board), the optional second screw of the neck servo (one hole in the CAD), and the servos' own bag screws. Mods drop the screws through parts they remove or replace.
+
 ### Clipping check
 
 [`check_clipping.mjs`](../../scripts/assembly/check_clipping.mjs) replays every step on the meshes. Each part that moves is walked along its path in 1 mm steps and tested against every part shown. Then the finished robot is checked pair by pair. Depth is measured on the triangles, not on bounding boxes: points spread 0.8 mm apart over one part's surface are tested inside the other (ray parity over a bounding volume hierarchy), and the deepest one sets the depth ([`clipping.mjs`](../../scripts/assembly/clipping.mjs), no dependencies). Faces that only touch measure 0, so mating parts pass. Anything deeper than 0.3 mm fails, unless `fits` or the step's `allow` covers that pair to that depth. Allowed overlaps are listed in the output.
@@ -57,13 +71,13 @@ A failure names the step (number overall, then section and number in it), the tw
 
 ### Pose check
 
-[`check_poses.mjs`](../../scripts/assembly/check_poses.mjs) turns the parts about the servo shafts as the viewer does (`JOINTS` in [`poses.js`](../../web/js/assembly/poses.js), at ±25°) and checks parts that move relative to each other for clipping, at 90°, at rest and every 0.1 s through each animation loop. `fits` apply as in the step check. It also checks that the ring loop's strike lands the right hand on the bell (within 0.5 mm, not in it). About 80 s per preset; `build.sh` runs it for stock and every servo preset.
+[`check_poses.mjs`](../../scripts/assembly/check_poses.mjs) turns the parts about the servo shafts as the viewer does (`JOINTS` in [`poses.js`](../../web/js/assembly/poses.js), at ±25°) and checks parts that move relative to each other for clipping, at 90°, at rest and every 0.1 s through each animation loop. `fits` apply as in the step check. It also checks that the ring loop's strike lands the right hand on the bell or on the head of its M2×16, the bell's striker (within 0.5 mm, not in it). Screws and nuts turn with the part their head sits on (`withFollowers` in `poses.js`). About 80 s per preset; `build.sh` runs it for stock and every servo preset.
 
 ```bash
 node scripts/assembly/check_poses.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json [--tolerance 0.3] [--range 25]
 ```
 
-The ring loop follows the firmware ([`ring.cpp`](../../src/animation/ring.cpp)): body turned fully right (−1), right hand up, strike, bounce to −5/9. The firmware strikes to −8/9 of a calibrated range; at the viewer's ±25° that stops 2 mm above the bell, so the viewer strikes to where the hand meets it: −0.97 at SG90, and per servo preset in `RING_RIGHT_HITS`.
+The ring loop follows the firmware ([`ring.cpp`](../../src/animation/ring.cpp)): body turned fully right (−1), right hand up, strike, bounce to −5/9. The firmware strikes to −8/9 of a calibrated range; at the viewer's ±25° that stops 2 mm above the bell, so the viewer strikes to where the hand meets it: −0.97 at SG90 (on the bell's rim), and per servo preset in `RING_RIGHT_HITS` (on the screw head).
 
 Local preview: build the GLB into `web/assembly/models/sg90.glb` (commands below), then `python3 -m http.server -d web 8000` and open `http://localhost:8000/assembly/`.
 
@@ -109,7 +123,7 @@ The extractor reads **one** preset: the one the `.f3d` was saved with (currently
 
 The other presets (FS0307, ES9051, HD-1370A; the viewer's **Servo** switch, `#p=fs0307`) come from [`presets.py`](../../scripts/assembly/presets.py). Fusion places every component by its joints, outward from the body servo, which never moves; `presets.py` follows the same joints at the other preset:
 
-- **Servo frames** follow the servo's own dimensions from [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json): the design's servo is blocks and a shaft with fixed clearances (0.6 mm on body, depth and tab thickness, 0.3 mm on the shaft), its shaft top at y 0.6 of its frame. Its mesh at the preset is drawn from the same sizes, without the tabs' screw holes.
+- **Servo frames** follow the servo's own dimensions from [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json): the design's servo is blocks and a shaft with fixed clearances (0.6 mm on body, depth and tab thickness, 0.3 mm on the shaft), its shaft top at y 0.6 of its frame. Its mesh at the preset is drawn from the same sizes, with the tabs' screw holes where the design has them (`mount_hole_radius`, on the tab's centre line moved out by `mount_hole_width_offset`).
 - **Frames on printed parts** move with the feature they sit on, found in the part's STEP export at both presets (`3d_models/parts/<preset>/step/`, in the component's own frame): a part that only moves (lamp, bell, mug) by its one translation; otherwise by the features around the frame that move rigidly, preferring the feature the frame is on (a recess's circle); a vertex, a midpoint of two vertices, or a point on a circle's axis.
 - **Where a frame cannot be moved reliably** (the chest's servo pack: its servos sit in their pockets with clearance), the parts joined by exact joints are placed together by their contacts with the parts already placed, axis by axis. The run lists the joints it overrode this way.
 - Each part's STL is then fitted to its STEP vertices for the print transform.
@@ -130,6 +144,8 @@ python3 -m venv .venv && .venv/bin/pip install -r scripts/assembly/requirements.
 .venv/bin/python scripts/assembly/test_assembly.py
 node scripts/assembly/test_build_glb.mjs
 .venv/bin/python scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
+.venv/bin/python scripts/assembly/fasteners.py artifacts/assembly/sg90/assembly.json
+.venv/bin/python scripts/assembly/test_fasteners.py
 node scripts/assembly/test_viewer.mjs
 node scripts/assembly/test_clipping.mjs
 .venv/bin/python scripts/assembly/test_presets.py --history
@@ -145,12 +161,16 @@ PYTHON=.venv/bin/python scripts/assembly/build.sh   # every preset + mods -> web
 {
   "format": 1, "preset": "sg90", "units": "mm", "up": "+z",
   "parts": [{ "id": "Head", "mesh": "3d_models/parts/sg90/stl/Head.stl", "matrix": [16 numbers], "method": "print-layout" }],
-  "hardware": [{ "id": "servo-head", "component": "Servo", "mesh": "hardware/Servo.stl", "matrix": [16 numbers] }],
+  "hardware": [
+    { "id": "servo-head", "component": "Servo", "mesh": "hardware/Servo.stl", "matrix": [16 numbers] },
+    { "id": "screw-hat-1", "component": "M2x8", "mesh": "hardware/M2x8.stl", "matrix": [16 numbers], "source": "fastener",
+      "fastener": { "kind": "screw", "size": "M2×8", "parent": "Hat", "parts": ["Hat", "Head"], "step": "Close the head with the hat", "from": [0, 0, 10.8] } }
+  ],
   "joints_checked": [{ "name": "Head - Neck", "mismatch_mm": 0.0 }]
 }
 ```
 
-`matrix` is column-major, as glTF writes it, and takes the mesh to its assembled pose (mm, Z up). The GLB keeps that frame under a root node that turns Z up into glTF's Y up. It stores positions and indices only: the viewer computes normals. A mesh used more than once, such as the servos, is stored once.
+`matrix` is column-major, as glTF writes it, and takes the mesh to its assembled pose (mm, Z up). A screw's mesh has its head on +z from the seat and its shaft along −z; `from` is where it starts its slide in its step. The GLB keeps that frame under a root node that turns Z up into glTF's Y up. It stores positions and indices only: the viewer computes normals. A mesh used more than once, such as the servos, is stored once.
 
 ## License
 
