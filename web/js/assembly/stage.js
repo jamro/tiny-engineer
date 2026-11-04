@@ -1,8 +1,6 @@
 // The 3D stage: renderer, lights, floor, orbit camera. Draws only when
 // something changed (camera move, resize, invalidate()), so an idle page
 // does not keep the GPU busy.
-//
-// Adapted from CanFactory's apps/web/src/stage.ts (same author).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';

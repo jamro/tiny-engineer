@@ -66,38 +66,31 @@ function setHashParam(key, value) {
   history.replaceState(null, '', url);
 }
 
-function readSavedColors(parts) {
-  const hash = hashParams().get('c');
-  if (hash !== null) return decodeColors(hash, parts);
+/**
+ * A setting kept in the URL hash (`key`) and in the browser's storage: the
+ * link's value wins, then the stored one, decoded by `decode` (which takes ''
+ * for the default).
+ */
+function readSetting(key, storage, decode) {
+  const hash = hashParams().get(key);
+  if (hash !== null) return decode(hash);
   try {
-    return decodeColors(localStorage.getItem(storageKey()) ?? '', parts);
+    return decode(localStorage.getItem(storage) ?? '');
   } catch {
-    return {};
+    return decode('');
   }
 }
 
-function saveColors(parts, changes) {
-  const encoded = encodeColors(parts, changes);
-  setHashParam('c', encoded || null);
-  try { localStorage.setItem(storageKey(), encoded); } catch { /* private mode */ }
+function saveSetting(key, storage, encoded) {
+  setHashParam(key, encoded || null);
+  try { localStorage.setItem(storage, encoded); } catch { /* private mode */ }
 }
 
-/** Screw and nut finishes: the link's (#f=black.silver), else the last ones chosen here. */
-function readFinishes() {
-  const hash = hashParams().get('f');
-  if (hash !== null) return decodeFinishes(hash);
-  try {
-    return decodeFinishes(localStorage.getItem(FINISH_STORAGE_KEY) ?? '');
-  } catch {
-    return decodeFinishes('');
-  }
-}
-
-function saveFinishes(finishes) {
-  const encoded = encodeFinishes(finishes);
-  setHashParam('f', encoded || null);
-  try { localStorage.setItem(FINISH_STORAGE_KEY, encoded); } catch { /* private mode */ }
-}
+const readSavedColors = (parts) => readSetting('c', storageKey(), (text) => decodeColors(text, parts));
+const saveColors = (parts, changes) => saveSetting('c', storageKey(), encodeColors(parts, changes));
+/** Screw and nut finishes (#f=black.silver). */
+const readFinishes = () => readSetting('f', FINISH_STORAGE_KEY, decodeFinishes);
+const saveFinishes = (finishes) => saveSetting('f', FINISH_STORAGE_KEY, encodeFinishes(finishes));
 
 function groupOf(part) {
   if (part.kind === 'hardware') return 'hardware';
@@ -266,7 +259,7 @@ async function main() {
       for (const [id, finish] of Object.entries(FASTENER_FINISHES)) {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'asm-finish';
+        button.className = 'asm-model asm-finish';
         button.dataset.kind = kind;
         button.dataset.finish = id;
         button.title = `${finish.name}: ${finish.about}`;

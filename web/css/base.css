@@ -1928,19 +1928,6 @@ esp-web-install-button .button,
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.25rem 0.7rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-}
-
-.asm-finish[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-  color: var(--accent);
 }
 
 .asm-part-list {
@@ -2206,7 +2193,8 @@ esp-web-install-button .button,
   border-color: #55554c;
 }
 
-.asm-model[aria-current="true"] {
+.asm-model[aria-current="true"],
+button.asm-model[aria-pressed="true"] {
   border-color: var(--accent);
   background: var(--accent-dim);
   color: var(--accent);
@@ -2216,12 +2204,6 @@ button.asm-model {
   background: transparent;
   font: inherit;
   cursor: pointer;
-}
-
-button.asm-model[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-  color: var(--accent);
 }
 
 button.asm-model:disabled {
