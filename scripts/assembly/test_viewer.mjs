@@ -5,6 +5,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { FASTEN_AT, applyMod, flatten, offsetsAt, phases, sceneAt, startOffset, validate, withFasteners } from '../../web/js/assembly/steps.js';
 import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, REST, RING_HIT_POSE, RING_RIGHT_HIT, RING_RIGHT_HITS, blendPoses, fastenerFollowers, normalizePose, ringHitPose, withFollowers } from '../../web/js/assembly/poses.js';
+import { PRINT_FIRST, printList, printName, readme, zipName } from '../../web/js/assembly/download.js';
+import { printFiles } from '../stage_print_files.mjs';
 import { DEFAULT_FINISHES, decodeColors, decodeFinishes, defaultColor, encodeColors, encodeFinishes, normalizeHex, resolveColors, GROUP_COLORS, HARDWARE_COLORS } from '../../web/js/assembly/colors.js';
 
 const parts = [
@@ -223,6 +225,50 @@ assert.deepEqual(decodeFinishes(''), DEFAULT_FINISHES);
   assert.ok(joints.find((joint) => joint.id === 'hand-left').moves.includes('screw-elbow-left-1'));
   assert.ok(!joints.some((joint) => joint.moves.includes('nut')), 'a part no joint moves: it stays');
   assert.ok(!JOINTS.find((joint) => joint.id === 'hand-left').moves.includes('screw-elbow-left-1'), 'JOINTS itself is left alone');
+}
+
+// Print files: the shown robot's parts decide them.
+{
+  const robot = [
+    { id: 'Head', component: 'Head', kind: 'printed', printGroup: 'PartsSetA' },
+    { id: 'UpperArm', component: 'UpperArm', kind: 'printed', printGroup: 'PartsSetB' },
+    { id: 'UpperArmMirror', component: 'UpperArm(Mirror)', kind: 'printed', printGroup: 'PartsSetB' },
+    { id: 'LampDiffuser', component: 'LampDiffuser', kind: 'printed', printGroup: null },
+    { id: 'servo-head', component: 'Servo', kind: 'hardware' },
+  ];
+  assert.equal(printName(robot[2]), 'UpperArm');
+  const home = printList({ parts: robot, preset: 'fs0307' }).files;
+  assert.deepEqual(home.map((file) => file.path), [...PRINT_FIRST.map((name) => `print-first/${name}.3mf`), 'parts/Head.3mf', 'parts/UpperArm.3mf', 'parts/LampDiffuser.3mf']);
+  assert.equal(home.find((file) => file.name === 'UpperArm').count, 2, 'two upper arms from one file');
+  assert.equal(home.find((file) => file.name === 'Head').url, 'fs0307/3mf/Head.3mf');
+  const service = printList({ parts: robot, preset: 'sg90', target: 'service' }).files;
+  assert.deepEqual(service.map((file) => file.url), ['sg90/stl/PartsSetA.stl', 'sg90/stl/PartsSetB.stl', 'sg90/stl/LampDiffuser.stl']);
+  assert.deepEqual(service[1].parts, ['UpperArm', 'UpperArmMirror']);
+  // A mod: its own parts from its folder, no colour sets.
+  const modded = [...robot.slice(1), { id: 'Head', component: 'Head', kind: 'printed', mod: 'halloween' }];
+  assert.equal(printList({ parts: modded, preset: 'sg90', mod: 'halloween' }).files.find((file) => file.name === 'Head').url, 'mods/halloween/sg90/3mf/Head.3mf');
+  assert.equal(printList({ parts: modded, preset: 'sg90', mod: 'halloween', target: 'service' }).problems.length, 1);
+  assert.equal(zipName({ preset: 'sg90', mod: 'halloween', target: 'home' }), 'tiny-engineer-sg90-halloween-home.zip');
+  const text = readme({ files: home, preset: 'fs0307', presetLabel: 'FS0307', colors: { Head: '#c8312c', UpperArm: '#262624', UpperArmMirror: '#262624' }, colorName: (hex) => (hex === '#262624' ? 'Black' : null) });
+  assert.match(text, /parts\/UpperArm\.3mf +x2 +Black \(#262624\)/);
+  assert.match(text, /parts\/Head\.3mf +x1 +#c8312c/);
+
+  // Every file the viewer can ask for is staged on the site, at every preset.
+  const staged = new Set(printFiles().map(([, to]) => to.replace(/\\/g, '/')));
+  // The stock robot's printed parts (assembly.json), the diffuser outside the colour sets.
+  const stock = ['AiEmblem', 'Bell', 'Belly', 'BellyJoint', 'BottomCover', 'Chair', 'Chest', 'Coffee', 'Desk', 'DeskPad', 'DeskTop', 'ForearmLeft', 'ForearmRight', 'Hat', 'Head',
+    'LampBase', 'LampButton', 'LampCap', 'LampDiffuser', 'LaptopCase', 'LaptopScreen', 'Mug', 'Neck', 'SeatLeft', 'SeatRight', 'UpperArm']
+    .map((id) => ({ id, component: id, kind: 'printed', printGroup: id === 'LampDiffuser' ? null : 'PartsSetA' }));
+  for (const preset of ['sg90', 'fs0307', 'es9051', 'hd1370a']) {
+    const parts = stock;
+    for (const target of ['home', 'service']) {
+      for (const file of printList({ parts, preset, target }).files) assert.ok(staged.has(file.url), `${preset} ${target}: ${file.url} is not staged`);
+    }
+  }
+  for (const name of ['Head', 'PumpkinCover', 'PumpkinTop', 'Pumpkin', 'Pot', 'Mixture', 'LampBase', 'LampCap', 'LampDiffuser']) {
+    assert.ok(staged.has(`mods/halloween/sg90/3mf/${name}.3mf`), `halloween ${name}`);
+  }
+  assert.ok(staged.has('LICENSE') && staged.has('NOTICE'));
 }
 
 console.log('viewer tests passed');

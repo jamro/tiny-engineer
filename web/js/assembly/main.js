@@ -9,6 +9,7 @@ import {
   normalizeHex, resolveColors,
 } from './colors.js';
 import { createBuild } from './build.js';
+import { PRINT_ROOT, TARGETS, printList, readme, zipName } from './download.js';
 import { applyMod, withFasteners } from './steps.js';
 import { rig } from './joints.js';
 import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, blendPoses, normalizePose, withFollowers } from './poses.js';
@@ -110,7 +111,7 @@ async function main() {
   const preset = currentPreset();
   const MODEL_URL = `models/${preset}${mod ? `-${mod}` : ''}.glb`;
   $('#asm-preset-label').textContent = `${PRESET_LABELS[preset]} preset`;
-  for (const link of document.querySelectorAll('.asm-model:not(.asm-preset)')) {
+  for (const link of document.querySelectorAll('a.asm-model:not(.asm-preset)')) {
     link.setAttribute('aria-current', String((link.dataset.model || null) === mod));
     // Switching model reloads the page with its own colours and steps.
     link.addEventListener('click', (event) => {
@@ -616,6 +617,67 @@ async function main() {
 
   applyColors();
   applyFinishes();
+
+  // Print files for the robot shown: picked here (download.js), fetched from
+  // the site, zipped in the browser.
+  let target = 'home';
+  const download = $('#asm-download');
+  const downloadStatus = $('#asm-download-status');
+  const targetButtons = [...document.querySelectorAll('.asm-target')];
+  const renderTargets = () => {
+    for (const button of targetButtons) {
+      button.setAttribute('aria-pressed', String(button.dataset.target === target));
+      // A mod's parts are not in the print service's colour sets.
+      button.disabled = Boolean(mod) && button.dataset.target === 'service';
+    }
+  };
+  for (const button of targetButtons) {
+    button.addEventListener('click', () => { target = button.dataset.target; downloadStatus.textContent = ''; renderTargets(); });
+  }
+  renderTargets();
+  download.disabled = false;
+  download.addEventListener('click', async () => {
+    const { files, problems } = printList({ parts, preset, mod, target });
+    if (problems.length) { downloadStatus.textContent = problems.join('; '); return; }
+    download.disabled = true;
+    const name = zipName({ preset, mod, target });
+    const folder = name.replace(/\.zip$/, '');
+    const base = new URL(PRINT_ROOT, location.href);
+    const wanted = [...files.map((file) => [file.path, file.url]), ['LICENSE', 'LICENSE'], ['NOTICE', 'NOTICE']];
+    let done = 0;
+    try {
+      const fflate = import('fflate');
+      const fetched = await Promise.all(wanted.map(async ([path, url]) => {
+        const response = await fetch(new URL(url, base));
+        if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        done += 1;
+        downloadStatus.textContent = `Fetching ${done} of ${wanted.length} files…`;
+        return [path, bytes];
+      }));
+      const { zipSync, strToU8 } = await fflate;
+      const tree = {};
+      // 3MF is a ZIP already: store it as it is.
+      for (const [path, bytes] of fetched) tree[`${folder}/${path}`] = [bytes, { level: path.endsWith('.3mf') ? 0 : 6 }];
+      const colorName = (hex) => PALETTE.find((entry) => entry.hex === hex)?.name ?? null;
+      tree[`${folder}/README.txt`] = strToU8(readme({ files, preset, presetLabel: PRESET_LABELS[preset], mod, target, colors, colorName, link: location.href }));
+      const zip = zipSync(tree);
+      const url = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = name;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      downloadStatus.textContent = `${name} · ${files.length} files · ${(zip.byteLength / 1048576).toFixed(1)} MB`;
+    } catch (error) {
+      downloadStatus.textContent = `Could not build the ZIP: ${error?.message ?? error}`;
+    } finally {
+      download.disabled = false;
+    }
+  });
+  download.title = `${TARGETS.home.label}: ${TARGETS.home.about}. ${TARGETS.service.label}: ${TARGETS.service.about}.`;
   // A link to a step (#s=12) opens it; a link with colours opens the colours.
   const linkedStep = Number(hashParams().get('s'));
   if (build && linkedStep) {
@@ -635,6 +697,7 @@ async function main() {
       return fasteners.map(({ id, fastener, mesh, node }) => ({ id, kind: fastener?.kind, size: fastener?.size, color: `#${mesh.material.color.getHexString()}`, visible: node.visible }));
     },
     get finishes() { return { ...finishes }; },
+    get printFiles() { return printList({ parts, preset, mod, target }); },
     setFinish,
     select,
     setColor,

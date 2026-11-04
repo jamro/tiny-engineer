@@ -13,7 +13,8 @@
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/",
+        "fflate": "https://cdn.jsdelivr.net/npm/fflate@0.8.2/esm/browser.js"
       }
     }
   </script>
@@ -56,6 +57,14 @@
         <a class="asm-model asm-preset" href="./#p=fs0307" data-preset="fs0307" title="Feetech FS0307">FS0307</a>
         <a class="asm-model asm-preset" href="./#p=es9051" data-preset="es9051" title="EMAX ES9051">ES9051</a>
         <a class="asm-model asm-preset" href="./#p=hd1370a" data-preset="hd1370a" title="PowerHD HD-1370A">HD-1370A</a>
+      </div>
+
+      <div class="asm-models asm-download" role="group" aria-label="Print files">
+        <span class="field-label">Print files</span>
+        <button class="asm-model asm-target" type="button" data-target="home" aria-pressed="true" title="One 3MF per part, for your slicer, with the two testers to print first">Home printer · 3MF</button>
+        <button class="asm-model asm-target" type="button" data-target="service" aria-pressed="false" title="The two colour sets and the lamp diffuser as STL, to upload to a print service">Print service · STL</button>
+        <button id="asm-download" class="btn" type="button" disabled>Download ZIP</button>
+        <span id="asm-download-status" class="hint mono" role="status"></span>
       </div>
 
       <div class="asm-layout">
