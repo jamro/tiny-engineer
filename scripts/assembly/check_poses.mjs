@@ -17,7 +17,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadSolids } from './check_clipping.mjs';
 import { boxesOverlap, makeSolid, penetration } from './clipping.mjs';
-import { ANIMATIONS, CENTRE, DEFAULT_RANGE, JOINTS, REST, RING_HIT_POSE } from '../../web/js/assembly/poses.js';
+import { ANIMATIONS, CENTRE, DEFAULT_RANGE, JOINTS, REST, ringHitPose } from '../../web/js/assembly/poses.js';
 
 /** Largest gap (mm) between the striking hand and the bell that still counts as a hit. */
 export const HIT_GAP_MM = 0.5;
@@ -103,12 +103,12 @@ export function servoFrames(manifest) {
 }
 
 /** The poses to check: name → pose. */
-export function posesToCheck() {
+export function posesToCheck(preset = 'sg90') {
   const poses = { '90°': CENTRE, rest: REST };
   for (const [name, animation] of Object.entries(ANIMATIONS)) {
-    for (let t = 0; t < LOOP_S - 1e-9; t += SAMPLE_S) poses[`${name} at ${t.toFixed(1)} s`] = animation.pose(t);
+    for (let t = 0; t < LOOP_S - 1e-9; t += SAMPLE_S) poses[`${name} at ${t.toFixed(1)} s`] = animation.pose(t, preset);
   }
-  poses['ring strike'] = RING_HIT_POSE;
+  poses['ring strike'] = ringHitPose(preset);
   return poses;
 }
 
@@ -117,7 +117,7 @@ export function posesToCheck() {
  * relative to each other, deeper than `tolerance` and than any declared
  * fit), and a ring strike that misses the bell.
  */
-export function checkPoses(solids, frames, data, { tolerance = 0.3, range = DEFAULT_RANGE, poses = posesToCheck() } = {}) {
+export function checkPoses(solids, frames, data, { tolerance = 0.3, range = DEFAULT_RANGE, preset = 'sg90', poses = posesToCheck(preset) } = {}) {
   const { posed, chains } = poser(solids, frames, range);
   const pairKey = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
   const fits = new Map((data?.fits ?? []).map((fit) => [pairKey(...fit.parts), fit.mm]));
@@ -141,7 +141,7 @@ export function checkPoses(solids, frames, data, { tolerance = 0.3, range = DEFA
   }
   // The strike lands: the hand touches the bell (raise the bell by the gap and they meet).
   if (solids.has('Bell') && solids.has('ForearmRight')) {
-    const shaped = posed(RING_HIT_POSE);
+    const shaped = posed(ringHitPose(preset));
     const hand = shaped.get('ForearmRight');
     const bell = shaped.get('Bell');
     if (penetration(hand, bell, [0, 0, HIT_GAP_MM]) <= 0.02) {
@@ -167,8 +167,8 @@ function main(argv) {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   const data = stepsPath ? JSON.parse(readFileSync(stepsPath, 'utf8')) : null;
   const solids = loadSolids(manifestPath);
-  const poses = posesToCheck();
-  const problems = checkPoses(solids, servoFrames(manifest), data, { ...options, poses });
+  const poses = posesToCheck(manifest.preset);
+  const problems = checkPoses(solids, servoFrames(manifest), data, { ...options, preset: manifest.preset, poses });
   if (problems.length) {
     console.error(`${manifestPath}: ${problems.length} pose problem${problems.length === 1 ? '' : 's'} (±${options.range}°, tolerance ${options.tolerance} mm):`);
     for (const problem of problems) console.error(`  ${problem}`);

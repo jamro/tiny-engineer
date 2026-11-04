@@ -55,15 +55,20 @@ const RING_RIGHT_BOUNCE = -5 / 9;
 const RING_HEAD_STRIKE = -1;
 const RING_HEAD_START = 2 / 7;
 /**
- * Where the right hand meets the bell in the model at DEFAULT_RANGE, with the
- * body at RING_BODY_START. The firmware strikes to −8/9 on a calibrated
- * range; at the viewer's range that stops 2 mm above the bell.
- * scripts/assembly/check_poses.mjs checks the hand touches it here.
+ * Where the right hand meets the bell in each servo preset's model at
+ * DEFAULT_RANGE, with the body at RING_BODY_START. The firmware strikes to
+ * −8/9 on a calibrated range; at the viewer's range the SG90 hand stops 2 mm
+ * above the bell there. scripts/assembly/check_poses.mjs checks the hand
+ * touches it at every preset.
  */
-export const RING_RIGHT_HIT = -0.97;
-export const RING_HIT_POSE = Object.freeze({
-  head: RING_HEAD_STRIKE, neck: RING_NECK_START, 'hand-left': RING_LEFT_START, 'hand-right': RING_RIGHT_HIT, body: RING_BODY_START,
+export const RING_RIGHT_HITS = Object.freeze({ sg90: -0.97, fs0307: -0.88, es9051: -0.96, hd1370a: -0.88 });
+export const RING_RIGHT_HIT = RING_RIGHT_HITS.sg90;
+/** The ring loop's strike: on the bell, looking at it. */
+export const ringHitPose = (preset = 'sg90') => Object.freeze({
+  head: RING_HEAD_STRIKE, neck: RING_NECK_START, 'hand-left': RING_LEFT_START,
+  'hand-right': RING_RIGHT_HITS[preset] ?? RING_RIGHT_HIT, body: RING_BODY_START,
 });
+export const RING_HIT_POSE = ringHitPose('sg90');
 const WELCOME_HEAD_UP = 2 / 7;
 const WELCOME_HAND_RAISED = 1;
 const WELCOME_HAND_WIGGLE = 8 / 45;
@@ -95,7 +100,8 @@ export const ANIMATIONS = {
     // As the firmware does it (src/animation/ring.cpp): turn right towards
     // the bell with the right hand up, strike down onto it fast while the
     // head looks down, bounce off, lift the hand again. Every 2.4 s.
-    pose: (t) => {
+    pose: (t, preset = 'sg90') => {
+      const RING_RIGHT_HIT = RING_RIGHT_HITS[preset] ?? RING_RIGHT_HITS.sg90;
       const s = t % 2.4;
       // Right hand: up, strike (accelerating), on the bell, bounce, rest, lift.
       let hand;

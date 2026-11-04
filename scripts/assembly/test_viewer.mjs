@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { applyMod, flatten, offsetsAt, sceneAt, startOffset, validate } from '../../web/js/assembly/steps.js';
-import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, REST, RING_HIT_POSE, RING_RIGHT_HIT, blendPoses, normalizePose } from '../../web/js/assembly/poses.js';
+import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, REST, RING_HIT_POSE, RING_RIGHT_HIT, RING_RIGHT_HITS, blendPoses, normalizePose, ringHitPose } from '../../web/js/assembly/poses.js';
 import { decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors, GROUP_COLORS, HARDWARE_COLORS } from '../../web/js/assembly/colors.js';
 
 const parts = [
@@ -165,5 +165,11 @@ assert.equal(Math.min(...ring.map((pose) => pose['hand-right'])), RING_RIGHT_HIT
 assert.ok(ring.some((pose) => pose['hand-right'] === 1), 'the hand lifts all the way');
 assert.deepEqual(ANIMATIONS.ring.pose(0.85), RING_HIT_POSE, 'on the bell, looking at it');
 assert.ok(ANIMATIONS.ring.pose(1.2)['hand-right'] > RING_RIGHT_HIT, 'bounces off');
+// Each servo preset's hand meets its bell at its own angle.
+for (const [preset, hit] of Object.entries(RING_RIGHT_HITS)) {
+  assert.deepEqual(ANIMATIONS.ring.pose(0.85, preset), ringHitPose(preset), `${preset}: on the bell`);
+  assert.equal(ringHitPose(preset)['hand-right'], hit);
+}
+assert.deepEqual(ANIMATIONS.ring.pose(0.85, 'unknown'), RING_HIT_POSE, 'an unknown preset strikes as SG90');
 
 console.log('viewer tests passed');
