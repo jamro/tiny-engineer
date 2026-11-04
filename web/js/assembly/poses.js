@@ -26,6 +26,25 @@ export const JOINTS = [
   { id: 'hand-right', index: 3, label: 'Right hand', servo: 'servo-arm-right', parent: 'body', sense: ['y', -1], moves: ['UpperArmMirror', 'ForearmRight'], hint: 'Up at +1' },
 ];
 
+/**
+ * JOINTS with more parts that hang on them: `followers` maps a part id to
+ * the part it is fastened to (a screw or nut to its `fastener.parent`), and
+ * it turns with that part's joint.
+ */
+export function withFollowers(joints, followers) {
+  const extra = new Map();
+  for (const [id, parent] of followers) {
+    const joint = joints.find((entry) => entry.moves.includes(parent));
+    if (joint) extra.set(joint.id, [...(extra.get(joint.id) ?? []), id]);
+  }
+  return joints.map((joint) => (extra.has(joint.id) ? { ...joint, moves: [...joint.moves, ...extra.get(joint.id)] } : joint));
+}
+
+/** The fastener followers of a manifest's hardware (id → parent). */
+export function fastenerFollowers(hardware) {
+  return new Map((hardware ?? []).filter((entry) => entry.fastener).map((entry) => [entry.id, entry.fastener.parent]));
+}
+
 /** Degrees either side of 90° that a −1..1 pose reaches in the viewer. */
 export const DEFAULT_RANGE = 25;
 
@@ -56,12 +75,13 @@ const RING_HEAD_STRIKE = -1;
 const RING_HEAD_START = 2 / 7;
 /**
  * Where the right hand meets the bell in each servo preset's model at
- * DEFAULT_RANGE, with the body at RING_BODY_START. The firmware strikes to
- * −8/9 on a calibrated range; at the viewer's range the SG90 hand stops 2 mm
- * above the bell there. scripts/assembly/check_poses.mjs checks the hand
- * touches it at every preset.
+ * DEFAULT_RANGE, with the body at RING_BODY_START: the head of the M2×16 on
+ * top of the bell, or (SG90, where the hand comes down beside it) the bell's
+ * rim. The firmware strikes to −8/9 on a calibrated range; at the viewer's
+ * range the SG90 hand stops 2 mm above the bell there.
+ * scripts/assembly/check_poses.mjs checks the hand touches it at every preset.
  */
-export const RING_RIGHT_HITS = Object.freeze({ sg90: -0.97, fs0307: -0.88, es9051: -0.96, hd1370a: -0.88 });
+export const RING_RIGHT_HITS = Object.freeze({ sg90: -0.97, fs0307: -0.79, es9051: -0.94, hd1370a: -0.81 });
 export const RING_RIGHT_HIT = RING_RIGHT_HITS.sg90;
 /** The ring loop's strike: on the bell, looking at it. */
 export const ringHitPose = (preset = 'sg90') => Object.freeze({

@@ -4,11 +4,14 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createStage, smoothNormals } from './stage.js';
-import { PALETTE, TRANSLUCENT, decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors } from './colors.js';
+import {
+  FASTENER_FINISHES, FASTENER_KINDS, PALETTE, TRANSLUCENT, decodeColors, decodeFinishes, defaultColor, encodeColors, encodeFinishes,
+  normalizeHex, resolveColors,
+} from './colors.js';
 import { createBuild } from './build.js';
-import { applyMod } from './steps.js';
+import { applyMod, withFasteners } from './steps.js';
 import { rig } from './joints.js';
-import { ANIMATIONS, CENTRE, JOINT_IDS, blendPoses, normalizePose } from './poses.js';
+import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, blendPoses, normalizePose, withFollowers } from './poses.js';
 
 /** Servo presets the viewer can show (#p=fs0307), the design's own first. */
 const PRESETS = ['sg90', 'fs0307', 'es9051', 'hd1370a'];
@@ -19,6 +22,8 @@ const STEPS_URL = 'steps.json';
 /** Opacity of a part drawn as a ghost (see-through) in a build step. */
 const GHOST_OPACITY = 0.16;
 const STORAGE_KEY_BASE = 'te-assembly-colors';
+const FINISH_STORAGE_KEY = 'te-assembly-fasteners';
+const FASTENER_TITLES = { screw: 'Screws', nut: 'Nuts' };
 const GROUP_TITLES = {
   mod: 'Mod parts',
   PartsSetA: 'Copper set',
@@ -74,6 +79,23 @@ function saveColors(parts, changes) {
   const encoded = encodeColors(parts, changes);
   setHashParam('c', encoded || null);
   try { localStorage.setItem(storageKey(), encoded); } catch { /* private mode */ }
+}
+
+/** Screw and nut finishes: the link's (#f=black.silver), else the last ones chosen here. */
+function readFinishes() {
+  const hash = hashParams().get('f');
+  if (hash !== null) return decodeFinishes(hash);
+  try {
+    return decodeFinishes(localStorage.getItem(FINISH_STORAGE_KEY) ?? '');
+  } catch {
+    return decodeFinishes('');
+  }
+}
+
+function saveFinishes(finishes) {
+  const encoded = encodeFinishes(finishes);
+  setHashParam('f', encoded || null);
+  try { localStorage.setItem(FINISH_STORAGE_KEY, encoded); } catch { /* private mode */ }
 }
 
 function groupOf(part) {
@@ -133,10 +155,16 @@ async function main() {
 
   const root = gltf.scene.getObjectByName('TinyEngineer');
   const parts = [];
+  // M2 screws and nuts: drawn and moved like parts, coloured by finish, not in the parts list.
+  const fasteners = [];
   for (const node of root.children) {
     const extras = node.userData ?? {};
     const mesh = node.isMesh ? node : node.getObjectByProperty('isMesh', true);
     if (!mesh) continue;
+    if (extras.kind === 'fastener') {
+      fasteners.push({ id: node.name, kind: 'fastener', component: extras.component ?? node.name, fastener: extras.fastener, node, mesh });
+      continue;
+    }
     parts.push({
       id: node.name,
       component: extras.component ?? node.name,
@@ -151,8 +179,9 @@ async function main() {
 
   // One material per part, so each can take its own colour; normals with a crease angle.
   // A mesh with vertex colours (the ESP32-C3-Zero) shows them, tinted by the part's colour.
+  const everything = [...parts, ...fasteners];
   const geometries = new Map();
-  for (const part of parts) {
+  for (const part of everything) {
     const source = part.mesh.geometry;
     if (!geometries.has(source)) geometries.set(source, smoothNormals(source));
     part.mesh.geometry = geometries.get(source);
@@ -182,16 +211,75 @@ async function main() {
     offset.z = Math.max(offset.z, 0) + 6; // spread upwards rather than sink into the floor
     part.explode = offset.multiplyScalar(EXPLODE_SCALE);
   }
+  // A screw or nut stays in its part when the robot explodes.
+  const partById = new Map(parts.map((part) => [part.id, part]));
+  for (const item of fasteners) item.explode = partById.get(item.fastener?.parent)?.explode.clone() ?? new THREE.Vector3();
   stage.frame(robotBox);
 
   // Servo joints: parts move under pivots on the shafts; positions are now in
   // the pivots' frames.
-  const joints = rig(root, new Map(parts.map((part) => [part.id, part.node])));
-  for (const part of parts) part.base = part.node.position.clone();
+  const followers = new Map(fasteners.map((item) => [item.id, item.fastener?.parent]));
+  const joints = rig(root, new Map(everything.map((part) => [part.id, part.node])), withFollowers(JOINTS, followers));
+  for (const part of everything) part.base = part.node.position.clone();
 
   let changes = readSavedColors(parts);
   let colors = resolveColors(parts, changes);
   let selected = null;
+  let finishes = readFinishes();
+
+  // Screw and nut finishes: metal, black or silver.
+  const applyFinishes = () => {
+    for (const item of fasteners) {
+      const finish = FASTENER_FINISHES[finishes[item.fastener?.kind]] ?? FASTENER_FINISHES.silver;
+      item.mesh.material.color.set(finish.hex);
+      item.mesh.material.metalness = finish.metalness;
+      item.mesh.material.roughness = finish.roughness;
+    }
+    for (const button of document.querySelectorAll('.asm-finish')) {
+      button.setAttribute('aria-pressed', String(finishes[button.dataset.kind] === button.dataset.finish));
+    }
+    stage.invalidate();
+  };
+  const setFinish = (kind, finish) => {
+    if (!FASTENER_KINDS.includes(kind) || !FASTENER_FINISHES[finish]) return;
+    finishes = { ...finishes, [kind]: finish };
+    saveFinishes(finishes);
+    applyFinishes();
+  };
+  const finishPanel = $('#asm-finishes');
+  finishPanel.hidden = !fasteners.length;
+  if (fasteners.length) {
+    const count = (kind) => fasteners.filter((item) => item.fastener?.kind === kind).length;
+    $('#asm-finishes-title').textContent = `Screws and nuts · ${fasteners.length}`;
+    const rows = $('#asm-finish-rows');
+    rows.replaceChildren();
+    for (const kind of FASTENER_KINDS) {
+      if (!count(kind)) continue;
+      const row = document.createElement('div');
+      row.className = 'asm-finish-row';
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', `${FASTENER_TITLES[kind]} finish`);
+      const name = document.createElement('span');
+      name.textContent = `${FASTENER_TITLES[kind]} · ${count(kind)}`;
+      row.append(name);
+      for (const [id, finish] of Object.entries(FASTENER_FINISHES)) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'asm-finish';
+        button.dataset.kind = kind;
+        button.dataset.finish = id;
+        button.title = `${finish.name}: ${finish.about}`;
+        const swatch = document.createElement('span');
+        swatch.className = 'asm-swatch';
+        swatch.style.background = finish.hex;
+        swatch.setAttribute('aria-hidden', 'true');
+        button.append(swatch, document.createTextNode(finish.name));
+        button.addEventListener('click', () => setFinish(kind, id));
+        row.append(button);
+      }
+      rows.append(row);
+    }
+  }
 
   const applyColors = () => {
     for (const part of parts) part.mesh.material.color.set(colors[part.id]);
@@ -328,6 +416,8 @@ async function main() {
   // Where every part is and whether it shows: explode, the build step, the electronics toggle.
   const explode = $('#asm-explode');
   const electronics = $('#asm-electronics');
+  const fastenerToggle = $('#asm-fasteners');
+  fastenerToggle.closest('label').hidden = !fasteners.length;
   let build = null;
   const rootRotation = new THREE.Quaternion();
   const parentRotation = new THREE.Quaternion();
@@ -335,7 +425,7 @@ async function main() {
   function layout() {
     const amount = Number(explode.value) / 100;
     root.getWorldQuaternion(rootRotation).invert();
-    for (const part of parts) {
+    for (const part of everything) {
       // Explode and step offsets are in the CAD frame; turn them into the
       // frame of the joint the part hangs on.
       shift.copy(part.explode).multiplyScalar(amount);
@@ -346,7 +436,8 @@ async function main() {
         shift.applyQuaternion(parentRotation);
       }
       part.node.position.copy(part.base).add(shift);
-      part.node.visible = (build ? build.shown(part.id) : true) && (part.kind !== 'hardware' || electronics.checked);
+      part.node.visible = (build ? build.shown(part.id) : true)
+        && (part.kind !== 'hardware' || electronics.checked) && (part.kind !== 'fastener' || fastenerToggle.checked);
       const ghost = build?.ghost(part.id) ?? false;
       const material = part.mesh.material;
       const transparent = ghost || part.opacity < 1;
@@ -361,6 +452,7 @@ async function main() {
   explode.addEventListener('input', layout);
   explode.addEventListener('change', () => stage.refit(new THREE.Box3().setFromObject(root)));
   electronics.addEventListener('change', layout);
+  fastenerToggle.addEventListener('change', layout);
 
   // Joints: sliders per servo, a few animation loops built from the firmware's poses.
   const sliders = new Map();
@@ -439,8 +531,8 @@ async function main() {
   const panels = { build: $('#asm-build'), colors: $('#asm-colors') };
   if (stepData) {
     build = createBuild({
-      data: stepData,
-      parts,
+      data: withFasteners(stepData, fasteners.map(({ id, fastener }) => ({ id, fastener }))),
+      parts: everything,
       stage,
       root,
       layout,
@@ -498,6 +590,9 @@ async function main() {
     colors = resolveColors(parts, changes);
     saveColors(parts, changes);
     applyColors();
+    finishes = decodeFinishes('');
+    saveFinishes(finishes);
+    applyFinishes();
     renderDetail();
   });
   $('#asm-share').addEventListener('click', async () => {
@@ -514,10 +609,13 @@ async function main() {
     changes = readSavedColors(parts);
     colors = resolveColors(parts, changes);
     applyColors();
+    finishes = readFinishes();
+    applyFinishes();
     renderDetail();
   });
 
   applyColors();
+  applyFinishes();
   // A link to a step (#s=12) opens it; a link with colours opens the colours.
   const linkedStep = Number(hashParams().get('s'));
   if (build && linkedStep) {
@@ -527,12 +625,17 @@ async function main() {
     showTab(build && !hashParams().get('c') ? 'build' : 'colors');
     layout();
   }
-  status.textContent = `${parts.filter((part) => part.kind !== 'hardware').length} printed parts · ${parts.filter((part) => part.kind === 'hardware').length} electronics · ${PRESET_LABELS[preset]}`;
+  status.textContent = `${parts.filter((part) => part.kind !== 'hardware').length} printed parts · ${parts.filter((part) => part.kind === 'hardware').length} electronics${fasteners.length ? ` · ${fasteners.length} screws and nuts` : ''} · ${PRESET_LABELS[preset]}`;
   status.dataset.state = 'ready';
   document.body.dataset.ready = 'true';
   // For tests and the console.
   window.tinyEngineerAssembly = {
     get parts() { return parts.map(({ id, kind, printGroup, node }) => ({ id, kind, printGroup, color: colors[id], visible: node.visible })); },
+    get fasteners() {
+      return fasteners.map(({ id, fastener, mesh, node }) => ({ id, kind: fastener?.kind, size: fastener?.size, color: `#${mesh.material.color.getHexString()}`, visible: node.visible }));
+    },
+    get finishes() { return { ...finishes }; },
+    setFinish,
     select,
     setColor,
     get pose() { return { ...pose }; },

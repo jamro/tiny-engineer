@@ -22,6 +22,30 @@ export const HARDWARE_COLORS = {
   'ESP32-C3-Zero': '#ffffff',
 };
 
+/**
+ * Finishes the M2 screws and nuts come in (scripts/assembly/fasteners.py):
+ * black oxide and silver (zinc-plated or stainless steel), each as a
+ * metal. Screws and nuts take one each (#f=black.silver: screws, then nuts).
+ */
+export const FASTENER_FINISHES = {
+  silver: { name: 'Silver', about: 'zinc-plated or stainless steel', hex: '#c9ccd1', metalness: 0.75, roughness: 0.32 },
+  black: { name: 'Black', about: 'black oxide', hex: '#2b2c30', metalness: 0.55, roughness: 0.42 },
+};
+export const FASTENER_KINDS = ['screw', 'nut'];
+export const DEFAULT_FINISHES = Object.freeze({ screw: 'silver', nut: 'silver' });
+
+/** Screw and nut finishes for a URL hash, or '' for the defaults. */
+export function encodeFinishes(finishes) {
+  const value = FASTENER_KINDS.map((kind) => (FASTENER_FINISHES[finishes?.[kind]] ? finishes[kind] : DEFAULT_FINISHES[kind]));
+  return value.every((finish, i) => finish === DEFAULT_FINISHES[FASTENER_KINDS[i]]) ? '' : value.join('.');
+}
+
+/** Screw and nut finishes from encodeFinishes' text; unknown ones fall back to the defaults. */
+export function decodeFinishes(text) {
+  const values = String(text ?? '').split('.');
+  return Object.fromEntries(FASTENER_KINDS.map((kind, i) => [kind, FASTENER_FINISHES[values[i]] ? values[i] : DEFAULT_FINISHES[kind]]));
+}
+
 /** Swatches offered in the picker: common PLA / PETG colours. */
 export const PALETTE = [
   { name: 'Silk copper', hex: '#c08a3e' },

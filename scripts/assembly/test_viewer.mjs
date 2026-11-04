@@ -3,9 +3,9 @@
 //   node scripts/assembly/test_viewer.mjs
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { applyMod, flatten, offsetsAt, sceneAt, startOffset, validate } from '../../web/js/assembly/steps.js';
-import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, REST, RING_HIT_POSE, RING_RIGHT_HIT, RING_RIGHT_HITS, blendPoses, normalizePose, ringHitPose } from '../../web/js/assembly/poses.js';
-import { decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors, GROUP_COLORS, HARDWARE_COLORS } from '../../web/js/assembly/colors.js';
+import { FASTEN_AT, applyMod, flatten, offsetsAt, phases, sceneAt, startOffset, validate, withFasteners } from '../../web/js/assembly/steps.js';
+import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, REST, RING_HIT_POSE, RING_RIGHT_HIT, RING_RIGHT_HITS, blendPoses, fastenerFollowers, normalizePose, ringHitPose, withFollowers } from '../../web/js/assembly/poses.js';
+import { DEFAULT_FINISHES, decodeColors, decodeFinishes, defaultColor, encodeColors, encodeFinishes, normalizeHex, resolveColors, GROUP_COLORS, HARDWARE_COLORS } from '../../web/js/assembly/colors.js';
 
 const parts = [
   { id: 'Head', kind: 'printed', printGroup: 'PartsSetA' },
@@ -171,5 +171,58 @@ for (const [preset, hit] of Object.entries(RING_RIGHT_HITS)) {
   assert.equal(ringHitPose(preset)['hand-right'], hit);
 }
 assert.deepEqual(ANIMATIONS.ring.pose(0.85, 'unknown'), RING_HIT_POSE, 'an unknown preset strikes as SG90');
+
+// Screw and nut finishes: defaults leave the link alone, others round-trip, junk falls back.
+assert.equal(encodeFinishes(DEFAULT_FINISHES), '');
+assert.equal(encodeFinishes({ screw: 'black', nut: 'silver' }), 'black.silver');
+assert.deepEqual(decodeFinishes('black.silver'), { screw: 'black', nut: 'silver' });
+assert.deepEqual(decodeFinishes('gold.black'), { screw: DEFAULT_FINISHES.screw, nut: 'black' });
+assert.deepEqual(decodeFinishes(''), DEFAULT_FINISHES);
+
+// Fasteners in the steps: added where their step says, riding with the part
+// their head sits on, sliding in after the parts are home, and moving later
+// with their parts.
+{
+  const data = {
+    format: 1,
+    sections: [
+      { id: 'a', title: 'A', steps: [{ title: 'Seat the arm', text: 't', add: ['Arm'], from: [0, 0, 30] }] },
+      { id: 'b', title: 'B', steps: [
+        { title: 'Fasten', text: 't', add: [] },
+        { title: 'Mount', text: 't', add: ['Body'], move: ['Arm'], fromEach: { Arm: [10, 0, 0] } },
+      ] },
+    ],
+  };
+  const hardware = [
+    { id: 'screw-arm-1', fastener: { kind: 'screw', parent: 'Arm', parts: ['Arm', 'Body'], step: 'Seat the arm', from: [0, 0, 5] } },
+    { id: 'screw-fasten-1', fastener: { kind: 'screw', parent: 'Arm', parts: ['Arm'], step: 'Fasten', from: [0, -4, 0] } },
+    { id: 'servo' },
+  ];
+  const withScrews = withFasteners(data, hardware);
+  const steps = flatten(withScrews);
+  assert.deepEqual(steps[0].add, ['Arm', 'screw-arm-1']);
+  assert.deepEqual(steps[0].fasten, ['screw-arm-1']);
+  assert.deepEqual(steps[0].fromEach['screw-arm-1'], [0, 0, 30], 'rides with the arm');
+  assert.deepEqual(steps[1].fromEach['screw-fasten-1'], [0, 0, 0], 'nothing moves: it only slides');
+  assert.deepEqual(steps[2].move, ['Arm', 'screw-arm-1', 'screw-fasten-1'], 'moves with the arm later');
+  assert.deepEqual(steps[2].fromEach['screw-arm-1'], [10, 0, 0]);
+  assert.deepEqual(validate(withScrews, ['Arm', 'Body', 'screw-arm-1', 'screw-fasten-1']), []);
+  assert.deepEqual(withFasteners(data, [{ id: 'servo' }]), data, 'no fasteners: the steps as they are');
+  assert.deepEqual(validate(withFasteners(data, [{ id: 'lost', fastener: { ...hardware[0].fastener, step: 'Nope' } }]), ['Arm', 'Body', 'lost']), ['no step adds lost']);
+  // The parts move first, then the screw slides in.
+  assert.deepEqual(phases(steps[0]), [0, FASTEN_AT, 1]);
+  assert.deepEqual(phases(data.sections[0].steps[0]), [0, 1]);
+  // (The arm and its screw wait 10 mm out for the later Mount step.)
+  assert.deepEqual(offsetsAt(steps, 0, 0).get('screw-arm-1'), [10, 0, 35]);
+  assert.deepEqual(offsetsAt(steps, 0, FASTEN_AT).get('screw-arm-1'), [10, 0, 5], 'the arm is in, the screw still out');
+  assert.deepEqual(offsetsAt(steps, 0, FASTEN_AT).get('Arm'), [10, 0, 0]);
+  assert.deepEqual(offsetsAt(steps, 0, 1).get('screw-arm-1'), [10, 0, 0], 'driven in');
+  assert.equal(offsetsAt(steps, 2, 1).get('screw-arm-1'), undefined, 'home with the arm');
+  // Fasteners turn with their part's joint.
+  const joints = withFollowers(JOINTS, fastenerFollowers([{ id: 'screw-elbow-left-1', fastener: { parent: 'ForearmLeft' } }, { id: 'nut', fastener: { parent: 'Nope' } }]));
+  assert.ok(joints.find((joint) => joint.id === 'hand-left').moves.includes('screw-elbow-left-1'));
+  assert.ok(!joints.some((joint) => joint.moves.includes('nut')), 'a part no joint moves: it stays');
+  assert.ok(!JOINTS.find((joint) => joint.id === 'hand-left').moves.includes('screw-elbow-left-1'), 'JOINTS itself is left alone');
+}
 
 console.log('viewer tests passed');

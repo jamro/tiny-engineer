@@ -68,7 +68,8 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     elements.progress.max = steps.length;
     elements.screws.hidden = !step.screws;
     elements.screws.textContent = step.screws ? `Screws: ${step.screws}` : '';
-    const added = step.add.map(label);
+    // Screws and nuts are in the step's screw line, not among its parts.
+    const added = step.add.filter((id) => !step.fasten?.includes(id)).map(label);
     elements.adds.hidden = !added.length;
     elements.adds.textContent = added.length ? `Adds: ${added.join(', ')}` : '';
     elements.doc.href = `${step.section.docs ?? data.docs}${step.section.doc ?? ''}`;

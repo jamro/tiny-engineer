@@ -13,14 +13,15 @@ const AXES = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: 
 
 /**
  * Builds pivots under `root` (the CAD-frame node) and moves the parts under
- * them. `nodes` maps part id → Object3D. Returns `set(id, value)` for a pose
- * in −1..1, `reset()`, and the joints that could be built.
+ * them. `nodes` maps part id → Object3D; `joints` is JOINTS, or JOINTS with
+ * the screws and nuts added (withFollowers). Returns `set(id, value)` for a
+ * pose in −1..1, `reset()`, and the joints that could be built.
  */
-export function rig(root, nodes) {
+export function rig(root, nodes, joints = JOINTS) {
   root.updateMatrixWorld(true);
   const pivots = new Map();
   const built = [];
-  for (const joint of JOINTS) {
+  for (const joint of joints) {
     const servo = nodes.get(joint.servo);
     if (!servo) continue;
     const parent = joint.parent ? pivots.get(joint.parent)?.pivot : root;

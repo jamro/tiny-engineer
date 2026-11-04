@@ -1896,6 +1896,53 @@ esp-web-install-button .button,
   color: var(--muted);
 }
 
+.asm-finishes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.asm-finishes .hint {
+  margin: 0;
+}
+
+.asm-finish-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.asm-finish-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.asm-finish-row > span {
+  min-width: 5.5rem;
+}
+
+.asm-finish {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.asm-finish[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
 .asm-part-list {
   list-style: none;
   margin: 0.45rem 0 0;

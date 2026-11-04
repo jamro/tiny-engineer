@@ -18,13 +18,23 @@ export function startOffset(step, id) {
   return step.fromEach?.[id] ?? step.from ?? [0, 0, 0];
 }
 
+/** In a step that drives screws in, the parts are home this far through it; the screws then slide in. */
+export const FASTEN_AT = 0.6;
+
+/** Where a step's motion changes (0..1): the parts' move, then its screws' (see offsetsAt). */
+export function phases(step) {
+  return step?.fasten?.length ? [0, FASTEN_AT, 1] : [0, 1];
+}
+
 /**
  * Where every part is drawn at step `index`, `progress` (0..1, eased) of the
  * way through its move: part id → offset from its assembled pose (mm, CAD
  * frame). A sub-assembly built off the robot waits at the sum of the moves
  * still ahead of it (`move` in later steps), so it travels with the parts it
  * is joined to and goes home in the step that mounts it. Parts at their
- * assembled pose are left out.
+ * assembled pose are left out. In a step with screws and nuts (`fasten`), the
+ * parts move up to FASTEN_AT, and then the fasteners slide in along their axes
+ * (`slide`).
  */
 export function offsetsAt(steps, index, progress = 1) {
   const offsets = new Map();
@@ -38,9 +48,14 @@ export function offsetsAt(steps, index, progress = 1) {
   for (let i = index; i < steps.length; i++) {
     const step = steps[i];
     // Moves after this step are still ahead; this step's own move is (1 - progress) to go.
-    const scale = i === index ? 1 - progress : 1;
+    const fastening = i === index && step.fasten?.length;
+    const scale = i === index ? 1 - (fastening ? Math.min(1, progress / FASTEN_AT) : progress) : 1;
     for (const id of step.move) if (shown.has(id)) shift(id, startOffset(step, id), scale);
     if (i === index) for (const id of step.add) shift(id, startOffset(step, id), scale);
+    if (fastening) {
+      const slid = 1 - Math.max(0, (progress - FASTEN_AT) / (1 - FASTEN_AT));
+      for (const id of step.fasten) shift(id, step.slide?.[id] ?? [0, 0, 0], slid);
+    }
   }
   return offsets;
 }
@@ -58,6 +73,40 @@ export function sceneAt(steps, index) {
   let focus = step?.focus ?? (moving.size ? [...moving] : null);
   if (!focus) focus = steps.filter((other) => other.section === step?.section).flatMap((other) => other.add);
   return { shown, moving, ghost: new Set(step?.ghost ?? []), focus: focus.filter((id) => shown.has(id)) };
+}
+
+/**
+ * The steps with the model's screws and nuts in them (hardware entries with
+ * `fastener`, scripts/assembly/fasteners.py). Each one is added in the step
+ * its `step` names (by title): it rides in with the part its head sits on
+ * (`fastener.parent`) when that part moves in the step, then slides in along
+ * its own axis (`slide`, from `fastener.from`) once the parts are home. Later
+ * it moves with its parts: a step that moves one of them moves it too.
+ * `fasten` lists a step's fasteners, so the step can name its parts without
+ * them.
+ */
+export function withFasteners(data, hardware) {
+  const fasteners = (hardware ?? []).filter((entry) => entry.fastener);
+  if (!fasteners.length) return data;
+  const sections = data.sections.map((section) => ({ ...section, steps: section.steps.map((step) => ({ ...step })) }));
+  const steps = sections.flatMap((section) => section.steps);
+  for (const { id, fastener } of fasteners) {
+    const at = steps.findIndex((step) => step.title === fastener.step);
+    if (at < 0) continue; // validate() reports it: no step adds it
+    const step = steps[at];
+    const rides = (step.add ?? []).includes(fastener.parent) || (step.move ?? []).includes(fastener.parent);
+    step.add = [...(step.add ?? []), id];
+    step.fasten = [...(step.fasten ?? []), id];
+    step.fromEach = { ...step.fromEach, [id]: rides ? startOffset(step, fastener.parent) : [0, 0, 0] };
+    step.slide = { ...step.slide, [id]: fastener.from };
+    for (const later of steps.slice(at + 1)) {
+      const part = fastener.parts.find((candidate) => (later.move ?? []).includes(candidate));
+      if (!part) continue;
+      later.fromEach = { ...later.fromEach, [id]: startOffset(later, part) };
+      later.move = [...later.move, id];
+    }
+  }
+  return { ...data, sections };
 }
 
 /** Problems with the step data for a model with these part ids (empty when fine). */
