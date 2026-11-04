@@ -74,11 +74,5 @@ SPDX-License-Identifier = "CERN-OHL-S-2.0"
 
 [[annotations]]
 path = "scripts/assembly/hardware/**"
-SPDX-FileCopyrightText = "2026 nntin-bot (canfactory, https://github.com/nntin/canfactory)"
-SPDX-License-Identifier = "CERN-OHL-S-2.0"
-
-[[annotations]]
-path = ["scripts/assembly/hardware/MainControlBoard.stl", "scripts/assembly/hardware/ESP32-C3-Zero-headers.stl"]
-precedence = "override"
 SPDX-FileCopyrightText = "2026 Krzysztof Jamroz"
 SPDX-License-Identifier = "CERN-OHL-S-2.0"

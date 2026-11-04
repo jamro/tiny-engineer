@@ -39,9 +39,10 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from extract import ROOT, column_major, write_binary_stl  # noqa: E402
-from f3d_assembly import inverse, read_stl  # noqa: E402
-from presets import MIRRORED, matrix_of, print_fit, step_features  # noqa: E402
+from extract import ROOT, column_major, matrix_of  # noqa: E402
+from meshes import Mesh, circle, prism, revolve  # noqa: E402
+from f3d_assembly import read_stl  # noqa: E402
+from presets import MIRRORED, print_fit, step_features, step_to_print_rotation  # noqa: E402
 
 CONFIG = Path(__file__).resolve().parent / "fasteners.json"
 STEPS = ROOT / "web" / "assembly" / "steps.json"
@@ -64,28 +65,7 @@ NUT_SLIDE_MM = 6.0
 # -- meshes ------------------------------------------------------------------------------
 
 
-def revolve(profile: list[tuple[float, float]], segments: int = 24) -> tuple[np.ndarray, np.ndarray]:
-    """A closed solid of revolution about +z from (radius, z) points, axis to axis."""
-    assert profile[0][0] == 0 and profile[-1][0] == 0
-    angles = np.arange(segments) * 2 * math.pi / segments
-    vertices = [np.array([0.0, 0.0, profile[0][1]])]
-    rings = []
-    for radius, z in profile[1:-1]:
-        rings.append(len(vertices))
-        vertices.extend(np.array([radius * math.cos(a), radius * math.sin(a), z]) for a in angles)
-    vertices.append(np.array([0.0, 0.0, profile[-1][1]]))
-    top = len(vertices) - 1
-    triangles = []
-    for i in range(segments):
-        j = (i + 1) % segments
-        triangles.append((0, rings[0] + j, rings[0] + i))
-        for lower, upper in zip(rings, rings[1:]):
-            triangles += [(lower + i, lower + j, upper + j), (lower + i, upper + j, upper + i)]
-        triangles.append((top, rings[-1] + i, rings[-1] + j))
-    return np.array(vertices), np.array(triangles)
-
-
-def screw_mesh(length: float, head_diameter: float, head_height: float, thread_diameter: float) -> tuple[np.ndarray, np.ndarray]:
+def screw_mesh(length: float, head_diameter: float, head_height: float, thread_diameter: float) -> Mesh:
     """A pan-head screw: head on z 0..head_height, shaft down to z = -length with a pointed tip."""
     r, R, k = thread_diameter / 2, head_diameter / 2, head_height
     tip = min(0.6, length / 4)
@@ -95,26 +75,10 @@ def screw_mesh(length: float, head_diameter: float, head_height: float, thread_d
     ])
 
 
-def nut_mesh(across_flats: float, height: float, hole_diameter: float, per_side: int = 4) -> tuple[np.ndarray, np.ndarray]:
+def nut_mesh(across_flats: float, height: float, hole_diameter: float) -> Mesh:
     """A hex nut on z 0..height, corners on the x axis and every 60°."""
-    corner = across_flats / math.sqrt(3)
-    outer = []
-    for side in range(6):
-        a, b = side * math.pi / 3, (side + 1) * math.pi / 3
-        p, q = corner * np.array([math.cos(a), math.sin(a)]), corner * np.array([math.cos(b), math.sin(b)])
-        outer += [p + (q - p) * t / per_side for t in range(per_side)]
-    n = len(outer)
-    inner = [hole_diameter / 2 * np.array([math.cos(2 * math.pi * i / n), math.sin(2 * math.pi * i / n)]) for i in range(n)]
-    vertices = np.array([[*xy, z] for z in (0.0, height) for xy in (*outer, *inner)])
-    ob, ib, ot, it = 0, n, 2 * n, 3 * n
-    triangles = []
-    for i in range(n):
-        j = (i + 1) % n
-        triangles += [(ot + i, ot + j, it + j), (ot + i, it + j, it + i)]  # top
-        triangles += [(ob + i, ib + j, ob + j), (ob + i, ib + i, ib + j)]  # bottom
-        triangles += [(ob + i, ob + j, ot + j), (ob + i, ot + j, ot + i)]  # flats
-        triangles += [(ib + i, it + j, ib + j), (ib + i, it + i, it + j)]  # hole
-    return vertices, np.array(triangles)
+    hexagon = circle(0, 0, across_flats / math.sqrt(3), 6)
+    return prism(hexagon, 0.0, height, None, holes=[circle(0, 0, hole_diameter / 2, 24)])
 
 
 # -- geometry ----------------------------------------------------------------------------
@@ -183,7 +147,7 @@ class Robot:
             # STEP frame to the STL's print frame; a mesh used twice (the mirrored arm) takes the better fit.
             feats = steps[entry["id"]][0]
             V = np.array([q for k, q in feats if k == "v"])
-            rotation = (inverse(matrix_of(entry)) @ np.array(entry["occurrence"]).reshape(4, 4).T)[:3, :3]
+            rotation = step_to_print_rotation(entry)
             shift, share = print_fit(rotation, V, read_stl(self.mesh_path(entry)))
             if share > fits.get(entry["mesh"], (None, None, -1))[2]:
                 fits[entry["mesh"]] = (rotation, shift, share)
@@ -425,8 +389,8 @@ def add_fasteners(manifest_path: Path, config_path: Path = CONFIG, steps_path: P
     entries, problems = place(manifest, here, config, json.loads(steps_path.read_text()))
     screw, nut = config["screw"], config["nut"]
     for length in sorted({spec["length"] for spec in config["screws"]}):
-        write_binary_stl(here / "hardware" / f"M2x{length:g}.stl", *screw_mesh(length, screw["head_diameter"], screw["head_height"], screw["thread_diameter"]))
-    write_binary_stl(here / "hardware" / "M2-nut.stl", *nut_mesh(nut["width_across_flats"], nut["height"], screw["thread_diameter"]))
+        screw_mesh(length, screw["head_diameter"], screw["head_height"], screw["thread_diameter"]).write(here / "hardware" / f"M2x{length:g}.stl")
+    nut_mesh(nut["width_across_flats"], nut["height"], screw["thread_diameter"]).write(here / "hardware" / "M2-nut.stl")
     manifest["hardware"] = [entry for entry in manifest["hardware"] if entry.get("source") != "fastener"] + entries
     manifest_path.write_text(json.dumps(manifest, indent=1) + "\n")
     return manifest, problems

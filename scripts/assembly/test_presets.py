@@ -45,15 +45,16 @@ class Servo(unittest.TestCase):
         np.testing.assert_allclose(presets.servo_transfer(np.array([0.0, 0.6, 0.3]), src, dst), [0.0, 0.6, 0.3])
 
     def test_mesh_spans_the_servo(self):
-        vertices, triangles = presets.servo_mesh(presets.servo_params("fs0307"))
-        np.testing.assert_allclose(vertices.min(0), [-19.6, -25.3, -4.6], atol=1e-9)
-        np.testing.assert_allclose(vertices.max(0), [8.6, 0.6, 4.6], atol=1e-9)
-        # closed: every edge is shared by exactly two triangles
-        edges = {}
-        for t in triangles:
-            for a, b in ((t[0], t[1]), (t[1], t[2]), (t[2], t[0])):
-                edges[tuple(sorted((a, b)))] = edges.get(tuple(sorted((a, b))), 0) + 1
-        self.assertTrue(all(n == 2 for n in edges.values()))
+        mesh = presets.servo_mesh(presets.servo_params("fs0307"))
+        corners = mesh.corners().reshape(-1, 3)
+        np.testing.assert_allclose(corners.min(0), [-19.6, -25.3, -4.6], atol=1e-9)
+        np.testing.assert_allclose(corners.max(0), [8.6, 0.6, 4.6], atol=1e-9)
+        self.assertTrue(mesh.closed())
+        self.assertGreater(mesh.volume(), 0, "outward faces")
+
+    def test_tabs_have_the_designs_screw_holes(self):
+        # Measured on the design's servo at SG90 (artifacts/assembly/sg90/hardware/Servo.stl).
+        np.testing.assert_allclose(presets.servo_holes(presets.servo_params("sg90")), [(-19.37, 0.0), (8.27, 0.0)], atol=1e-9)
 
 
 def box(at, size):

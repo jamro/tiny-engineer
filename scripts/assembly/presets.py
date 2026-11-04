@@ -61,10 +61,11 @@ from extract import (  # noqa: E402
     FORMAT,
     ROOT,
     column_major,
+    matrix_of,
     lower_arms,
-    write_binary_stl,
 )
 from f3d_assembly import Design, inverse, read_stl, to_mm  # noqa: E402
+from meshes import Mesh, along_y, box, circle, prism  # noqa: E402
 
 SERVOS_JSON = ROOT / "3d_models" / "fusion" / "TinyEngineerTools" / "servos.json"
 PARTS = ROOT / "3d_models" / "parts"
@@ -133,68 +134,25 @@ def servo_holes(p: dict[str, float]) -> list[tuple[float, float]]:
     return [(xs["body_left"] + 0.3 - out, p["mount_hole_depth_offset"]), (xs["body_right"] - 0.3 + out, p["mount_hole_depth_offset"])]
 
 
-def holed_block(x0: float, x1: float, y0: float, y1: float, z0: float, z1: float, centre: tuple[float, float], radius: float,
-                segments: int = 32) -> tuple[list, list]:
-    """A closed box with a round hole along y through (x, z) = `centre`, outward faces."""
-    cx, cz = centre
-    corners = [(x1, z1), (x0, z1), (x0, z0), (x1, z0)]
-    angles = sorted({2 * np.pi * i / segments for i in range(segments)} | {np.arctan2(z - cz, x - cx) % (2 * np.pi) for x, z in corners})
-    inner, outer = [], []
-    for a in angles:
-        u = np.array([np.cos(a), np.sin(a)])
-        inner.append((cx + radius * u[0], cz + radius * u[1]))
-        # where the ray from the centre leaves the box
-        t = min(((x1 - cx) / u[0] if u[0] > 1e-12 else (x0 - cx) / u[0] if u[0] < -1e-12 else np.inf),
-                ((z1 - cz) / u[1] if u[1] > 1e-12 else (z0 - cz) / u[1] if u[1] < -1e-12 else np.inf))
-        outer.append((cx + t * u[0], cz + t * u[1]))
-    n = len(angles)
-    vertices = [[x, y, z] for y in (y0, y1) for x, z in (*outer, *inner)]
-    ob, ib, ot, it = 0, n, 2 * n, 3 * n
-    triangles = []
-    for i in range(n):
-        j = (i + 1) % n
-        # angles grow from +x towards +z, so about y they turn clockwise: wind the caps to suit
-        triangles += [[ot + i, it + j, ot + j], [ot + i, it + i, it + j]]  # top (+y)
-        triangles += [[ob + i, ob + j, ib + j], [ob + i, ib + j, ib + i]]  # bottom (-y)
-        triangles += [[ob + i, ot + j, ob + j], [ob + i, ot + i, ot + j]]  # sides
-        triangles += [[ib + i, ib + j, it + j], [ib + i, it + j, it + i]]  # hole
-    return vertices, triangles
-
-
-def servo_mesh(p: dict[str, float], segments: int = 32) -> tuple[np.ndarray, np.ndarray]:
+def servo_mesh(p: dict[str, float], segments: int = 32) -> Mesh:
     """The design's servo at a preset's sizes, as closed blocks (body, tabs with their screw
     holes, gearbox, shaft housing) and the shaft."""
     (xs, ys, zs) = servo_levels(p)
     d = zs["front"]
-    blocks = [
+    # Built along z and turned by along_y: x stays, the servo frame's -z is y here, y is the extrusion.
+    mesh = Mesh()
+    for x0, x1, y0, y1 in (
         (xs["body_left"], xs["body_right"], ys["body_bottom"], ys["tab_bottom"]),
         (xs["body_left"], xs["body_right"], ys["tab_bottom"], ys["tab_top"]),
         (xs["body_left"], xs["body_right"], ys["tab_top"], ys["housing_bottom"]),
         (xs["housing_left"], xs["body_right"], ys["housing_bottom"], ys["housing_top"]),
-    ]
-    vertices, triangles = [], []
-    for (x0, x1), centre in zip(((xs["tab_left"], xs["body_left"]), (xs["body_right"], xs["tab_right"])), servo_holes(p)):
-        v, t = holed_block(x0, x1, ys["tab_bottom"], ys["tab_top"], -d, d, centre, p["mount_hole_radius"], segments)
-        triangles += [[len(vertices) + k for k in tri] for tri in t]
-        vertices += v
-    for x0, x1, y0, y1 in blocks:
-        base = len(vertices)
-        vertices += [[x, y, z] for x in (x0, x1) for y in (y0, y1) for z in (-d, d)]
-        # corners: index = 4*x + 2*y + z (0 low, 1 high); outward faces
-        for quad in ((0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6), (0, 2, 6, 4), (1, 5, 7, 3)):
-            a, b, c, e = (base + q for q in quad)
-            triangles += [[a, b, c], [a, c, e]]
-    radius = p["shaft_radius"] + 0.3
-    y0, y1 = ys["housing_top"], ys["shaft_top"]
-    base = len(vertices)
-    ring = [(radius * np.cos(2 * np.pi * i / segments), radius * np.sin(2 * np.pi * i / segments)) for i in range(segments)]
-    vertices += [[x, y0, z] for x, z in ring] + [[x, y1, z] for x, z in ring] + [[0, y0, 0], [0, y1, 0]]
-    bottom, top = base + 2 * segments, base + 2 * segments + 1
-    for i in range(segments):
-        j = (i + 1) % segments
-        a, b, c, e = base + i, base + j, base + segments + j, base + segments + i
-        triangles += [[a, e, c], [a, c, b], [bottom, a, b], [top, c, e]]
-    return np.array(vertices, dtype=float), np.array(triangles)
+    ):
+        mesh.extend(box(x0, x1, -d, d, y0, y1, None))
+    for (x0, x1), (cx, cz) in zip(((xs["tab_left"], xs["body_left"]), (xs["body_right"], xs["tab_right"])), servo_holes(p)):
+        tab = np.array([[x0, -d], [x1, -d], [x1, d], [x0, d]])
+        mesh.extend(prism(tab, ys["tab_bottom"], ys["tab_top"], None, holes=[circle(cx, -cz, p["mount_hole_radius"], segments)]))
+    mesh.extend(prism(circle(0, 0, p["shaft_radius"] + 0.3, segments), ys["housing_top"], ys["shaft_top"], None))
+    return along_y(mesh)
 
 
 # -- part features -----------------------------------------------------------------------
@@ -674,8 +632,9 @@ class Solver:
 # -- the manifest ------------------------------------------------------------------------
 
 
-def matrix_of(entry: dict) -> np.ndarray:
-    return np.array(entry["matrix"]).reshape(4, 4).T
+def step_to_print_rotation(entry: dict) -> np.ndarray:
+    """A placed part's rotation from its component (STEP) frame to its STL's print frame."""
+    return (inverse(matrix_of(entry)) @ matrix_of(entry, "occurrence"))[:3, :3]
 
 
 def print_fit(rotation: np.ndarray, step_vertices: np.ndarray, stl_points: np.ndarray) -> tuple[np.ndarray, float]:
@@ -726,7 +685,7 @@ def build(preset: str, base: Path, out: Path, f3d: Path = DEFAULT_F3D) -> dict:
         component = entry["component"]
         inst = by_component[component][0]
         occurrence = solver.occ[inst].matrix
-        to_print = inverse(matrix_of(entry)) @ np.array(entry["occurrence"]).reshape(4, 4).T
+        to_print = inverse(matrix_of(entry)) @ matrix_of(entry, "occurrence")
         part = solver.part(component)
         stl = stl_dir / f"{component.replace('(Mirror)', '')}.stl"
         if part is None or not stl.exists():
@@ -764,8 +723,7 @@ def build(preset: str, base: Path, out: Path, f3d: Path = DEFAULT_F3D) -> dict:
         })
     # Hardware: each servo, the OLED and the board by its occurrence; the servo's mesh at this preset.
     (out / "hardware").mkdir(parents=True, exist_ok=True)
-    vertices, triangles = servo_mesh(servo_params(preset))
-    write_binary_stl(out / "hardware" / "Servo.stl", vertices, triangles)
+    servo_mesh(servo_params(preset)).write(out / "hardware" / "Servo.stl")
     hardware = []
     servos = by_component.get("Servo", [])
     for entry in stock["hardware"]:
@@ -781,14 +739,14 @@ def build(preset: str, base: Path, out: Path, f3d: Path = DEFAULT_F3D) -> dict:
             mesh = entry["mesh"]
             shutil.copyfile(base / mesh, out / mesh)
         # The KiCad board keeps its offset from the design's board (extract.py seat_electronics).
-        offset = np.array(entry["design_offset"]).reshape(4, 4).T if "design_offset" in entry else np.eye(4)
+        offset = matrix_of(entry, "design_offset") if "design_offset" in entry else np.eye(4)
         hardware.append({**entry, "mesh": mesh, "matrix": column_major(placed[inst] @ offset), "source": "preset"})
         if entry["id"] == "MainControlBoard":
             frame = placed[inst]
     board = next((h for h in hardware if h["id"] == "MainControlBoard"), None)
     if board is not None:
-        seat = np.array(board["esp32_seat"]).reshape(4, 4).T
-        hardware += electronics(frame, np.array(board["design_offset"]).reshape(4, 4).T, seat, out, "canfactory")
+        seat = matrix_of(board, "esp32_seat")
+        hardware += electronics(frame, seat, out)
     lower_arms(parts, hardware)
     if problems:
         raise SystemExit(f"{preset}: assembly failed:\n  " + "\n  ".join(problems))

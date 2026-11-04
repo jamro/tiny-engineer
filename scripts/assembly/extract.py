@@ -35,6 +35,8 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from boards import ESP32_PIN_CENTRE, ESP32_ROW_SPACING, HEADER_BODY  # noqa: E402
+from meshes import write_stl  # noqa: E402
 from f3d_assembly import (  # noqa: E402
     Design,
     Match,
@@ -89,6 +91,11 @@ def column_major(matrix: np.ndarray) -> list[float]:
     return [round(float(value), 6) + 0.0 for value in matrix.T.reshape(-1)]
 
 
+def matrix_of(entry: dict, key: str = "matrix") -> np.ndarray:
+    """A manifest entry's 4x4 (column_major's 16 numbers, under `key`)."""
+    return np.array(entry[key], dtype=float).reshape(4, 4).T
+
+
 def rotation_candidates(design: Design) -> list[np.ndarray]:
     """Rotations a part may be printed in relative to another: axis-aligned ones,
     and every rotation the design's occurrences use."""
@@ -111,14 +118,14 @@ def rotation_candidates(design: Design) -> list[np.ndarray]:
     return candidates
 
 
-#: The ESP32-C3-Zero is not in the design. Its mesh comes from canfactory's
-#: drawing of the board (scripts/assembly/canfactory_board.ts): component side
-#: up, PCB corner at the origin, pins in two columns along +Y, USB-C toward +Y.
-ESP32_MESH = ROOT / "scripts" / "assembly" / "hardware" / "ESP32-C3-Zero.stl"
-#: Its pin grid (canfactory: two columns of 9, 15.24 mm apart, 2.54 mm pitch),
-#: centre and first-column X in the board's own frame.
-ESP32_PIN_CENTRE = np.array([9.0, 11.75])
-ESP32_ROW_SPACING = 15.24
+#: Electronics the design does not have, drawn by boards.py: the ESP32-C3-Zero
+#: (component side up, PCB corner at the origin, pins in two columns along +Y,
+#: USB-C toward +Y), its pin headers in its frame, and the main control board
+#: from KiCad in the frame of the design's simplified board.
+HARDWARE_DIR = ROOT / "scripts" / "assembly" / "hardware"
+ESP32_MESH = HARDWARE_DIR / "ESP32-C3-Zero.stl"
+HEADERS_MESH = HARDWARE_DIR / "ESP32-C3-Zero-headers.stl"
+BOARD_MESH = HARDWARE_DIR / "MainControlBoard.stl"
 ESP32_PIN_ROW_LENGTH = 8 * 2.54
 #: Largest mismatch (mm) between the module's pin rows and the sockets.
 MAX_SEAT_MM = 0.1
@@ -153,13 +160,6 @@ def esp32_seat(board_vertices: np.ndarray) -> np.ndarray:
     return seat
 
 
-#: The main control board as its KiCad design has it (main_control_board.py), in the
-#: frame of the design's simplified board, and the ESP32-C3-Zero's pin headers in the
-#: module's frame.
-BOARD_MESH = ROOT / "scripts" / "assembly" / "hardware" / "MainControlBoard.stl"
-HEADERS_MESH = ROOT / "scripts" / "assembly" / "hardware" / "ESP32-C3-Zero-headers.stl"
-#: A 2.54 mm male header's body: between the module and the board's sockets.
-HEADER_BODY_MM = 2.5
 
 
 def seat_electronics(design_vertices: np.ndarray, board_vertices: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -184,19 +184,19 @@ def seat_electronics(design_vertices: np.ndarray, board_vertices: np.ndarray) ->
         raise SystemExit(f"MainControlBoard: the KiCad board's sockets (rows y {rows.round(3)}, centre x {centre_x:.3f}) "
                          f"do not line up with the design's (y {want.round(3)}, x {pins[0][0]:.3f})")
     offset = np.eye(4)
-    offset[2, 3] = floor + HEADER_BODY_MM - low
+    offset[2, 3] = floor + HEADER_BODY - low
     return offset, seat
 
 
-def electronics(frame: np.ndarray, offset: np.ndarray, seat: np.ndarray, out: Path, source: str) -> list[dict]:
+def electronics(frame: np.ndarray, seat: np.ndarray, out: Path) -> list[dict]:
     """The module and its headers on the board at `frame` (the design board's frame)."""
     for mesh in (ESP32_MESH, HEADERS_MESH):
         shutil.copyfile(mesh, out / "hardware" / mesh.name)
     return [
         {"id": "ESP32-C3-Zero", "component": "ESP32-C3-Zero", "mesh": f"hardware/{ESP32_MESH.name}",
-         "matrix": column_major(frame @ seat), "source": source},
+         "matrix": column_major(frame @ seat), "source": "drawing"},
         {"id": "ESP32-pin-headers", "component": "PinHeader", "mesh": f"hardware/{HEADERS_MESH.name}",
-         "matrix": column_major(frame @ seat), "source": "kicad"},
+         "matrix": column_major(frame @ seat), "source": "drawing"},
     ]
 
 
@@ -213,7 +213,7 @@ def rotation_about(origin: np.ndarray, axis: np.ndarray, degrees: float) -> np.n
 
 def lower_arms(parts: list[dict], hardware: list[dict], degrees: float = ARM_REST_DOWN_DEG) -> None:
     """Turn each arm down about its servo shaft, to the pose the guide mounts it in."""
-    servos = {h["id"]: np.array(h["matrix"]).reshape(4, 4).T for h in hardware}
+    servos = {h["id"]: matrix_of(h) for h in hardware}
     by_id = {part["id"]: part for part in parts}
     for servo, ids in ARM_PARTS.items():
         if servo not in servos:
@@ -228,7 +228,7 @@ def lower_arms(parts: list[dict], hardware: list[dict], degrees: float = ARM_RES
             if part is None:
                 continue
             for key in ("matrix", "occurrence"):
-                matrix = np.array(part[key]).reshape(4, 4).T
+                matrix = matrix_of(part, key)
                 part[key] = column_major(turn @ matrix)
             part["rest"] = f"turned {degrees:g} deg down about {servo}"
 
@@ -325,22 +325,6 @@ def register(solids: list[np.ndarray], targets: np.ndarray, rotations: list[np.n
     return best if best is not None else (np.eye(4), Match(0, 0))
 
 
-def write_binary_stl(path: Path, vertices: np.ndarray, triangles: np.ndarray) -> None:
-    corners = vertices[triangles]
-    normals = np.cross(corners[:, 1] - corners[:, 0], corners[:, 2] - corners[:, 0])
-    lengths = np.linalg.norm(normals, axis=1, keepdims=True)
-    normals = np.divide(normals, lengths, out=np.zeros_like(normals), where=lengths > 0)
-    record = np.dtype([("normal", "<f4", 3), ("vertices", "<f4", (3, 3)), ("attr", "<u2")])
-    data = np.zeros(len(triangles), dtype=record)
-    data["normal"] = normals
-    data["vertices"] = corners
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(b"Tiny Engineer hardware mesh".ljust(80, b"\0"))
-        handle.write(np.uint32(len(triangles)).tobytes())
-        handle.write(data.tobytes())
-
-
 def hardware_mesh(design: Design, component: str) -> tuple[np.ndarray, np.ndarray]:
     """Tessellate a hardware component's body (mm, component frame)."""
     from ezf3d.asm.brep import Shape
@@ -411,7 +395,7 @@ def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path,
             if name not in hardware_meshes:
                 vertices, triangles = hardware_mesh(design, name)
                 path = out / "hardware" / f"{name}.stl"
-                write_binary_stl(path, vertices, triangles)
+                write_stl(path, vertices[triangles], header="Tiny Engineer hardware mesh")
                 hardware_meshes[name] = path.relative_to(out).as_posix()
             ident = servo_names.get(occurrence.instances[-1], name) if name == "Servo" else name
             hardware.append(
@@ -508,12 +492,12 @@ def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path,
             # The design's board is a simplified one: seat the module on it, then put the
             # KiCad board in its place, hanging from the module's headers.
             design_vertices = np.asarray(read_stl(out / board["mesh"]), dtype=float).reshape(-1, 3)
-            frame = np.array(board["matrix"]).reshape(4, 4).T
+            frame = matrix_of(board)
             offset, seat = seat_electronics(design_vertices, np.asarray(read_stl(BOARD_MESH), dtype=float).reshape(-1, 3))
             shutil.copyfile(BOARD_MESH, out / board["mesh"])
             board.update({"matrix": column_major(frame @ offset), "source": "kicad",
                           "design_offset": column_major(offset), "esp32_seat": column_major(seat)})
-            hardware += electronics(frame, offset, seat, out, "canfactory")
+            hardware += electronics(frame, seat, out)
 
     manifest = {
         "format": FORMAT,

@@ -1,48 +1,54 @@
 #!/usr/bin/env python3
-"""The main control board and the ESP32-C3-Zero's pin headers as coloured STLs,
-for the 3D assembly viewer (scripts/assembly/hardware/).
+"""The electronics the assembly model draws but the CAD does not: the main
+control board, the ESP32-C3-Zero and its pin headers, as coloured STLs
+(scripts/assembly/hardware/). Numpy only (meshes.py).
 
-The board comes from its KiCad design (hardware/boards/main-control-board/
-main-control-board.kicad_pcb), read directly (no KiCad needed):
+The main control board comes from its KiCad design (hardware/boards/
+main-control-board/main-control-board.kicad_pcb), read directly (no KiCad):
 
 - the PCB from the Edge.Cuts outline (lines and arcs), its thickness from the
-  stack-up, with the drilled mounting holes; red solder mask, FR4 edges;
-- the copper pads (HASL), and the silkscreen's lines and polygons (its text is
-  left out: the file keeps no outlines for it);
-- each footprint's part where the footprint is: the five EasyEDA models of
-  the project library (libraries/3d/easyeda.3dshapes/*.wrl: PCA9685, MAX98357A,
-  TPS259571, USB-C, the 3 × 5 servo header) as they are, and the parts KiCad
-  draws from its own library, which is not here, built from their footprint
-  and data sheet sizes: the pin sockets and headers (KiCad's 2.54 mm models:
-  socket 8.5 mm, header body 2.5 mm with 0.64 mm pins 6 mm above and 3 mm
-  below it), the 10 × 10.5 mm electrolytic, the 1812 fuse, 0603 resistors,
-  capacitors and LEDs, the JST SH and Molex PicoBlade connectors.
+  stack-up, with the unplated drills; red solder mask, FR4 edges;
+- the copper pads (HASL), and the silkscreen's lines and polygons (not its
+  text: the file keeps no outlines for it);
+- a part on every footprint: the five EasyEDA models of the project library
+  (libraries/3d/easyeda.3dshapes/*.wrl: PCA9685, MAX98357A, TPS259571, USB-C,
+  the 3 × 5 servo header) as they are; the parts KiCad draws from its own
+  library, which is not here, from their footprint and data sheet sizes: the
+  2.54 mm sockets (8.5 mm) and headers (2.5 mm body, 0.64 mm pins 6 mm above
+  and 3 mm below it), the 10 × 10.5 mm electrolytic, the 1812 fuse, 0603
+  resistors, capacitors and LEDs, the JST SH and Molex PicoBlade connectors.
 
-It is written in the frame of the design's own MainControlBoard (the
-simplified board in TinyEngineer.f3d), so the extractor can swap it in: KiCad
-x, y (y down) to (120 - y, 183.5 - x), z up from the back copper. The three
-M2 mounting holes and the ESP32 socket rows land on the design's, which
-extract.py checks.
+It is written in the frame of the design's MainControlBoard (the simplified
+board in TinyEngineer.f3d), so the extractor can swap it in: KiCad x, y
+(y down) to (120 - y, 183.5 - x), z up from the back copper. The three M2
+holes and the ESP32 socket rows land on the design's (extract.py checks).
+
+The Waveshare ESP32-C3-Zero follows Waveshare's drawing: a 23.5 × 18 mm PCB,
+1 mm thick, corners R1, two columns of nine drilled and castellated pins
+1.38 mm in from the long edges at 2.54 mm, the USB-C receptacle overhanging
+the short edge. The parts on it (chip, regulator, crystal, ceramic antenna,
+BOOT and RESET buttons, the WS2812 LED) are placed and sized from
+Waveshare's photographs: measure a module before a tight fit. Its frame:
+component side up, PCB corner at the origin, pins along +y, USB-C toward +y.
 
 The headers are two 1 × 9 male headers (2.54 mm, 2.5 mm body, 0.64 mm pins,
-3 mm through the module, 6 mm into the sockets) in the ESP32-C3-Zero mesh's
-frame (canfactory_board.ts): under the module, pins through its holes.
+3 mm through the module, 6 mm into the sockets) in the module's frame.
 
-    python3 scripts/assembly/main_control_board.py
-
-Each triangle's colour is in its attribute bytes, VisCAM style (bit 15, then
-5 bits each of red, green and blue, sRGB), as build_glb.mjs reads them.
+    python3 scripts/assembly/boards.py
 """
 
 from __future__ import annotations
 
 import math
 import re
-import struct
 import sys
 from pathlib import Path
 
 import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from meshes import Mesh, along_y, arc_points, box, circle, frustum, prism, rounded_rect  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 BOARD_DIR = ROOT / "hardware" / "boards" / "main-control-board"
@@ -62,6 +68,12 @@ BLACK = (0.10, 0.10, 0.11)
 GOLD = (0.85, 0.68, 0.25)
 ALUMINIUM = (0.78, 0.79, 0.80)
 NATURAL = (0.92, 0.87, 0.76)
+ESP32_BLUE = (0.13, 0.32, 0.61)
+PACKAGE_GREY = (0.23, 0.26, 0.29)
+ANTENNA_RED = (0.77, 0.29, 0.26)
+BUTTON_WHITE = (0.94, 0.94, 0.90)
+PLUNGER = (0.90, 0.81, 0.61)
+LED_LENS = (1.0, 0.97, 0.90)
 
 # Pin headers and sockets, 2.54 mm (KiCad's models).
 SOCKET_HEIGHT = 8.5
@@ -72,7 +84,8 @@ HEADER_PIN = 0.64
 HEADER_PIN_ABOVE = 6.0
 HEADER_PIN_BELOW = 3.0
 
-# The ESP32-C3-Zero's pins (extract.py, canfactory): two columns 15.24 apart, 9 at 2.54.
+# The ESP32-C3-Zero (Waveshare): PCB, and its pins: two columns 15.24 apart, 9 at 2.54.
+ESP32_SIZE = (18.0, 23.5, 1.0)
 ESP32_PIN_CENTRE = (9.0, 11.75)
 ESP32_ROW_SPACING = 15.24
 
@@ -107,209 +120,6 @@ def numbers(node: list | None) -> list[float]:
 
 
 # -- meshes --------------------------------------------------------------------------------
-
-
-class Mesh:
-    """Triangles with a colour each."""
-
-    def __init__(self) -> None:
-        self.triangles: list[np.ndarray] = []
-        self.colors: list[tuple[float, float, float]] = []
-
-    def add(self, corners: np.ndarray, color) -> None:
-        corners = np.asarray(corners, float).reshape(-1, 3, 3)
-        self.triangles.append(corners)
-        self.colors += [color] * len(corners)
-
-    def extend(self, other: "Mesh") -> None:
-        self.triangles += other.triangles
-        self.colors += other.colors
-
-    def corners(self) -> np.ndarray:
-        return np.concatenate(self.triangles) if self.triangles else np.zeros((0, 3, 3))
-
-    def write(self, path: Path, transform=None, header: str = "") -> int:
-        corners = self.corners()
-        if transform is not None:
-            corners = transform(corners.reshape(-1, 3)).reshape(-1, 3, 3)
-        normals = np.cross(corners[:, 1] - corners[:, 0], corners[:, 2] - corners[:, 0])
-        lengths = np.linalg.norm(normals, axis=1, keepdims=True)
-        normals = np.divide(normals, lengths, out=np.zeros_like(normals), where=lengths > 0)
-        record = np.dtype([("normal", "<f4", 3), ("vertices", "<f4", (3, 3)), ("attr", "<u2")])
-        data = np.zeros(len(corners), dtype=record)
-        data["normal"], data["vertices"] = normals, corners
-        five = lambda c: min(31, max(0, round(c * 31)))  # noqa: E731  (the colours are sRGB)
-        data["attr"] = [0x8000 | (five(r) << 10) | (five(g) << 5) | five(b) for r, g, b in self.colors]
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, "wb") as handle:
-            handle.write(header.encode("ascii")[:80].ljust(80, b"\0"))
-            handle.write(struct.pack("<I", len(corners)))
-            handle.write(data.tobytes())
-        return len(corners)
-
-
-def signed_area(points: np.ndarray) -> float:
-    x, y = points[:, 0], points[:, 1]
-    return 0.5 * float(np.dot(x, np.roll(y, -1)) - np.dot(np.roll(x, -1), y))
-
-
-def triangulate(outer: np.ndarray, holes: list[np.ndarray] = ()) -> tuple[np.ndarray, np.ndarray]:
-    """Ear clipping of a polygon (counter-clockwise) with holes, bridged in
-    (Eberly): the points and triangles (counter-clockwise) over them."""
-    outer = dedupe(outer)
-    if len(outer) < 3 or abs(signed_area(outer)) < 1e-9:
-        raise ValueError("triangulate: not a polygon")
-    if signed_area(outer) < 0:
-        outer = outer[::-1]
-    if not len(holes) and convex(outer):
-        return outer, np.array([(0, k, k + 1) for k in range(1, len(outer) - 1)], dtype=int)
-    holes = [dedupe(h) for h in holes]
-    ring = [tuple(p) for p in outer]
-    pending = [np.asarray(h, float)[::-1] if signed_area(np.asarray(h, float)) > 0 else np.asarray(h, float) for h in holes]
-    while pending:
-        # The shortest bridge from any hole vertex to a ring vertex that crosses no edge.
-        edges = [(np.array(ring[i]), np.array(ring[(i + 1) % len(ring)])) for i in range(len(ring))]
-        for hole in pending:
-            edges += [(hole[i], hole[(i + 1) % len(hole)]) for i in range(len(hole))]
-        best = None
-        R = np.array(ring)
-        for k, hole in enumerate(pending):
-            for h, m in enumerate(hole):
-                for i in np.argsort(np.linalg.norm(R - m, axis=1))[:40]:
-                    q = R[i]
-                    if best is not None and np.linalg.norm(q - m) >= best[0]:
-                        break
-                    if not any(crosses(m, q, a, b) for a, b in edges):
-                        best = (np.linalg.norm(q - m), k, h, int(i))
-                        break
-        if best is None:
-            raise ValueError("triangulate: no bridge to a hole")
-        _, k, h, i = best
-        hole = pending.pop(k)
-        hole_ring = [tuple(hole[(h + j) % len(hole)]) for j in range(len(hole) + 1)]
-        ring = ring[: i + 1] + hole_ring + [ring[i]] + ring[i + 1 :]
-    points = np.array(ring)
-    index = list(range(len(points)))
-    triangles = []
-    guard = 0
-    while len(index) > 3 and guard < 10 * len(points) ** 2:
-        guard += 1
-        n = len(index)
-        for k in range(n):
-            i0, i1, i2 = index[k - 1], index[k], index[(k + 1) % n]
-            a, b, c = points[i0], points[i1], points[i2]
-            if (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]) <= 1e-12:
-                continue
-            if any(point_in_triangle(points[j], a, b, c) and not np.allclose(points[j], a) and not np.allclose(points[j], b) and not np.allclose(points[j], c)
-                   for j in index if j not in (i0, i1, i2)):
-                continue
-            triangles.append((i0, i1, i2))
-            index.pop(k)
-            break
-        else:
-            raise ValueError("triangulate: no ear (self-intersecting polygon?)")
-    triangles.append(tuple(index))
-    return points, np.array(triangles, dtype=int)
-
-
-def dedupe(points) -> np.ndarray:
-    """The polygon without repeated consecutive points (or a closing repeat of the first)."""
-    points = np.asarray(points, float)
-    keep = [p for i, p in enumerate(points) if not np.allclose(p, points[i - 1], atol=1e-7)]
-    return np.array(keep if keep else points[:1])
-
-
-def convex(points: np.ndarray) -> bool:
-    """Whether a counter-clockwise polygon is convex (collinear points allowed)."""
-    d = np.roll(points, -1, axis=0) - points
-    cross = d[:, 0] * np.roll(d, -1, axis=0)[:, 1] - d[:, 1] * np.roll(d, -1, axis=0)[:, 0]
-    return bool((cross >= -1e-9).all())
-
-
-def crosses(p, q, a, b) -> bool:
-    """Whether segment pq crosses segment ab in their interiors (shared ends do not count)."""
-    if any(np.allclose(u, v) for u in (p, q) for v in (a, b)):
-        return False
-    orient = lambda u, v, w: (v[0] - u[0]) * (w[1] - u[1]) - (v[1] - u[1]) * (w[0] - u[0])  # noqa: E731
-    d1, d2, d3, d4 = orient(a, b, p), orient(a, b, q), orient(p, q, a), orient(p, q, b)
-    return d1 * d2 < 0 and d3 * d4 < 0
-
-
-def point_in_triangle(p, a, b, c) -> bool:
-    d1 = (p[0] - b[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (p[1] - b[1])
-    d2 = (p[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (p[1] - c[1])
-    d3 = (p[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (p[1] - a[1])
-    return not ((d1 < 0 or d2 < 0 or d3 < 0) and (d1 > 0 or d2 > 0 or d3 > 0))
-
-
-def prism(outer, z0: float, z1: float, top, bottom=None, side=None, holes=()) -> Mesh:
-    """A closed prism over a polygon (x, y; holes allowed) from z0 to z1, outward faces."""
-    mesh = Mesh()
-    outer = dedupe(outer)
-    holes = [dedupe(h) for h in holes]
-    points, triangles = triangulate(outer, holes)
-    lift = lambda z: np.column_stack([points, np.full(len(points), z)])  # noqa: E731
-    top_v, bottom_v = lift(z1), lift(z0)
-    mesh.add(top_v[triangles], top)
-    mesh.add(bottom_v[triangles[:, ::-1]], bottom or top)
-    for loop, outward in [(np.asarray(outer, float), True), *[(np.asarray(h, float), False) for h in holes]]:
-        ccw = signed_area(loop) > 0
-        if ccw != outward:
-            loop = loop[::-1]
-        for a, b in zip(loop, np.roll(loop, -1, axis=0)):
-            if np.allclose(a, b):
-                continue
-            quad = np.array([[*a, z0], [*b, z0], [*b, z1], [*a, z1]])
-            mesh.add([quad[[0, 1, 2]], quad[[0, 2, 3]]], side or top)
-    return mesh
-
-
-def box(x0, x1, y0, y1, z0, z1, color, side=None) -> Mesh:
-    return prism(np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]]), z0, z1, color, side=side)
-
-
-def frustum(cx, cy, z0, z1, half0, half1, color) -> Mesh:
-    """A square frustum on z0..z1, half sizes half0 (bottom) and half1 (top): a pin's tip."""
-    mesh = Mesh()
-    b = np.array([[cx - half0, cy - half0, z0], [cx + half0, cy - half0, z0], [cx + half0, cy + half0, z0], [cx - half0, cy + half0, z0]])
-    t = np.array([[cx - half1, cy - half1, z1], [cx + half1, cy - half1, z1], [cx + half1, cy + half1, z1], [cx - half1, cy + half1, z1]])
-    mesh.add([b[[0, 2, 1]], b[[0, 3, 2]], t[[0, 1, 2]], t[[0, 2, 3]]], color)
-    for i in range(4):
-        j = (i + 1) % 4
-        mesh.add([[b[i], b[j], t[j]], [b[i], t[j], t[i]]], color)
-    return mesh
-
-
-def circle(cx, cy, r, segments=24) -> np.ndarray:
-    a = np.arange(segments) * 2 * math.pi / segments
-    return np.column_stack([cx + r * np.cos(a), cy + r * np.sin(a)])
-
-
-def rounded_rect(w, h, r, segments=4) -> np.ndarray:
-    r = min(r, w / 2, h / 2)
-    if r <= 1e-6:
-        return np.array([[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]])
-    points = []
-    for cx, cy, start in ((w / 2 - r, -h / 2 + r, -90), (w / 2 - r, h / 2 - r, 0), (-w / 2 + r, h / 2 - r, 90), (-w / 2 + r, -h / 2 + r, 180)):
-        for k in range(segments + 1):
-            a = math.radians(start + 90 * k / segments)
-            points.append((cx + r * math.cos(a), cy + r * math.sin(a)))
-    return np.array(points)
-
-
-def arc_points(start, mid, end, step_deg: float = 10.0) -> np.ndarray:
-    """Points along the arc through start, mid, end (inclusive)."""
-    (x1, y1), (x2, y2), (x3, y3) = start, mid, end
-    d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
-    ux = ((x1**2 + y1**2) * (y2 - y3) + (x2**2 + y2**2) * (y3 - y1) + (x3**2 + y3**2) * (y1 - y2)) / d
-    uy = ((x1**2 + y1**2) * (x3 - x2) + (x2**2 + y2**2) * (x1 - x3) + (x3**2 + y3**2) * (x2 - x1)) / d
-    r = math.hypot(x1 - ux, y1 - uy)
-    a1, a2, a3 = (math.atan2(y - uy, x - ux) for x, y in (start, mid, end))
-    sweep = (a3 - a1) % (2 * math.pi)
-    if (a2 - a1) % (2 * math.pi) > sweep:
-        sweep -= 2 * math.pi
-    n = max(2, int(abs(math.degrees(sweep)) / step_deg) + 1)
-    return np.array([(ux + r * math.cos(a1 + sweep * k / n), uy + r * math.sin(a1 + sweep * k / n)) for k in range(n + 1)])
 
 
 # -- the board -----------------------------------------------------------------------------
@@ -616,24 +426,78 @@ def to_design(points: np.ndarray) -> np.ndarray:
     return np.column_stack([DESIGN_ORIGIN[0] + y, DESIGN_ORIGIN[1] - x, z])
 
 
-def esp32_headers() -> Mesh:
-    """Two 1 × 9 male headers under the ESP32-C3-Zero (its mesh's frame, PCB bottom at z = 0):
-    the body below the module, the short pins up through its holes, the long ones down."""
-    mesh = Mesh()
+def esp32_pins() -> list[tuple[float, float]]:
+    """The module's 18 pin centres in its frame, column by column."""
     cx, cy = ESP32_PIN_CENTRE
-    for x in (cx - ESP32_ROW_SPACING / 2, cx + ESP32_ROW_SPACING / 2):
-        for k in range(9):
-            y = cy + (k - 4) * 2.54
-            # Body on -2.5..0; pins 3 mm above it (through the module), 6 mm below it.
-            mesh.extend(header_cell(x, y, -HEADER_BODY, BLACK, GOLD, up=HEADER_PIN_BELOW, down=HEADER_PIN_ABOVE))
+    return [(x, cy + (k - 4) * 2.54) for x in (cx - ESP32_ROW_SPACING / 2, cx + ESP32_ROW_SPACING / 2) for k in range(9)]
+
+
+def esp32_outline() -> np.ndarray:
+    """The module's PCB outline, counter-clockwise: corners R1, a castellated half hole
+    (r 0.5) in the long edge at every pin."""
+    w, h, _ = ESP32_SIZE
+    r, notch = 1.0, 0.5
+    ys = sorted({y for _, y in esp32_pins()})
+    corner = lambda cx, cy, start: [(cx + r * math.cos(math.radians(start + 90 * k / 6)), cy + r * math.sin(math.radians(start + 90 * k / 6))) for k in range(7)]  # noqa: E731
+    bite = lambda x, y, start, sweep: [(x + notch * math.cos(math.radians(start + sweep * k / 8)), y + notch * math.sin(math.radians(start + sweep * k / 8))) for k in range(9)]  # noqa: E731
+    points = corner(r, r, 180) + corner(w - r, r, 270)
+    for y in ys:  # up the right edge: bites into the board (toward -x)
+        points += bite(w, y, 270, -180)
+    points += corner(w - r, h - r, 0) + corner(r, h - r, 90)
+    for y in reversed(ys):  # down the left edge
+        points += bite(0.0, y, 90, -180)
+    return np.array(points)
+
+
+def esp32_c3_zero() -> Mesh:
+    """The Waveshare ESP32-C3-Zero in its own frame (module docstring)."""
+    mesh = Mesh()
+    _, _, t = ESP32_SIZE
+    pins = esp32_pins()
+    mesh.extend(prism(esp32_outline(), 0.0, t, ESP32_BLUE, holes=[circle(x, y, 0.5, 16) for x, y in pins]))
+    for x, y in pins:
+        mesh.extend(prism(circle(x, y, 0.85, 16), t, t + 0.04, GOLD, holes=[circle(x, y, 0.5, 16)]))
+    top = t
+    for (x0, x1, y0, y1, height), color in (
+        ((5.9, 10.9, 8.02, 13.02, 0.9), PACKAGE_GREY),    # ESP32-C3FN4
+        ((12.29, 15.19, 6.59, 8.19, 1.3), PACKAGE_GREY),  # 3.3 V regulator
+        ((2.25, 4.75, 7.49, 9.49, 0.6), ALUMINIUM),       # crystal
+        ((5.63, 12.23, 0.29, 1.99, 1.0), ANTENNA_RED),    # ceramic antenna
+        ((2.06, 5.56, 10.68, 14.88, 1.5), BUTTON_WHITE),  # BOOT
+        ((12.47, 15.97, 10.68, 14.88, 1.5), BUTTON_WHITE),  # RESET
+        ((8.03, 9.83, 13.2, 15.2, 0.28), BUTTON_WHITE),   # WS2812 base
+    ):
+        mesh.extend(box(x0, x1, y0, y1, top, top + height, color))
+    mesh.extend(box(8.03, 9.83, 13.53, 14.87, top + 0.28, top + 0.8, LED_LENS))
+    for cx in (3.81, 14.22):  # the buttons' plungers, 2.4 × 3.2 mm, their tops 1.8 mm above the PCB
+        mesh.extend(prism(rounded_rect(2.4, 3.2, 1.2, 8) + (cx, 12.78), top + 1.5, top + 1.8, PLUNGER))
+    # USB-C receptacle: 8.94 × 3.2 mm, on the PCB, 1.58 mm past its end.
+    stadium = np.array([(9.0 + x, -(top + 1.6) + y) for x, y in rounded_rect(8.94, 3.2, 1.6, 8)])
+    mesh.extend(along_y(prism(stadium, 17.73, 25.08, ALUMINIUM)))
     return mesh
 
 
-def main() -> int:
-    board = Board()
-    n = board.build().write(OUT / "MainControlBoard.stl", to_design, "KiCad main-control-board, design frame")
-    m = esp32_headers().write(OUT / "ESP32-C3-Zero-headers.stl", None, "2 x 1x9 male headers, ESP32-C3-Zero frame")
-    print(f"{n} triangles -> {OUT / 'MainControlBoard.stl'}; {m} -> {OUT / 'ESP32-C3-Zero-headers.stl'}")
+def esp32_headers() -> Mesh:
+    """Two 1 × 9 male headers under the ESP32-C3-Zero (its frame, PCB bottom at z = 0):
+    the body below the module, the short pins up through its holes, the long ones down."""
+    mesh = Mesh()
+    for x, y in esp32_pins():
+        mesh.extend(header_cell(x, y, -HEADER_BODY, BLACK, GOLD, up=HEADER_PIN_BELOW, down=HEADER_PIN_ABOVE))
+    return mesh
+
+
+def outputs() -> dict:
+    """File name -> (mesh maker, transform, STL header): what main() writes."""
+    return {
+        "MainControlBoard.stl": (lambda: Board().build(), to_design, "KiCad main-control-board, design frame"),
+        "ESP32-C3-Zero.stl": (esp32_c3_zero, None, "Waveshare ESP32-C3-Zero"),
+        "ESP32-C3-Zero-headers.stl": (esp32_headers, None, "2 x 1x9 male headers, ESP32-C3-Zero frame"),
+    }
+
+
+def main(out: Path = OUT) -> int:
+    for name, (make, transform, header) in outputs().items():
+        print(f"{make().write(out / name, transform, header)} triangles -> {out / name}")
     return 0
 
 
