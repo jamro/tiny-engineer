@@ -124,6 +124,7 @@ jobs:
           node scripts/assembly/test_viewer.mjs
           node scripts/assembly/test_clipping.mjs
           python3 scripts/assembly/test_presets.py
+          python3 scripts/assembly/test_fasteners.py
       - name: Build assembly models (every servo preset and mods), check steps and poses
         run: scripts/assembly/build.sh artifacts/assembly/models
       - name: Upload assembly model
