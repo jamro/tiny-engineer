@@ -57,11 +57,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from extract import (  # noqa: E402
     DEFAULT_F3D,
-    ESP32_MESH,
+    electronics,
     FORMAT,
     ROOT,
     column_major,
-    esp32_seat,
     lower_arms,
     write_binary_stl,
 )
@@ -771,7 +770,7 @@ def build(preset: str, base: Path, out: Path, f3d: Path = DEFAULT_F3D) -> dict:
     servos = by_component.get("Servo", [])
     for entry in stock["hardware"]:
         # The ESP32 is seated again below; screws and nuts are placed by fasteners.py at the preset.
-        if entry["id"] == "ESP32-C3-Zero" or entry.get("source") == "fastener":
+        if entry["id"] in ("ESP32-C3-Zero", "ESP32-pin-headers") or entry.get("source") == "fastener":
             continue
         if entry["component"] == "Servo":
             m = matrix_of(entry)
@@ -781,13 +780,15 @@ def build(preset: str, base: Path, out: Path, f3d: Path = DEFAULT_F3D) -> dict:
             inst = by_component[entry["component"]][0]
             mesh = entry["mesh"]
             shutil.copyfile(base / mesh, out / mesh)
-        hardware.append({**entry, "mesh": mesh, "matrix": column_major(placed[inst]), "source": "preset"})
+        # The KiCad board keeps its offset from the design's board (extract.py seat_electronics).
+        offset = np.array(entry["design_offset"]).reshape(4, 4).T if "design_offset" in entry else np.eye(4)
+        hardware.append({**entry, "mesh": mesh, "matrix": column_major(placed[inst] @ offset), "source": "preset"})
+        if entry["id"] == "MainControlBoard":
+            frame = placed[inst]
     board = next((h for h in hardware if h["id"] == "MainControlBoard"), None)
     if board is not None:
-        shutil.copyfile(ESP32_MESH, out / "hardware" / ESP32_MESH.name)
-        seat = esp32_seat(np.asarray(read_stl(out / board["mesh"]), dtype=float).reshape(-1, 3))
-        hardware.append({"id": "ESP32-C3-Zero", "component": "ESP32-C3-Zero", "mesh": f"hardware/{ESP32_MESH.name}",
-                         "matrix": column_major(matrix_of(board) @ seat), "source": "canfactory"})
+        seat = np.array(board["esp32_seat"]).reshape(4, 4).T
+        hardware += electronics(frame, np.array(board["design_offset"]).reshape(4, 4).T, seat, out, "canfactory")
     lower_arms(parts, hardware)
     if problems:
         raise SystemExit(f"{preset}: assembly failed:\n  " + "\n  ".join(problems))

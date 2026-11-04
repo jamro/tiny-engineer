@@ -153,6 +153,53 @@ def esp32_seat(board_vertices: np.ndarray) -> np.ndarray:
     return seat
 
 
+#: The main control board as its KiCad design has it (main_control_board.py), in the
+#: frame of the design's simplified board, and the ESP32-C3-Zero's pin headers in the
+#: module's frame.
+BOARD_MESH = ROOT / "scripts" / "assembly" / "hardware" / "MainControlBoard.stl"
+HEADERS_MESH = ROOT / "scripts" / "assembly" / "hardware" / "ESP32-C3-Zero-headers.stl"
+#: A 2.54 mm male header's body: between the module and the board's sockets.
+HEADER_BODY_MM = 2.5
+
+
+def seat_electronics(design_vertices: np.ndarray, board_vertices: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """The KiCad board's offset in the design board's frame, and the module's seat (4x4 each).
+
+    The module stays where the design puts it (on the design's socket stack, which
+    leaves it on the desk's ledge under LampBase). The KiCad board hangs from it:
+    its sockets' tops (its lowest face) a header body below the module. Its socket
+    rows must take the module's pins, to MAX_SEAT_MM.
+    """
+    seat = esp32_seat(design_vertices)
+    floor = design_vertices[:, 2].min()
+    low = board_vertices[:, 2].min()
+    top = board_vertices[np.abs(board_vertices[:, 2] - low) < 1e-3]
+    ys = np.sort(top[:, 1])
+    split = int(np.argmax(np.diff(ys))) + 1
+    rows = np.array([(ys[0] + ys[split - 1]) / 2, (ys[split] + ys[-1]) / 2])
+    centre_x = (top[:, 0].min() + top[:, 0].max()) / 2
+    pins = [seat @ np.array([x, ESP32_PIN_CENTRE[1], 0.0, 1.0]) for x in (ESP32_PIN_CENTRE[0] - ESP32_ROW_SPACING / 2, ESP32_PIN_CENTRE[0] + ESP32_ROW_SPACING / 2)]
+    want = np.sort([pin[1] for pin in pins])
+    if np.abs(rows - want).max() > MAX_SEAT_MM or abs(centre_x - pins[0][0]) > MAX_SEAT_MM:
+        raise SystemExit(f"MainControlBoard: the KiCad board's sockets (rows y {rows.round(3)}, centre x {centre_x:.3f}) "
+                         f"do not line up with the design's (y {want.round(3)}, x {pins[0][0]:.3f})")
+    offset = np.eye(4)
+    offset[2, 3] = floor + HEADER_BODY_MM - low
+    return offset, seat
+
+
+def electronics(frame: np.ndarray, offset: np.ndarray, seat: np.ndarray, out: Path, source: str) -> list[dict]:
+    """The module and its headers on the board at `frame` (the design board's frame)."""
+    for mesh in (ESP32_MESH, HEADERS_MESH):
+        shutil.copyfile(mesh, out / "hardware" / mesh.name)
+    return [
+        {"id": "ESP32-C3-Zero", "component": "ESP32-C3-Zero", "mesh": f"hardware/{ESP32_MESH.name}",
+         "matrix": column_major(frame @ seat), "source": source},
+        {"id": "ESP32-pin-headers", "component": "PinHeader", "mesh": f"hardware/{HEADERS_MESH.name}",
+         "matrix": column_major(frame @ seat), "source": "kicad"},
+    ]
+
+
 def rotation_about(origin: np.ndarray, axis: np.ndarray, degrees: float) -> np.ndarray:
     """4x4 rotation by ``degrees`` (right hand) about the line through ``origin`` along ``axis``."""
     x, y, z = axis / np.linalg.norm(axis)
@@ -458,20 +505,15 @@ def extract(f3d: Path, preset: str, parts_dir: Path, out: Path, repo_root: Path,
         if board is None:
             problems.append("no MainControlBoard to seat the ESP32-C3-Zero on")
         else:
-            vertices = np.asarray(read_stl(out / board["mesh"]), dtype=float).reshape(-1, 3)
+            # The design's board is a simplified one: seat the module on it, then put the
+            # KiCad board in its place, hanging from the module's headers.
+            design_vertices = np.asarray(read_stl(out / board["mesh"]), dtype=float).reshape(-1, 3)
             frame = np.array(board["matrix"]).reshape(4, 4).T
-            path = out / "hardware" / ESP32_MESH.name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(ESP32_MESH, path)
-            hardware.append(
-                {
-                    "id": "ESP32-C3-Zero",
-                    "component": "ESP32-C3-Zero",
-                    "mesh": path.relative_to(out).as_posix(),
-                    "matrix": column_major(frame @ esp32_seat(vertices)),
-                    "source": "canfactory",
-                }
-            )
+            offset, seat = seat_electronics(design_vertices, np.asarray(read_stl(BOARD_MESH), dtype=float).reshape(-1, 3))
+            shutil.copyfile(BOARD_MESH, out / board["mesh"])
+            board.update({"matrix": column_major(frame @ offset), "source": "kicad",
+                          "design_offset": column_major(offset), "esp32_seat": column_major(seat)})
+            hardware += electronics(frame, offset, seat, out, "canfactory")
 
     manifest = {
         "format": FORMAT,
