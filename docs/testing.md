@@ -64,6 +64,7 @@ node scripts/assembly/test_viewer.mjs
 node scripts/assembly/test_clipping.mjs
 python3 scripts/assembly/test_presets.py
 python3 scripts/assembly/test_fasteners.py
+python3 scripts/assembly/test_main_control_board.py
 python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
 python3 scripts/assembly/fasteners.py artifacts/assembly/sg90/assembly.json
 node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb

@@ -28,7 +28,7 @@ Order the open-source board from any fab: [hardware/order-main-control-board.md]
 | Part | Qty | Link / notes |
 | --- | --- | --- |
 | Tiny Engineer main control board | 1 | KiCad in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/) ([CERN-OHL-S](../3d_models/LICENSE)). Order: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). |
-| Waveshare ESP32-C3-Zero | 1 | https://docs.waveshare.com/ESP32-C3-Zero |
+| Waveshare ESP32-C3-Zero | 1 | https://docs.waveshare.com/ESP32-C3-Zero. Needs two 1×9 2.54 mm male pin headers soldered on (often in the box), or buy the ESP32-C3-Zero-M with them fitted |
 | Tower Pro SG90 (or equivalent 9 g analog micro) | 5 | Widely available hobby servo — no single canonical SKU |
 | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 | https://www.adafruit.com/product/3923 |
 | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 | https://www.waveshare.com/0.91inch-oled-module.htm |
