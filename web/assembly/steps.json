@@ -1,8 +1,15 @@
 {
   "format": 1,
-  "about": "Assembly steps for the 3D viewer, following docs/3d/assembly.md. Each step adds parts (ids from the model) that slide in from `from` (mm, CAD frame: +x robot's front, +y robot's left, +z up). Parts added earlier stay in place.",
+  "about": "Assembly steps for the 3D viewer, following docs/3d/assembly.md. Each step adds parts (ids from the model) that slide in from `from` (mm, CAD frame: +x robot's front, +y robot's left, +z up), and can `move` a sub-assembly built earlier into place. Until that step, the moved parts wait at that offset. scripts/assembly/check_clipping.mjs checks that no part passes through another (docs/3d/assembly-viewer.md).",
   "photos": "https://raw.githubusercontent.com/jamro/tiny-engineer/main/docs/3d/assembly_visuals/",
   "docs": "https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md",
+  "fits": [
+    {"parts": ["Neck", "servo-head"], "mm": 0.35, "why": "Servo shaft pressed into its printed pocket: the model's shaft is 0.3 mm over the pocket"},
+    {"parts": ["Neck", "servo-neck"], "mm": 0.35, "why": "Servo shaft pressed into its printed pocket: the model's shaft is 0.3 mm over the pocket"},
+    {"parts": ["BellyJoint", "servo-body"], "mm": 0.35, "why": "Servo shaft pressed into its printed pocket: the model's shaft is 0.3 mm over the pocket"},
+    {"parts": ["UpperArm", "servo-arm-left"], "mm": 0.35, "why": "Servo shaft pressed into its printed pocket: the model's shaft is 0.3 mm over the pocket"},
+    {"parts": ["UpperArmMirror", "servo-arm-right"], "mm": 0.35, "why": "Servo shaft pressed into its printed pocket: the model's shaft is 0.3 mm over the pocket"}
+  ],
   "sections": [
     {
       "id": "head",
@@ -10,9 +17,9 @@
       "doc": "#1-head--oled-and-servo",
       "photo": "head_1.jpg",
       "steps": [
-        { "title": "Start with the head shell", "text": "Take the printed Head. The OLED pocket faces the front.", "add": ["Head"], "from": [0, 0, 40] },
-        { "title": "Seat the OLED", "text": "Peel the protective sticker and plug the OLED cable in first: once the display is in its pocket, the connector is hard to reach. Then seat the OLED in the front pocket.", "add": ["OLED"], "from": [40, 0, 0] },
-        { "title": "Seat the head servo", "text": "Take one of the five servos, no horn yet. Seat it in its pocket. Route the OLED cable out one side of the head and the servo lead out the other, and clip both into the clips on the back.", "add": ["servo-head"], "from": [0, -40, 0] }
+        {"title": "Start with the head shell", "text": "Take the printed Head. The OLED pocket faces the front.", "add": ["Head"], "from": [0, 0, 40]},
+        {"title": "Seat the OLED", "text": "Peel the protective sticker and plug the OLED cable in first: once the display is in its pocket, the connector is hard to reach. Then lower the OLED into the front pocket from above.", "add": ["OLED"], "from": [0, 0, 40]},
+        {"title": "Seat the head servo", "text": "Take one of the five servos, no horn yet. Lower it into its pocket from above. Route the OLED cable out one side of the head and the servo lead out the other, and clip both into the clips on the back.", "add": ["servo-head"], "from": [0, 0, 40]}
       ]
     },
     {
@@ -21,7 +28,7 @@
       "doc": "#2-hat",
       "photo": "head_2.jpg",
       "steps": [
-        { "title": "Close the head with the hat", "text": "Place Hat on top of Head and fasten with two M2×8 screws. Do not overtighten.", "add": ["Hat"], "from": [0, 0, 30], "screws": "2 × M2×8" }
+        {"title": "Close the head with the hat", "text": "Place Hat on top of Head and fasten with two M2×8 screws. Do not overtighten.", "add": ["Hat"], "screws": "2 × M2×8", "from": [0, 0, 30]}
       ]
     },
     {
@@ -30,9 +37,9 @@
       "doc": "#3-neck--center-a-servo-and-attach-neck",
       "photo": "neck_1.jpg",
       "steps": [
-        { "title": "Center the neck servo", "text": "Take the next servo, no horn. Plug it into the board and use Assembly support → Move all to 90° so the shaft is at its center.", "add": ["servo-neck"], "from": [0, 0, -40] },
-        { "title": "Press Neck onto the shaft", "text": "Press Neck onto the servo shaft, perpendicular to the servo body, with the bulge in the middle of Neck toward the back of the servo (the cable end). Fasten with the screw that came with the servo.", "add": ["Neck"], "from": [0, 0, 30], "screws": "servo screw" },
-        { "title": "Drop in the nut", "text": "Put an M2 nut in the hex pocket with the larger hole, on the robot's right. Leave the other pocket empty. Unplug the servo.", "add": [], "focus": ["Neck"] }
+        {"title": "Center the neck servo", "text": "Take the next servo, no horn. Plug it into the board and use Assembly support → Move all to 90° so the shaft is at its center.", "add": ["servo-neck"], "from": [0, 0, -40]},
+        {"title": "Press Neck onto the shaft", "text": "Press Neck onto the servo shaft, perpendicular to the servo body, with the bulge in the middle of Neck toward the back of the servo (the cable end). Fasten with the screw that came with the servo.", "add": ["Neck"], "screws": "servo screw", "from": [0, 0, 20]},
+        {"title": "Drop in the nut", "text": "Put an M2 nut in the hex pocket with the larger hole, on the robot's right. Leave the other pocket empty. Unplug the servo.", "add": [], "focus": ["Neck"]}
       ]
     },
     {
@@ -41,8 +48,8 @@
       "doc": "#4-join-neck-and-head",
       "photo": "neck_2.jpg",
       "steps": [
-        { "title": "Fit Neck onto the head servo", "text": "Center the head servo. Fit Neck onto the head servo shaft (Neck has a pocket for it), then slide it on until the nut side sits flush with Head. At 90°, Neck must be perpendicular to Head.", "add": [], "focus": ["Head", "Neck"] },
-        { "title": "Fasten both sides", "text": "Robot's right: M2×8 into the captured nut. Robot's left: the screw that came with the servo. Unplug the head servo.", "add": [], "focus": ["Head", "Neck"], "screws": "1 × M2×8 + servo screw" }
+        {"title": "Fit Neck onto the head servo", "text": "Center the head servo. Bring Neck up under Head and fit its pocket onto the head servo shaft: the arm springs over the shaft end. Then slide it on until the nut side sits flush with Head. At 90°, Neck must be perpendicular to Head.", "add": [], "move": ["Neck", "servo-neck"], "from": [0, 0, -40], "allow": [{"parts": ["Neck", "servo-head"], "mm": 2.5, "why": "Neck's arm flexes over the end of the head servo shaft and snaps into its pocket"}]},
+        {"title": "Fasten both sides", "text": "Robot's right: M2×8 into the captured nut. Robot's left: the screw that came with the servo. Unplug the head servo.", "add": [], "focus": ["Head", "Neck"], "screws": "1 × M2×8 + servo screw"}
       ]
     },
     {
@@ -51,9 +58,9 @@
       "doc": "#5-chest--side-servos",
       "photo": "chest_1.jpg",
       "steps": [
-        { "title": "Take the chest", "text": "The cable tunnels are at the front of Chest.", "add": ["Chest"], "from": [0, 0, -40] },
-        { "title": "Seat the robot's left servo", "text": "Seat a servo in the left side pocket, no horn. Route the lead through the vertical tunnel at the front so it exits at the bottom. Fasten with two M2×16 screws.", "add": ["servo-arm-left"], "from": [0, 40, 0], "screws": "2 × M2×16" },
-        { "title": "Seat the robot's right servo", "text": "Same on the right side: lead through the front tunnel, two M2×16 screws.", "add": ["servo-arm-right"], "from": [0, -40, 0], "screws": "2 × M2×16" }
+        {"title": "Take the chest", "text": "The cable tunnels are at the front of Chest.", "add": ["Chest"], "from": [0, 0, -30]},
+        {"title": "Seat the robot's left servo", "text": "Lower a servo into the left side pocket from above, no horn. Route the lead through the vertical tunnel at the front so it exits at the bottom. Fasten with two M2×16 screws.", "add": ["servo-arm-left"], "screws": "2 × M2×16", "from": [0, 0, 30]},
+        {"title": "Seat the robot's right servo", "text": "Same on the right side: lead through the front tunnel, two M2×16 screws.", "add": ["servo-arm-right"], "screws": "2 × M2×16", "from": [0, 0, 30]}
       ]
     },
     {
@@ -62,8 +69,8 @@
       "doc": "#6-mount-head-assembly-on-chest",
       "photo": "chest_2.jpg",
       "steps": [
-        { "title": "Route the neck servo lead", "text": "Before seating it, route the neck servo's lead through the central tunnel in Chest and out the bottom.", "add": [], "focus": ["Chest", "servo-neck"] },
-        { "title": "Seat the neck servo in the center pocket", "text": "Keep the front of Head and Neck on the front of Chest (the side with the tunnels). Fasten with M2×8 screws: two if they fit, otherwise one at the back.", "add": [], "focus": ["Chest", "Neck", "Head"], "screws": "1–2 × M2×8" }
+        {"title": "Route the neck servo lead", "text": "Before seating it, route the neck servo's lead through the central tunnel in Chest and out the bottom.", "add": [], "focus": ["Chest", "servo-neck"]},
+        {"title": "Seat the neck servo in the center pocket", "text": "Lower the head assembly so the neck servo drops into the center pocket. Keep the front of Head and Neck on the front of Chest (the side with the tunnels). Fasten with M2×8 screws: two if they fit, otherwise one at the back.", "add": [], "move": ["Head", "OLED", "servo-head", "Hat", "Neck", "servo-neck"], "screws": "1–2 × M2×8", "from": [0, 0, 40]}
       ]
     },
     {
@@ -72,8 +79,8 @@
       "doc": "#7-belly--last-servo",
       "photo": "belly_1.jpg",
       "steps": [
-        { "title": "Center the last servo", "text": "Take the last servo and center it at 90°.", "add": ["servo-body"], "from": [0, 0, -40] },
-        { "title": "Press BellyJoint onto the shaft", "text": "No horn. Seat the hexagonal BellyJoint so one flat edge is parallel to the short side of the servo body. Fasten with the servo screw, then unplug the servo.", "add": ["BellyJoint"], "from": [0, 0, 25], "screws": "servo screw" }
+        {"title": "Center the last servo", "text": "Take the last servo and center it at 90°.", "add": ["servo-body"], "from": [0, 0, -40]},
+        {"title": "Press BellyJoint onto the shaft", "text": "No horn. Seat the hexagonal BellyJoint so one flat edge is parallel to the short side of the servo body. Fasten with the servo screw, then unplug the servo.", "add": ["BellyJoint"], "screws": "servo screw", "from": [0, 0, 25]}
       ]
     },
     {
@@ -82,8 +89,8 @@
       "doc": "#8-route-chest-cables-through-belly-and-join",
       "photo": "belly_2.jpg",
       "steps": [
-        { "title": "Thread the three leads", "text": "Pass the three leads from the bottom of Chest (left hand, neck, right hand) into Belly through the large upper opening and out through the lower side opening. Keep their left-to-right order.", "add": ["Belly"], "from": [0, 0, -45] },
-        { "title": "Fasten Belly to Chest", "text": "Rounded side of Belly to the back, matching the profile of Chest. Four M2×8 screws.", "add": [], "focus": ["Belly", "Chest"], "screws": "4 × M2×8" }
+        {"title": "Thread the three leads", "text": "Pass the three leads from the bottom of Chest (left hand, neck, right hand) into Belly through the large upper opening and out through the lower side opening. Keep their left-to-right order. Bring Belly up under Chest.", "add": ["Belly"], "from": [0, 0, -20]},
+        {"title": "Fasten Belly to Chest", "text": "Rounded side of Belly to the back, matching the profile of Chest. Four M2×8 screws.", "add": [], "focus": ["Belly", "Chest"], "screws": "4 × M2×8"}
       ]
     },
     {
@@ -92,10 +99,11 @@
       "doc": "#9-seat-the-body-in-chair",
       "photo": "chair_1.jpg",
       "steps": [
-        { "title": "Chair", "text": "Take Chair.", "add": ["Chair"], "from": [-40, 0, 0] },
-        { "title": "Seat the body servo", "text": "Seat the servo with BellyJoint in the pocket at the bottom of Chair. Route its lead out under Chair and forward through the center channel.", "add": [], "focus": ["Chair", "servo-body", "BellyJoint"] },
-        { "title": "Slide the seats on, not all the way", "text": "Slide SeatLeft and SeatRight onto the dovetails from the sides. Leave a gap so BellyJoint stays clear.", "add": ["SeatLeft", "SeatRight"], "from": [0, 0, 0], "fromEach": { "SeatLeft": [0, 30, 0], "SeatRight": [0, -30, 0] } },
-        { "title": "Lower the body onto BellyJoint", "text": "Lower Belly (with everything above it) onto BellyJoint: its base has a matching hex pocket. Then push the seats together to lock it. Do not pinch the cables. Optionally fasten the seats with two M2×16 screws.", "add": [], "focus": ["Chair", "Belly", "SeatLeft", "SeatRight"], "screws": "optional 2 × M2×16" }
+        {"title": "Chair", "text": "Take Chair.", "add": ["Chair"], "from": [-60, 0, 0]},
+        {"title": "Seat the body servo", "text": "Seat the servo with BellyJoint in the pocket at the bottom of Chair. Route its lead out under Chair and forward through the center channel.", "add": [], "move": ["servo-body", "BellyJoint"], "from": [0, 0, 40]},
+        {"title": "Slide the seats on, not all the way", "text": "Slide SeatLeft and SeatRight onto the dovetails from the sides. Leave a gap so BellyJoint stays clear.", "add": ["SeatLeft", "SeatRight"], "fromEach": {"SeatLeft": [0, 30, 0], "SeatRight": [0, -30, 0]}},
+        {"title": "Lower the body onto BellyJoint", "text": "From above, lower Belly (with everything above it) onto BellyJoint: its base has a matching hex pocket. Do not pinch the cables.", "add": [], "move": ["Head", "OLED", "servo-head", "Hat", "Neck", "servo-neck", "Chest", "servo-arm-left", "servo-arm-right", "Belly"], "from": [0, 0, 70]},
+        {"title": "Push the seats together", "text": "Push the seats together to lock the body in place. Optionally fasten them with two M2×16 screws.", "add": [], "move": ["SeatLeft", "SeatRight"], "fromEach": {"SeatLeft": [0, 8, 0], "SeatRight": [0, -8, 0]}, "focus": ["Chair", "Belly", "SeatLeft", "SeatRight"], "screws": "optional 2 × M2×16"}
       ]
     },
     {
@@ -104,9 +112,9 @@
       "doc": "#10-desk-top-stack",
       "photo": "desk_1.jpg",
       "steps": [
-        { "title": "Desk", "text": "Take Desk.", "add": ["Desk"], "from": [60, 0, 0] },
-        { "title": "Nest DeskTop in DeskPad", "text": "Seat DeskTop into DeskPad.", "add": ["DeskPad", "DeskTop"], "from": [0, 0, 40], "fromEach": { "DeskTop": [0, 0, 60] } },
-        { "title": "Fasten the stack to Desk", "text": "Rounded cutout toward the robot. Four M2×16 screws through the corner holes.", "add": [], "focus": ["Desk", "DeskPad", "DeskTop"], "screws": "4 × M2×16" }
+        {"title": "Desk", "text": "Take Desk. It stays in front of the chair until the desk is done.", "add": ["Desk"], "from": [40, 0, 0]},
+        {"title": "Nest DeskTop in DeskPad", "text": "Seat DeskTop into DeskPad.", "add": ["DeskPad", "DeskTop"], "fromEach": {"DeskPad": [0, 0, 40], "DeskTop": [0, 0, 60]}},
+        {"title": "Fasten the stack to Desk", "text": "Rounded cutout toward the robot. Four M2×16 screws through the corner holes.", "add": [], "focus": ["Desk", "DeskPad", "DeskTop"], "screws": "4 × M2×16"}
       ]
     },
     {
@@ -115,7 +123,7 @@
       "doc": "#11-desk-emblem",
       "photo": "emblem_1.jpg",
       "steps": [
-        { "title": "Fasten AiEmblem to the front", "text": "Two short M2×4 screws.", "add": ["AiEmblem"], "from": [30, 0, 0], "screws": "2 × M2×4" }
+        {"title": "Fasten AiEmblem to the front", "text": "Two short M2×4 screws.", "add": ["AiEmblem"], "screws": "2 × M2×4", "from": [30, 0, 0]}
       ]
     },
     {
@@ -123,7 +131,7 @@
       "title": "Electronics inside the desk",
       "doc": "#12-electronics-inside-the-desk",
       "steps": [
-        { "title": "Seat the main control board", "text": "Seat the board in the desk cavity. Leave servos and OLED unplugged for now. Connect the speaker and tuck it inside the desk.", "add": ["MainControlBoard"], "from": [0, 0, -50], "ghost": ["Desk", "DeskPad", "DeskTop"] }
+        {"title": "Seat the main control board", "text": "From below, tilt the board in rear edge first, over the lip of the desk's back wall, so the headers come up through the desk top. Leave servos and OLED unplugged for now. Connect the speaker and tuck it inside the desk.", "add": ["MainControlBoard"], "ghost": ["Desk", "DeskPad", "DeskTop"], "from": [0, 0, -50], "allow": [{"parts": ["MainControlBoard", "Desk"], "mm": 0.8, "why": "the board goes in tilted, its rear edge over the lip of the back wall; a straight push clips the lip"}]}
       ]
     },
     {
@@ -131,9 +139,10 @@
       "title": "ESP32, smoke test and LampBase",
       "doc": "#13-esp32-powerap-smoke-test-and-lampbase",
       "steps": [
-        { "title": "Seat the ESP32-C3-Zero from above", "text": "Pins through the desk-top cut into the board headers; orient by the USB marking. It sits flush. Optional: power on the board USB-C and check that the setup access point starts, then power down.", "add": [], "focus": ["DeskTop", "MainControlBoard"] },
-        { "title": "LampButton under LampBase", "text": "Place LampButton under LampBase so it can press the ESP32 reset button.", "add": ["LampButton"], "from": [0, 0, 25] },
-        { "title": "Fasten LampBase", "text": "Opening over the ESP32 status LED. Two M2×8 screws; this also holds the ESP32.", "add": ["LampBase"], "from": [0, 0, 35], "screws": "2 × M2×8" }
+        {"title": "Solder the pin headers to the ESP32-C3-Zero", "text": "Off the robot. Push two 9-pin male headers, long pins down, into a breadboard six rows (15.24 mm) apart, so they stay straight. Lay the module on the short pins, component side up, and solder all 18 pins from the top. Skip this if your module came with headers (ESP32-C3-Zero-M).", "add": ["ESP32-pin-headers", "ESP32-C3-Zero"], "fromEach": {"ESP32-pin-headers": [0, 0, -12], "ESP32-C3-Zero": [0, 0, 15]}, "focus": ["ESP32-C3-Zero", "ESP32-pin-headers"]},
+        {"title": "Seat the ESP32-C3-Zero from above", "text": "Push the headers' long pins through the desk-top cut into the board's two female sockets underneath; orient by the USB marking. The module sits flush. Optional: power on the board USB-C and check that the setup access point starts, then power down.", "add": [], "move": ["ESP32-C3-Zero", "ESP32-pin-headers"], "from": [0, 0, 30], "focus": ["ESP32-C3-Zero", "DeskTop", "MainControlBoard"]},
+        {"title": "LampButton under LampBase", "text": "Place LampButton under LampBase so it can press the ESP32 reset button.", "add": ["LampButton"], "from": [0, 0, 25]},
+        {"title": "Fasten LampBase", "text": "Opening over the ESP32 status LED. Two M2×8 screws; this also holds the ESP32.", "add": ["LampBase"], "screws": "2 × M2×8", "from": [0, 0, 35]}
       ]
     },
     {
@@ -142,9 +151,10 @@
       "doc": "#14-desk-props--laptop-mug-bell",
       "photo": "desk_2.jpg",
       "steps": [
-        { "title": "Laptop", "text": "Slide LaptopScreen into the pocket under LaptopCase. Place the laptop on the desk and fasten with one M2×8 from under the desk.", "add": ["LaptopCase", "LaptopScreen"], "from": [0, 0, 40], "fromEach": { "LaptopScreen": [0, 0, 70] }, "screws": "1 × M2×8" },
-        { "title": "Mug", "text": "Seat Coffee in Mug, place the mug on its spot, one M2×8 from under the desk.", "add": ["Mug", "Coffee"], "from": [0, 0, 35], "fromEach": { "Coffee": [0, 0, 55] }, "screws": "1 × M2×8" },
-        { "title": "Bell", "text": "Drive an M2×16 fully into Bell first, then drive it down into the desk and secure it with a nut underneath.", "add": ["Bell"], "from": [0, 0, 30], "screws": "1 × M2×16 + nut" }
+        {"title": "Slide the screen into the laptop", "text": "Slide LaptopScreen into the pocket under LaptopCase, from the lid's lower edge.", "add": ["LaptopCase", "LaptopScreen"], "fromEach": {"LaptopCase": [0, 0, 20], "LaptopScreen": [-17.4, 0, -4.3]}},
+        {"title": "Laptop on the desk", "text": "Place the laptop on the desk and fasten with one M2×8 from under the desk.", "add": [], "move": ["LaptopCase", "LaptopScreen"], "screws": "1 × M2×8", "from": [0, 0, 40]},
+        {"title": "Mug", "text": "Seat Coffee in Mug, place the mug on its spot, one M2×8 from under the desk.", "add": ["Mug", "Coffee"], "fromEach": {"Mug": [0, 0, 35], "Coffee": [0, 0, 55]}, "screws": "1 × M2×8"},
+        {"title": "Bell", "text": "Drive an M2×16 fully into Bell first, then drive it down into the desk and secure it with a nut underneath.", "add": ["Bell"], "screws": "1 × M2×16 + nut", "from": [0, 0, 30]}
       ]
     },
     {
@@ -153,7 +163,7 @@
       "doc": "#15-connect-servos-and-oled",
       "photo": "electronics_3.jpg",
       "steps": [
-        { "title": "Plug in by channel", "text": "Tip the desk onto its front wall. Channel 0 head pitch, 1 neck yaw, 2 left hand, 3 right hand, 4 body. Plug the OLED in too, then power up for a servos + OLED smoke test.", "add": [], "focus": ["MainControlBoard"], "ghost": ["Desk", "DeskPad", "DeskTop"] }
+        {"title": "Plug in by channel", "text": "Tip the desk onto its front wall. Channel 0 head pitch, 1 neck yaw, 2 left hand, 3 right hand, 4 body. Plug the OLED in too, then power up for a servos + OLED smoke test.", "add": [], "focus": ["MainControlBoard"], "ghost": ["Desk", "DeskPad", "DeskTop"]}
       ]
     },
     {
@@ -162,8 +172,8 @@
       "doc": "#16-fasten-chair-to-desk",
       "photo": "body_1.jpg",
       "steps": [
-        { "title": "Join Chair and Desk", "text": "Slide the desk up to the chair until the holes line up. Six M2×8 screws, three per side. Keep cables out of the screw paths.", "add": [], "focus": ["Chair", "Desk"], "screws": "6 × M2×8" },
-        { "title": "BottomCover", "text": "Turn the robot over without loading the arms or props. Keep cables inside the perimeter. Fasten BottomCover with six M2×8 pan-head screws (heads ≤ 4.0 × 2.0 mm): four into the desk, two into the chair.", "add": ["BottomCover"], "from": [0, 0, -40], "screws": "6 × M2×8" }
+        {"title": "Join Chair and Desk", "text": "Slide the desk up to the chair until the holes line up. Six M2×8 screws, three per side. Keep cables out of the screw paths.", "add": [], "move": ["Desk", "DeskPad", "DeskTop", "AiEmblem", "MainControlBoard", "ESP32-C3-Zero", "ESP32-pin-headers", "LampButton", "LampBase", "LaptopCase", "LaptopScreen", "Mug", "Coffee", "Bell"], "focus": ["Chair", "Desk"], "screws": "6 × M2×8", "from": [80, 0, 0]},
+        {"title": "BottomCover", "text": "Turn the robot over without loading the arms or props. Keep cables inside the perimeter. Fasten BottomCover with six M2×8 pan-head screws (heads ≤ 4.0 × 2.0 mm): four into the desk, two into the chair.", "add": ["BottomCover"], "screws": "6 × M2×8", "from": [0, 0, -40]}
       ]
     },
     {
@@ -172,9 +182,9 @@
       "doc": "#17-arms--elbow-joints",
       "photo": "arms_1.jpg",
       "steps": [
-        { "title": "Left elbow", "text": "Fasten ForearmLeft to an UpperArm with one M2×8 screw.", "add": ["UpperArm", "ForearmLeft"], "from": [0, 45, 10], "screws": "1 × M2×8" },
-        { "title": "Right elbow", "text": "Fasten ForearmRight to the other UpperArm with one M2×8 screw.", "add": ["UpperArmMirror", "ForearmRight"], "from": [0, -45, 10], "screws": "1 × M2×8" },
-        { "title": "Mount the arms on the chest servos", "text": "Center the hand servos. Press each arm onto its shaft (the upper arms have pockets for them), hand at shoulder height and forearm pointing toward the desk. Fasten with the servo screws.", "add": [], "focus": ["UpperArm", "UpperArmMirror", "Chest"], "screws": "2 × servo screw" }
+        {"title": "Left elbow", "text": "Fasten ForearmLeft to an UpperArm with one M2×8 screw.", "add": ["UpperArm", "ForearmLeft"], "fromEach": {"UpperArm": [0, 0, 0], "ForearmLeft": [14.6, 0, -15]}, "screws": "1 × M2×8"},
+        {"title": "Right elbow", "text": "Fasten ForearmRight to the other UpperArm with one M2×8 screw.", "add": ["UpperArmMirror", "ForearmRight"], "fromEach": {"UpperArmMirror": [0, 0, 0], "ForearmRight": [14.6, 0, -15]}, "screws": "1 × M2×8"},
+        {"title": "Mount the arms on the chest servos", "text": "Center the hand servos. Press each arm onto its shaft (the upper arms have pockets for them), hand at shoulder height and forearm pointing toward the desk. Fasten with the servo screws.", "add": [], "move": ["UpperArm", "ForearmLeft", "UpperArmMirror", "ForearmRight"], "fromEach": {"UpperArm": [0, 80, 0], "ForearmLeft": [0, 80, 0], "UpperArmMirror": [0, -80, 0], "ForearmRight": [0, -80, 0]}, "focus": ["UpperArm", "UpperArmMirror", "Chest"], "screws": "2 × servo screw"}
       ]
     },
     {
@@ -183,7 +193,7 @@
       "doc": "#19-lamp-press-fit",
       "photo": "lamp_1.jpg",
       "steps": [
-        { "title": "Cap on diffuser, into LampBase", "text": "No screws. Put LampCap on LampDiffuser and push the stack into LampBase.", "add": ["LampDiffuser", "LampCap"], "from": [0, 0, 35], "fromEach": { "LampCap": [0, 0, 55] } }
+        {"title": "Cap on diffuser, into LampBase", "text": "No screws. Put LampCap on LampDiffuser and push the stack into LampBase.", "add": ["LampDiffuser", "LampCap"], "fromEach": {"LampDiffuser": [0, 0, 35], "LampCap": [0, 0, 55]}}
       ]
     },
     {
@@ -191,7 +201,7 @@
       "title": "Setup wizard",
       "doc": "#20-setup-wizard-and-first-boot-on-wi-fi",
       "steps": [
-        { "title": "Built", "text": "Power on, join the TinyEngineer-XXXX access point, open http://192.168.4.1/config and walk through the whole setup wizard: servo calibration, OLED, LED, speaker, Wi-Fi.", "add": [] }
+        {"title": "Built", "text": "Power on, join the TinyEngineer-XXXX access point, open http://192.168.4.1/config and walk through the whole setup wizard: servo calibration, OLED, LED, speaker, Wi-Fi.", "add": []}
       ]
     }
   ]

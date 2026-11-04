@@ -39,7 +39,12 @@ npm run lint --prefix ui
 npm test --prefix ui
 python3 scripts/check_pcb.py
 python3 scripts/assembly/test_assembly.py
+python3 scripts/assembly/test_presets.py
+python3 scripts/assembly/test_fasteners.py
+python3 scripts/assembly/test_boards.py
 node scripts/assembly/test_build_glb.mjs
+node scripts/assembly/test_viewer.mjs
+node scripts/assembly/test_clipping.mjs
 ```
 
 `pio test -e native` is not `pio run -e native`. PCB checks need KiCad 10 (`python3 scripts/check_pcb.py`). The 3D assembly model needs Python 3.13 and `scripts/assembly/requirements.txt` ([docs/3d/assembly-viewer.md](docs/3d/assembly-viewer.md)). Details: [docs/testing.md](docs/testing.md).

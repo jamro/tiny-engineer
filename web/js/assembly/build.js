@@ -1,7 +1,9 @@
 // Step-by-step build mode: shows the robot as it is at one step of
 // docs/3d/assembly.md, slides that step's parts in, and frames them.
+// Sub-assemblies built off the robot wait beside it until the step that
+// mounts them (`move` in steps.json, see offsetsAt).
 import * as THREE from 'three';
-import { flatten, sceneAt, startOffset } from './steps.js';
+import { flatten, offsetsAt, sceneAt } from './steps.js';
 
 /** Seconds a step's parts take to slide in. */
 const MOVE_SECONDS = 0.9;
@@ -27,10 +29,15 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
   let restTimer = 0;
 
   const offset = new THREE.Vector3();
+  let offsets = new Map();
+  let offsetsFor = null;
   /** Where a part is drawn relative to its assembled pose (CAD frame), or null. */
   const offsetOf = (id) => {
-    if (!active || progress >= 1 || !scene.moving.has(id)) return null;
-    return offset.fromArray(startOffset(steps[index], id)).multiplyScalar(1 - ease(progress));
+    if (!active) return null;
+    const key = `${index}:${progress}`;
+    if (offsetsFor !== key) { offsets = offsetsAt(steps, index, ease(progress)); offsetsFor = key; }
+    const value = offsets.get(id);
+    return value ? offset.fromArray(value) : null;
   };
   const shown = (id) => !active || scene.shown.has(id);
   const ghost = (id) => active && scene.ghost.has(id);
@@ -61,7 +68,8 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     elements.progress.max = steps.length;
     elements.screws.hidden = !step.screws;
     elements.screws.textContent = step.screws ? `Screws: ${step.screws}` : '';
-    const added = step.add.map(label);
+    // Screws and nuts are in the step's screw line, not among its parts.
+    const added = step.add.filter((id) => !step.fasten?.includes(id)).map(label);
     elements.adds.hidden = !added.length;
     elements.adds.textContent = added.length ? `Adds: ${added.join(', ')}` : '';
     elements.doc.href = `${step.section.docs ?? data.docs}${step.section.doc ?? ''}`;

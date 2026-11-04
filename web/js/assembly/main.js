@@ -1,22 +1,30 @@
 // Tiny Engineer assembly viewer: the robot from the printed meshes, with a
-// colour per part. Model: models/<preset>.glb, built by CI from the CAD
-// (docs/3d/assembly-viewer.md).
+// colour per part. Model: models/<preset>.glb, built by CI from the CAD, one
+// per servo preset (docs/3d/assembly-viewer.md).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createStage, smoothNormals } from './stage.js';
-import { PALETTE, TRANSLUCENT, decodeColors, defaultColor, encodeColors, normalizeHex, resolveColors } from './colors.js';
+import {
+  FASTENER_FINISHES, FASTENER_KINDS, PALETTE, TRANSLUCENT, decodeColors, decodeFinishes, defaultColor, encodeColors, encodeFinishes,
+  normalizeHex, resolveColors,
+} from './colors.js';
 import { createBuild } from './build.js';
-import { applyMod } from './steps.js';
+import { PRINT_ROOT, TARGETS, printList, readme, zipName } from './download.js';
+import { applyMod, withFasteners } from './steps.js';
 import { rig } from './joints.js';
-import { ANIMATIONS, CENTRE, JOINT_IDS, blendPoses, normalizePose } from './poses.js';
+import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, blendPoses, normalizePose, withFollowers } from './poses.js';
 
-const PRESET = 'sg90';
-/** Mods the viewer can show (web/assembly/mods/<id>.json, models/<preset>-<id>.glb). */
+/** Servo presets the viewer can show (#p=fs0307), the design's own first. */
+const PRESETS = ['sg90', 'fs0307', 'es9051', 'hd1370a'];
+const PRESET_LABELS = { sg90: 'SG90', fs0307: 'FS0307', es9051: 'ES9051', hd1370a: 'HD-1370A' };
+/** Mods the viewer can show (web/assembly/mods/<id>.json, models/sg90-<id>.glb; SG90 only). */
 const MODS = ['halloween'];
 const STEPS_URL = 'steps.json';
 /** Opacity of a part drawn as a ghost (see-through) in a build step. */
 const GHOST_OPACITY = 0.16;
 const STORAGE_KEY_BASE = 'te-assembly-colors';
+const FINISH_STORAGE_KEY = 'te-assembly-fasteners';
+const FASTENER_TITLES = { screw: 'Screws', nut: 'Nuts' };
 const GROUP_TITLES = {
   mod: 'Mod parts',
   PartsSetA: 'Copper set',
@@ -44,6 +52,8 @@ export function partLabel(id) {
 const hashParams = () => new URLSearchParams(location.hash.slice(1));
 /** The mod shown (#m=halloween), or null for the stock robot. */
 const currentMod = () => (MODS.includes(hashParams().get('m')) ? hashParams().get('m') : null);
+/** The servo preset shown (#p=fs0307); mods are built for SG90 only. */
+const currentPreset = () => (!currentMod() && PRESETS.includes(hashParams().get('p')) ? hashParams().get('p') : PRESETS[0]);
 const storageKey = () => `${STORAGE_KEY_BASE}${currentMod() ? `-${currentMod()}` : ''}`;
 
 /** Set (or with null, remove) one parameter of the URL hash, keeping the others. */
@@ -56,21 +66,31 @@ function setHashParam(key, value) {
   history.replaceState(null, '', url);
 }
 
-function readSavedColors(parts) {
-  const hash = hashParams().get('c');
-  if (hash !== null) return decodeColors(hash, parts);
+/**
+ * A setting kept in the URL hash (`key`) and in the browser's storage: the
+ * link's value wins, then the stored one, decoded by `decode` (which takes ''
+ * for the default).
+ */
+function readSetting(key, storage, decode) {
+  const hash = hashParams().get(key);
+  if (hash !== null) return decode(hash);
   try {
-    return decodeColors(localStorage.getItem(storageKey()) ?? '', parts);
+    return decode(localStorage.getItem(storage) ?? '');
   } catch {
-    return {};
+    return decode('');
   }
 }
 
-function saveColors(parts, changes) {
-  const encoded = encodeColors(parts, changes);
-  setHashParam('c', encoded || null);
-  try { localStorage.setItem(storageKey(), encoded); } catch { /* private mode */ }
+function saveSetting(key, storage, encoded) {
+  setHashParam(key, encoded || null);
+  try { localStorage.setItem(storage, encoded); } catch { /* private mode */ }
 }
+
+const readSavedColors = (parts) => readSetting('c', storageKey(), (text) => decodeColors(text, parts));
+const saveColors = (parts, changes) => saveSetting('c', storageKey(), encodeColors(parts, changes));
+/** Screw and nut finishes (#f=black.silver). */
+const readFinishes = () => readSetting('f', FINISH_STORAGE_KEY, decodeFinishes);
+const saveFinishes = (finishes) => saveSetting('f', FINISH_STORAGE_KEY, encodeFinishes(finishes));
 
 function groupOf(part) {
   if (part.kind === 'hardware') return 'hardware';
@@ -81,13 +101,26 @@ function groupOf(part) {
 async function main() {
   const status = $('#asm-status');
   const mod = currentMod();
-  const MODEL_URL = `models/${PRESET}${mod ? `-${mod}` : ''}.glb`;
-  for (const link of document.querySelectorAll('.asm-model')) {
+  const preset = currentPreset();
+  const MODEL_URL = `models/${preset}${mod ? `-${mod}` : ''}.glb`;
+  $('#asm-preset-label').textContent = `${PRESET_LABELS[preset]} preset`;
+  for (const link of document.querySelectorAll('a.asm-model:not(.asm-preset)')) {
     link.setAttribute('aria-current', String((link.dataset.model || null) === mod));
     // Switching model reloads the page with its own colours and steps.
     link.addEventListener('click', (event) => {
       event.preventDefault();
-      location.hash = link.dataset.model ? `m=${link.dataset.model}` : '';
+      location.hash = link.dataset.model ? `m=${link.dataset.model}` : (preset === PRESETS[0] ? '' : `p=${preset}`);
+      location.reload();
+    });
+  }
+  for (const link of document.querySelectorAll('.asm-preset')) {
+    link.setAttribute('aria-current', String(link.dataset.preset === preset));
+    if (mod && link.dataset.preset !== PRESETS[0]) link.setAttribute('aria-disabled', 'true');
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (link.getAttribute('aria-disabled') === 'true') return;
+      // A servo preset is a robot of its own size: the stock parts at that preset.
+      location.hash = link.dataset.preset === PRESETS[0] ? '' : `p=${link.dataset.preset}`;
       location.reload();
     });
   }
@@ -116,10 +149,16 @@ async function main() {
 
   const root = gltf.scene.getObjectByName('TinyEngineer');
   const parts = [];
+  // M2 screws and nuts: drawn and moved like parts, coloured by finish, not in the parts list.
+  const fasteners = [];
   for (const node of root.children) {
     const extras = node.userData ?? {};
     const mesh = node.isMesh ? node : node.getObjectByProperty('isMesh', true);
     if (!mesh) continue;
+    if (extras.kind === 'fastener') {
+      fasteners.push({ id: node.name, kind: 'fastener', component: extras.component ?? node.name, fastener: extras.fastener, node, mesh });
+      continue;
+    }
     parts.push({
       id: node.name,
       component: extras.component ?? node.name,
@@ -133,12 +172,15 @@ async function main() {
   }
 
   // One material per part, so each can take its own colour; normals with a crease angle.
+  // A mesh with vertex colours (the ESP32-C3-Zero) shows them, tinted by the part's colour.
+  const everything = [...parts, ...fasteners];
   const geometries = new Map();
-  for (const part of parts) {
+  for (const part of everything) {
     const source = part.mesh.geometry;
     if (!geometries.has(source)) geometries.set(source, smoothNormals(source));
     part.mesh.geometry = geometries.get(source);
     part.mesh.material = new THREE.MeshStandardMaterial({
+      vertexColors: Boolean(part.mesh.geometry.getAttribute('color')),
       roughness: part.kind === 'hardware' ? 0.5 : 0.62,
       metalness: part.printGroup === 'PartsSetA' ? 0.35 : 0.04,
       transparent: TRANSLUCENT.has(part.id),
@@ -163,16 +205,75 @@ async function main() {
     offset.z = Math.max(offset.z, 0) + 6; // spread upwards rather than sink into the floor
     part.explode = offset.multiplyScalar(EXPLODE_SCALE);
   }
+  // A screw or nut stays in its part when the robot explodes.
+  const partById = new Map(parts.map((part) => [part.id, part]));
+  for (const item of fasteners) item.explode = partById.get(item.fastener?.parent)?.explode.clone() ?? new THREE.Vector3();
   stage.frame(robotBox);
 
   // Servo joints: parts move under pivots on the shafts; positions are now in
   // the pivots' frames.
-  const joints = rig(root, new Map(parts.map((part) => [part.id, part.node])));
-  for (const part of parts) part.base = part.node.position.clone();
+  const followers = new Map(fasteners.map((item) => [item.id, item.fastener?.parent]));
+  const joints = rig(root, new Map(everything.map((part) => [part.id, part.node])), withFollowers(JOINTS, followers));
+  for (const part of everything) part.base = part.node.position.clone();
 
   let changes = readSavedColors(parts);
   let colors = resolveColors(parts, changes);
   let selected = null;
+  let finishes = readFinishes();
+
+  // Screw and nut finishes: metal, black or silver.
+  const applyFinishes = () => {
+    for (const item of fasteners) {
+      const finish = FASTENER_FINISHES[finishes[item.fastener?.kind]] ?? FASTENER_FINISHES.silver;
+      item.mesh.material.color.set(finish.hex);
+      item.mesh.material.metalness = finish.metalness;
+      item.mesh.material.roughness = finish.roughness;
+    }
+    for (const button of document.querySelectorAll('.asm-finish')) {
+      button.setAttribute('aria-pressed', String(finishes[button.dataset.kind] === button.dataset.finish));
+    }
+    stage.invalidate();
+  };
+  const setFinish = (kind, finish) => {
+    if (!FASTENER_KINDS.includes(kind) || !FASTENER_FINISHES[finish]) return;
+    finishes = { ...finishes, [kind]: finish };
+    saveFinishes(finishes);
+    applyFinishes();
+  };
+  const finishPanel = $('#asm-finishes');
+  finishPanel.hidden = !fasteners.length;
+  if (fasteners.length) {
+    const count = (kind) => fasteners.filter((item) => item.fastener?.kind === kind).length;
+    $('#asm-finishes-title').textContent = `Screws and nuts · ${fasteners.length}`;
+    const rows = $('#asm-finish-rows');
+    rows.replaceChildren();
+    for (const kind of FASTENER_KINDS) {
+      if (!count(kind)) continue;
+      const row = document.createElement('div');
+      row.className = 'asm-finish-row';
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', `${FASTENER_TITLES[kind]} finish`);
+      const name = document.createElement('span');
+      name.textContent = `${FASTENER_TITLES[kind]} · ${count(kind)}`;
+      row.append(name);
+      for (const [id, finish] of Object.entries(FASTENER_FINISHES)) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'asm-model asm-finish';
+        button.dataset.kind = kind;
+        button.dataset.finish = id;
+        button.title = `${finish.name}: ${finish.about}`;
+        const swatch = document.createElement('span');
+        swatch.className = 'asm-swatch';
+        swatch.style.background = finish.hex;
+        swatch.setAttribute('aria-hidden', 'true');
+        button.append(swatch, document.createTextNode(finish.name));
+        button.addEventListener('click', () => setFinish(kind, id));
+        row.append(button);
+      }
+      rows.append(row);
+    }
+  }
 
   const applyColors = () => {
     for (const part of parts) part.mesh.material.color.set(colors[part.id]);
@@ -309,6 +410,8 @@ async function main() {
   // Where every part is and whether it shows: explode, the build step, the electronics toggle.
   const explode = $('#asm-explode');
   const electronics = $('#asm-electronics');
+  const fastenerToggle = $('#asm-fasteners');
+  fastenerToggle.closest('label').hidden = !fasteners.length;
   let build = null;
   const rootRotation = new THREE.Quaternion();
   const parentRotation = new THREE.Quaternion();
@@ -316,7 +419,7 @@ async function main() {
   function layout() {
     const amount = Number(explode.value) / 100;
     root.getWorldQuaternion(rootRotation).invert();
-    for (const part of parts) {
+    for (const part of everything) {
       // Explode and step offsets are in the CAD frame; turn them into the
       // frame of the joint the part hangs on.
       shift.copy(part.explode).multiplyScalar(amount);
@@ -327,7 +430,8 @@ async function main() {
         shift.applyQuaternion(parentRotation);
       }
       part.node.position.copy(part.base).add(shift);
-      part.node.visible = (build ? build.shown(part.id) : true) && (part.kind !== 'hardware' || electronics.checked);
+      part.node.visible = (build ? build.shown(part.id) : true)
+        && (part.kind !== 'hardware' || electronics.checked) && (part.kind !== 'fastener' || fastenerToggle.checked);
       const ghost = build?.ghost(part.id) ?? false;
       const material = part.mesh.material;
       const transparent = ghost || part.opacity < 1;
@@ -342,6 +446,7 @@ async function main() {
   explode.addEventListener('input', layout);
   explode.addEventListener('change', () => stage.refit(new THREE.Box3().setFromObject(root)));
   electronics.addEventListener('change', layout);
+  fastenerToggle.addEventListener('change', layout);
 
   // Joints: sliders per servo, a few animation loops built from the firmware's poses.
   const sliders = new Map();
@@ -377,7 +482,7 @@ async function main() {
     stopAnimation = stage.onTick((time) => {
       const t = (time - start) / 1000;
       // Ease in from the current pose over the first half second.
-      applyPose(blendPoses(from, normalizePose(animation.pose(t)), Math.min(1, t / 0.5)));
+      applyPose(blendPoses(from, normalizePose(animation.pose(t, preset)), Math.min(1, t / 0.5)));
       return true;
     });
     animPlay.textContent = 'Pause';
@@ -420,8 +525,8 @@ async function main() {
   const panels = { build: $('#asm-build'), colors: $('#asm-colors') };
   if (stepData) {
     build = createBuild({
-      data: stepData,
-      parts,
+      data: withFasteners(stepData, fasteners.map(({ id, fastener }) => ({ id, fastener }))),
+      parts: everything,
       stage,
       root,
       layout,
@@ -479,6 +584,9 @@ async function main() {
     colors = resolveColors(parts, changes);
     saveColors(parts, changes);
     applyColors();
+    finishes = decodeFinishes('');
+    saveFinishes(finishes);
+    applyFinishes();
     renderDetail();
   });
   $('#asm-share').addEventListener('click', async () => {
@@ -495,10 +603,74 @@ async function main() {
     changes = readSavedColors(parts);
     colors = resolveColors(parts, changes);
     applyColors();
+    finishes = readFinishes();
+    applyFinishes();
     renderDetail();
   });
 
   applyColors();
+  applyFinishes();
+
+  // Print files for the robot shown: picked here (download.js), fetched from
+  // the site, zipped in the browser.
+  let target = 'home';
+  const download = $('#asm-download');
+  const downloadStatus = $('#asm-download-status');
+  const targetButtons = [...document.querySelectorAll('.asm-target')];
+  const renderTargets = () => {
+    for (const button of targetButtons) {
+      button.setAttribute('aria-pressed', String(button.dataset.target === target));
+      // A mod's parts are not in the print service's colour sets.
+      button.disabled = Boolean(mod) && button.dataset.target === 'service';
+    }
+  };
+  for (const button of targetButtons) {
+    button.addEventListener('click', () => { target = button.dataset.target; downloadStatus.textContent = ''; renderTargets(); });
+  }
+  renderTargets();
+  download.disabled = false;
+  download.addEventListener('click', async () => {
+    const { files, problems } = printList({ parts, preset, mod, target });
+    if (problems.length) { downloadStatus.textContent = problems.join('; '); return; }
+    download.disabled = true;
+    const name = zipName({ preset, mod, target });
+    const folder = name.replace(/\.zip$/, '');
+    const base = new URL(PRINT_ROOT, location.href);
+    const wanted = [...files.map((file) => [file.path, file.url]), ['LICENSE', 'LICENSE'], ['NOTICE', 'NOTICE']];
+    let done = 0;
+    try {
+      const fflate = import('fflate');
+      const fetched = await Promise.all(wanted.map(async ([path, url]) => {
+        const response = await fetch(new URL(url, base));
+        if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        done += 1;
+        downloadStatus.textContent = `Fetching ${done} of ${wanted.length} files…`;
+        return [path, bytes];
+      }));
+      const { zipSync, strToU8 } = await fflate;
+      const tree = {};
+      // 3MF is a ZIP already: store it as it is.
+      for (const [path, bytes] of fetched) tree[`${folder}/${path}`] = [bytes, { level: path.endsWith('.3mf') ? 0 : 6 }];
+      const colorName = (hex) => PALETTE.find((entry) => entry.hex === hex)?.name ?? null;
+      tree[`${folder}/README.txt`] = strToU8(readme({ files, preset, presetLabel: PRESET_LABELS[preset], mod, target, colors, colorName, link: location.href }));
+      const zip = zipSync(tree);
+      const url = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = name;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      downloadStatus.textContent = `${name} · ${files.length} files · ${(zip.byteLength / 1048576).toFixed(1)} MB`;
+    } catch (error) {
+      downloadStatus.textContent = `Could not build the ZIP: ${error?.message ?? error}`;
+    } finally {
+      download.disabled = false;
+    }
+  });
+  download.title = `${TARGETS.home.label}: ${TARGETS.home.about}. ${TARGETS.service.label}: ${TARGETS.service.about}.`;
   // A link to a step (#s=12) opens it; a link with colours opens the colours.
   const linkedStep = Number(hashParams().get('s'));
   if (build && linkedStep) {
@@ -508,12 +680,18 @@ async function main() {
     showTab(build && !hashParams().get('c') ? 'build' : 'colors');
     layout();
   }
-  status.textContent = `${parts.filter((part) => part.kind !== 'hardware').length} printed parts · ${parts.filter((part) => part.kind === 'hardware').length} electronics · ${PRESET.toUpperCase()}`;
+  status.textContent = `${parts.filter((part) => part.kind !== 'hardware').length} printed parts · ${parts.filter((part) => part.kind === 'hardware').length} electronics${fasteners.length ? ` · ${fasteners.length} screws and nuts` : ''} · ${PRESET_LABELS[preset]}`;
   status.dataset.state = 'ready';
   document.body.dataset.ready = 'true';
   // For tests and the console.
   window.tinyEngineerAssembly = {
     get parts() { return parts.map(({ id, kind, printGroup, node }) => ({ id, kind, printGroup, color: colors[id], visible: node.visible })); },
+    get fasteners() {
+      return fasteners.map(({ id, fastener, mesh, node }) => ({ id, kind: fastener?.kind, size: fastener?.size, color: `#${mesh.material.color.getHexString()}`, visible: node.visible }));
+    },
+    get finishes() { return { ...finishes }; },
+    get printFiles() { return printList({ parts, preset, mod, target }); },
+    setFinish,
     select,
     setColor,
     get pose() { return { ...pose }; },

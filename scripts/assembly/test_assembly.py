@@ -13,6 +13,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import extract  # noqa: E402
 from f3d_assembly import Joint, Match, inverse, joint_agreement, match, rigid_matrices, stl_targets, to_mm  # noqa: E402
 
 
@@ -84,6 +85,29 @@ class Matching(unittest.TestCase):
         wrong = {1: transform(np.eye(3), [12, 0, 0]), 2: np.eye(4)}
         self.assertGreater(joint_agreement(Joint("j", (1, 2), frames), wrong), 1.0)
         self.assertIsNone(joint_agreement(Joint("j", (1, 3), frames), placed))
+
+
+class Esp32Seat(unittest.TestCase):
+    def board(self, rows=(2.51, -12.73), floor=-10.5):
+        """A board mesh's vertices: PCB from z 0 to 1.6, socket stack tops at `floor`."""
+        points = [[0, -25, 0], [35, 20, 1.6]]
+        for y in rows:
+            for x in (8.24, 32.84):
+                points += [[x, y - 1.65, floor], [x, y + 1.65, floor]]
+        return np.array(points, dtype=float)
+
+    def test_seats_the_pin_grid_on_the_sockets(self):
+        seat = extract.esp32_seat(self.board())
+        at = lambda p: (seat @ np.array([*p, 1.0]))[:3]  # noqa: E731
+        # 5 V (first column, USB end) over the -Y socket, USB-C toward +X, on the stack.
+        np.testing.assert_allclose(at([1.38, 21.91, 0]), [30.70, -12.73, -10.5], atol=1e-6)
+        np.testing.assert_allclose(at([16.62, 1.59, 0]), [10.38, 2.51, -10.5], atol=1e-6)
+        np.testing.assert_allclose(at([0, 0, 1]) - at([0, 0, 0]), [0, 0, -1], atol=1e-9)
+        self.assertAlmostEqual(np.linalg.det(seat[:3, :3]), 1.0)
+
+    def test_rejects_sockets_that_do_not_fit(self):
+        with self.assertRaises(SystemExit):
+            extract.esp32_seat(self.board(rows=(2.51, -10.0)))
 
 
 if __name__ == "__main__":

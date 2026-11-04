@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Tests for build_glb.mjs: node scripts/assembly/test_build_glb.mjs
 import assert from 'node:assert/strict';
-import { buildGlb, readStl, weld } from './build_glb.mjs';
+import { buildGlb, readStl, readStlColors, weld } from './build_glb.mjs';
 import { mergeMod } from './merge_mod.mjs';
 
 /** A binary STL of the given triangles (each 9 numbers). */
@@ -54,15 +54,20 @@ function parseGlb(glb) {
       { id: 'Left', component: 'Arm', mesh: 'arm.stl', matrix: identity },
       { id: 'Right', component: 'Arm(Mirror)', mesh: 'arm.stl', matrix: moved },
     ],
-    hardware: [{ id: 'servo-head', component: 'Servo', mesh: 'servo.stl', matrix: identity }],
+    hardware: [
+      { id: 'servo-head', component: 'Servo', mesh: 'servo.stl', matrix: identity },
+      { id: 'screw-hat-1', component: 'M2x8', mesh: 'M2x8.stl', matrix: moved, source: 'fastener', fastener: { kind: 'screw', size: 'M2×8', parent: 'Left' } },
+    ],
   };
   const loads = [];
   const glb = buildGlb(manifest, (path) => { loads.push(path); return tetra; });
   const { json, bin } = parseGlb(glb);
-  assert.deepEqual(loads, ['arm.stl', 'servo.stl'], 'a mesh used twice is read once');
-  assert.equal(json.meshes.length, 2);
-  assert.deepEqual(json.nodes.map((node) => node.name), ['TinyEngineer', 'Left', 'Right', 'servo-head']);
-  assert.deepEqual(json.nodes[0].children, [1, 2, 3]);
+  assert.deepEqual(loads, ['arm.stl', 'servo.stl', 'M2x8.stl'], 'a mesh used twice is read once');
+  assert.equal(json.meshes.length, 3);
+  assert.deepEqual(json.nodes.map((node) => node.name), ['TinyEngineer', 'Left', 'Right', 'servo-head', 'screw-hat-1']);
+  assert.deepEqual(json.nodes[0].children, [1, 2, 3, 4]);
+  assert.equal(json.nodes[4].extras.kind, 'fastener');
+  assert.deepEqual(json.nodes[4].extras.fastener, { kind: 'screw', size: 'M2×8', parent: 'Left' });
   assert.equal(json.nodes[1].mesh, json.nodes[2].mesh, 'mirrored copy shares the mesh');
   assert.deepEqual(json.nodes[2].matrix, moved);
   assert.equal(json.nodes[3].extras.kind, 'hardware');
@@ -86,7 +91,10 @@ function parseGlb(glb) {
       { id: 'Mug', mesh: 'tetra.stl', matrix: at(30, 40, 20) },
       { id: 'Desk', mesh: 'tetra.stl', matrix: at(0, 0, -5) },
     ],
-    hardware: [],
+    hardware: [
+      { id: 'screw-hat-1', mesh: 'M2x8.stl', matrix: I, fastener: { parts: ['Hat', 'Head'] } },
+      { id: 'screw-desk-1', mesh: 'M2x8.stl', matrix: I, fastener: { parts: ['Desk'] } },
+    ],
   };
   const mod = {
     format: 1, preset: 'test',
@@ -113,7 +121,24 @@ function parseGlb(glb) {
   assert.deepEqual(byId.Pumpkin.matrix.slice(12, 15), [195, -5, -5], 'prop on the floor, footprint centred at [200, 0]');
   assert.equal(byId.Cover.color, '#ef7d1a');
   assert.equal(byId.Cover.mod, 'test');
+  assert.deepEqual(merged.hardware.map((item) => item.id), ['screw-desk-1'], 'screws through removed or replaced parts go');
   assert.throws(() => mergeMod(stock, mod, { ...config, align: config.align.slice(0, 2) }, () => tetra), /Pumpkin: in the mod but in no align group/);
+}
+
+// Colours in the attribute bytes (VisCAM): vertices are shared only within one colour.
+{
+  const coloured = stl([[...a, ...c, ...b], [...a, ...b, ...d]]);
+  const view = new DataView(coloured.buffer);
+  view.setUint16(84 + 48, 0x8000 | (31 << 10), true); // red
+  view.setUint16(84 + 50 + 48, 0x8000 | 31, true); // blue
+  const colors = readStlColors(coloured);
+  assert.deepEqual([...colors], [1, 0, 0, 0, 0, 1]);
+  const welded = weld(readStl(coloured), colors);
+  assert.equal(welded.positions.length / 3, 6, 'a and b are not shared across colours');
+  assert.deepEqual([...welded.colors.subarray(0, 3)], [1, 0, 0]);
+  assert.equal(readStlColors(tetra), null, 'no colours without bit 15');
+  const json = parseGlb(buildGlb({ preset: 'sg90', parts: [], hardware: [{ id: 'ESP32-C3-Zero', component: 'ESP32-C3-Zero', mesh: 'board.stl', matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }] }, () => coloured)).json;
+  assert.ok(json.meshes[0].primitives[0].attributes.COLOR_0 !== undefined, 'COLOR_0');
 }
 
 console.log('build_glb tests passed');

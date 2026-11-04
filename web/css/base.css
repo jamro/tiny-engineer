@@ -1896,6 +1896,40 @@ esp-web-install-button .button,
   color: var(--muted);
 }
 
+.asm-finishes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.asm-finishes .hint {
+  margin: 0;
+}
+
+.asm-finish-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.asm-finish-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.asm-finish-row > span {
+  min-width: 5.5rem;
+}
+
+.asm-finish {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .asm-part-list {
   list-style: none;
   margin: 0.45rem 0 0;
@@ -2159,8 +2193,39 @@ esp-web-install-button .button,
   border-color: #55554c;
 }
 
-.asm-model[aria-current="true"] {
+.asm-model[aria-current="true"],
+button.asm-model[aria-pressed="true"] {
   border-color: var(--accent);
   background: var(--accent-dim);
   color: var(--accent);
+}
+
+button.asm-model {
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.asm-model:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.asm-download .btn {
+  min-height: 2.1rem;
+  padding: 0.35rem 0.85rem;
+}
+
+.asm-download .hint {
+  margin: 0;
+}
+
+/* Mods are built for one servo preset only. */
+.asm-model[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.asm-models + .asm-models {
+  margin-top: 0.5rem;
 }

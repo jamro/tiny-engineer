@@ -12,7 +12,7 @@ Any FDM bureau that accepts STL or STEP can work. **[PCBWay 3D printing](https:/
 
 1. Pick the servo folder that matches the servos you bought: `3d_models/parts/<servo_id>/` ([which servo](../shopping.md)).
 2. Prefer files under **`stl/`** (widely accepted). Use **`step/`** if the provider prefers CAD. **`3mf/`** is mainly for home slicers.
-3. Upload these **three** aggregates only — not the full individual-part inventory. They group pieces meant for the same material / color:
+3. Upload these **three** aggregates only — not the full individual-part inventory. They group pieces meant for the same material / color (the [3D viewer](https://jamro.github.io/tiny-engineer/assembly/)'s **Print service** download has the three STLs for the servo you pick):
 
 | File | Role |
 | --- | --- |

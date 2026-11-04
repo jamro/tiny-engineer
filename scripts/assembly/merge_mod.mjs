@@ -11,15 +11,15 @@
 //     on the stock part's floor (min z);
 //   at: [x, y] on the floor beside the robot (a prop);
 //   check: after aligning, a part's footprint must land on a stock part's.
-// Then it removes `remove`, swaps `replace`, and replaces same-id stock parts.
+// Then it removes `remove`, swaps `replace`, and replaces same-id stock parts,
+// and drops the stock screws and nuts that go through any of those.
 // Node 18+, no dependencies.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readStl } from './build_glb.mjs';
+import { meshPath, readStl } from './build_glb.mjs';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 // 4x4 column-major helpers.
 const multiply = (a, b) => {
@@ -104,7 +104,9 @@ export function mergeMod(stock, mod, config, load) {
   const removed = new Set([...(config.remove ?? []), ...Object.keys(config.replace ?? {}), ...placed]);
   const parts = [...stock.parts.filter((part) => !removed.has(part.id)), ...aligned].map(({ occurrence, ...part }) => part);
   if (problems.length) throw new Error(`mod ${config.id}:\n  ${problems.join('\n  ')}`);
-  return { ...stock, mod: config.id, parts, hardware: stock.hardware };
+  // A screw or nut through a part the mod removes or replaces goes too: the mod part's holes are its own.
+  const hardware = stock.hardware.filter((item) => !item.fastener?.parts.some((id) => removed.has(id)));
+  return { ...stock, mod: config.id, parts, hardware };
 }
 
 function main([stockPath, modPath, configPath, outPath]) {
@@ -114,7 +116,7 @@ function main([stockPath, modPath, configPath, outPath]) {
   }
   const read = (path) => JSON.parse(readFileSync(path, 'utf8'));
   const stockDir = dirname(resolve(stockPath));
-  const load = (path) => readFileSync(path.startsWith('3d_models/') || path.startsWith('mods/') ? resolve(ROOT, path) : resolve(stockDir, path));
+  const load = (path) => readFileSync(meshPath(stockDir, path));
   const merged = mergeMod(read(stockPath), read(modPath), read(configPath), load);
   // Hardware meshes stay beside the stock manifest.
   merged.hardware = merged.hardware.map((item) => ({ ...item, mesh: resolve(stockDir, item.mesh) }));

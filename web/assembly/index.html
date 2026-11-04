@@ -13,7 +13,8 @@
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/",
+        "fflate": "https://cdn.jsdelivr.net/npm/fflate@0.8.2/esm/browser.js"
       }
     }
   </script>
@@ -37,7 +38,7 @@
 
     <main>
       <div class="flash-intro">
-        <p class="eyebrow">3D · SG90 preset</p>
+        <p class="eyebrow">3D · <span id="asm-preset-label">SG90 preset</span></p>
         <h1>Assembly</h1>
         <p class="lede">
           The robot from the meshes you print. Walk through the build step by step, or colour every part and share the link.
@@ -48,6 +49,22 @@
         <span class="field-label">Model</span>
         <a class="asm-model" href="./" data-model="">Stock</a>
         <a class="asm-model" href="./#m=halloween" data-model="halloween">Halloween mod</a>
+      </div>
+
+      <div class="asm-models" role="group" aria-label="Servo">
+        <span class="field-label">Servo</span>
+        <a class="asm-model asm-preset" href="./" data-preset="sg90" title="Tower Pro SG90 (recommended)">SG90</a>
+        <a class="asm-model asm-preset" href="./#p=fs0307" data-preset="fs0307" title="Feetech FS0307">FS0307</a>
+        <a class="asm-model asm-preset" href="./#p=es9051" data-preset="es9051" title="EMAX ES9051">ES9051</a>
+        <a class="asm-model asm-preset" href="./#p=hd1370a" data-preset="hd1370a" title="PowerHD HD-1370A">HD-1370A</a>
+      </div>
+
+      <div class="asm-models asm-download" role="group" aria-label="Print files">
+        <span class="field-label">Print files</span>
+        <button class="asm-model asm-target" type="button" data-target="home" aria-pressed="true" title="One 3MF per part, for your slicer, with the two testers to print first">Home printer · 3MF</button>
+        <button class="asm-model asm-target" type="button" data-target="service" aria-pressed="false" title="The two colour sets and the lamp diffuser as STL, to upload to a print service">Print service · STL</button>
+        <button id="asm-download" class="btn" type="button" disabled>Download ZIP</button>
+        <span id="asm-download-status" class="hint mono" role="status"></span>
       </div>
 
       <div class="asm-layout">
@@ -62,6 +79,10 @@
             <label class="asm-check" for="asm-electronics">
               <input id="asm-electronics" type="checkbox" checked>
               <span>Electronics</span>
+            </label>
+            <label class="asm-check" for="asm-fasteners">
+              <input id="asm-fasteners" type="checkbox" checked>
+              <span>Screws</span>
             </label>
             <button id="asm-reset-view" class="btn btn-ghost" type="button">Reset view</button>
           </div>
@@ -150,6 +171,12 @@
               <button id="asm-detail-reset" class="btn btn-ghost" type="button">As designed</button>
             </div>
           </div>
+
+          <section id="asm-finishes" class="asm-group asm-finishes" hidden>
+            <p id="asm-finishes-title" class="asm-group-title">Screws and nuts</p>
+            <div id="asm-finish-rows" class="asm-finish-rows"></div>
+            <p class="hint">M2 thread-forming screws and M2 nuts, as bought: <a href="https://github.com/jamro/tiny-engineer/blob/main/3d_models/README.md#screws">screw list</a>.</p>
+          </section>
 
           <div id="asm-parts" class="asm-parts"></div>
           <p class="hint">Colours as designed: copper set, black set, white diffuser. Print sets: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/order-parts.md">order printed parts</a>.</p>

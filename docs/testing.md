@@ -55,14 +55,24 @@ npm test --prefix packages/tiny-engineer-claude-code
 
 ## 3D assembly model
 
-Python 3.13 with [`scripts/assembly/requirements.txt`](../scripts/assembly/requirements.txt), and Node 18+. Reads the Fusion design, checks every part's placement against its exported STL, and packs the GLB. CI job `assembly`. Details: [3d/assembly-viewer.md](3d/assembly-viewer.md).
+Python 3.13 with [`scripts/assembly/requirements.txt`](../scripts/assembly/requirements.txt), and Node 18+. Reads the Fusion design, checks every part's placement against its exported STL, and packs the GLB. Then checks the viewer's build steps on the meshes: no part may pass through another while it moves in, and no two parts may sit inside each other when assembled. Then checks the joint poses and animation loops the same way, and that the bell-ringing strike lands on the bell. CI job `assembly`. Details: [3d/assembly-viewer.md](3d/assembly-viewer.md#clipping-check), [pose check](3d/assembly-viewer.md#pose-check).
 
 ```bash
 python3 scripts/assembly/test_assembly.py
 node scripts/assembly/test_build_glb.mjs
+node scripts/assembly/test_viewer.mjs
+node scripts/assembly/test_clipping.mjs
+python3 scripts/assembly/test_presets.py
+python3 scripts/assembly/test_fasteners.py
+python3 scripts/assembly/test_boards.py
 python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
+python3 scripts/assembly/fasteners.py artifacts/assembly/sg90/assembly.json
 node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb
+node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
+node scripts/assembly/check_poses.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
 ```
+
+`scripts/assembly/build.sh` runs the extraction, places the M2 screws and nuts (`fasteners.py`, which fails when a line of `fasteners.json` finds another count), both step checks and the GLB build for stock, every other servo preset (`presets.py`, plus `check_contacts.mjs`) and every mod, and the pose check for stock and every preset.
 
 ## PCB
 
