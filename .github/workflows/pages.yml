@@ -8,7 +8,9 @@ on:
       - "scripts/build_flash_catalog.py"
       - "scripts/assembly/**"
       - "3d_models/cad/**"
-      - "3d_models/parts/sg90/stl/**"
+      - "3d_models/parts/*/stl/**"
+      - "3d_models/parts/*/step/**"
+      - "3d_models/fusion/TinyEngineerTools/servos.json"
       - "mods/*/3d_models/**"
       - ".github/workflows/pages.yml"
   # Fork only: deploy pull requests to this fork's GitHub Pages as a preview.
@@ -20,7 +22,9 @@ on:
       - "scripts/build_flash_catalog.py"
       - "scripts/assembly/**"
       - "3d_models/cad/**"
-      - "3d_models/parts/sg90/stl/**"
+      - "3d_models/parts/*/stl/**"
+      - "3d_models/parts/*/step/**"
+      - "3d_models/fusion/TinyEngineerTools/servos.json"
       - "mods/*/3d_models/**"
       - ".github/workflows/pages.yml"
   release:
