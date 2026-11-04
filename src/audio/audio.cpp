@@ -4,6 +4,7 @@
 #include <LittleFS.h>
 #include <math.h>
 
+#include "animation.h"
 #include "api/busy.h"
 #include "audio/audio_cues.h"
 #include "audio/wav_stream.h"
@@ -220,7 +221,9 @@ void stopAllWavPlayback() {
 
 bool tryStartButtonEventSound(const char* sound) {
   const ButtonSfxClip sfx = parseButtonSfx(sound);
-  if (!shouldStartButtonSfx(sfx, wavStreamIsActive(), apiBusyHeld())) {
+  const bool animOwnsActive =
+    wavStreamIsActive() && animationDrivesWavStream(getAnimation());
+  if (!shouldStartButtonSfx(sfx, apiBusyHeld(), animOwnsActive)) {
     return false;
   }
 

@@ -132,7 +132,8 @@ export function ApiReference() {
             <td>string</td>
             <td>
               <code>none</code>, <code>bell</code>, or <code>click</code> (default none; persists
-              when off; immediate; skip if speaker busy)
+              when off; immediate; preempts prior button SFX; skip during{' '}
+              <code>/play</code> and animation speech/bell clips)
             </td>
           </tr>
           <tr>

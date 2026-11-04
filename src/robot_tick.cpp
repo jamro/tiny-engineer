@@ -10,24 +10,6 @@
 #include "network/wifi_connect.h"
 #include "sleep.h"
 
-namespace {
-
-bool animationDrivesWavStream(AnimationId id) {
-  switch (id) {
-    case AnimationId::Ring:
-    case AnimationId::Welcome:
-    case AnimationId::Attention:
-    case AnimationId::Error:
-    case AnimationId::Abort:
-    case AnimationId::Dead:
-      return true;
-    default:
-      return false;
-  }
-}
-
-}  // namespace
-
 void tickRobot() {
   const uint32_t now = millis();
   pollWifi();

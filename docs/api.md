@@ -188,7 +188,7 @@ curl http://tiny-engineer.local/settings
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
 | `push_button` | Extension-port push-button reader (default **false**). When on, publishes immediate `button.down` / `button.up` plus `button.click` / `button.double_click` / `button.long_click` (see [Outbound events](#outbound-events)). Applies **immediately** |
 | `push_button_pin` | GPIO on the Extension port for the push-button: **6**, **7**, **20**, or **21** (default **20**). Persists when `push_button` is off. Applies **immediately** when the extension is on |
-| `push_button_sound_down` | Local SFX for `button.down`: `none`, `bell`, or `click` (default **`none`**). Persists when off. Applies **immediately**. Skipped when the speaker is busy |
+| `push_button_sound_down` | Local SFX for `button.down`: `none`, `bell`, or `click` (default **`none`**). Persists when off. Applies **immediately**. Preempts a prior button SFX; skipped during `/play` and animation speech/bell clips |
 | `push_button_sound_up` | Same allowlist for `button.up` (default **`none`**) |
 | `push_button_sound_click` | Same allowlist for `button.click` (default **`none`**) |
 | `push_button_sound_double_click` | Same allowlist for `button.double_click` (default **`none`**) |

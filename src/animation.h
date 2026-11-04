@@ -26,6 +26,8 @@ AnimationId getAnimation();
 bool hasPendingAnimation();
 AnimationId pendingAnimation();
 bool animationIsContinuous(AnimationId id);
+// True when this animation owns LittleFS wavStreamUpdate (ring/speech clips).
+bool animationDrivesWavStream(AnimationId id);
 const char* animationName(AnimationId id);
 bool parseAnimationName(const char* name, AnimationId& out);
 void updateAnimation();
