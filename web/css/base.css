@@ -2164,3 +2164,13 @@ esp-web-install-button .button,
   background: var(--accent-dim);
   color: var(--accent);
 }
+
+/* Mods are built for one servo preset only. */
+.asm-model[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.asm-models + .asm-models {
+  margin-top: 0.5rem;
+}

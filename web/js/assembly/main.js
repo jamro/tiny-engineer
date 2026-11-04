@@ -1,6 +1,6 @@
 // Tiny Engineer assembly viewer: the robot from the printed meshes, with a
-// colour per part. Model: models/<preset>.glb, built by CI from the CAD
-// (docs/3d/assembly-viewer.md).
+// colour per part. Model: models/<preset>.glb, built by CI from the CAD, one
+// per servo preset (docs/3d/assembly-viewer.md).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createStage, smoothNormals } from './stage.js';
@@ -10,8 +10,10 @@ import { applyMod } from './steps.js';
 import { rig } from './joints.js';
 import { ANIMATIONS, CENTRE, JOINT_IDS, blendPoses, normalizePose } from './poses.js';
 
-const PRESET = 'sg90';
-/** Mods the viewer can show (web/assembly/mods/<id>.json, models/<preset>-<id>.glb). */
+/** Servo presets the viewer can show (#p=fs0307), the design's own first. */
+const PRESETS = ['sg90', 'fs0307', 'es9051', 'hd1370a'];
+const PRESET_LABELS = { sg90: 'SG90', fs0307: 'FS0307', es9051: 'ES9051', hd1370a: 'HD-1370A' };
+/** Mods the viewer can show (web/assembly/mods/<id>.json, models/sg90-<id>.glb; SG90 only). */
 const MODS = ['halloween'];
 const STEPS_URL = 'steps.json';
 /** Opacity of a part drawn as a ghost (see-through) in a build step. */
@@ -44,6 +46,8 @@ export function partLabel(id) {
 const hashParams = () => new URLSearchParams(location.hash.slice(1));
 /** The mod shown (#m=halloween), or null for the stock robot. */
 const currentMod = () => (MODS.includes(hashParams().get('m')) ? hashParams().get('m') : null);
+/** The servo preset shown (#p=fs0307); mods are built for SG90 only. */
+const currentPreset = () => (!currentMod() && PRESETS.includes(hashParams().get('p')) ? hashParams().get('p') : PRESETS[0]);
 const storageKey = () => `${STORAGE_KEY_BASE}${currentMod() ? `-${currentMod()}` : ''}`;
 
 /** Set (or with null, remove) one parameter of the URL hash, keeping the others. */
@@ -81,13 +85,26 @@ function groupOf(part) {
 async function main() {
   const status = $('#asm-status');
   const mod = currentMod();
-  const MODEL_URL = `models/${PRESET}${mod ? `-${mod}` : ''}.glb`;
-  for (const link of document.querySelectorAll('.asm-model')) {
+  const preset = currentPreset();
+  const MODEL_URL = `models/${preset}${mod ? `-${mod}` : ''}.glb`;
+  $('#asm-preset-label').textContent = `${PRESET_LABELS[preset]} preset`;
+  for (const link of document.querySelectorAll('.asm-model:not(.asm-preset)')) {
     link.setAttribute('aria-current', String((link.dataset.model || null) === mod));
     // Switching model reloads the page with its own colours and steps.
     link.addEventListener('click', (event) => {
       event.preventDefault();
-      location.hash = link.dataset.model ? `m=${link.dataset.model}` : '';
+      location.hash = link.dataset.model ? `m=${link.dataset.model}` : (preset === PRESETS[0] ? '' : `p=${preset}`);
+      location.reload();
+    });
+  }
+  for (const link of document.querySelectorAll('.asm-preset')) {
+    link.setAttribute('aria-current', String(link.dataset.preset === preset));
+    if (mod && link.dataset.preset !== PRESETS[0]) link.setAttribute('aria-disabled', 'true');
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (link.getAttribute('aria-disabled') === 'true') return;
+      // A servo preset is a robot of its own size: the stock parts at that preset.
+      location.hash = link.dataset.preset === PRESETS[0] ? '' : `p=${link.dataset.preset}`;
       location.reload();
     });
   }
@@ -379,7 +396,7 @@ async function main() {
     stopAnimation = stage.onTick((time) => {
       const t = (time - start) / 1000;
       // Ease in from the current pose over the first half second.
-      applyPose(blendPoses(from, normalizePose(animation.pose(t)), Math.min(1, t / 0.5)));
+      applyPose(blendPoses(from, normalizePose(animation.pose(t, preset)), Math.min(1, t / 0.5)));
       return true;
     });
     animPlay.textContent = 'Pause';
@@ -510,7 +527,7 @@ async function main() {
     showTab(build && !hashParams().get('c') ? 'build' : 'colors');
     layout();
   }
-  status.textContent = `${parts.filter((part) => part.kind !== 'hardware').length} printed parts · ${parts.filter((part) => part.kind === 'hardware').length} electronics · ${PRESET.toUpperCase()}`;
+  status.textContent = `${parts.filter((part) => part.kind !== 'hardware').length} printed parts · ${parts.filter((part) => part.kind === 'hardware').length} electronics · ${PRESET_LABELS[preset]}`;
   status.dataset.state = 'ready';
   document.body.dataset.ready = 'true';
   // For tests and the console.
