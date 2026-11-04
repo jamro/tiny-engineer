@@ -18,8 +18,8 @@ on:
       - "mods/*/3d_models/**"
       - ".github/workflows/pages.yml"
   # Fork only: deploy pull requests to this fork's GitHub Pages as a preview.
-  # Remove this pull_request trigger (and the fork-preview-guard job below)
-  # before this is merged into upstream main (jamro/tiny-engineer).
+  # Remove this pull_request trigger before this is merged into upstream main
+  # (jamro/tiny-engineer).
   pull_request:
     paths:
       - "web/**"
@@ -49,19 +49,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Fails every pull request run on purpose, so a PR that still carries the
-  # fork's preview trigger shows a red check and is not merged upstream by
-  # accident. The deploy job does not depend on it: the preview still builds
-  # and deploys. Remove together with the pull_request trigger above.
-  fork-preview-guard:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail on purpose (fork preview trigger still present)
-        run: |
-          echo "::error file=.github/workflows/pages.yml::Pages runs on pull requests for fork previews. Remove the pull_request trigger and this job before merging into upstream main."
-          exit 1
-
   deploy:
     runs-on: ubuntu-latest
     environment:
