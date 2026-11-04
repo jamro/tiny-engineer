@@ -14,6 +14,7 @@ import {
 import { runDaemon } from "./daemon/commands.js";
 import { runMonitor } from "./commands/monitor.js";
 import { runPort } from "./commands/port.js";
+import { runRules } from "./commands/rules.js";
 import { runWatch } from "./commands/watch.js";
 import { get as getIntegration, list as listIntegrations } from "./integrations/registry.js";
 import { validateAnimName, validatePlayAnimName } from "./robot/client.js";
@@ -56,6 +57,7 @@ Commands:
   reset [--yes]           Factory-reset device (confirm or --yes)
   monitor                 Print serial LOG frames (via the host daemon)
   watch                   Print outbound events (WebSocket or serial Evt)
+  rules list|add|remove   Run a host program when the robot emits an event
   port [--probe]          List serial ports and the auto-detect choice
   daemon start|stop|release|disable|status|restart|install|uninstall
                           Host session. stop and release close USB and stay up.
@@ -78,6 +80,11 @@ Config / auth:
   (not sent when URL came only from project .env and token from user/process —
   request continues without Bearer; stderr warns).
   Serial transport skips Bearer auth.
+  rules add <type> -- <program> [args...] stores an absolute program path.
+  A relative program path is resolved from the current directory.
+  The daemon does not search PATH. sh -c scripts see the login agent's PATH
+  (/usr/bin:/bin on macOS and Linux), so call programs by absolute path there too.
+  HTTP anim and hooks do not go through the daemon.
 
 Output:
   Colors/icons when stdout/stderr is a TTY (disabled by NO_COLOR or TERM=dumb).
@@ -325,6 +332,9 @@ export async function run(argv) {
       return;
     case "watch":
       await runWatch(out, rest);
+      return;
+    case "rules":
+      await runRules(out, rest);
       return;
     case "port":
       await runPort(out, rest);

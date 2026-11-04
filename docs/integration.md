@@ -71,7 +71,21 @@ Serial commands (`anim`, `play`, `watch`, `monitor`, settings, doctor, hooks, an
 
 `tiny-engineer daemon status` prints whether `daemon install` is on, the host serial ports, which port the daemon has open, plus the channel and package root. Registry installs (`npx -y tiny-engineer`, or a global install) are `npm`. `node packages/tiny-engineer-cli/bin/tiny-engineer.js` from this repo is `dev`. A dev checkout replaces a running npm daemon. An npm command leaves a dev daemon running. `daemon restart` from the tree you want replaces a different checkout.
 
-`tiny-engineer daemon release` and plain `tiny-engineer daemon stop` free the USB port and leave the process running. `tiny-engineer daemon disable` exits and stays down until `tiny-engineer daemon start`. `tiny-engineer daemon stop --yield` keeps the process, refuses auto-start for 180 seconds, and does not reopen the port when that window ends. `tiny-engineer daemon install` registers a per-user login wrapper (not a system-boot service) that restarts the process after a crash. `start --port` and `restart --port` are ignored while that wrapper is installed. The next open uses the command port, the cache, or autodetect. Details: [`serial.md`](serial.md).
+`tiny-engineer daemon release` and plain `tiny-engineer daemon stop` free the USB port and leave the process running. They suspend serial reaction auto-open until `daemon start`, `daemon restart`, or a serial command. HTTP reactions stay connected. `tiny-engineer daemon disable` exits and stays down until `tiny-engineer daemon start`. `tiny-engineer daemon stop --yield` keeps the process, refuses auto-start for 180 seconds, and does not reopen the port when that window ends. When serial reactions are armed (`rules.json` has a rule and the user transport is `serial`), `daemon start` and `daemon restart` open the USB port. Otherwise they leave it closed. `tiny-engineer daemon install` registers a per-user login wrapper (not a system-boot service) that restarts the process after a crash. `start --port` and `restart --port` are ignored while that wrapper is installed. The next open uses the command port, the cache, or autodetect. HTTP `anim` and hooks do not go through the daemon. Details: [`serial.md`](serial.md).
+
+### Event rules
+
+`tiny-engineer rules` maps a robot event to a host program. The file is `rules.json` beside the user env file. `rules add` does not run `daemon install`.
+
+The default build does not emit events. Some extensions and mods may. The `button.click` example needs a producer such as the push-button extension (off until enabled; see [`api.md`](api.md#outbound-events)). The [bell button](../mods/bell_button/README.md) mod uses that extension.
+
+```bash
+tiny-engineer rules add button.click -- /usr/bin/open -a Music
+tiny-engineer rules list
+tiny-engineer rules remove 1
+```
+
+`add` stores the program as an absolute path. A relative path is resolved from the current directory. A bare name is resolved from `PATH` at that moment. An absolute path is stored as given. The daemon does not search PATH. `sh -c` scripts still see the login agent's PATH (`/usr/bin:/bin` on macOS and Linux), so those scripts must call programs by absolute path too. The reaction link follows the user-config transport, not a one-off `--transport` flag.
 
 ### Setup wizard
 

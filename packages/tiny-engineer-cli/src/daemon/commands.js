@@ -1,6 +1,7 @@
 import { userConfigDir } from "../config/paths.js";
 import { installSupervisor, osRegistrar, uninstallSupervisor } from "./install.js";
 import { clearDisable, clearYield, daemonStatusText, disableDaemon, ensureDaemon, releaseDaemon, shutdownDaemon, supervisorInstalled, tryConnect } from "./client.js";
+import { clearReactionsSuspended } from "./reactions.js";
 import { daemonPaths } from "./paths.js";
 import { resolveCliScript } from "./policy.js";
 import { serveDaemon } from "./server.js";
@@ -54,14 +55,20 @@ Plain stop matches release: the process stays up and the USB port closes.
 The port stays closed until the next serial command.
 
   start [--port <path>]   Start unless already running. Clears disable and yield.
-                          Does not open the USB port.
+                          Opens the USB port when serial reactions are armed
+                          (a rule in rules.json and user transport serial).
+                          Otherwise the port stays closed.
                           --port is ignored while daemon install is on.
   stop [--yield]          Same as release. --yield refuses serial open for 180s
                           and leaves the process running (firmware upload).
+                          Suspends serial reaction auto-open until start,
+                          restart, or a serial command. HTTP reactions stay up.
   release                 Close the USB port. Process stays up. No yield.
+                          Suspends serial reaction auto-open the same way as stop.
   disable                 Exit and refuse auto-start until start.
   status                  Print pid, version, channel, package root, proto, and port.
   restart [--port <path>] Clear disable and yield, then start a fresh process.
+                          Opens the USB port when serial reactions are armed.
                           --port is the port the new process opens next.
                           --port is ignored while daemon install is on.
   install                 Start the login wrapper for this user. Not a boot service.
@@ -97,9 +104,11 @@ export async function runDaemon(out, argv) {
   if (opts.command === "start") {
     clearDisable(configDir);
     clearYield(configDir);
+    clearReactionsSuspended(configDir);
     try {
       warnIgnoredPort(out, configDir, opts.port);
       const conn = await ensureDaemon({ configDir, port: opts.port ?? null, forceStart: true });
+      await conn.peer.request("reactions.sync", {}, 2000);
       conn.socket.end();
     } catch (err) {
       out.error(err instanceof Error ? err.message : String(err));
@@ -174,10 +183,12 @@ export async function runDaemon(out, argv) {
   if (opts.command === "restart") {
     clearDisable(configDir);
     clearYield(configDir);
+    clearReactionsSuspended(configDir);
     await shutdownDaemon(configDir, "stop");
     try {
       warnIgnoredPort(out, configDir, opts.port);
       const conn = await ensureDaemon({ configDir, port: opts.port ?? null, forceStart: true });
+      await conn.peer.request("reactions.sync", {}, 2000);
       conn.socket.end();
     } catch (err) {
       out.error(err instanceof Error ? err.message : String(err));
