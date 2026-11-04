@@ -22,7 +22,12 @@ inline ButtonSfxClip parseButtonSfx(const char* sound) {
   return ButtonSfxClip::None;
 }
 
-// True when a mapped clip should start (not none, speaker free).
-inline bool shouldStartButtonSfx(ButtonSfxClip clip, bool streamActive, bool apiBusy) {
-  return clip != ButtonSfxClip::None && !streamActive && !apiBusy;
+// Start unless none, /play busy, or a sound-owning anim is streaming.
+// Orphan SFX may be preempted by wavStreamStart.
+inline bool shouldStartButtonSfx(
+  ButtonSfxClip clip,
+  bool apiBusy,
+  bool animOwnsActiveStream
+) {
+  return clip != ButtonSfxClip::None && !apiBusy && !animOwnsActiveStream;
 }

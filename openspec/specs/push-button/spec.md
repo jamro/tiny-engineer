@@ -161,7 +161,7 @@ While the extension is on, the firmware MUST evaluate long-hold and delayed-clic
 - **THEN** `button.click` is published on a subsequent poll after that deadline
 
 ### Requirement: Publish plays mapped sound when free
-When the extension publishes a button event and the matching sound setting is `bell` or `click`, the firmware MUST start that LittleFS clip (`/bell.wav` or `/click.wav`) on the speaker without blocking the publish path, unless the speaker is already busy. When the setting is `none`, the firmware MUST NOT start a clip for that event. When the speaker is busy, the firmware MUST skip the clip and MUST still publish the outbound event.
+When the extension publishes a button event and the matching sound setting is `bell` or `click`, the firmware MUST start that LittleFS clip (`/bell.wav` or `/click.wav`) on the speaker without blocking the publish path, unless `/play` holds the speaker busy or a sound-owning animation is actively streaming. When the setting is `none`, the firmware MUST NOT start a clip for that event. When skipped, the firmware MUST still publish the outbound event. When an orphan button SFX (or other non-animation LittleFS stream) is already playing, the firmware MUST stop it and start the new mapped clip.
 
 #### Scenario: Click with bell when idle
 - **WHEN** `push_button` is true, `push_button_sound_click` is `bell`, the speaker is idle, and a `button.click` is published
@@ -171,8 +171,12 @@ When the extension publishes a button event and the matching sound setting is `b
 - **WHEN** `push_button_sound_down` is `none` and a `button.down` is published
 - **THEN** sinks receive `button.down` and no button sound clip starts
 
-#### Scenario: Busy speaker skips sound
-- **WHEN** the speaker is already playing (stock WAV stream or `/play`) and a mapped button sound would otherwise start
+#### Scenario: Orphan SFX is preempted
+- **WHEN** an orphan button SFX is already playing and a mapped button sound would otherwise start
+- **THEN** the outbound event is still published, the prior SFX stops, and the new clip starts
+
+#### Scenario: Play or anim stream skips sound
+- **WHEN** `/play` holds the speaker busy, or a sound-owning animation is actively streaming, and a mapped button sound would otherwise start
 - **THEN** the outbound event is still published and the button sound clip does not start or interrupt the current playback
 
 ### Requirement: Click WAV on filesystem image

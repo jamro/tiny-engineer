@@ -148,10 +148,12 @@ void test_button_sfx_parse_and_busy_gate() {
     static_cast<int>(parseButtonSfx("welcome"))
   );
   TEST_ASSERT_FALSE(shouldStartButtonSfx(ButtonSfxClip::None, false, false));
+  // Idle or orphan SFX (animOwnsActiveStream false): start / preempt allowed.
   TEST_ASSERT_TRUE(shouldStartButtonSfx(ButtonSfxClip::Bell, false, false));
   TEST_ASSERT_TRUE(shouldStartButtonSfx(ButtonSfxClip::Click, false, false));
   TEST_ASSERT_FALSE(shouldStartButtonSfx(ButtonSfxClip::Bell, true, false));
   TEST_ASSERT_FALSE(shouldStartButtonSfx(ButtonSfxClip::Click, false, true));
+  TEST_ASSERT_FALSE(shouldStartButtonSfx(ButtonSfxClip::Bell, true, true));
 }
 
 int main(int, char**) {
