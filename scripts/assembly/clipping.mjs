@@ -336,3 +336,27 @@ export function penetration(a, b, shift = [0, 0, 0], stopAt = Infinity, floor = 
   if (there > stopAt) return there;
   return Math.max(there, oneWay(b, a, shift.map((v) => -v), stopAt, Math.max(floor, there)));
 }
+
+/**
+ * How far apart two solids' surfaces are, up to `limit` (mm; `limit` when they
+ * are farther apart): the nearest of either one's surface samples to the other's
+ * triangles. 0 when they touch or overlap.
+ */
+export function gap(a, b, limit = 1) {
+  if (!boxesOverlap(a.box, b.box, [0, 0, 0], limit)) return limit;
+  let best = limit;
+  for (const [from, to] of [[a, b], [b, a]]) {
+    const query = [0, 1, 2].map((k) => to.box[k] - best).concat([0, 1, 2].map((k) => to.box[k + 3] + best));
+    eachCell(from.samples, query, (cell) => {
+      for (let i = 0; i < cell.length; i += 3) {
+        const p = [cell[i], cell[i + 1], cell[i + 2]];
+        if (boxDistance2(p, to.box) > best * best) continue;
+        best = Math.min(best, surfaceDistance(to, p, best));
+        if (best === 0) return false;
+      }
+      return true;
+    });
+    if (best === 0) break;
+  }
+  return best;
+}

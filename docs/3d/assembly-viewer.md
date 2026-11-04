@@ -16,7 +16,7 @@ flowchart LR
 
 ## Viewer
 
-[`web/assembly/`](../../web/assembly/) on GitHub Pages, plain ES modules in [`web/js/assembly/`](../../web/js/assembly/), with Three.js from a CDN. It loads `models/sg90.glb`, which the [Pages workflow](../../.github/workflows/pages.yml) builds on deploy.
+[`web/assembly/`](../../web/assembly/) on GitHub Pages, plain ES modules in [`web/js/assembly/`](../../web/js/assembly/), with Three.js from a CDN. It loads `models/<preset>.glb` (`sg90`, `fs0307`, `es9051`, `hd1370a`), which the [Pages workflow](../../.github/workflows/pages.yml) builds on deploy.
 
 - **Build steps:** the build from [assembly.md](assembly.md), split into small steps. Each step shows the robot so far, slides the new parts in, frames them, and lists screws, the section photo and a link to the guide. Play, ← / →, or jump to a section. `#s=12` links to step 12.
 - **Colours:** click a part, or its name in the list, and pick a filament colour or a custom one. Each print set (copper `PartsSetA`, black `PartsSetB`) has one control for all its parts. Defaults are the colours as designed ([order-parts.md](order-parts.md)).
@@ -57,13 +57,13 @@ A failure names the step (number overall, then section and number in it), the tw
 
 ### Pose check
 
-[`check_poses.mjs`](../../scripts/assembly/check_poses.mjs) turns the parts about the servo shafts as the viewer does (`JOINTS` in [`poses.js`](../../web/js/assembly/poses.js), at ±25°) and checks parts that move relative to each other for clipping, at 90°, at rest and every 0.1 s through each animation loop. `fits` apply as in the step check. It also checks that the ring loop's strike lands the right hand on the bell (within 0.5 mm, not in it). Stock only, about 80 s; `build.sh` runs it.
+[`check_poses.mjs`](../../scripts/assembly/check_poses.mjs) turns the parts about the servo shafts as the viewer does (`JOINTS` in [`poses.js`](../../web/js/assembly/poses.js), at ±25°) and checks parts that move relative to each other for clipping, at 90°, at rest and every 0.1 s through each animation loop. `fits` apply as in the step check. It also checks that the ring loop's strike lands the right hand on the bell (within 0.5 mm, not in it). About 80 s per preset; `build.sh` runs it for stock and every servo preset.
 
 ```bash
 node scripts/assembly/check_poses.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json [--tolerance 0.3] [--range 25]
 ```
 
-The ring loop follows the firmware ([`ring.cpp`](../../src/animation/ring.cpp)): body turned fully right (−1), right hand up, strike, bounce to −5/9. The firmware strikes to −8/9 of a calibrated range; at the viewer's ±25° that stops 2 mm above the bell, so the viewer strikes to `RING_RIGHT_HIT` (−0.97), where the hand meets it.
+The ring loop follows the firmware ([`ring.cpp`](../../src/animation/ring.cpp)): body turned fully right (−1), right hand up, strike, bounce to −5/9. The firmware strikes to −8/9 of a calibrated range; at the viewer's ±25° that stops 2 mm above the bell, so the viewer strikes to where the hand meets it: −0.97 at SG90, and per servo preset in `RING_RIGHT_HITS`.
 
 Local preview: build the GLB into `web/assembly/models/sg90.glb` (commands below), then `python3 -m http.server -d web 8000` and open `http://localhost:8000/assembly/`.
 
@@ -105,7 +105,21 @@ Not 100 % of vertices: a solid blob also keeps earlier solids of the timeline, a
 
 ## Servo preset
 
-The checks run against **one** preset's STLs: the one the `.f3d` was saved with (currently **SG90**). After changing the saved preset, run the extractor with the matching `--preset`. Other presets need the design saved at that preset.
+The extractor reads **one** preset: the one the `.f3d` was saved with (currently **SG90**), and checks it against that preset's STLs. After changing the saved preset, run it with the matching `--preset`.
+
+The other presets (FS0307, ES9051, HD-1370A; the viewer's **Servo** switch, `#p=fs0307`) come from [`presets.py`](../../scripts/assembly/presets.py). Fusion places every component by its joints, outward from the body servo, which never moves; `presets.py` follows the same joints at the other preset:
+
+- **Servo frames** follow the servo's own dimensions from [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json): the design's servo is blocks and a shaft with fixed clearances (0.6 mm on body, depth and tab thickness, 0.3 mm on the shaft), its shaft top at y 0.6 of its frame. Its mesh at the preset is drawn from the same sizes, without the tabs' screw holes.
+- **Frames on printed parts** move with the feature they sit on, found in the part's STEP export at both presets (`3d_models/parts/<preset>/step/`, in the component's own frame): a part that only moves (lamp, bell, mug) by its one translation; otherwise by the features around the frame that move rigidly, preferring the feature the frame is on (a recess's circle); a vertex, a midpoint of two vertices, or a point on a circle's axis.
+- **Where a frame cannot be moved reliably** (the chest's servo pack: its servos sit in their pockets with clearance), the parts joined by exact joints are placed together by their contacts with the parts already placed, axis by axis. The run lists the joints it overrode this way.
+- Each part's STL is then fitted to its STEP vertices for the print transform.
+
+It is checked against the design's history: `TinyEngineer.f3d` is saved at FS0307 at 22afc31 and at SG90 at 268ad4b. From either one, with its commit's exports, `presets.py` places every component of the other to 0.001 mm (`test_presets.py --history`). The presets then go through the same checks as SG90 (steps, clipping, and [`check_contacts.mjs`](../../scripts/assembly/check_contacts.mjs): every two parts that touch in the SG90 robot still touch). The pose check runs at every preset too; the ring strike stops where that preset's hand meets its bell (`RING_RIGHT_HITS` in `poses.js`). Mods are built for SG90 only.
+
+```bash
+python3 scripts/assembly/presets.py --preset fs0307 --base artifacts/assembly/sg90 --out artifacts/assembly/fs0307
+node scripts/assembly/check_contacts.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/fs0307/assembly.json
+```
 
 ## Run locally
 
@@ -118,8 +132,9 @@ node scripts/assembly/test_build_glb.mjs
 .venv/bin/python scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
 node scripts/assembly/test_viewer.mjs
 node scripts/assembly/test_clipping.mjs
+.venv/bin/python scripts/assembly/test_presets.py --history
 node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
-PYTHON=.venv/bin/python scripts/assembly/build.sh   # stock + mods -> web/assembly/models/
+PYTHON=.venv/bin/python scripts/assembly/build.sh   # every preset + mods -> web/assembly/models/
 ```
 
 `artifacts/` and `web/assembly/models/` are git-ignored. CI runs the same commands (`assembly` job) and uploads `assembly.json` and the GLB as the `assembly-<sha>` artifact.

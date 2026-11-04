@@ -2,7 +2,7 @@
 // Tests for the build-step clipping check (clipping.mjs, check_clipping.mjs), on boxes.
 //   node scripts/assembly/test_clipping.mjs
 import assert from 'node:assert/strict';
-import { makeSolid, penetration, inside, surfaceDistance } from './clipping.mjs';
+import { gap, makeSolid, penetration, inside, surfaceDistance } from './clipping.mjs';
 import { checkSteps, describe } from './check_clipping.mjs';
 import { checkPoses, poser } from './check_poses.mjs';
 
@@ -107,5 +107,10 @@ assert.ok(posed({ 'hand-right': -1 }).get('ForearmRight').box[2] < -10, 'and dow
 assert.equal(posed({}).get('ForearmRight'), arm.get('ForearmRight'), 'unmoved parts are reused');
 const poseProblems = checkPoses(arm, shaft, null, { poses: { low: { 'hand-right': -1 } } });
 assert.ok(poseProblems.some((problem) => problem.startsWith('low: ForearmRight × Bell clip')), poseProblems.join('; '));
+
+// Gaps between surfaces: touching faces 0, apart by their distance, capped at the limit.
+near(gap(cube, box('touching', [10, 0, 0], [10, 10, 10])), 0, 1e-6);
+near(gap(cube, box('apart', [12.5, 0, 0], [10, 10, 10]), 5), 2.5, 1e-6);
+assert.equal(gap(cube, box('far', [40, 0, 0], [10, 10, 10]), 1), 1);
 
 console.log('clipping tests passed');

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Build the 3D viewer's models: stock SG90 and every mod in web/assembly/mods/.
-# Checks every placement and every step on the way, clipping included, and the
-# stock robot's joint poses and animations (see docs/3d/assembly-viewer.md).
+# Build the 3D viewer's models: stock SG90, the other servo presets, and every
+# mod in web/assembly/mods/ (SG90).
+# Checks every placement and every step on the way, clipping included, and each
+# preset's joint poses and animations (see docs/3d/assembly-viewer.md).
 #   scripts/assembly/build.sh [out-dir]   # default web/assembly/models
 # Python 3.13 with scripts/assembly/requirements.txt, Node 18+.
 set -euo pipefail
@@ -16,6 +17,17 @@ node scripts/assembly/check_steps.mjs "$work/$preset/assembly.json" web/assembly
 node scripts/assembly/check_clipping.mjs "$work/$preset/assembly.json" web/assembly/steps.json
 node scripts/assembly/check_poses.mjs "$work/$preset/assembly.json" web/assembly/steps.json
 node scripts/assembly/build_glb.mjs "$work/$preset/assembly.json" "$out/$preset.glb"
+
+# The other servo presets: the same robot solved from the design's joints at
+# that preset's sizes and exported parts (scripts/assembly/presets.py).
+for other in fs0307 es9051 hd1370a; do
+  "$python" scripts/assembly/presets.py --preset "$other" --base "$work/$preset" --out "$work/$other"
+  node scripts/assembly/check_steps.mjs "$work/$other/assembly.json" web/assembly/steps.json
+  node scripts/assembly/check_clipping.mjs "$work/$other/assembly.json" web/assembly/steps.json
+  node scripts/assembly/check_contacts.mjs "$work/$preset/assembly.json" "$work/$other/assembly.json"
+  node scripts/assembly/check_poses.mjs "$work/$other/assembly.json" web/assembly/steps.json
+  node scripts/assembly/build_glb.mjs "$work/$other/assembly.json" "$out/$other.glb"
+done
 
 for config in web/assembly/mods/*.json; do
   mod="$(basename "$config" .json)"
