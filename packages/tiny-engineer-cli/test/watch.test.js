@@ -4,17 +4,13 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import {
-  eventsWebSocketUrl,
-  handleWatchSerialMessage,
-  redactEventsUrl,
-  runWatch,
-} from "../src/commands/watch.js";
+import { handleWatchSerialMessage, runWatch } from "../src/commands/watch.js";
 import { disableDaemon, ensureDaemon, followDaemonChannel, releaseDaemon, stopDaemon } from "../src/daemon/client.js";
 import { uninstallSupervisor } from "../src/daemon/install.js";
 import { daemonPaths } from "../src/daemon/paths.js";
 import { delay } from "../src/daemon/proc.js";
 import { serveDaemon } from "../src/daemon/server.js";
+import { eventsWebSocketUrl, redactEventsUrl } from "../src/robot/events-url.js";
 import { packMessage, SerialMsgType } from "../src/robot/serial/protocol.js";
 import { createOutput } from "../src/util/output.js";
 
