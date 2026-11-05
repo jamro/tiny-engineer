@@ -1,27 +1,47 @@
 /**
  * NDJSON peer over a socket. Responses with `id` resolve `request()`.
- * Other messages go to listeners.
+ * Other messages go to listeners. Socket close/error rejects waiters.
  * @param {import("node:net").Socket} socket
  * @param {string} [initial]
  */
 export function createPeer(socket, initial = "") {
   let buf = initial;
   let seq = 0;
-  /** @type {Map<number, (msg: Record<string, unknown>) => void>} */
+  let closed = false;
+  /**
+   * @typedef {{
+   *   resolve: (msg: Record<string, unknown>) => void,
+   *   reject: (err: Error) => void,
+   *   timer: ReturnType<typeof setTimeout>,
+   * }} Waiter
+   */
+  /** @type {Map<number, Waiter>} */
   const waiters = new Map();
   /** @type {Set<(msg: Record<string, unknown>) => void>} */
   const listeners = new Set();
   /** @type {Record<string, unknown>[]} */
   const queued = [];
 
+  const failClosed = () => {
+    if (closed) return;
+    closed = true;
+    const err = new Error("daemon connection closed");
+    for (const [, waiter] of waiters) {
+      clearTimeout(waiter.timer);
+      waiter.reject(err);
+    }
+    waiters.clear();
+  };
+
   /**
    * @param {Record<string, unknown>} msg
    */
   const emit = (msg) => {
     if (msg.id != null && waiters.has(/** @type {number} */ (msg.id))) {
-      const fn = waiters.get(/** @type {number} */ (msg.id));
+      const waiter = waiters.get(/** @type {number} */ (msg.id));
       waiters.delete(/** @type {number} */ (msg.id));
-      fn?.(msg);
+      clearTimeout(waiter?.timer);
+      waiter?.resolve(msg);
       return;
     }
     if (listeners.size === 0) queued.push(msg);
@@ -47,6 +67,8 @@ export function createPeer(socket, initial = "") {
     buf += chunk.toString("utf8");
     drain();
   });
+  socket.on("close", failClosed);
+  socket.on("error", failClosed);
   drain();
 
   return {
@@ -66,14 +88,15 @@ export function createPeer(socket, initial = "") {
     request(method, params = {}, timeoutMs = 5000) {
       const id = ++seq;
       return new Promise((resolve, reject) => {
+        if (closed) {
+          reject(new Error("daemon connection closed"));
+          return;
+        }
         const timer = setTimeout(() => {
           waiters.delete(id);
           reject(new Error(`daemon request timed out (${method})`));
         }, timeoutMs);
-        waiters.set(id, (msg) => {
-          clearTimeout(timer);
-          resolve(msg);
-        });
+        waiters.set(id, { resolve, reject, timer });
         this.send({ id, method, params });
       });
     },
