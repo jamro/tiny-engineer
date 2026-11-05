@@ -497,6 +497,7 @@ export class SerialRobotClient {
  *   list?: () => Promise<Awaited<ReturnType<typeof SerialPort.list>>>,
  *   openClient?: (path: string) => SerialRobotClient,
  *   kick?: ((path: string) => void) | null,
+ *   writeCache?: boolean,
  * }} [opts]
  * @returns {Promise<{ client: SerialRobotClient, port: string, source: "flag" | "env" | "cache" | "autodetect" }>}
  */
@@ -506,6 +507,7 @@ export async function connectSerialRobot({
   list = () => SerialPort.list(),
   openClient = (path) => new SerialRobotClient(path),
   kick,
+  writeCache = true,
 } = {}) {
   const explicitRaw = port?.trim() || getSerialPort();
   const explicit = explicitRaw ? hostCalloutPath(explicitRaw) : explicitRaw;
@@ -513,7 +515,7 @@ export async function connectSerialRobot({
     const client = openClient(explicit);
     try {
       await openSynced(client, { kick });
-      writePortCache(explicit, cachePath);
+      if (writeCache) writePortCache(explicit, cachePath);
       return {
         client,
         port: explicit,
@@ -521,7 +523,7 @@ export async function connectSerialRobot({
       };
     } catch (err) {
       await client.close().catch(() => {});
-      clearPortCache(cachePath);
+      if (writeCache) clearPortCache(cachePath);
       throw err;
     }
   }
@@ -557,7 +559,7 @@ export async function connectSerialRobot({
     const allowKick = candidates.length === 1 || candidate.score >= LIKELY_ROBOT_SCORE;
     try {
       await openSynced(client, { kick: allowKick ? kick : null });
-      writePortCache(candidate.path, cachePath);
+      if (writeCache) writePortCache(candidate.path, cachePath);
       return { client, port: candidate.path, source: "autodetect" };
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));

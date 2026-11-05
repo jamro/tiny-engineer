@@ -312,3 +312,27 @@ test("connectSerialRobot autodetects when cache miss", async () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("connectSerialRobot writeCache false skips cache write", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-cache-"));
+  const cachePath = join(dir, "serial-port.json");
+  const prevPort = process.env.TINY_ENGINEER_PORT;
+  delete process.env.TINY_ENGINEER_PORT;
+
+  try {
+    const result = await connectSerialRobot({
+      port: "/dev/cu.probe",
+      cachePath,
+      writeCache: false,
+      list: async () => [],
+      openClient: (path) => mockClientFactory(path),
+    });
+    assert.equal(result.port, "/dev/cu.probe");
+    assert.equal(readPortCache(cachePath), null);
+    await result.client.close();
+  } finally {
+    if (prevPort === undefined) delete process.env.TINY_ENGINEER_PORT;
+    else process.env.TINY_ENGINEER_PORT = prevPort;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

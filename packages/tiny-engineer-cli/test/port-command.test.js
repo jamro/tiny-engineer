@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { formatPortScan, runPort } from "../src/commands/port.js";
+import { formatPortScan, probeCandidates, runPort } from "../src/commands/port.js";
 import { createOutput } from "../src/util/output.js";
 
 const ports = [
@@ -37,34 +37,49 @@ test("formatPortScan uses the cache when env is unset", () => {
   assert.match(text, /open: \/dev\/cu\.cached \(cache\)/);
 });
 
-test("port --probe reports sync and does not continue after success", async () => {
+test("probeCandidates matches env-only then cache then autodetect order", () => {
+  assert.deepEqual(
+    probeCandidates({ ports, envPort: "/dev/cu.explicit", cachedPort: "/dev/cu.cached" }),
+    [{ path: "/dev/cu.explicit", source: "env" }],
+  );
+  assert.deepEqual(
+    probeCandidates({ ports, envPort: null, cachedPort: "/dev/cu.cached" }).map((row) => row.path),
+    ["/dev/cu.cached", "/dev/tty.usbmodem142201", "/dev/ttyUSB0"],
+  );
+});
+
+test("port --probe reports sync via daemon helper and does not open locally", async () => {
   /** @type {string[]} */
   const lines = [];
-  /** @type {string[]} */
-  const opened = [];
+  /** @type {string[][]} */
+  const probed = [];
+  const prev = process.exitCode;
+  process.exitCode = 0;
   await runPort(createOutput({ log() {}, error() {} }), ["--probe"], {
     list: async () => ports,
     envPort: null,
     cachedPort: "/dev/cu.cached",
     write: (text) => lines.push(text),
-    openClient(path) {
-      opened.push(path);
+    async probe(candidates) {
+      probed.push(candidates);
       return {
-        async open() {
-          if (path === "/dev/cu.cached") throw new Error("open failed");
-        },
-        async sync() {
-          return { ok: true };
-        },
-        async close() {},
+        ok: true,
+        results: [
+          { path: "/dev/cu.cached", ok: false, detail: "open failed" },
+          { path: "/dev/tty.usbmodem142201", ok: true, detail: "sync ok" },
+        ],
+        port: "/dev/tty.usbmodem142201",
       };
     },
   });
-  assert.deepEqual(opened, ["/dev/cu.cached", "/dev/tty.usbmodem142201"]);
+  assert.deepEqual(probed, [
+    ["/dev/cu.cached", "/dev/tty.usbmodem142201", "/dev/ttyUSB0"],
+  ]);
   const probe = lines.join("");
   assert.match(probe, /probe \/dev\/cu\.cached \(cache\) open failed/);
   assert.match(probe, /probe \/dev\/tty\.usbmodem142201 \(autodetect\) sync ok/);
   assert.equal(process.exitCode ?? 0, 0);
+  process.exitCode = prev;
 });
 
 test("port rejects an unknown argument", async () => {
