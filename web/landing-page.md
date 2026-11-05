@@ -70,16 +70,25 @@ Match [`web/STYLE.md` homepage structure](../web/STYLE.md#homepage-structure-whe
 
 Hero may show Build + Watch demo + GitHub. Flash remains in the site nav (and optionally a quiet tertiary link). Do not make Flash the only primary CTA on `/` — builders need the checklist first.
 
-### Nav (minimal change)
+### Nav (canonical)
 
-Keep current pattern from [`web/index.html`](../web/index.html):
+One source: [`web/js/site-header.js`](../web/js/site-header.js). Mounted on `/`, `/flash/`, `/screens/`, `/assembly/` via:
+
+```html
+<header class="site-header" data-page="…" data-root="…"></header>
+<script src="…/js/site-header.js"></script>
+```
+
+Links (same set every page; `aria-current` from `data-page`):
 
 - Brand → `/`
-- Flash → `/flash/`
-- GitHub → repo root
 - Build → `docs/getting-started.md` on GitHub
+- Flash → `/flash/`
+- Screens → `/screens/`
+- Assembly → `/assembly/`
+- GitHub → repo root
 
-No new top-level marketing routes required for v1.
+Page-specific docs links stay in page body, not top nav. `/pcba_test/` stays brand-only (line tool).
 
 ---
 
