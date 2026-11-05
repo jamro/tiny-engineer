@@ -14,8 +14,7 @@ const ease = (t) => t * t * (3 - 2 * t);
 
 /**
  * `parts`: the viewer's parts (id, node). `layout()` re-applies positions and
- * visibility (main.js combines this mode with explode and the electronics
- * toggle). `label(id)` names a part. Returns the mode's controls.
+ * visibility. `label(id)` names a part. Returns the mode's controls.
  */
 export function createBuild({ data, parts, stage, root, layout, label, elements, onStep, onActive }) {
   const steps = flatten(data);

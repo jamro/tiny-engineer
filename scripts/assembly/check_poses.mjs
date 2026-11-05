@@ -1,14 +1,13 @@
 #!/usr/bin/env node
-// Check the viewer's joint poses and animation loops against the meshes.
+// Check the viewer's joint poses against the meshes (centre, rest, ±range
+// sweep per joint). No animation loops.
 //
 //   node scripts/assembly/check_poses.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
 //
 // Turns the parts about the servo shafts as the viewer does (JOINTS in
 // web/js/assembly/poses.js, at DEFAULT_RANGE) and measures how deep parts
-// that move relative to each other go into one another (clipping.mjs): at
-// 90°, at rest, and through every animation loop. The press fits in the
-// steps' `fits` are let through. The ring loop's strike must also land the
-// right hand on the bell: touching it, not hovering above it.
+// that move relative to each other go into one another (clipping.mjs).
+// The press fits in the steps' `fits` are let through.
 //
 // Options: --tolerance <mm> (default 0.3), --range <deg> (default DEFAULT_RANGE).
 // Exit status 1 on any problem.
@@ -17,13 +16,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadSolids } from './check_clipping.mjs';
 import { boxesOverlap, makeSolid, penetration } from './clipping.mjs';
-import { ANIMATIONS, CENTRE, DEFAULT_RANGE, JOINTS, REST, fastenerFollowers, ringHitPose, withFollowers } from '../../web/js/assembly/poses.js';
-
-/** Largest gap (mm) between the striking hand and the bell that still counts as a hit. */
-export const HIT_GAP_MM = 0.5;
-/** Animation loops are sampled this often (s). */
-const SAMPLE_S = 0.1;
-const LOOP_S = 2.4;
+import { CENTRE, DEFAULT_RANGE, JOINT_IDS, JOINTS, REST, fastenerFollowers, withFollowers } from '../../web/js/assembly/poses.js';
 
 const AXIS = { x: 0, y: 1, z: 2 };
 const byId = Object.fromEntries(JOINTS.map((joint) => [joint.id, joint]));
@@ -102,22 +95,21 @@ export function servoFrames(manifest) {
   return frames;
 }
 
-/** The poses to check: name → pose. */
-export function posesToCheck(preset = 'sg90') {
+/** Centre, rest, and each joint at ±1 with the others at 0. */
+export function posesToCheck() {
   const poses = { '90°': CENTRE, rest: REST };
-  for (const [name, animation] of Object.entries(ANIMATIONS)) {
-    for (let t = 0; t < LOOP_S - 1e-9; t += SAMPLE_S) poses[`${name} at ${t.toFixed(1)} s`] = animation.pose(t, preset);
+  for (const id of JOINT_IDS) {
+    poses[`${id} +1`] = { ...CENTRE, [id]: 1 };
+    poses[`${id} -1`] = { ...CENTRE, [id]: -1 };
   }
-  poses['ring strike'] = ringHitPose(preset);
   return poses;
 }
 
 /**
  * Problems with the poses: parts that clip (pairs that a joint moves
- * relative to each other, deeper than `tolerance` and than any declared
- * fit), and a ring strike that misses the bell.
+ * relative to each other, deeper than `tolerance` and than any declared fit).
  */
-export function checkPoses(solids, frames, data, { tolerance = 0.3, range = DEFAULT_RANGE, preset = 'sg90', poses = posesToCheck(preset), joints = JOINTS, strikers = ['Bell'] } = {}) {
+export function checkPoses(solids, frames, data, { tolerance = 0.3, range = DEFAULT_RANGE, poses = posesToCheck(), joints = JOINTS } = {}) {
   const { posed, chains } = poser(solids, frames, range, joints);
   const pairKey = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
   const fits = new Map((data?.fits ?? []).map((fit) => [pairKey(...fit.parts), fit.mm]));
@@ -139,15 +131,6 @@ export function checkPoses(solids, frames, data, { tolerance = 0.3, range = DEFA
       if (depth > limit) problems.push(`${name}: ${a} × ${b} clip ${depth.toFixed(2)} mm`);
     }
   }
-  // The strike lands: the hand touches the bell or the screw head on top of
-  // it (raise them by the gap and they meet).
-  if (solids.has('Bell') && solids.has('ForearmRight')) {
-    const shaped = posed(ringHitPose(preset));
-    const hand = shaped.get('ForearmRight');
-    if (strikers.filter((id) => shaped.has(id)).every((id) => penetration(hand, shaped.get(id), [0, 0, HIT_GAP_MM]) <= 0.02)) {
-      problems.push(`ring strike: the right hand stops more than ${HIT_GAP_MM} mm above the bell`);
-    }
-  }
   return problems;
 }
 
@@ -167,17 +150,15 @@ function main(argv) {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   const data = stepsPath ? JSON.parse(readFileSync(stepsPath, 'utf8')) : null;
   const solids = loadSolids(manifestPath);
-  const poses = posesToCheck(manifest.preset);
-  // Screws and nuts turn with the part they are fastened to.
+  const poses = posesToCheck();
   const joints = withFollowers(JOINTS, fastenerFollowers(manifest.hardware));
-  const strikers = ['Bell', ...manifest.hardware.filter((entry) => entry.fastener?.parent === 'Bell').map((entry) => entry.id)];
-  const problems = checkPoses(solids, servoFrames(manifest), data, { ...options, preset: manifest.preset, poses, joints, strikers });
+  const problems = checkPoses(solids, servoFrames(manifest), data, { ...options, poses, joints });
   if (problems.length) {
     console.error(`${manifestPath}: ${problems.length} pose problem${problems.length === 1 ? '' : 's'} (±${options.range}°, tolerance ${options.tolerance} mm):`);
     for (const problem of problems) console.error(`  ${problem}`);
     return 1;
   }
-  console.log(`${manifestPath}: ${Object.keys(poses).length} poses at ±${options.range}°, nothing clips, the ring strike hits the bell`);
+  console.log(`${manifestPath}: ${Object.keys(poses).length} poses at ±${options.range}°, nothing clips`);
   return 0;
 }
 

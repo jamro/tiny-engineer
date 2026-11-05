@@ -6,16 +6,11 @@ on:
     paths:
       - "web/**"
       - "scripts/build_flash_catalog.py"
-      - "scripts/stage_print_files.mjs"
-      - "3d_models/parts/*/3mf/**"
-      - "3d_models/LICENSE"
-      - "3d_models/NOTICE"
       - "scripts/assembly/**"
       - "3d_models/cad/**"
       - "3d_models/parts/*/stl/**"
       - "3d_models/parts/*/step/**"
       - "3d_models/fusion/TinyEngineerTools/servos.json"
-      - "mods/*/3d_models/**"
       - ".github/workflows/pages.yml"
   release:
     types: [published, edited]
@@ -52,8 +47,6 @@ jobs:
         run: |
           pip install -r scripts/assembly/requirements.txt
           scripts/assembly/build.sh web/assembly/models
-      - name: Stage print files for the viewer's download
-        run: node scripts/stage_print_files.mjs web/print
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

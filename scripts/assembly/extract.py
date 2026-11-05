@@ -19,7 +19,7 @@ land on its exported mesh, or if a joint disagrees with the transforms.
     python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
 
 A mod's design (``--mod``) yields only the parts the mod exports, in its own
-frame; ``merge_mod.mjs`` puts them on the stock robot.
+frame.
 """
 
 from __future__ import annotations

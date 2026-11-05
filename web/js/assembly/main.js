@@ -1,39 +1,18 @@
-// Tiny Engineer assembly viewer: the robot from the printed meshes, with a
-// colour per part. Model: models/<preset>.glb, built by CI from the CAD, one
-// per servo preset (docs/3d/assembly-viewer.md).
+// Tiny Engineer assembly viewer: stock SG90 robot from the printed meshes.
+// Model: models/sg90.glb, built by CI from the CAD (docs/3d/assembly-viewer.md).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createStage, smoothNormals } from './stage.js';
-import {
-  FASTENER_FINISHES, FASTENER_KINDS, PALETTE, TRANSLUCENT, decodeColors, decodeFinishes, defaultColor, encodeColors, encodeFinishes,
-  normalizeHex, resolveColors,
-} from './colors.js';
+import { FASTENER_FINISH, TRANSLUCENT, resolveColors } from './colors.js';
 import { createBuild } from './build.js';
-import { PRINT_ROOT, TARGETS, printList, readme, zipName } from './download.js';
-import { applyMod, withFasteners } from './steps.js';
+import { withFasteners } from './steps.js';
 import { rig } from './joints.js';
-import { ANIMATIONS, CENTRE, JOINTS, JOINT_IDS, blendPoses, normalizePose, withFollowers } from './poses.js';
+import { CENTRE, DEFAULT_RANGE, JOINTS, JOINT_IDS, normalizePose, withFollowers } from './poses.js';
 
-/** Servo presets the viewer can show (#p=fs0307), the design's own first. */
-const PRESETS = ['sg90', 'fs0307', 'es9051', 'hd1370a'];
-const PRESET_LABELS = { sg90: 'SG90', fs0307: 'FS0307', es9051: 'ES9051', hd1370a: 'HD-1370A' };
-/** Mods the viewer can show (web/assembly/mods/<id>.json, models/sg90-<id>.glb; SG90 only). */
-const MODS = ['halloween'];
+const MODEL_URL = 'models/sg90.glb';
 const STEPS_URL = 'steps.json';
 /** Opacity of a part drawn as a ghost (see-through) in a build step. */
 const GHOST_OPACITY = 0.16;
-const STORAGE_KEY_BASE = 'te-assembly-colors';
-const FINISH_STORAGE_KEY = 'te-assembly-fasteners';
-const FASTENER_TITLES = { screw: 'Screws', nut: 'Nuts' };
-const GROUP_TITLES = {
-  mod: 'Mod parts',
-  PartsSetA: 'Copper set',
-  PartsSetB: 'Black set',
-  single: 'Printed on its own',
-  hardware: 'Electronics',
-};
-/** How far apart "explode" spreads the parts, as a share of their distance from the centre. */
-const EXPLODE_SCALE = 0.85;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -50,11 +29,6 @@ export function partLabel(id) {
 }
 
 const hashParams = () => new URLSearchParams(location.hash.slice(1));
-/** The mod shown (#m=halloween), or null for the stock robot. */
-const currentMod = () => (MODS.includes(hashParams().get('m')) ? hashParams().get('m') : null);
-/** The servo preset shown (#p=fs0307); mods are built for SG90 only. */
-const currentPreset = () => (!currentMod() && PRESETS.includes(hashParams().get('p')) ? hashParams().get('p') : PRESETS[0]);
-const storageKey = () => `${STORAGE_KEY_BASE}${currentMod() ? `-${currentMod()}` : ''}`;
 
 /** Set (or with null, remove) one parameter of the URL hash, keeping the others. */
 function setHashParam(key, value) {
@@ -66,64 +40,8 @@ function setHashParam(key, value) {
   history.replaceState(null, '', url);
 }
 
-/**
- * A setting kept in the URL hash (`key`) and in the browser's storage: the
- * link's value wins, then the stored one, decoded by `decode` (which takes ''
- * for the default).
- */
-function readSetting(key, storage, decode) {
-  const hash = hashParams().get(key);
-  if (hash !== null) return decode(hash);
-  try {
-    return decode(localStorage.getItem(storage) ?? '');
-  } catch {
-    return decode('');
-  }
-}
-
-function saveSetting(key, storage, encoded) {
-  setHashParam(key, encoded || null);
-  try { localStorage.setItem(storage, encoded); } catch { /* private mode */ }
-}
-
-const readSavedColors = (parts) => readSetting('c', storageKey(), (text) => decodeColors(text, parts));
-const saveColors = (parts, changes) => saveSetting('c', storageKey(), encodeColors(parts, changes));
-/** Screw and nut finishes (#f=black.silver). */
-const readFinishes = () => readSetting('f', FINISH_STORAGE_KEY, decodeFinishes);
-const saveFinishes = (finishes) => saveSetting('f', FINISH_STORAGE_KEY, encodeFinishes(finishes));
-
-function groupOf(part) {
-  if (part.kind === 'hardware') return 'hardware';
-  if (part.mod) return 'mod';
-  return part.printGroup ?? 'single';
-}
-
 async function main() {
   const status = $('#asm-status');
-  const mod = currentMod();
-  const preset = currentPreset();
-  const MODEL_URL = `models/${preset}${mod ? `-${mod}` : ''}.glb`;
-  $('#asm-preset-label').textContent = `${PRESET_LABELS[preset]} preset`;
-  for (const link of document.querySelectorAll('a.asm-model:not(.asm-preset)')) {
-    link.setAttribute('aria-current', String((link.dataset.model || null) === mod));
-    // Switching model reloads the page with its own colours and steps.
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      location.hash = link.dataset.model ? `m=${link.dataset.model}` : (preset === PRESETS[0] ? '' : `p=${preset}`);
-      location.reload();
-    });
-  }
-  for (const link of document.querySelectorAll('.asm-preset')) {
-    link.setAttribute('aria-current', String(link.dataset.preset === preset));
-    if (mod && link.dataset.preset !== PRESETS[0]) link.setAttribute('aria-disabled', 'true');
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      if (link.getAttribute('aria-disabled') === 'true') return;
-      // A servo preset is a robot of its own size: the stock parts at that preset.
-      location.hash = link.dataset.preset === PRESETS[0] ? '' : `p=${link.dataset.preset}`;
-      location.reload();
-    });
-  }
   const stage = createStage($('#asm-stage'), 'Tiny Engineer, assembled. Drag to orbit, scroll to zoom, right-drag to pan.');
   if (!stage) {
     status.textContent = 'The 3D view needs WebGL. Turn on hardware acceleration in your browser and reload.';
@@ -134,9 +52,7 @@ async function main() {
   let gltf;
   let stepData = null;
   try {
-    const json = (url) => fetch(url).then((response) => (response.ok ? response.json() : null)).catch(() => null);
-    const stepsRequest = Promise.all([json(STEPS_URL), mod ? json(`mods/${mod}.json`) : null])
-      .then(([steps, config]) => (steps && config ? applyMod(steps, config) : steps));
+    const stepsRequest = fetch(STEPS_URL).then((response) => (response.ok ? response.json() : null)).catch(() => null);
     gltf = await new GLTFLoader().loadAsync(MODEL_URL, (event) => {
       if (event.total) status.textContent = `Loading model… ${Math.round((event.loaded / event.total) * 100)} %`;
     });
@@ -149,7 +65,6 @@ async function main() {
 
   const root = gltf.scene.getObjectByName('TinyEngineer');
   const parts = [];
-  // M2 screws and nuts: drawn and moved like parts, coloured by finish, not in the parts list.
   const fasteners = [];
   for (const node of root.children) {
     const extras = node.userData ?? {};
@@ -165,14 +80,11 @@ async function main() {
       kind: extras.kind ?? 'printed',
       printGroup: extras.print_group ?? null,
       color: extras.color ?? null,
-      mod: extras.mod ?? null,
       node,
       mesh,
     });
   }
 
-  // One material per part, so each can take its own colour; normals with a crease angle.
-  // A mesh with vertex colours (the ESP32-C3-Zero) shows them, tinted by the part's colour.
   const everything = [...parts, ...fasteners];
   const geometries = new Map();
   for (const part of everything) {
@@ -195,234 +107,29 @@ async function main() {
   stage.content.add(gltf.scene);
   gltf.scene.updateMatrixWorld(true);
 
-  // Explode directions, in the root's (CAD, Z up) frame.
   const robotBox = new THREE.Box3().setFromObject(root);
-  const rootInverse = root.matrixWorld.clone().invert();
-  const centre = robotBox.getCenter(new THREE.Vector3()).applyMatrix4(rootInverse);
-  for (const part of parts) {
-    const box = new THREE.Box3().setFromObject(part.node).applyMatrix4(rootInverse);
-    const offset = box.getCenter(new THREE.Vector3()).sub(centre);
-    offset.z = Math.max(offset.z, 0) + 6; // spread upwards rather than sink into the floor
-    part.explode = offset.multiplyScalar(EXPLODE_SCALE);
-  }
-  // A screw or nut stays in its part when the robot explodes.
-  const partById = new Map(parts.map((part) => [part.id, part]));
-  for (const item of fasteners) item.explode = partById.get(item.fastener?.parent)?.explode.clone() ?? new THREE.Vector3();
   stage.frame(robotBox);
 
-  // Servo joints: parts move under pivots on the shafts; positions are now in
-  // the pivots' frames.
   const followers = new Map(fasteners.map((item) => [item.id, item.fastener?.parent]));
   const joints = rig(root, new Map(everything.map((part) => [part.id, part.node])), withFollowers(JOINTS, followers));
   for (const part of everything) part.base = part.node.position.clone();
 
-  let changes = readSavedColors(parts);
-  let colors = resolveColors(parts, changes);
-  let selected = null;
-  let finishes = readFinishes();
-
-  // Screw and nut finishes: metal, black or silver.
-  const applyFinishes = () => {
-    for (const item of fasteners) {
-      const finish = FASTENER_FINISHES[finishes[item.fastener?.kind]] ?? FASTENER_FINISHES.silver;
-      item.mesh.material.color.set(finish.hex);
-      item.mesh.material.metalness = finish.metalness;
-      item.mesh.material.roughness = finish.roughness;
-    }
-    for (const button of document.querySelectorAll('.asm-finish')) {
-      button.setAttribute('aria-pressed', String(finishes[button.dataset.kind] === button.dataset.finish));
-    }
-    stage.invalidate();
-  };
-  const setFinish = (kind, finish) => {
-    if (!FASTENER_KINDS.includes(kind) || !FASTENER_FINISHES[finish]) return;
-    finishes = { ...finishes, [kind]: finish };
-    saveFinishes(finishes);
-    applyFinishes();
-  };
-  const finishPanel = $('#asm-finishes');
-  finishPanel.hidden = !fasteners.length;
-  if (fasteners.length) {
-    const count = (kind) => fasteners.filter((item) => item.fastener?.kind === kind).length;
-    $('#asm-finishes-title').textContent = `Screws and nuts · ${fasteners.length}`;
-    const rows = $('#asm-finish-rows');
-    rows.replaceChildren();
-    for (const kind of FASTENER_KINDS) {
-      if (!count(kind)) continue;
-      const row = document.createElement('div');
-      row.className = 'asm-finish-row';
-      row.setAttribute('role', 'group');
-      row.setAttribute('aria-label', `${FASTENER_TITLES[kind]} finish`);
-      const name = document.createElement('span');
-      name.textContent = `${FASTENER_TITLES[kind]} · ${count(kind)}`;
-      row.append(name);
-      for (const [id, finish] of Object.entries(FASTENER_FINISHES)) {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'asm-model asm-finish';
-        button.dataset.kind = kind;
-        button.dataset.finish = id;
-        button.title = `${finish.name}: ${finish.about}`;
-        const swatch = document.createElement('span');
-        swatch.className = 'asm-swatch';
-        swatch.style.background = finish.hex;
-        swatch.setAttribute('aria-hidden', 'true');
-        button.append(swatch, document.createTextNode(finish.name));
-        button.addEventListener('click', () => setFinish(kind, id));
-        row.append(button);
-      }
-      rows.append(row);
-    }
+  const colors = resolveColors(parts);
+  for (const part of parts) part.mesh.material.color.set(colors[part.id]);
+  for (const item of fasteners) {
+    item.mesh.material.color.set(FASTENER_FINISH.hex);
+    item.mesh.material.metalness = FASTENER_FINISH.metalness;
+    item.mesh.material.roughness = FASTENER_FINISH.roughness;
   }
 
-  const applyColors = () => {
-    for (const part of parts) part.mesh.material.color.set(colors[part.id]);
-    for (const part of parts) {
-      const swatch = document.querySelector(`[data-part="${CSS.escape(part.id)}"] .asm-swatch`);
-      if (swatch) swatch.style.background = colors[part.id];
-    }
-    for (const group of Object.keys(GROUP_TITLES)) {
-      const members = parts.filter((part) => groupOf(part) === group);
-      const input = document.querySelector(`[data-group="${group}"] input[type=color]`);
-      if (input && members.length) input.value = colors[members[0].id];
-    }
-    stage.invalidate();
-  };
-
-  const setColor = (ids, hex) => {
-    const value = normalizeHex(hex);
-    if (!value) return;
-    for (const id of ids) changes[id] = value;
-    colors = resolveColors(parts, changes);
-    saveColors(parts, changes);
-    applyColors();
-    renderDetail();
-  };
-
-  const select = (id) => {
-    selected = id;
-    for (const part of parts) {
-      const on = part.id === id;
-      part.mesh.material.emissive.set(on ? 0x2b4a26 : 0x000000);
-      document.querySelector(`[data-part="${CSS.escape(part.id)}"]`)?.setAttribute('aria-selected', String(on));
-    }
-    renderDetail();
-    stage.invalidate();
-  };
-
-  // Parts list, grouped by how they are printed.
-  const list = $('#asm-parts');
-  list.replaceChildren();
-  for (const [group, title] of Object.entries(GROUP_TITLES)) {
-    const members = parts.filter((part) => groupOf(part) === group);
-    if (!members.length) continue;
-    const section = document.createElement('section');
-    section.className = 'asm-group';
-    section.dataset.group = group;
-    const head = document.createElement('div');
-    head.className = 'asm-group-head';
-    const label = document.createElement('label');
-    label.className = 'asm-group-title';
-    label.textContent = `${title} · ${members.length}`;
-    const input = document.createElement('input');
-    input.type = 'color';
-    input.title = `Colour every part of the ${title.toLowerCase()}`;
-    input.setAttribute('aria-label', input.title);
-    input.addEventListener('input', () => setColor(members.map((part) => part.id), input.value));
-    label.prepend(input);
-    head.append(label);
-    section.append(head);
-    const ul = document.createElement('ul');
-    ul.className = 'asm-part-list';
-    for (const part of members) {
-      const li = document.createElement('li');
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'asm-part';
-      button.dataset.part = part.id;
-      button.setAttribute('aria-selected', 'false');
-      const swatch = document.createElement('span');
-      swatch.className = 'asm-swatch';
-      swatch.setAttribute('aria-hidden', 'true');
-      const name = document.createElement('span');
-      name.textContent = partLabel(part.id);
-      button.append(swatch, name);
-      button.addEventListener('click', () => select(selected === part.id ? null : part.id));
-      li.append(button);
-      ul.append(li);
-    }
-    section.append(ul);
-    list.append(section);
-  }
-
-  // Colour picker for the selected part.
-  const detail = $('#asm-detail');
-  function renderDetail() {
-    const part = parts.find((candidate) => candidate.id === selected);
-    detail.hidden = !part;
-    if (!part) return;
-    $('#asm-detail-name').textContent = partLabel(part.id);
-    $('#asm-detail-meta').textContent = part.kind === 'hardware' ? `${part.component} · bought` : `${part.id}.stl · ${GROUP_TITLES[groupOf(part)].toLowerCase()}`;
-    const custom = $('#asm-detail-custom');
-    custom.value = colors[part.id];
-    for (const button of detail.querySelectorAll('.asm-palette button')) {
-      button.setAttribute('aria-pressed', String(button.dataset.hex === colors[part.id]));
-    }
-  }
-  const palette = detail.querySelector('.asm-palette');
-  for (const { name, hex } of PALETTE) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.dataset.hex = hex;
-    button.title = name;
-    button.setAttribute('aria-label', name);
-    button.style.background = hex;
-    button.addEventListener('click', () => selected && setColor([selected], hex));
-    palette.append(button);
-  }
-  $('#asm-detail-custom').addEventListener('input', (event) => selected && setColor([selected], event.target.value));
-  $('#asm-detail-reset').addEventListener('click', () => {
-    if (!selected) return;
-    delete changes[selected];
-    colors = resolveColors(parts, changes);
-    saveColors(parts, changes);
-    applyColors();
-    renderDetail();
-  });
-  $('#asm-detail-close').addEventListener('click', () => select(null));
-
-  // Click a part in the view to select it (a drag orbits instead).
-  const raycaster = new THREE.Raycaster();
-  let down = null;
-  const canvas = stage.renderer.domElement;
-  canvas.addEventListener('pointerdown', (event) => { down = [event.clientX, event.clientY]; });
-  canvas.addEventListener('pointerup', (event) => {
-    if (!down || Math.hypot(event.clientX - down[0], event.clientY - down[1]) > 4) return;
-    const rect = canvas.getBoundingClientRect();
-    const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
-    raycaster.setFromCamera(pointer, stage.camera);
-    const hit = raycaster.intersectObjects(parts.filter((part) => part.node.visible).map((part) => part.mesh), false)[0];
-    const id = hit?.object.userData.partId ?? null;
-    select(id === selected ? null : id);
-    if (id) document.querySelector(`[data-part="${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'nearest' });
-  });
-
-  // Where every part is and whether it shows: explode, the build step, the electronics toggle.
-  const explode = $('#asm-explode');
-  const electronics = $('#asm-electronics');
-  const fastenerToggle = $('#asm-fasteners');
-  fastenerToggle.closest('label').hidden = !fasteners.length;
   let build = null;
   const rootRotation = new THREE.Quaternion();
   const parentRotation = new THREE.Quaternion();
   const shift = new THREE.Vector3();
   function layout() {
-    const amount = Number(explode.value) / 100;
     root.getWorldQuaternion(rootRotation).invert();
     for (const part of everything) {
-      // Explode and step offsets are in the CAD frame; turn them into the
-      // frame of the joint the part hangs on.
-      shift.copy(part.explode).multiplyScalar(amount);
+      shift.set(0, 0, 0);
       const offset = build?.offsetOf(part.id);
       if (offset) shift.add(offset);
       if (part.node.parent !== root) {
@@ -430,8 +137,7 @@ async function main() {
         shift.applyQuaternion(parentRotation);
       }
       part.node.position.copy(part.base).add(shift);
-      part.node.visible = (build ? build.shown(part.id) : true)
-        && (part.kind !== 'hardware' || electronics.checked) && (part.kind !== 'fastener' || fastenerToggle.checked);
+      part.node.visible = build ? build.shown(part.id) : true;
       const ghost = build?.ghost(part.id) ?? false;
       const material = part.mesh.material;
       const transparent = ghost || part.opacity < 1;
@@ -443,22 +149,13 @@ async function main() {
     }
     stage.invalidate();
   }
-  explode.addEventListener('input', layout);
-  explode.addEventListener('change', () => stage.refit(new THREE.Box3().setFromObject(root)));
-  electronics.addEventListener('change', layout);
-  fastenerToggle.addEventListener('change', layout);
 
-  // Joints: sliders per servo, a few animation loops built from the firmware's poses.
   const sliders = new Map();
-  const range = $('#asm-range');
-  const animSelect = $('#asm-anim');
-  const animPlay = $('#asm-anim-play');
   let pose = { ...CENTRE };
-  let stopAnimation = null;
   const applyPose = (next) => {
     pose = normalizePose(next);
     for (const id of JOINT_IDS) {
-      joints.set(id, pose[id], Number(range.value));
+      joints.set(id, pose[id], DEFAULT_RANGE);
       const slider = sliders.get(id);
       if (slider) {
         slider.input.value = String(Math.round(pose[id] * 100));
@@ -467,30 +164,8 @@ async function main() {
     }
     layout();
   };
-  const stopPlaying = () => {
-    if (stopAnimation) stopAnimation();
-    stopAnimation = null;
-    animPlay.textContent = 'Play';
-    animPlay.setAttribute('aria-pressed', 'false');
-  };
-  const play = (name) => {
-    stopPlaying();
-    const animation = ANIMATIONS[name];
-    if (!animation) return;
-    const start = performance.now();
-    const from = { ...pose };
-    stopAnimation = stage.onTick((time) => {
-      const t = (time - start) / 1000;
-      // Ease in from the current pose over the first half second.
-      applyPose(blendPoses(from, normalizePose(animation.pose(t, preset)), Math.min(1, t / 0.5)));
-      return true;
-    });
-    animPlay.textContent = 'Pause';
-    animPlay.setAttribute('aria-pressed', 'true');
-  };
   if (joints.joints.length) {
     $('#asm-joints').hidden = false;
-    for (const [name, animation] of Object.entries(ANIMATIONS)) animSelect.add(new Option(animation.label, name));
     const holder = $('#asm-joint-sliders');
     for (const joint of joints.joints) {
       const row = document.createElement('label');
@@ -507,22 +182,15 @@ async function main() {
       const output = document.createElement('output');
       output.value = '0.00';
       input.addEventListener('input', () => {
-        stopPlaying();
         applyPose({ ...pose, [joint.id]: Number(input.value) / 100 });
       });
       row.append(name, input, output);
       holder.append(row);
       sliders.set(joint.id, { input, output });
     }
-    animPlay.addEventListener('click', () => (stopAnimation ? stopPlaying() : play(animSelect.value)));
-    animSelect.addEventListener('change', () => { if (stopAnimation) play(animSelect.value); });
-    $('#asm-pose-centre').addEventListener('click', () => { stopPlaying(); applyPose(CENTRE); });
-    range.addEventListener('change', () => applyPose(pose));
+    $('#asm-pose-centre').addEventListener('click', () => applyPose(CENTRE));
   }
 
-  // Build steps and colour tabs.
-  const tabs = { build: $('#asm-tab-build'), colors: $('#asm-tab-colors') };
-  const panels = { build: $('#asm-build'), colors: $('#asm-colors') };
   if (stepData) {
     build = createBuild({
       data: withFasteners(stepData, fasteners.map(({ id, fastener }) => ({ id, fastener }))),
@@ -535,10 +203,9 @@ async function main() {
       onActive: (on) => {
         $('#asm-build-intro').hidden = on;
         $('#asm-build-player').hidden = !on;
-        // Steps show the robot as assembled: every servo at 90°.
-        if (on) { stopPlaying(); applyPose(CENTRE); }
+        if (on) applyPose(CENTRE);
         $('#asm-joints').classList.toggle('is-disabled', on);
-        for (const control of $('#asm-joints').querySelectorAll('input, select, button')) control.disabled = on;
+        for (const control of $('#asm-joints').querySelectorAll('input, button')) control.disabled = on;
       },
       elements: {
         section: $('#asm-step-section'), title: $('#asm-step-title'), text: $('#asm-step-text'),
@@ -548,156 +215,43 @@ async function main() {
         play: $('#asm-step-play'), outline: $('#asm-step-outline'),
       },
     });
-  } else {
-    tabs.build.hidden = true;
-  }
-  const setBuilding = (on, at) => {
-    if (!build) return;
-    if (on) build.setActive(true, at);
-    else if (build.active) {
-      build.setActive(false);
-      setHashParam('s', null);
-    }
-  };
-  const showTab = (name) => {
-    for (const key of Object.keys(tabs)) {
-      tabs[key].setAttribute('aria-selected', String(key === name));
-      panels[key].hidden = key !== name;
-    }
-    if (name === 'colors') setBuilding(false);
-  };
-  if (build) {
     $('#asm-build-summary').textContent = `${stepData.sections.length} sections, ${build.steps.length} steps, following the assembly guide. Each step shows the robot so far and slides the new parts in.`;
-    $('#asm-build-start').addEventListener('click', () => setBuilding(true, 0));
-    $('#asm-build-exit').addEventListener('click', () => setBuilding(false));
+    $('#asm-build-start').addEventListener('click', () => {
+      build.setActive(true, 0);
+    });
+    $('#asm-build-exit').addEventListener('click', () => {
+      if (build.active) {
+        build.setActive(false);
+        setHashParam('s', null);
+      }
+    });
+  } else {
+    $('#asm-build').hidden = true;
   }
-  tabs.build.addEventListener('click', () => showTab('build'));
-  tabs.colors.addEventListener('click', () => showTab('colors'));
+
   document.addEventListener('keydown', (event) => {
     if (!build?.active || event.target.closest?.('input, textarea, select')) return;
     if (event.key === 'ArrowRight') { build.next(); event.preventDefault(); }
     if (event.key === 'ArrowLeft') { build.prev(); event.preventDefault(); }
   });
   $('#asm-reset-view').addEventListener('click', () => stage.reset());
-  $('#asm-reset-colors').addEventListener('click', () => {
-    changes = {};
-    colors = resolveColors(parts, changes);
-    saveColors(parts, changes);
-    applyColors();
-    finishes = decodeFinishes('');
-    saveFinishes(finishes);
-    applyFinishes();
-    renderDetail();
-  });
-  $('#asm-share').addEventListener('click', async () => {
-    const button = $('#asm-share');
-    try {
-      await navigator.clipboard.writeText(location.href);
-      button.textContent = 'Link copied';
-    } catch {
-      button.textContent = 'Copy the address bar';
-    }
-    setTimeout(() => { button.textContent = 'Copy link'; }, 1800);
-  });
-  window.addEventListener('hashchange', () => {
-    changes = readSavedColors(parts);
-    colors = resolveColors(parts, changes);
-    applyColors();
-    finishes = readFinishes();
-    applyFinishes();
-    renderDetail();
-  });
 
-  applyColors();
-  applyFinishes();
-
-  // Print files for the robot shown: picked here (download.js), fetched from
-  // the site, zipped in the browser.
-  let target = 'home';
-  const download = $('#asm-download');
-  const downloadStatus = $('#asm-download-status');
-  const targetButtons = [...document.querySelectorAll('.asm-target')];
-  const renderTargets = () => {
-    for (const button of targetButtons) {
-      button.setAttribute('aria-pressed', String(button.dataset.target === target));
-      // A mod's parts are not in the print service's colour sets.
-      button.disabled = Boolean(mod) && button.dataset.target === 'service';
-    }
-  };
-  for (const button of targetButtons) {
-    button.addEventListener('click', () => { target = button.dataset.target; downloadStatus.textContent = ''; renderTargets(); });
-  }
-  renderTargets();
-  download.disabled = false;
-  download.addEventListener('click', async () => {
-    const { files, problems } = printList({ parts, preset, mod, target });
-    if (problems.length) { downloadStatus.textContent = problems.join('; '); return; }
-    download.disabled = true;
-    const name = zipName({ preset, mod, target });
-    const folder = name.replace(/\.zip$/, '');
-    const base = new URL(PRINT_ROOT, location.href);
-    const wanted = [...files.map((file) => [file.path, file.url]), ['LICENSE', 'LICENSE'], ['NOTICE', 'NOTICE']];
-    let done = 0;
-    try {
-      const fflate = import('fflate');
-      const fetched = await Promise.all(wanted.map(async ([path, url]) => {
-        const response = await fetch(new URL(url, base));
-        if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
-        const bytes = new Uint8Array(await response.arrayBuffer());
-        done += 1;
-        downloadStatus.textContent = `Fetching ${done} of ${wanted.length} files…`;
-        return [path, bytes];
-      }));
-      const { zipSync, strToU8 } = await fflate;
-      const tree = {};
-      // 3MF is a ZIP already: store it as it is.
-      for (const [path, bytes] of fetched) tree[`${folder}/${path}`] = [bytes, { level: path.endsWith('.3mf') ? 0 : 6 }];
-      const colorName = (hex) => PALETTE.find((entry) => entry.hex === hex)?.name ?? null;
-      tree[`${folder}/README.txt`] = strToU8(readme({ files, preset, presetLabel: PRESET_LABELS[preset], mod, target, colors, colorName, link: location.href }));
-      const zip = zipSync(tree);
-      const url = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = name;
-      document.body.append(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-      downloadStatus.textContent = `${name} · ${files.length} files · ${(zip.byteLength / 1048576).toFixed(1)} MB`;
-    } catch (error) {
-      downloadStatus.textContent = `Could not build the ZIP: ${error?.message ?? error}`;
-    } finally {
-      download.disabled = false;
-    }
-  });
-  download.title = `${TARGETS.home.label}: ${TARGETS.home.about}. ${TARGETS.service.label}: ${TARGETS.service.about}.`;
-  // A link to a step (#s=12) opens it; a link with colours opens the colours.
   const linkedStep = Number(hashParams().get('s'));
   if (build && linkedStep) {
-    showTab('build');
-    setBuilding(true, linkedStep - 1);
+    build.setActive(true, linkedStep - 1);
   } else {
-    showTab(build && !hashParams().get('c') ? 'build' : 'colors');
     layout();
   }
-  status.textContent = `${parts.filter((part) => part.kind !== 'hardware').length} printed parts · ${parts.filter((part) => part.kind === 'hardware').length} electronics${fasteners.length ? ` · ${fasteners.length} screws and nuts` : ''} · ${PRESET_LABELS[preset]}`;
+  status.textContent = '';
   status.dataset.state = 'ready';
   document.body.dataset.ready = 'true';
-  // For tests and the console.
   window.tinyEngineerAssembly = {
     get parts() { return parts.map(({ id, kind, printGroup, node }) => ({ id, kind, printGroup, color: colors[id], visible: node.visible })); },
     get fasteners() {
       return fasteners.map(({ id, fastener, mesh, node }) => ({ id, kind: fastener?.kind, size: fastener?.size, color: `#${mesh.material.color.getHexString()}`, visible: node.visible }));
     },
-    get finishes() { return { ...finishes }; },
-    get printFiles() { return printList({ parts, preset, mod, target }); },
-    setFinish,
-    select,
-    setColor,
     get pose() { return { ...pose }; },
     applyPose,
-    play,
-    stopPlaying,
     get build() { return build && { active: build.active, index: build.index, count: build.steps.length, go: build.go }; },
     stage,
   };

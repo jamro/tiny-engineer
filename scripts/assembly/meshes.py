@@ -1,5 +1,5 @@
 """Closed, outward-wound triangle meshes for the assembly model's generated parts
-(boards.py, fasteners.py, the servo in presets.py), and binary STL output.
+(boards.py, fasteners.py), and binary STL output.
 
 A Mesh is triangles with a colour each (sRGB 0..1, or None). write_stl()
 stores the colours in the attribute bytes, VisCAM style (bit 15, then 5 bits
