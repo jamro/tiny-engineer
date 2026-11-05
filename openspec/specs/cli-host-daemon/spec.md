@@ -114,12 +114,16 @@ A client that does not understand the daemon's protocol MUST NOT stop the daemon
 - **WHEN** a client speaks a newer protocol than the running daemon
 - **THEN** the CLI stops that daemon, starts one from the client's package, and completes the command if the new daemon is compatible
 
-### Requirement: Replace does not cut an active play
-The daemon MUST NOT abort an active serial play in order to replace itself. A replace requested during play MUST wait until that play ends, or the requesting command MUST fail without stopping playback. A later command after play ends MUST still apply a pending replace rule.
+### Requirement: Replace aborts an active play
+When the CLI decides a running daemon must be replaced, it MUST stop that daemon even if a serial play is active. Stopping for replace MUST end the in-flight play (serial link closed; the play caller fails). After the old process exits, the CLI MUST start a daemon from the replacing client's package and MUST complete the original command when the new daemon is compatible. Plain `daemon release` without force or yield MUST still refuse while play is active.
 
-#### Scenario: Compatible command during play
-- **WHEN** a client that would replace the daemon connects during an active serial play and still understands the running protocol
-- **THEN** playback continues and the daemon is not stopped before that play finishes
+#### Scenario: Replace during play upgrades the daemon
+- **WHEN** a client that would replace the daemon connects during an active serial play
+- **THEN** playback is aborted, the old daemon exits, a new daemon from that client starts, and the client's command completes against the new daemon
+
+#### Scenario: Plain release still refuses during play
+- **WHEN** a serial play is active and the user runs `daemon release` without `--yield`
+- **THEN** the command fails with a play-active error, playback continues, and the daemon keeps the port
 
 ### Requirement: Auto-start does not loop
 One command MUST attempt to start or replace the daemon at most once after a failed hello. A second failure in that command MUST exit non-zero and MUST NOT spawn again.
@@ -255,11 +259,11 @@ When a login supervisor is installed, every start of the daemon, including auto-
 - **THEN** the CLI spawns a detached daemon and a closed terminal does not stop it
 
 ### Requirement: Install hands the process to the supervisor
-`daemon install` while a daemon is running MUST leave exactly one daemon, and that process MUST be one the supervisor started. If a serial play is active, install MUST fail without stopping playback.
+`daemon install` while a daemon is running MUST leave exactly one daemon, and that process MUST be one the supervisor started. If a serial play is active, install MUST still replace the running daemon (aborting that play) so the supervisor owns the next process.
 
 #### Scenario: Install during play
 - **WHEN** a serial play is active and the user runs `daemon install`
-- **THEN** the command fails, playback continues, and the existing daemon keeps the port
+- **THEN** playback is aborted, install succeeds, and exactly one daemon remains under the supervisor
 
 #### Scenario: Install replaces an orphan
 - **WHEN** a daemon the CLI spawned is running and the user runs `daemon install`

@@ -117,8 +117,9 @@ export async function ensureDaemon(opts = {}) {
       writeDaemonTarget(configDir, { execPath: process.execPath, script });
     }
     const stopped = await conn.peer.request("daemon.stop", { reason: "replace" }, 5000);
-    if (stopped.error === "play-active") {
-      return conn;
+    if (typeof stopped.error === "string") {
+      conn.socket.destroy();
+      throw new Error(stopped.error);
     }
     conn.socket.destroy();
     const pid = Number(conn.hello.pid);

@@ -121,22 +121,17 @@ process.exit(code ?? 0);
  *     install: (unit: ReturnType<typeof unitSpec>) => Promise<boolean | void> | boolean | void,
  *     uninstall?: () => Promise<void> | void,
  *   },
- *   playActive?: boolean,
  *   wrapperModuleUrl?: string,
  *   startWrapper?: (configDir: string) => void | Promise<void>,
  * }} opts
  */
 export async function installSupervisor(opts) {
-  if (opts.playActive) {
-    throw new Error("play-active");
-  }
   const configDir = opts.configDir;
   const paths = daemonPaths(configDir);
   const live = await tryConnect(paths.sock, 200);
   if (live) {
     live.socket.destroy();
-    const replaced = await shutdownDaemon(configDir, "replace");
-    if (replaced === "play-active") throw new Error("play-active");
+    await shutdownDaemon(configDir, "replace");
     const still = await tryConnect(paths.sock, 200);
     if (still) {
       still.socket.destroy();
