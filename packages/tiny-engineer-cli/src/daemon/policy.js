@@ -91,38 +91,54 @@ function walkJs(dir, acc) {
   }
 }
 
+/** @type {Map<string, string>} */
+const sourceHashCache = new Map();
+
+/** Clear the in-process sourceHash memo (tests that mutate package files). */
+export function clearSourceHashCache() {
+  sourceHashCache.clear();
+}
+
 /**
  * Hash bin/tiny-engineer.js and src js files. Same bytes => same hash.
+ * Results are memoized per resolved package root until {@link clearSourceHashCache}.
  * @param {string} packageRoot
  * @returns {string}
  */
 export function sourceHash(packageRoot) {
   assertInstallPath(packageRoot);
+  const key = resolve(packageRoot);
+  const cached = sourceHashCache.get(key);
+  if (cached !== undefined) return cached;
   /** @type {string[]} */
   const files = [];
-  walkJs(join(packageRoot, "src"), files);
-  files.push(join(packageRoot, "bin", "tiny-engineer.js"));
+  walkJs(join(key, "src"), files);
+  files.push(join(key, "bin", "tiny-engineer.js"));
   files.sort();
   const hash = createHash("sha256");
   for (const file of files) {
-    hash.update(relative(packageRoot, file).replaceAll("\\", "/"));
+    hash.update(relative(key, file).replaceAll("\\", "/"));
     hash.update("\0");
     hash.update(readFileSync(file));
     hash.update("\0");
   }
-  return hash.digest("hex");
+  const digest = hash.digest("hex");
+  sourceHashCache.set(key, digest);
+  return digest;
 }
 
 /**
  * @param {string} packageRoot
  */
 export function loadIdentity(packageRoot) {
+  const channel = classifyChannel(packageRoot);
   return {
     proto: DAEMON_PROTO,
     version: readInstallVersion(packageRoot),
-    channel: classifyChannel(packageRoot),
+    channel,
     packageRoot,
-    sourceHash: sourceHash(packageRoot),
+    // npm replace uses SemVer/channel only; skip the content walk.
+    sourceHash: channel === "npm" ? "" : sourceHash(packageRoot),
   };
 }
 

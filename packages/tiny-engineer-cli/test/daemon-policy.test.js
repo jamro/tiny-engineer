@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   classifyChannel,
+  clearSourceHashCache,
   decideDaemonAction,
   isGitInstallUrl,
   loadIdentity,
@@ -45,11 +46,31 @@ test("source hash changes when src bytes change", () => {
   const dir = mkdtempSync(join(tmpdir(), "te-hash-"));
   try {
     writePackage(dir, "0.3.0", "a");
+    clearSourceHashCache();
     const first = sourceHash(dir);
+    assert.equal(sourceHash(dir), first);
     writeFileSync(join(dir, "src", "main.js"), "b");
+    clearSourceHashCache();
     assert.notEqual(sourceHash(dir), first);
     assert.equal(sourceHash(dir), sourceHash(dir));
   } finally {
+    clearSourceHashCache();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("npm loadIdentity skips content hashing", () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-npm-"));
+  const npmRoot = join(dir, "node_modules", "tiny-engineer");
+  try {
+    writePackage(npmRoot, "0.3.0", "secret-src");
+    clearSourceHashCache();
+    const identity = loadIdentity(npmRoot);
+    assert.equal(identity.channel, "npm");
+    assert.equal(identity.sourceHash, "");
+    assert.equal(identity.version, "0.3.0");
+  } finally {
+    clearSourceHashCache();
     rmSync(dir, { recursive: true, force: true });
   }
 });
