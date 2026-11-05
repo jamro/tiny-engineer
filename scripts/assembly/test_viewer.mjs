@@ -4,8 +4,8 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { FASTEN_AT, flatten, offsetsAt, phases, sceneAt, startOffset, validate, withFasteners } from '../../web/js/assembly/steps.js';
-import { CENTRE, JOINTS, JOINT_IDS, REST, blendPoses, fastenerFollowers, normalizePose, withFollowers } from '../../web/js/assembly/poses.js';
-import { defaultColor, normalizeHex, resolveColors, GROUP_COLORS, HARDWARE_COLORS } from '../../web/js/assembly/colors.js';
+import { CENTRE, JOINTS, JOINT_IDS, REST, fastenerFollowers, normalizePose, withFollowers } from '../../web/js/assembly/poses.js';
+import { defaultColor, resolveColors, GROUP_COLORS, HARDWARE_COLORS, PART_COLORS } from '../../web/js/assembly/colors.js';
 
 const parts = [
   { id: 'Head', kind: 'printed', printGroup: 'PartsSetA' },
@@ -15,14 +15,10 @@ const parts = [
   { id: 'servo-head', kind: 'hardware', component: 'Servo' },
 ];
 
-assert.equal(normalizeHex('#ABCDEF'), '#abcdef');
-assert.equal(normalizeHex('abcdef'), '#abcdef');
-assert.equal(normalizeHex('#abc'), null);
-assert.equal(normalizeHex('javascript:alert(1)'), null);
-
 assert.equal(defaultColor(parts[0]), GROUP_COLORS.PartsSetA);
 assert.equal(defaultColor(parts[1]), GROUP_COLORS.PartsSetB);
-assert.notEqual(defaultColor(parts[2]), GROUP_COLORS.PartsSetB, 'diffuser has its own colour');
+assert.equal(defaultColor(parts[2]), PART_COLORS.LampDiffuser);
+assert.equal(defaultColor({ ...parts[0], color: '#ff0000' }), GROUP_COLORS.PartsSetA, 'part.color overrides ignored');
 assert.equal(defaultColor(parts[4]), HARDWARE_COLORS.Servo);
 
 const resolved = resolveColors(parts);
@@ -100,10 +96,9 @@ assert.deepEqual(validate(shipped, shippedIds), []);
 
 // Poses.
 assert.deepEqual(normalizePose({ head: 3, neck: -2, body: 'x' }), { head: 1, neck: -1, 'hand-left': 0, 'hand-right': 0, body: 0 });
-assert.deepEqual(blendPoses(CENTRE, REST, 1), { ...REST });
-assert.equal(blendPoses(CENTRE, REST, 0.5)['hand-left'], 0.5);
 assert.equal(REST['hand-left'], 1);
 assert.equal(REST['hand-right'], -1);
+assert.deepEqual(CENTRE, { head: 0, neck: 0, 'hand-left': 0, 'hand-right': 0, body: 0 });
 assert.deepEqual(JOINTS.map((joint) => joint.id).sort(), [...JOINT_IDS].sort(), 'one joint per pose id');
 
 // Fasteners in the steps.

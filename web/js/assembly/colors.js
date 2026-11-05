@@ -24,7 +24,6 @@ export const HARDWARE_COLORS = {
 
 /** Default finish for M2 screws and nuts (silver metal look). */
 export const FASTENER_FINISH = {
-  name: 'Silver',
   hex: '#c9ccd1',
   metalness: 0.75,
   roughness: 0.32,
@@ -33,17 +32,8 @@ export const FASTENER_FINISH = {
 /** Translucent printed parts (light passes through). */
 export const TRANSLUCENT = new Set(['LampDiffuser']);
 
-const HEX = /^#?([0-9a-f]{6})$/i;
-
-/** `#abcdef`, lower case, or null. */
-export function normalizeHex(value) {
-  const match = HEX.exec(String(value ?? '').trim());
-  return match ? `#${match[1].toLowerCase()}` : null;
-}
-
 /** The colour a part has as designed. */
 export function defaultColor(part) {
-  if (normalizeHex(part.color)) return normalizeHex(part.color);
   if (part.kind === 'hardware') return HARDWARE_COLORS[part.component] ?? '#555555';
   return PART_COLORS[part.id] ?? GROUP_COLORS[part.printGroup] ?? GROUP_COLORS.PartsSetB;
 }

@@ -59,8 +59,3 @@ const clamp = (value) => Math.max(-1, Math.min(1, value));
 export function normalizePose(pose) {
   return Object.fromEntries(JOINT_IDS.map((id) => [id, clamp(Number(pose?.[id]) || 0)]));
 }
-
-/** Between two poses, `f` in 0..1. */
-export function blendPoses(from, to, f) {
-  return Object.fromEntries(JOINT_IDS.map((id) => [id, from[id] + (to[id] - from[id]) * f]));
-}

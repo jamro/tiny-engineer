@@ -79,7 +79,6 @@ async function main() {
       component: extras.component ?? node.name,
       kind: extras.kind ?? 'printed',
       printGroup: extras.print_group ?? null,
-      color: extras.color ?? null,
       node,
       mesh,
     });
