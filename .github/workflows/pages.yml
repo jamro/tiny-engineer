@@ -43,7 +43,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: web/assembly/models
-          key: assembly-sg90-glb-${{ hashFiles('3d_models/cad/**', '3d_models/parts/*/stl/**', '3d_models/parts/*/step/**', '3d_models/fusion/TinyEngineerTools/servos.json', 'scripts/assembly/**', 'web/assembly/steps.json') }}
+          key: assembly-sg90-glb-${{ hashFiles('3d_models/cad/**', '3d_models/parts/*/stl/**', '3d_models/parts/*/step/**', '3d_models/fusion/TinyEngineerTools/servos.json', 'scripts/assembly/**', 'web/assembly/steps.json', 'web/js/assembly/steps.js') }}
       - uses: actions/setup-python@v5
         if: steps.glb-cache.outputs.cache-hit != 'true'
         with:
