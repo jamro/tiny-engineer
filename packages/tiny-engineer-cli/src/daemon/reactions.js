@@ -11,7 +11,7 @@ import {
   normalizeTransport,
   parseDotEnvLine,
 } from "../config/env.js";
-import { eventsWebSocketUrl, redactEventsUrl } from "../commands/watch.js";
+import { eventsWebSocketUrl, redactEventsUrl } from "../robot/events-url.js";
 import { createActionRunner } from "./actions.js";
 import { appendLog } from "./log.js";
 import { daemonPaths } from "./paths.js";
