@@ -59,10 +59,11 @@ Commands:
   watch                   Print outbound events (WebSocket or serial Evt)
   rules list|add|remove   Run a host program when the robot emits an event
   port [--probe]          List serial ports and the auto-detect choice
-  daemon start|stop|release|disable|status|restart|install|uninstall
-                          Host session. stop and release close USB and stay up.
-                          stop --yield refuses serial open for 180s.
-                          disable refuses auto-start until start.
+  daemon start|release|disable|status|restart|install|uninstall|stop
+                          Host session. release closes USB and stays up.
+                          release --yield refuses serial open for 180s.
+                          disable exits and refuses auto-start until start.
+                          stop is a deprecated alias of release.
 
 Options (most commands):
   --url <base>            Robot base URL (default: TINY_ENGINEER_URL, else ${DEFAULT_URL})

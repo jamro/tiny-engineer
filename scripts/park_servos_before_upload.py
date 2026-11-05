@@ -1,4 +1,4 @@
-"""Pre-upload: shell tiny-engineer park, then daemon stop --yield (fail-open)."""
+"""Pre-upload: shell tiny-engineer park, then daemon release --yield (fail-open)."""
 
 import os
 import shutil
@@ -27,15 +27,15 @@ def cli_base(project_dir, which=None):
 
 
 def command_argvs(project_dir, upload_port, which=None):
-    """Park argv, then `daemon stop --yield`. None when the CLI cannot be resolved."""
+    """Park argv, then `daemon release --yield`. None when the CLI cannot be resolved."""
     base = cli_base(project_dir, which=which)
     if base is None:
         return None
     park = base + ["park", "--transport", "serial"]
     if upload_port:
         park = park + ["--port", upload_port]
-    stop = base + ["daemon", "stop", "--yield"]
-    return [park, stop]
+    release = base + ["daemon", "release", "--yield"]
+    return [park, release]
 
 
 def _invoke(runner, argv, project_dir, timeout, label):
@@ -78,7 +78,7 @@ def park_servos(source, target, env, runner=None):
 
     run = runner or subprocess.run
     _invoke(run, argvs[0], project_dir, 45, "park")
-    _invoke(run, argvs[1], project_dir, 15, "daemon stop --yield")
+    _invoke(run, argvs[1], project_dir, 15, "daemon release --yield")
 
 
 try:

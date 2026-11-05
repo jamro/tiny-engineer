@@ -104,11 +104,11 @@ test("terminatePid sends SIGTERM then SIGKILL", async () => {
 
 test("daemon help lists release, disable, install, and plain stop stays up", () => {
   const help = daemonHelp();
-  assert.match(help, /release/);
+  assert.match(help, /release \[--yield\]/);
   assert.match(help, /disable/);
   assert.match(help, /install/);
   assert.match(help, /uninstall/);
-  assert.match(help, /Same as release/);
+  assert.match(help, /Deprecated alias of release/);
   assert.match(help, /--yield/);
   assert.match(help, /ignored while daemon install is on/);
   assert.deepEqual(daemonServeArgs("/bin/tiny-engineer.js", "/dev/b"), [
@@ -122,13 +122,52 @@ test("daemon help lists release, disable, install, and plain stop stays up", () 
   assert.equal(cliHelp.status, 0);
   assert.match(cliHelp.stdout, /release/);
   assert.match(cliHelp.stdout, /disable/);
-  assert.match(cliHelp.stdout, /stop and release close USB and stay up/);
+  assert.match(cliHelp.stdout, /release closes USB and stays up/);
+  assert.match(cliHelp.stdout, /stop is a deprecated alias of release/);
   const daemonCli = spawnSync(process.execPath, [cli, "daemon", "--help"], { encoding: "utf8" });
   assert.equal(daemonCli.status, 0);
-  assert.match(daemonCli.stdout, /release/);
+  assert.match(daemonCli.stdout, /release \[--yield\]/);
   assert.match(daemonCli.stdout, /disable/);
-  assert.match(daemonCli.stdout, /Same as release/);
+  assert.match(daemonCli.stdout, /Deprecated alias of release/);
   assert.equal(parseDaemonArgs(["stop", "--yield"]).yield, true);
+  assert.equal(parseDaemonArgs(["release", "--yield"]).yield, true);
+});
+
+test("stop deprecates toward release and release --yield sets yield", async () => {
+  const dir = tempConfig();
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = dir;
+  /** @type {string[]} */
+  const stderr = [];
+  const origWrite = process.stderr.write.bind(process.stderr);
+  process.stderr.write = /** @type {typeof process.stderr.write} */ ((chunk, ...rest) => {
+    stderr.push(String(chunk));
+    return origWrite(chunk, ...rest);
+  });
+  try {
+    const exitBefore = process.exitCode;
+    await runDaemon(quietOut(), ["stop"]);
+    assert.equal(process.exitCode ?? 0, 0);
+    assert.match(stderr.join(""), /prefer tiny-engineer daemon release/);
+    assert.equal(yieldActive(dir), false);
+    stderr.length = 0;
+    await runDaemon(quietOut(), ["release", "--yield"]);
+    assert.equal(process.exitCode ?? 0, 0);
+    assert.equal(yieldActive(dir), true);
+    assert.doesNotMatch(stderr.join(""), /deprecated/);
+    stderr.length = 0;
+    clearYield(dir);
+    await runDaemon(quietOut(), ["stop", "--yield"]);
+    assert.equal(process.exitCode ?? 0, 0);
+    assert.equal(yieldActive(dir), true);
+    assert.match(stderr.join(""), /prefer tiny-engineer daemon release --yield/);
+    process.exitCode = exitBefore;
+  } finally {
+    process.stderr.write = origWrite;
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("stop is idempotent and --yield blocks auto-start until start", async () => {
@@ -476,7 +515,7 @@ test("unknown pid fails closed", async () => {
         probePid: (pid) => (pid ? "unknown" : "none"),
         spawnFn: () => { spawns += 1; },
       }),
-      /daemon stop/,
+      /cannot identify process|only frees the port/,
     );
     assert.equal(spawns, 0);
   } finally {
