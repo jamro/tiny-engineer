@@ -44,7 +44,7 @@ class ParkArgvTest(unittest.TestCase):
             argvs[0],
             ["/usr/bin/tiny-engineer", "park", "--transport", "serial", "--port", "/dev/cu.usbmodem"],
         )
-        self.assertEqual(argvs[1], ["/usr/bin/tiny-engineer", "daemon", "stop", "--yield"])
+        self.assertEqual(argvs[1], ["/usr/bin/tiny-engineer", "daemon", "release", "--yield"])
 
     def test_repo_cli_when_not_on_path(self):
         def which(name):
@@ -54,12 +54,12 @@ class ParkArgvTest(unittest.TestCase):
 
         argvs = park.command_argvs(ROOT, "", which=which)
         self.assertEqual(argvs[0], ["/usr/bin/node", ENTRY, "park", "--transport", "serial"])
-        self.assertEqual(argvs[1], ["/usr/bin/node", ENTRY, "daemon", "stop", "--yield"])
+        self.assertEqual(argvs[1], ["/usr/bin/node", ENTRY, "daemon", "release", "--yield"])
 
     def test_missing_cli(self):
         self.assertIsNone(park.command_argvs(ROOT, "", which=lambda _name: None))
 
-    def test_yield_stop_runs_after_park_failure(self):
+    def test_yield_release_runs_after_park_failure(self):
         calls = []
 
         def runner(argv, **_kwargs):
@@ -71,7 +71,7 @@ class ParkArgvTest(unittest.TestCase):
         park.park_servos(None, None, _Env("/dev/cu.usbmodem"), runner=runner)
         self.assertEqual(len(calls), 2)
         self.assertIn("park", calls[0])
-        self.assertEqual(calls[1][-3:], ["daemon", "stop", "--yield"])
+        self.assertEqual(calls[1][-3:], ["daemon", "release", "--yield"])
         self.assertNotIn("--port", calls[1])
 
 

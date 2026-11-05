@@ -48,10 +48,10 @@ export function parseDaemonArgs(argv) {
 }
 
 export function daemonHelp() {
-  return `Usage: tiny-engineer daemon <start|stop|status|restart|release|disable|install|uninstall> [options]
+  return `Usage: tiny-engineer daemon <start|release|disable|status|restart|install|uninstall|stop> [options]
 
 Host session for this machine. Serial commands auto-start it unless disabled.
-Plain stop matches release: the process stays up and the USB port closes.
+release closes the USB port and leaves the process up. disable exits.
 The port stays closed until the next serial command.
 
   start [--port <path>]   Start unless already running. Clears disable and yield.
@@ -59,12 +59,10 @@ The port stays closed until the next serial command.
                           (a rule in rules.json and user transport serial).
                           Otherwise the port stays closed.
                           --port is ignored while daemon install is on.
-  stop [--yield]          Same as release. --yield refuses serial open for 180s
-                          and leaves the process running (firmware upload).
+  release [--yield]       Close the USB port. Process stays up.
+                          --yield refuses serial open for 180s (firmware upload).
                           Suspends serial reaction auto-open until start,
                           restart, or a serial command. HTTP reactions stay up.
-  release                 Close the USB port. Process stays up. No yield.
-                          Suspends serial reaction auto-open the same way as stop.
   disable                 Exit and refuse auto-start until start.
   status                  Print pid, version, channel, package root, proto, and port.
   restart [--port <path>] Clear disable and yield, then start a fresh process.
@@ -73,6 +71,7 @@ The port stays closed until the next serial command.
                           --port is ignored while daemon install is on.
   install                 Start the login wrapper for this user. Not a boot service.
   uninstall               Remove the login wrapper. Does not disable auto-start.
+  stop [--yield]          Deprecated alias of release / release --yield.
 `;
 }
 
@@ -116,18 +115,13 @@ export async function runDaemon(out, argv) {
     }
     return;
   }
-  if (opts.command === "release" || (opts.command === "stop" && !opts.yield)) {
-    try {
-      await releaseDaemon({ configDir });
-    } catch (err) {
-      out.error(err instanceof Error ? err.message : String(err));
-      process.exitCode = 1;
+  if (opts.command === "release" || opts.command === "stop") {
+    if (opts.command === "stop") {
+      const preferred = opts.yield ? "daemon release --yield" : "daemon release";
+      process.stderr.write(`note: prefer tiny-engineer ${preferred} (stop is a deprecated alias)\n`);
     }
-    return;
-  }
-  if (opts.command === "stop") {
     try {
-      await releaseDaemon({ configDir, yield: true });
+      await releaseDaemon({ configDir, yield: opts.yield });
     } catch (err) {
       out.error(err instanceof Error ? err.message : String(err));
       process.exitCode = 1;
