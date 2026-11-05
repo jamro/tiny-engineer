@@ -586,6 +586,7 @@ test("two starts share one daemon", async () => {
     assert.match(text, /proto: 1/);
     assert.match(text, /port: down/);
     assert.match(text, /channel: dev/);
+    assert.match(text, /source: [0-9a-f]{8}/);
     assert.ok(text.includes(`packageRoot: ${packageRoot.replace(/\/$/, "")}`));
     if (process.platform !== "win32") {
       const mode = statSync(daemonPaths(dir).sock).mode & 0o777;

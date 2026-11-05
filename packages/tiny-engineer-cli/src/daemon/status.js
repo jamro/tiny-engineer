@@ -123,19 +123,24 @@ export async function daemonStatusText(opts = {}) {
     const res = await conn.peer.request("daemon.status", {}, 1000);
     const body = /** @type {Record<string, unknown>} */ (res.result ?? {});
     const port = body.port ? String(body.port) : null;
-    return [
+    const channel = String(body.channel ?? "");
+    const sourceHash = typeof body.sourceHash === "string" ? body.sourceHash : "";
+    /** @type {string[]} */
+    const lines = [
       "daemon running",
       install,
       yieldLine,
       `pid: ${body.pid}`,
       `version: ${body.version}`,
-      `channel: ${body.channel}`,
+      `channel: ${channel}`,
       `packageRoot: ${body.packageRoot}`,
       `proto: ${body.proto}`,
-      ...portStatusLines(port, listed),
-      ...reactionStatusLines(body),
-      "",
-    ].join("\n");
+    ];
+    if (channel === "dev" && sourceHash.length >= 8) {
+      lines.push(`source: ${sourceHash.slice(0, 8)}`);
+    }
+    lines.push(...portStatusLines(port, listed), ...reactionStatusLines(body), "");
+    return lines.join("\n");
   } finally {
     conn.socket.end();
   }
