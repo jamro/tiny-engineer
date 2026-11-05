@@ -36,10 +36,10 @@ export async function stopDaemon(opts = {}) {
 
 /**
  * Ask the process to exit. Does not write a disable file.
- * A refused replace returns "play-active" without waiting for the socket.
+ * Any stop error (including a stale `play-active` from an old binary) fails closed.
  * @param {string} configDir
  * @param {"stop" | "replace"} [reason]
- * @returns {Promise<"play-active" | void>}
+ * @returns {Promise<void>}
  */
 export async function shutdownDaemon(configDir, reason = "stop") {
   const paths = daemonPaths(configDir);
@@ -54,7 +54,7 @@ export async function shutdownDaemon(configDir, reason = "stop") {
   } finally {
     conn.socket.destroy();
   }
-  if (reply?.error === "play-active") return "play-active";
+  if (typeof reply?.error === "string") throw new Error(reply.error);
   const deadline = Date.now() + 2000;
   while (Date.now() < deadline) {
     if (process.platform === "win32") {

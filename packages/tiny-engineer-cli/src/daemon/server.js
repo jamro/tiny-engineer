@@ -163,10 +163,6 @@ export async function serveDaemon(opts) {
       }
       if (method === "daemon.stop") {
         const reason = params.reason === "replace" ? "replace" : "stop";
-        if (reason === "replace" && link.playActive) {
-          send(socket, { id, error: "play-active" });
-          return;
-        }
         send(socket, { id, result: { ok: true } });
         await shutdown(reason);
         return;

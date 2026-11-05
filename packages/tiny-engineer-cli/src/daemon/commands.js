@@ -1,8 +1,7 @@
 import { userConfigDir } from "../config/paths.js";
 import { installSupervisor, osRegistrar, uninstallSupervisor } from "./install.js";
-import { clearDisable, clearYield, daemonStatusText, disableDaemon, ensureDaemon, releaseDaemon, shutdownDaemon, supervisorInstalled, tryConnect } from "./client.js";
+import { clearDisable, clearYield, daemonStatusText, disableDaemon, ensureDaemon, releaseDaemon, shutdownDaemon, supervisorInstalled } from "./client.js";
 import { clearReactionsSuspended } from "./reactions.js";
-import { daemonPaths } from "./paths.js";
 import { resolveCliScript } from "./policy.js";
 import { serveDaemon } from "./server.js";
 
@@ -139,20 +138,9 @@ export async function runDaemon(out, argv) {
   }
   if (opts.command === "install") {
     try {
-      let playActive = false;
-      const conn = await tryConnect(daemonPaths(configDir).sock, 200);
-      if (conn) {
-        try {
-          const res = await conn.peer.request("daemon.status", {}, 1000);
-          playActive = Boolean(/** @type {{ playActive?: boolean }} */ (res.result)?.playActive);
-        } finally {
-          conn.socket.destroy();
-        }
-      }
       await installSupervisor({
         configDir,
         scriptPath: resolveCliScript(),
-        playActive,
         registrar: osRegistrar(),
       });
     } catch (err) {

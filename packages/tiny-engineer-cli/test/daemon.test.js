@@ -855,46 +855,61 @@ test("failed play sends play_end and keeps the port", async () => {
   }
 });
 
-test("replace waits while play is active", async () => {
+test("replace during play aborts play and stops the daemon", async () => {
   const dir = tempConfig();
   const wav = join(dir, "clip.wav");
+  /** @type {Awaited<ReturnType<typeof tryConnect>>} */
+  let player = null;
   try {
     mkdirSync(dir, { recursive: true });
     writeFileSync(wav, Buffer.alloc(4));
     /** @type {(value: Record<string, unknown>) => void} */
     let release = () => {};
+    let closed = false;
     const client = {
       request: async () => ({ ok: true }),
       play: () => new Promise((resolve) => { release = resolve; }),
       setEventHandler() {},
       setLogHandler() {},
       setCloseHandler() {},
-      close: async () => {},
+      close: async () => {
+        closed = true;
+        release({ ok: false, error: "closed" });
+      },
     };
     const serving = startServer(dir, async () => ({ port: "/dev/fake", client }));
-    const playing = daemonPlay({ path: wav, configDir: dir });
-    await delay(50);
-    const { tryConnect } = await import("../src/daemon/client.js");
-    const conn = await tryConnect(daemonPaths(dir).sock, 500);
-    assert.ok(conn);
-    const refused = await conn.peer.request("daemon.stop", { reason: "replace" }, 1000);
-    assert.equal(refused.error, "play-active");
-    const status = await daemonStatusText({ configDir: dir });
-    assert.match(status, /daemon running/);
-    conn.socket.end();
-    release({ ok: true });
-    await playing;
-    await disableDaemon({ configDir: dir });
+    for (let i = 0; i < 50 && !existsSync(daemonPaths(dir).sock); i += 1) await delay(20);
+    player = await tryConnect(daemonPaths(dir).sock, 500);
+    assert.ok(player);
+    void player.peer.request("play", { path: wav, name: "talking" }, 60_000).catch(() => {});
+    await delay(30);
+    const stopper = await tryConnect(daemonPaths(dir).sock, 500);
+    assert.ok(stopper);
+    const stopped = await stopper.peer.request("daemon.stop", { reason: "replace" }, 1000);
+    assert.equal(stopped.error, undefined);
+    assert.equal(stopped.result && /** @type {{ ok?: boolean }} */ (stopped.result).ok, true);
+    stopper.socket.destroy();
     await serving;
+    assert.equal(closed, true);
+    assert.match(await daemonStatusText({ configDir: dir }), /daemon is not running/);
   } finally {
+    player?.socket.destroy();
+    await disableDaemon({ configDir: dir }).catch(() => {});
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test("newer proto is served during play and can replace after", async () => {
+test("newer client replaces daemon during play", async () => {
   const dir = tempConfig();
   const wav = join(dir, "clip.wav");
   const root = packageRoot.replace(/\/$/, "");
+  const current = loadIdentity(root);
+  /** @type {Promise<void> | undefined} */
+  let servingOld;
+  /** @type {Promise<void> | undefined} */
+  let servingNew;
+  /** @type {Awaited<ReturnType<typeof tryConnect>>} */
+  let player = null;
   try {
     mkdirSync(dir, { recursive: true });
     writeFileSync(wav, Buffer.alloc(4));
@@ -906,33 +921,34 @@ test("newer proto is served during play and can replace after", async () => {
       setEventHandler() {},
       setLogHandler() {},
       setCloseHandler() {},
-      close: async () => {},
+      close: async () => { release({ ok: false, error: "closed" }); },
     };
-    const serving = startServer(dir, async () => ({ port: "/dev/fake", client }), {
-      ...loadIdentity(root),
+    servingOld = startServer(dir, async () => ({ port: "/dev/fake", client }), {
+      ...current,
       proto: 0,
     });
     const sock = daemonPaths(dir).sock;
     for (let i = 0; i < 50 && !existsSync(sock); i += 1) await delay(20);
-    const player = await tryConnect(sock, 500);
+    player = await tryConnect(sock, 500);
     assert.ok(player);
-    const playPromise = player.peer.request("play", { path: wav, name: "talking" }, 60_000);
+    void player.peer.request("play", { path: wav, name: "talking" }, 60_000).catch(() => {});
     await delay(30);
-    const body = await daemonRobotRequest("health", {}, { configDir: dir });
-    assert.equal(body.ok, true);
-    const during = await daemonStatusText({ configDir: dir });
-    assert.match(during, /proto: 0/);
-    release({ ok: true });
-    const played = await playPromise;
-    assert.equal(played.error, undefined);
-    player.socket.end();
-    const conn = await tryConnect(sock, 500);
-    assert.ok(conn);
-    const stopped = await conn.peer.request("daemon.stop", { reason: "replace" }, 1000);
-    assert.notEqual(stopped.error, "play-active");
-    conn.socket.destroy();
-    await serving;
+    assert.match(await daemonStatusText({ configDir: dir }), /proto: 0/);
+    const conn = await ensureDaemon({
+      configDir: dir,
+      spawnFn: () => {
+        servingNew = startServer(dir, async () => fakeSession("/dev/fake"));
+      },
+    });
+    conn.socket.end();
+    const after = await daemonStatusText({ configDir: dir });
+    assert.match(after, new RegExp(`proto: ${current.proto}`));
+    assert.doesNotMatch(after, /proto: 0/);
+    await servingOld.catch(() => {});
+    await disableDaemon({ configDir: dir }).catch(() => {});
+    if (servingNew) await servingNew.catch(() => {});
   } finally {
+    player?.socket.destroy();
     rmSync(dir, { recursive: true, force: true });
   }
 });

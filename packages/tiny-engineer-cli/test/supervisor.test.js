@@ -200,32 +200,56 @@ test("login units do not restart and use absolute paths", () => {
   assert.equal(unitSpec("darwin", opts).kind, "plist");
 });
 
-test("install during play does not register or replace the daemon", async () => {
+test("install during play replaces the daemon and registers the supervisor", async () => {
   const dir = tempDir();
+  const wav = join(dir, "clip.wav");
+  writeFileSync(wav, Buffer.alloc(4));
+  /** @type {(value: Record<string, unknown>) => void} */
+  let release = () => {};
   const serving = serveDaemon({
     configDir: dir,
     exitProcess: false,
-    connect: async ({ port }) => fakeSession(port),
+    connect: async ({ port }) => ({
+      port: port || "/dev/fake",
+      client: {
+        request: async () => ({ ok: true }),
+        play: () => new Promise((resolve) => { release = resolve; }),
+        setEventHandler() {},
+        setLogHandler() {},
+        setCloseHandler() {},
+        close: async () => { release({ ok: false, error: "closed" }); },
+      },
+    }),
   });
+  /** @type {Awaited<ReturnType<typeof tryConnect>>} */
+  let player = null;
+  let called = false;
+  let starts = 0;
   try {
-    for (let i = 0; i < 50 && !existsSync(daemonPaths(dir).state); i += 1) await delay(20);
-    const before = readFileSync(daemonPaths(dir).state, "utf8");
-    let called = false;
-    await assert.rejects(
-      () => installSupervisor({
-        configDir: dir,
-        scriptPath: "/opt/cli/bin/tiny-engineer.js",
-        playActive: true,
-        registrar: { install() { called = true; } },
-      }),
-      /play-active/,
-    );
-    assert.equal(called, false);
-    assert.equal(existsSync(daemonPaths(dir).supervisor), false);
-    assert.equal(readFileSync(daemonPaths(dir).state, "utf8"), before);
+    for (let i = 0; i < 50 && !existsSync(daemonPaths(dir).sock); i += 1) await delay(20);
+    player = await tryConnect(daemonPaths(dir).sock, 500);
+    assert.ok(player);
+    void player.peer.request("play", { path: wav, name: "talking" }, 60_000).catch(() => {});
+    await delay(30);
+    await installSupervisor({
+      configDir: dir,
+      scriptPath: "/opt/cli/bin/tiny-engineer.js",
+      registrar: { install() { called = true; } },
+      startWrapper() { starts += 1; },
+    });
+    assert.equal(called, true);
+    assert.equal(existsSync(daemonPaths(dir).supervisor), true);
+    assert.equal(starts, 1);
+    await serving.catch(() => {});
   } finally {
+    player?.socket.destroy();
     await disableDaemon({ configDir: dir }).catch(() => {});
-    await serving;
+    await uninstallSupervisor({
+      configDir: dir,
+      registrar: { uninstall() {} },
+      shutdown: async () => {},
+      wrapperAlive: () => false,
+    }).catch(() => {});
     rmSync(dir, { recursive: true, force: true });
   }
 });
@@ -277,64 +301,6 @@ test("install refuses when the daemon socket stays open", async () => {
     await new Promise((resolve) => {
       server.close(() => resolve(undefined));
     });
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
-
-test("install refuses replace while play is active", async () => {
-  const dir = tempDir();
-  const wav = join(dir, "clip.wav");
-  writeFileSync(wav, Buffer.alloc(4));
-  /** @type {(value: Record<string, unknown>) => void} */
-  let release = () => {};
-  const serving = serveDaemon({
-    configDir: dir,
-    exitProcess: false,
-    connect: async ({ port }) => ({
-      port: port || "/dev/fake",
-      client: {
-        request: async () => ({ ok: true }),
-        play: () => new Promise((resolve) => { release = resolve; }),
-        setEventHandler() {},
-        setLogHandler() {},
-        setCloseHandler() {},
-        close: async () => {},
-      },
-    }),
-  });
-  /** @type {Awaited<ReturnType<typeof tryConnect>>} */
-  let player = null;
-  try {
-    for (let i = 0; i < 50 && !existsSync(daemonPaths(dir).sock); i += 1) await delay(20);
-    player = await tryConnect(daemonPaths(dir).sock, 500);
-    assert.ok(player);
-    const playPromise = player.peer.request("play", { path: wav, name: "talking" }, 60_000);
-    await delay(30);
-    const before = readFileSync(daemonPaths(dir).state, "utf8");
-    let called = false;
-    await assert.rejects(
-      () => installSupervisor({
-        configDir: dir,
-        scriptPath: "/opt/cli/bin/tiny-engineer.js",
-        playActive: false,
-        registrar: { install() { called = true; } },
-      }),
-      /play-active/,
-    );
-    assert.equal(called, false);
-    assert.equal(existsSync(daemonPaths(dir).supervisor), false);
-    assert.equal(readFileSync(daemonPaths(dir).state, "utf8"), before);
-    const still = await tryConnect(daemonPaths(dir).sock, 500);
-    assert.ok(still);
-    still.socket.destroy();
-    release({ ok: true });
-    await playPromise;
-    player.socket.end();
-  } finally {
-    release({ ok: true });
-    player?.socket.destroy();
-    await disableDaemon({ configDir: dir }).catch(() => {});
-    await serving;
     rmSync(dir, { recursive: true, force: true });
   }
 });
