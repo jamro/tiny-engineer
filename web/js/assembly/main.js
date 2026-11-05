@@ -6,8 +6,6 @@ import { createStage, smoothNormals } from './stage.js';
 import { FASTENER_FINISH, TRANSLUCENT, resolveColors } from './colors.js';
 import { createBuild } from './build.js';
 import { withFasteners } from './steps.js';
-import { rig } from './joints.js';
-import { CENTRE, DEFAULT_RANGE, JOINTS, JOINT_IDS, normalizePose, withFollowers } from './poses.js';
 
 const MODEL_URL = 'models/sg90.glb';
 const STEPS_URL = 'steps.json';
@@ -109,10 +107,6 @@ async function main() {
   const robotBox = new THREE.Box3().setFromObject(root);
   stage.frame(robotBox);
 
-  const followers = new Map(fasteners.map((item) => [item.id, item.fastener?.parent]));
-  const joints = rig(root, new Map(everything.map((part) => [part.id, part.node])), withFollowers(JOINTS, followers));
-  for (const part of everything) part.base = part.node.position.clone();
-
   const colors = resolveColors(parts);
   for (const part of parts) part.mesh.material.color.set(colors[part.id]);
   for (const item of fasteners) {
@@ -122,19 +116,12 @@ async function main() {
   }
 
   let build = null;
-  const rootRotation = new THREE.Quaternion();
-  const parentRotation = new THREE.Quaternion();
   const shift = new THREE.Vector3();
   function layout() {
-    root.getWorldQuaternion(rootRotation).invert();
     for (const part of everything) {
       shift.set(0, 0, 0);
       const offset = build?.offsetOf(part.id);
       if (offset) shift.add(offset);
-      if (part.node.parent !== root) {
-        part.node.parent.getWorldQuaternion(parentRotation).premultiply(rootRotation).invert();
-        shift.applyQuaternion(parentRotation);
-      }
       part.node.position.copy(part.base).add(shift);
       part.node.visible = build ? build.shown(part.id) : true;
       const ghost = build?.ghost(part.id) ?? false;
@@ -149,47 +136,6 @@ async function main() {
     stage.invalidate();
   }
 
-  const sliders = new Map();
-  let pose = { ...CENTRE };
-  const applyPose = (next) => {
-    pose = normalizePose(next);
-    for (const id of JOINT_IDS) {
-      joints.set(id, pose[id], DEFAULT_RANGE);
-      const slider = sliders.get(id);
-      if (slider) {
-        slider.input.value = String(Math.round(pose[id] * 100));
-        slider.output.value = pose[id].toFixed(2);
-      }
-    }
-    layout();
-  };
-  if (joints.joints.length) {
-    $('#asm-joints').hidden = false;
-    const holder = $('#asm-joint-sliders');
-    for (const joint of joints.joints) {
-      const row = document.createElement('label');
-      row.className = 'asm-joint';
-      row.title = `${joint.hint} · servo ${joint.index}`;
-      const name = document.createElement('span');
-      name.textContent = joint.label;
-      const input = document.createElement('input');
-      input.type = 'range';
-      input.min = '-100';
-      input.max = '100';
-      input.value = '0';
-      input.setAttribute('aria-label', `${joint.label} (${joint.hint})`);
-      const output = document.createElement('output');
-      output.value = '0.00';
-      input.addEventListener('input', () => {
-        applyPose({ ...pose, [joint.id]: Number(input.value) / 100 });
-      });
-      row.append(name, input, output);
-      holder.append(row);
-      sliders.set(joint.id, { input, output });
-    }
-    $('#asm-pose-centre').addEventListener('click', () => applyPose(CENTRE));
-  }
-
   if (stepData) {
     build = createBuild({
       data: withFasteners(stepData, fasteners.map(({ id, fastener }) => ({ id, fastener }))),
@@ -202,9 +148,6 @@ async function main() {
       onActive: (on) => {
         $('#asm-build-intro').hidden = on;
         $('#asm-build-player').hidden = !on;
-        if (on) applyPose(CENTRE);
-        $('#asm-joints').classList.toggle('is-disabled', on);
-        for (const control of $('#asm-joints').querySelectorAll('input, button')) control.disabled = on;
       },
       elements: {
         section: $('#asm-step-section'), title: $('#asm-step-title'), text: $('#asm-step-text'),
@@ -249,8 +192,6 @@ async function main() {
     get fasteners() {
       return fasteners.map(({ id, fastener, mesh, node }) => ({ id, kind: fastener?.kind, size: fastener?.size, color: `#${mesh.material.color.getHexString()}`, visible: node.visible }));
     },
-    get pose() { return { ...pose }; },
-    applyPose,
     get build() { return build && { active: build.active, index: build.index, count: build.steps.length, go: build.go }; },
     stage,
   };

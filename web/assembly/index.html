@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Assembly · Tiny Engineer</title>
-  <meta name="description" content="Tiny Engineer assembled in 3D from the same meshes you print. Walk through the build and pose the joints.">
+  <meta name="description" content="Tiny Engineer assembled in 3D from the same meshes you print. Walk through the build step by step.">
   <link rel="preconnect" href="https://fonts.bunny.net">
   <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
   <link rel="stylesheet" href="../css/tokens.css">
@@ -40,7 +40,7 @@
         <p class="eyebrow">3D · SG90</p>
         <h1>Assembly</h1>
         <p class="lede">
-          The stock robot from the meshes you print. Walk through the build step by step, or pose each servo joint.
+          The stock robot from the meshes you print. Walk through the build step by step.
         </p>
       </div>
 
@@ -50,13 +50,6 @@
           <p id="asm-status" class="asm-status mono" role="status" data-state="loading">Loading model…</p>
           <div class="asm-toolbar">
             <button id="asm-reset-view" class="btn btn-ghost" type="button">Reset view</button>
-          </div>
-          <div id="asm-joints" class="asm-joints" hidden>
-            <div class="asm-joints-head">
-              <span class="field-label">Move</span>
-              <button id="asm-pose-centre" class="btn btn-ghost" type="button" title="All servos at 90°">90°</button>
-            </div>
-            <div id="asm-joint-sliders" class="asm-joint-sliders"></div>
           </div>
         </section>
 

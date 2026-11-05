@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Provides a browser 3D assembly view of the stock Tiny Engineer at the SG90 servo preset, driven by a CI-built model from the CAD, with step-by-step build guidance and manual joint posing.
+Provides a browser 3D assembly view of the stock Tiny Engineer at the SG90 servo preset, driven by a CI-built model from the CAD, with step-by-step build guidance at the fixed assembled pose.
 
 ## Requirements
 
@@ -38,20 +38,16 @@ The assembly viewer MUST paint parts with the design default colours. It MUST NO
 - **WHEN** the model finishes loading
 - **THEN** printed parts and hardware use the fixed default colours for the design
 
-### Requirement: Manual joint posing
-The assembly viewer MUST let the user set each servo joint pose on the firmware −1..1 scale at a fixed ±25° angular range. It MUST NOT offer a range picker, playable animation loops, or on-page copy explaining the firmware pose scale or stock angle limits.
+### Requirement: Fixed assembled pose
+The assembly viewer MUST show the stock robot at the assembled pose baked into the published model. It MUST NOT provide joint sliders, a 90° pose reset, or any other control that rotates parts about servo shafts at runtime.
 
-#### Scenario: Move one joint
-- **WHEN** a user changes a joint slider
-- **THEN** the corresponding parts rotate about that servo shaft to the chosen pose at ±25°
+#### Scenario: Finished robot stays assembled
+- **WHEN** a user views the finished robot with build mode off
+- **THEN** every part remains in its assembled model pose and there is no joint pose control in the page chrome
 
-#### Scenario: No animation playback
-- **WHEN** a user uses the joint controls
-- **THEN** there is no control that starts a looping typing, talking, ring, or wave animation
-
-#### Scenario: No range control
-- **WHEN** a user views the joint controls
-- **THEN** there is no control to choose ±10°, ±25°, or ±40°
+#### Scenario: Build steps do not reorient joints
+- **WHEN** a user advances through build steps
+- **THEN** parts move only for that step's add/move/slide-in offsets and MUST NOT be rotated by a joint-pose system
 
 ### Requirement: Electronics and screws always visible
 When a part is shown by the current build step (or the finished robot when build mode is off), electronics and fasteners MUST remain visible. The viewer MUST NOT provide Electronics or Screws visibility toggles.
@@ -82,11 +78,11 @@ The assembly viewer MUST NOT download a ZIP of print files from the site. Print 
 - **THEN** there is no control that packs and downloads home-printer or print-service ZIP archives
 
 ### Requirement: SG90-only model pipeline
-CI MUST build and publish only the stock SG90 assembly GLB (plus its assembly checks). The Pages deploy MUST publish that same stock SG90 model for the viewer and MUST NOT build other servo presets or viewer mods, and MUST NOT stage a `web/print/` tree for viewer download. When assembly model inputs are unchanged, Pages MAY reuse a previously built SG90 GLB. When those inputs change or no matching build is available, Pages MUST rebuild the SG90 GLB (with its checks) and MUST fail the deploy if that rebuild fails.
+CI MUST build and publish only the stock SG90 assembly GLB (plus its assembly checks). The Pages deploy MUST publish that same stock SG90 model for the viewer and MUST NOT build other servo presets or viewer mods, and MUST NOT stage a `web/print/` tree for viewer download. When assembly model inputs are unchanged, Pages MAY reuse a previously built SG90 GLB. When those inputs change or no matching build is available, Pages MUST rebuild the SG90 GLB (with its checks) and MUST fail the deploy if that rebuild fails. Assembly checks for the published model MUST include step and clipping validation and MUST NOT require a servo joint-pose sweep.
 
 #### Scenario: Assembly CI build
 - **WHEN** the assembly CI job runs successfully
-- **THEN** it produces the stock SG90 model artifact and runs the SG90 step and clipping checks (and any remaining static pose checks)
+- **THEN** it produces the stock SG90 model artifact and runs the SG90 step and clipping checks without a joint-pose sweep
 
 #### Scenario: Pages deploy
 - **WHEN** GitHub Pages deploys the site

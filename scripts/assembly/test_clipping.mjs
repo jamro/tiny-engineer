@@ -4,7 +4,6 @@
 import assert from 'node:assert/strict';
 import { gap, makeSolid, penetration, inside, surfaceDistance } from './clipping.mjs';
 import { checkSteps, describe } from './check_clipping.mjs';
-import { checkPoses, poser } from './check_poses.mjs';
 
 /** A closed box, min corner `at`, edge lengths `size`, as STL-style triangle corners. */
 function box(id, at, size) {
@@ -93,20 +92,6 @@ const sub = (move) => ({
 assert.deepEqual(checkSteps(solids, sub(['peg', 'lid'])).problems, []);
 result = checkSteps(solids, sub(['peg']));
 assert.ok(result.problems.some((problem) => problem.step.startsWith('4 ') && problem.a === 'peg' && problem.b === 'lid'), 'peg through the lid');
-
-// Poses: a forearm in front of the right arm servo's shaft (+Y of the servo
-// frame along −y, as in the model) turns up at +1 and down onto a bell below.
-const shaft = new Map([['servo-arm-right', { origin: [0, 0, 0], axis: [0, -1, 0] }]]);
-const arm = new Map([
-  ['ForearmRight', box('ForearmRight', [10, -2, -2], [30, 4, 4])],
-  ['Bell', box('Bell', [25, -5, -22], [15, 10, 10])],
-]);
-const { posed } = poser(arm, shaft, 25);
-assert.ok(posed({ 'hand-right': 1 }).get('ForearmRight').box[5] > 10, 'right hand up at +1');
-assert.ok(posed({ 'hand-right': -1 }).get('ForearmRight').box[2] < -10, 'and down at −1');
-assert.equal(posed({}).get('ForearmRight'), arm.get('ForearmRight'), 'unmoved parts are reused');
-const poseProblems = checkPoses(arm, shaft, null, { poses: { low: { 'hand-right': -1 } } });
-assert.ok(poseProblems.some((problem) => problem.startsWith('low: ForearmRight × Bell clip')), poseProblems.join('; '));
 
 // Gaps between surfaces: touching faces 0, apart by their distance, capped at the limit.
 near(gap(cube, box('touching', [10, 0, 0], [10, 10, 10])), 0, 1e-6);

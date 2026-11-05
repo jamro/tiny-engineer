@@ -4,7 +4,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { FASTEN_AT, flatten, offsetsAt, phases, sceneAt, startOffset, validate, withFasteners } from '../../web/js/assembly/steps.js';
-import { CENTRE, JOINTS, JOINT_IDS, REST, fastenerFollowers, normalizePose, withFollowers } from '../../web/js/assembly/poses.js';
 import { defaultColor, resolveColors, GROUP_COLORS, HARDWARE_COLORS, PART_COLORS } from '../../web/js/assembly/colors.js';
 
 const parts = [
@@ -94,13 +93,6 @@ const shipped = JSON.parse(readFileSync(new URL('../../web/assembly/steps.json',
 const shippedIds = [...new Set(flatten(shipped).flatMap((step) => step.add))];
 assert.deepEqual(validate(shipped, shippedIds), []);
 
-// Poses.
-assert.deepEqual(normalizePose({ head: 3, neck: -2, body: 'x' }), { head: 1, neck: -1, 'hand-left': 0, 'hand-right': 0, body: 0 });
-assert.equal(REST['hand-left'], 1);
-assert.equal(REST['hand-right'], -1);
-assert.deepEqual(CENTRE, { head: 0, neck: 0, 'hand-left': 0, 'hand-right': 0, body: 0 });
-assert.deepEqual(JOINTS.map((joint) => joint.id).sort(), [...JOINT_IDS].sort(), 'one joint per pose id');
-
 // Fasteners in the steps.
 {
   const data = {
@@ -136,10 +128,6 @@ assert.deepEqual(JOINTS.map((joint) => joint.id).sort(), [...JOINT_IDS].sort(), 
   assert.deepEqual(offsetsAt(steps, 0, FASTEN_AT).get('Arm'), [10, 0, 0]);
   assert.deepEqual(offsetsAt(steps, 0, 1).get('screw-arm-1'), [10, 0, 0], 'driven in');
   assert.equal(offsetsAt(steps, 2, 1).get('screw-arm-1'), undefined, 'home with the arm');
-  const joints = withFollowers(JOINTS, fastenerFollowers([{ id: 'screw-elbow-left-1', fastener: { parent: 'ForearmLeft' } }, { id: 'nut', fastener: { parent: 'Nope' } }]));
-  assert.ok(joints.find((joint) => joint.id === 'hand-left').moves.includes('screw-elbow-left-1'));
-  assert.ok(!joints.some((joint) => joint.moves.includes('nut')), 'a part no joint moves: it stays');
-  assert.ok(!JOINTS.find((joint) => joint.id === 'hand-left').moves.includes('screw-elbow-left-1'), 'JOINTS itself is left alone');
 }
 
 console.log('viewer tests passed');

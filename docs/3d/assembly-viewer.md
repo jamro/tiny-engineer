@@ -10,7 +10,7 @@ flowchart LR
   extract["extract.py (SG90)"]
   fasteners["fasteners.py"]
   json["assembly.json"]
-  checks["check_steps / check_clipping / check_poses"]
+  checks["check_steps / check_clipping"]
   glb["build_glb.mjs → models/sg90.glb"]
   f3d --> extract
   parts --> extract
@@ -26,7 +26,7 @@ flowchart LR
 
 - **Build steps:** the build from [assembly.md](assembly.md), split into small steps. Each step shows the robot so far, slides the new parts in, frames them, and lists screws, the section photo and a link to the guide. Back / Play / Next sit at the top of the build card; ← / → or jump to a section. `#s=12` links to step 12.
 - **Colours:** parts use the design defaults (copper set, black set, white diffuser). There is no colour picker.
-- **Move:** a slider per servo joint, in the firmware's −1..1 pose scale ([robot-movement.md](../robot-movement.md)), at a fixed ±25°. Each servo turns about its shaft (`web/js/assembly/joints.js`): body → neck → head, body → hands. Build steps show every servo at 90°.
+- **Pose:** the published model stays at its assembled CAD pose. There are no joint sliders; servo motion lives on the physical robot ([robot-movement.md](../robot-movement.md)).
 - **Screws and nuts:** the robot's M2 screws and nuts, in their holes ([below](#screws-and-nuts)), always shown with the electronics when the current step includes them.
 
 Local preview: build the GLB into `web/assembly/models/sg90.glb` (commands below), then `python3 -m http.server -d web 8000` and open `http://localhost:8000/assembly/`.
@@ -64,14 +64,6 @@ A line that finds another count than it says fails the build. Meshes: pan head 3
 node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json [--tolerance 0.3] [--step 1]
 ```
 
-### Pose check
-
-[`check_poses.mjs`](../../scripts/assembly/check_poses.mjs) turns the parts about the servo shafts as the viewer does (`JOINTS` in [`poses.js`](../../web/js/assembly/poses.js), at ±25°) and checks parts that move relative to each other for clipping at 90°, at rest, and with each joint at ±1. `fits` apply as in the step check. Screws and nuts turn with the part their head sits on (`withFollowers` in `poses.js`).
-
-```bash
-node scripts/assembly/check_poses.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json [--tolerance 0.3] [--range 25]
-```
-
 ## How placements are found
 
 The Fusion add-in exports each part in its **print** pose (flat on the bed, see [adding parts](adding-parts.md#print-ready-copy-print_layout)). To place it in the robot, the extractor reads the `.f3d` directly. It does not need Fusion:
@@ -88,7 +80,7 @@ The `.f3d` format is not documented. It is read with [ezf3d](https://github.com/
 | Fallback | A part without a usable print transform (the mirrored upper arm, printed as `UpperArm.stl`, and the mug, whose print record is stale) is fitted to its STL with iterative closest point, then held to the same check. |
 | Joints | Every named joint agrees with the transforms of the two occurrences it connects, to 0.05 mm. |
 
-The design is saved with the hands raised about 30° above the shoulders. The guide mounts the arms with the hand at shoulder height and the forearm pointing forward at 90° ([assembly.md](assembly.md#18-mount-arms-on-the-chest-servos)), so the extractor turns each arm (upper arm and forearm) 29° down about its servo's shaft (`ARM_REST_DOWN_DEG`) after the checks. The parts carry `"rest"` in `assembly.json`. 29°, not 30°: at rest (hands at their max, ±25°) the fingers then stay just clear of the laptop keyboard.
+The design is saved with the hands raised about 30° above the shoulders. The guide mounts the arms with the hand at shoulder height and the forearm pointing forward at 90° ([assembly.md](assembly.md#18-mount-arms-on-the-chest-servos)), so the extractor turns each arm (upper arm and forearm) 29° down about its servo's shaft (`ARM_REST_DOWN_DEG`) after the checks. The parts carry `"rest"` in `assembly.json`.
 
 The extractor reads **one** preset: the one the `.f3d` was saved with (currently **SG90**), and checks it against that preset's STLs. After changing the saved preset, run it with the matching `--preset`. The viewer publishes only SG90.
 

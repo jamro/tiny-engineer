@@ -55,7 +55,7 @@ npm test --prefix packages/tiny-engineer-claude-code
 
 ## 3D assembly model
 
-Python 3.13 with [`scripts/assembly/requirements.txt`](../scripts/assembly/requirements.txt), and Node 18+. Reads the Fusion design, checks every part's placement against its exported STL, and packs the SG90 GLB. Then checks the viewer's build steps on the meshes: no part may pass through another while it moves in, and no two parts may sit inside each other when assembled. Then checks centre, rest, and ±range joint poses the same way. CI job `assembly`. Details: [3d/assembly-viewer.md](3d/assembly-viewer.md#clipping-check), [pose check](3d/assembly-viewer.md#pose-check).
+Python 3.13 with [`scripts/assembly/requirements.txt`](../scripts/assembly/requirements.txt), and Node 18+. Reads the Fusion design, checks every part's placement against its exported STL, and packs the SG90 GLB. Then checks the viewer's build steps on the meshes: no part may pass through another while it moves in, and no two parts may sit inside each other when assembled. CI job `assembly`. Details: [3d/assembly-viewer.md](3d/assembly-viewer.md#clipping-check).
 
 ```bash
 python3 scripts/assembly/test_assembly.py
@@ -68,10 +68,9 @@ python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
 python3 scripts/assembly/fasteners.py artifacts/assembly/sg90/assembly.json
 node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb
 node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
-node scripts/assembly/check_poses.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
 ```
 
-`scripts/assembly/build.sh` runs the extraction, places the M2 screws and nuts (`fasteners.py`, which fails when a line of `fasteners.json` finds another count), the step and clipping checks, the pose check, and the SG90 GLB build.
+`scripts/assembly/build.sh` runs the extraction, places the M2 screws and nuts (`fasteners.py`, which fails when a line of `fasteners.json` finds another count), the step and clipping checks, and the SG90 GLB build.
 
 ## PCB
 
