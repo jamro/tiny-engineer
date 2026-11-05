@@ -1,6 +1,6 @@
 # 3D assembly model
 
-The **[assembly viewer](https://jamro.github.io/tiny-engineer/assembly/)** shows the stock SG90 robot assembled from the same meshes you print. CI builds its 3D model from the repository on every Pages deploy. The only generated files in git are the electronics the CAD does not have ([below](#electronics-the-design-does-not-have)).
+The **[assembly viewer](https://jamro.github.io/tiny-engineer/assembly/)** shows the stock SG90 robot assembled from the same meshes you print. CI always builds its 3D model from the repository; the [Pages workflow](../../.github/workflows/pages.yml) publishes `models/sg90.glb`, rebuilding when assembly model inputs change and otherwise reusing a cached GLB keyed by those inputs. The only generated files in git are the electronics the CAD does not have ([below](#electronics-the-design-does-not-have)).
 
 ```mermaid
 flowchart LR
@@ -22,7 +22,7 @@ flowchart LR
 
 ## Viewer
 
-[`web/assembly/`](../../web/assembly/) on GitHub Pages, plain ES modules in [`web/js/assembly/`](../../web/js/assembly/), with Three.js from a CDN. It loads `models/sg90.glb`, which the [Pages workflow](../../.github/workflows/pages.yml) builds on deploy.
+[`web/assembly/`](../../web/assembly/) on GitHub Pages, plain ES modules in [`web/js/assembly/`](../../web/js/assembly/), with Three.js from a CDN. It loads `models/sg90.glb`, which the [Pages workflow](../../.github/workflows/pages.yml) publishes on deploy (rebuild via [`build.sh`](../../scripts/assembly/build.sh) on cache miss, else the cached GLB).
 
 - **Build steps:** the build from [assembly.md](assembly.md), split into small steps. Each step shows the robot so far, slides the new parts in, frames them, and lists screws, the section photo and a link to the guide. Back / Play / Next sit at the top of the build card; ← / → or jump to a section. `#s=12` links to step 12.
 - **Colours:** parts use the design defaults (copper set, black set, white diffuser). There is no colour picker.
