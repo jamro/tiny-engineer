@@ -1,0 +1,305 @@
+{
+  "format": 1,
+  "id": "halloween",
+  "title": "Halloween",
+  "about": "mods/halloween: pumpkin head, lamp and cauldron mug, plus a standalone pumpkin. How its parts join the stock robot in the 3D viewer (scripts/assembly/merge_mod.mjs) and how the build steps change (web/js/assembly/steps.js applyMod).",
+  "f3d": "mods/halloween/3d_models/cad/TinyEngineerHalloween.f3d",
+  "parts": "mods/halloween/3d_models/parts",
+  "replace": {
+    "Mug": "Pot",
+    "Coffee": "Mixture"
+  },
+  "remove": [
+    "Hat"
+  ],
+  "align": [
+    {
+      "parts": [
+        "Head",
+        "PumpkinCover",
+        "PumpkinTop"
+      ],
+      "how": "The mod keeps the stock Head component, so its frame is the stock Head's.",
+      "component": "Head"
+    },
+    {
+      "parts": [
+        "LampBase",
+        "LampDiffuser",
+        "LampCap"
+      ],
+      "how": "The lamp stands where the stock lamp does: diffuser on the stock diffuser's axis, base on the desk top.",
+      "centre": {
+        "part": "LampDiffuser",
+        "onto": "LampDiffuser"
+      },
+      "floor": {
+        "part": "LampBase",
+        "onto": "LampBase"
+      },
+      "check": {
+        "part": "LampBase",
+        "onto": "LampBase",
+        "max_mm": 2.0
+      }
+    },
+    {
+      "parts": [
+        "Pot",
+        "Mixture"
+      ],
+      "how": "The cauldron takes the mug's spot on the desk.",
+      "centre": {
+        "part": "Pot",
+        "onto": "Mug"
+      },
+      "floor": {
+        "part": "Pot",
+        "onto": "Mug"
+      }
+    },
+    {
+      "parts": [
+        "Pumpkin"
+      ],
+      "how": "A desk prop, not mounted: on the floor beside the desk, on the robot's left.",
+      "at": [
+        55,
+        100
+      ]
+    }
+  ],
+  "colors": {
+    "Head": "#262624",
+    "PumpkinCover": "#ef7d1a",
+    "PumpkinTop": "#ef7d1a",
+    "LampBase": "#262624",
+    "LampDiffuser": "#f2efe6",
+    "LampCap": "#c08a3e",
+    "Pot": "#262624",
+    "Mixture": "#ef7d1a",
+    "Pumpkin": "#ef7d1a"
+  },
+  "fits": [
+    {
+      "parts": [
+        "Head",
+        "OLED"
+      ],
+      "mm": 1.25,
+      "why": "Placed by footprint (scripts/assembly/merge_mod.mjs align), not by a joint of the mod design: the OLED keeps the stock head's pose, which sits 1.2 mm into the floor of the Halloween Head"
+    },
+    {
+      "parts": [
+        "LampButton",
+        "LampBase"
+      ],
+      "mm": 1.6,
+      "why": "Placed by footprint (scripts/assembly/merge_mod.mjs align), not by a joint of the mod design: the Halloween LampBase has no pocket where the stock LampButton sits"
+    },
+    {
+      "parts": [
+        "LampButton",
+        "LampDiffuser"
+      ],
+      "mm": 0.9,
+      "why": "Placed by footprint (scripts/assembly/merge_mod.mjs align), not by a joint of the mod design: the Halloween diffuser reaches down to the stock LampButton"
+    },
+    {
+      "parts": [
+        "DeskTop",
+        "Pot"
+      ],
+      "mm": 0.9,
+      "why": "Placed by footprint (scripts/assembly/merge_mod.mjs align), not by a joint of the mod design: the cauldron stands on the mug's floor, which is below the desk top surface"
+    }
+  ],
+  "steps": {
+    "sections": {
+      "head": {
+        "title": "Head: servo holder",
+        "doc": "#1-head--oled-and-servo",
+        "steps": [
+          {
+            "title": "Head (servo holder)",
+            "text": "The Halloween Head only holds the servo. Mount it like the stock head: seat the servo, no horn yet.",
+            "add": [
+              "Head"
+            ],
+            "from": [
+              0,
+              0,
+              40
+            ]
+          },
+          {
+            "title": "Seat the head servo",
+            "text": "Lower a servo into the holder from above and route its lead out the back.",
+            "add": [
+              "servo-head"
+            ],
+            "from": [
+              0,
+              0,
+              40
+            ]
+          }
+        ]
+      },
+      "hat": {
+        "title": "Pumpkin head",
+        "docs": "https://github.com/jamro/tiny-engineer/blob/main/mods/halloween/README.md",
+        "doc": "#head-assembly",
+        "steps": [
+          {
+            "title": "Screw PumpkinTop into PumpkinCover",
+            "text": "Do this off the robot. The head itself (Head with its servo) is mounted on the robot first, in the steps that follow.",
+            "add": [
+              "PumpkinCover",
+              "PumpkinTop"
+            ],
+            "fromEach": {
+              "PumpkinCover": [
+                0,
+                0,
+                30
+              ],
+              "PumpkinTop": [
+                0,
+                0,
+                60
+              ]
+            }
+          },
+          {
+            "title": "Seat the OLED in PumpkinCover",
+            "text": "Plug the OLED cable in first, then seat the display in the cover's window from below. The cover goes onto Head once Head is on the robot.",
+            "add": [
+              "OLED"
+            ],
+            "from": [
+              0,
+              0,
+              -20
+            ],
+            "ghost": [
+              "PumpkinCover",
+              "PumpkinTop"
+            ]
+          }
+        ]
+      },
+      "head-on-chest": {
+        "title": "Mount the head on Chest, then the pumpkin",
+        "steps": [
+          {
+            "title": "Route the neck servo lead",
+            "text": "Before seating it, route the neck servo's lead through the central tunnel in Chest and out the bottom.",
+            "add": [],
+            "focus": [
+              "Chest",
+              "servo-neck"
+            ]
+          },
+          {
+            "title": "Seat the neck servo in the center pocket",
+            "text": "Lower Head and Neck so the neck servo drops into the center pocket. Keep the front of Head and Neck on the front of Chest (the side with the tunnels). Fasten with M2×8 screws: two if they fit, otherwise one at the back.",
+            "add": [],
+            "move": [
+              "Head",
+              "servo-head",
+              "Neck",
+              "servo-neck"
+            ],
+            "from": [
+              0,
+              0,
+              40
+            ],
+            "screws": "1–2 × M2×8"
+          },
+          {
+            "title": "Slide the pumpkin onto Head",
+            "text": "Slide PumpkinCover (with PumpkinTop and the OLED) down onto Head. Route the servo and OLED cords through the two slots on the back, and optionally fasten the cover to Head with an M2 screw through the hole on the back.",
+            "add": [],
+            "move": [
+              "PumpkinCover",
+              "PumpkinTop",
+              "OLED"
+            ],
+            "from": [
+              0,
+              0,
+              80
+            ],
+            "screws": "optional 1 × M2"
+          }
+        ]
+      }
+    },
+    "append": [
+      {
+        "id": "pumpkin",
+        "title": "Standalone pumpkin",
+        "docs": "https://github.com/jamro/tiny-engineer/blob/main/mods/halloween/README.md",
+        "doc": "#standalone-pumpkin",
+        "steps": [
+          {
+            "title": "Set a pumpkin by the desk",
+            "text": "Print Pumpkin at any size, as many as you like, and place them next to the desk.",
+            "add": [
+              "Pumpkin"
+            ],
+            "from": [
+              0,
+              0,
+              60
+            ]
+          }
+        ]
+      }
+    ],
+    "patch": {
+      "props": {
+        "2": {
+          "title": "Cauldron",
+          "text": "Seat Mixture in Pot, place the pot on the mug's spot and fasten it with one M2×8 from under the desk."
+        }
+      },
+      "arms": {
+        "2": {
+          "allow": [
+            {
+              "parts": ["ForearmLeft", "LampBase"],
+              "mm": 1.4,
+              "why": "The Halloween lamp stands in the left hand's way: tilt the hand up over the lamp's rim while pressing the arm on (the viewer only slides parts straight)."
+            }
+          ]
+        }
+      },
+      "lamp": {
+        "0": {
+          "title": "Cap on diffuser, into LampBase",
+          "text": "No screws. Put LampCap on LampDiffuser and push the stack into the Halloween LampBase."
+        }
+      },
+      "chair": {
+        "3": {
+          "move": [
+            "Head",
+            "OLED",
+            "servo-head",
+            "PumpkinCover",
+            "PumpkinTop",
+            "Neck",
+            "servo-neck",
+            "Chest",
+            "servo-arm-left",
+            "servo-arm-right",
+            "Belly"
+          ]
+        }
+      }
+    }
+  }
+}

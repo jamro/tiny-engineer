@@ -99,6 +99,45 @@ jobs:
       - name: Claude Code package tests
         run: npm test --prefix packages/tiny-engineer-claude-code
 
+  assembly:
+    # The 3D assembly viewer's model: read part placements from the Fusion
+    # design, check them against the exported STLs, solve the other servo
+    # presets from the design's joints, check the build steps and the joint
+    # poses / animations for parts clipping or coming apart, and pack the GLBs.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: scripts/assembly/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install extractor
+        run: pip install -r scripts/assembly/requirements.txt
+      - name: Extractor and GLB tests
+        run: |
+          python3 scripts/assembly/test_assembly.py
+          node scripts/assembly/test_build_glb.mjs
+          node scripts/assembly/test_viewer.mjs
+          node scripts/assembly/test_clipping.mjs
+          python3 scripts/assembly/test_presets.py
+          python3 scripts/assembly/test_fasteners.py
+          python3 scripts/assembly/test_boards.py
+      - name: Build assembly models (every servo preset and mods), check steps and poses
+        run: scripts/assembly/build.sh artifacts/assembly/models
+      - name: Upload assembly model
+        uses: actions/upload-artifact@v4
+        with:
+          name: assembly-${{ github.sha }}
+          path: |
+            artifacts/assembly/*/assembly.json
+            artifacts/assembly/models/*.glb
+          retention-days: 30
+          if-no-files-found: error
+
   pcb:
     runs-on: ubuntu-24.04
     env:

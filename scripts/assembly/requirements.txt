@@ -1,0 +1,4 @@
+# Python 3.13 (ezf3d requires it). Install: pip install -r scripts/assembly/requirements.txt
+# ezf3d reads Fusion .f3d files without Fusion (MIT). Not on PyPI: pinned to a commit.
+ezf3d @ git+https://github.com/AlexSabaka/ezf3d@97fe90ab8c39c3978fa6354f4a21c5ebdbc38c6e
+numpy>=1.26

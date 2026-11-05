@@ -38,9 +38,16 @@ npm test --prefix packages/tiny-engineer-claude-code
 npm run lint --prefix ui
 npm test --prefix ui
 python3 scripts/check_pcb.py
+python3 scripts/assembly/test_assembly.py
+python3 scripts/assembly/test_presets.py
+python3 scripts/assembly/test_fasteners.py
+python3 scripts/assembly/test_boards.py
+node scripts/assembly/test_build_glb.mjs
+node scripts/assembly/test_viewer.mjs
+node scripts/assembly/test_clipping.mjs
 ```
 
-`pio test -e native` is not `pio run -e native`. PCB checks need KiCad 10 (`python3 scripts/check_pcb.py`). Details: [docs/testing.md](docs/testing.md).
+`pio test -e native` is not `pio run -e native`. PCB checks need KiCad 10 (`python3 scripts/check_pcb.py`). The 3D assembly model needs Python 3.13 and `scripts/assembly/requirements.txt` ([docs/3d/assembly-viewer.md](docs/3d/assembly-viewer.md)). Details: [docs/testing.md](docs/testing.md).
 
 Do **not** flash (`pio run -t upload`, `-t uploadfs`, `pio run -e ota -t upload`, `-t ota`, or `-t otafs`) unless the user asks.
 
@@ -79,7 +86,7 @@ Breaking rules, SemVer mapping, and examples: [CONTRIBUTING.md](CONTRIBUTING.md)
 - **HTTP routes** — add the route to `kRoutes` in `src/http/routes.cpp` with its `Access` level; `Refusal::check` enforces it. Routes with fields read a JSON body through `readJsonBody`; only `POST /anim` (`name`) and `/play` take other input, because the agent packages depend on them.
 - **Web UI** — Preact + TypeScript in `ui/src`, plain `preact` / `preact/hooks` imports (no compat). One component per file; shared components in `ui/src/components`, helpers in `ui/src/lib`. `npm run lint --prefix ui` runs `tsc` and type-checked ESLint, which forbids `.then` / `.catch` chains (use try/catch). Keep markup and class names when refactoring: the CSS styles them by class and id.
 - **Integrations** — add/extend package tests; prefer short timeouts and ignore network errors so a missing robot does not stall the agent.
-- **CAD** — edit `.f3d` **and** export affected `3mf`. CERN-OHL-S. Do not swap `AiEmblem.3mf` as branding. New parts: [docs/3d/adding-parts.md](docs/3d/adding-parts.md).
+- **CAD** — edit `.f3d` **and** export affected `3mf`. Save the `.f3d` at the SG90 preset: CI checks the assembly model against `parts/sg90/` ([docs/3d/assembly-viewer.md](docs/3d/assembly-viewer.md)). CERN-OHL-S. Do not swap `AiEmblem.3mf` as branding. New parts: [docs/3d/adding-parts.md](docs/3d/adding-parts.md).
 - **Mods** — optional add-ons under `mods/<mod_name>/`. Models live in `3d_models/{cad,parts}/`. Commit `type(mods)` and name the mod in the summary. `feat(mods)` / `fix(mods)` do not version stock CAD. See [mods/README.md](mods/README.md).
 - **PCB** — [docs/pcb.md](docs/pcb.md) checklist + KiCad review rules below. Run `python3 scripts/check_pcb.py` (KiCad 10). New board paths need `REUSE.toml`. CERN-OHL-S.
 - **Motion** — poses −1..1 mapped to saved min/max; see [docs/robot-movement.md](docs/robot-movement.md). Do not widen NVS servo clamps without testing on a real robot.

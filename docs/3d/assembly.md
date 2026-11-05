@@ -4,6 +4,8 @@ How to join the printed parts and seat the five micro servos. Use **M2 screws** 
 
 Follow [getting-started.md](../getting-started.md) for overall build order; this file is the mechanical procedure. Start here **after** connecting and flashing.
 
+See the robot assembled in 3D, and try colours for every part: [assembly viewer](https://jamro.github.io/tiny-engineer/assembly/).
+
 Screw lengths called out below (M2×4 / ×8 / ×16) match the reference list. If you substitute nearby lengths, **test-fit** first. Totals: [3d_models/README.md → Screws](../../3d_models/README.md#screws). Buyer cart: [shopping.md](../shopping.md).
 
 **Before you start:** the main control board is connected on the desk and firmware is flashed ([main-control-board.md](../hardware/main-control-board.md), then [flash.md](../flash.md)). Print or order the set for your servo model ([3d_models/README.md](../../3d_models/README.md), [order-parts.md](order-parts.md)). All five servos are the same type; the printed pockets match that model. Breakout modules: [assembly-modular.md](assembly-modular.md) replaces §12 and §13 below.
@@ -161,15 +163,16 @@ Seat the **main control board** in `Desk`. This step mounts what you already con
 
 ## 13. ESP32, power/AP smoke test, and `LampBase`
 
-1. Seat the **ESP32-C3-Zero** in the desk-top opening from above so its pins pass through the cut **into the board headers** underneath. Orient using the **USB** marking on the PCB ([main-control-board.md](../hardware/main-control-board.md)). The module should sit flush and not stick up above the desk surface.
-2. **Power/AP smoke test** (optional but recommended) before locking the module in:
+1. **Solder the pin headers** to the ESP32-C3-Zero, if it came without (the ESP32-C3-Zero-M has them): push two 9-pin 2.54 mm male headers, long pins down, into a breadboard six rows (15.24 mm) apart so they stay straight, lay the module on the short pins, component side up, and solder all 18 pins from the top.
+2. Seat the **ESP32-C3-Zero** in the desk-top opening from above so the headers' long pins pass through the cut **into the board's two female sockets** underneath. Orient using the **USB** marking on the PCB ([main-control-board.md](../hardware/main-control-board.md)). The module should sit flush and not stick up above the desk surface.
+3. **Power/AP smoke test** (optional but recommended) before locking the module in:
   - Confirm seating and orientation. Servo plugs and the OLED come in [§15](#15-connect-servos-and-oled).
   - Firmware should already be on the module.
   - Apply power on the **board USB-C**. The ESP32 LED should light and the board should start the **setup access point**.
   - If that looks good, **disconnect power**.
-3. Place the printed `LampButton` under `LampBase` so it can press the ESP32 **reset** button from above.
-4. Orient `LampBase` so its opening sits over the ESP32 status LED.
-5. Fasten `LampBase` to the desk with **two M2 screws** (M2×8 mm works). This also holds the ESP32 from above.
+4. Place the printed `LampButton` under `LampBase` so it can press the ESP32 **reset** button from above.
+5. Orient `LampBase` so its opening sits over the ESP32 status LED.
+6. Fasten `LampBase` to the desk with **two M2 screws** (M2×8 mm works). This also holds the ESP32 from above.
 
 
 
