@@ -21,6 +21,7 @@ export { ensureDaemon } from "./ensure.js";
 export {
   daemonRobotRequest,
   daemonPlay,
+  daemonProbe,
   subscribeOnce,
   followDaemonChannel,
 } from "./rpc.js";

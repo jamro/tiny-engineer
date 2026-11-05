@@ -188,6 +188,17 @@ export async function serveDaemon(opts) {
         send(socket, { id, result: { ok: true, body } });
         return;
       }
+      if (method === "robot.probe") {
+        const raw = params.candidates;
+        const candidates = Array.isArray(raw)
+          ? raw.filter((item) => typeof item === "string")
+          : [];
+        const body = await link.probe(candidates);
+        if (body.ok) reactions.onPortOpened();
+        writeState();
+        send(socket, { id, result: { ok: true, body } });
+        return;
+      }
       if (method === "play") {
         const port = typeof params.port === "string" ? params.port : null;
         const body = await link.play(String(params.path ?? ""), String(params.name ?? "talking"), port);

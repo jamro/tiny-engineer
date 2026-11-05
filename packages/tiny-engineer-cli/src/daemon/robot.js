@@ -1,4 +1,4 @@
-import { daemonPlay, daemonRobotRequest } from "./client.js";
+import { daemonPlay, daemonProbe, daemonRobotRequest } from "./client.js";
 
 /**
  * One-shot robot op through the host daemon. The daemon owns the USB port.
@@ -23,5 +23,16 @@ export function serialPlay(opts) {
     path: opts.path,
     name: opts.name ?? "talking",
     port: opts.port ?? null,
+  });
+}
+
+/**
+ * Ordered sync probe through the host daemon. Does not write the port cache.
+ * @param {{ candidates: string[], configDir?: string }} opts
+ */
+export function serialProbe(opts) {
+  return daemonProbe({
+    candidates: opts.candidates,
+    configDir: opts.configDir,
   });
 }

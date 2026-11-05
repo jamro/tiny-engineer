@@ -1,7 +1,8 @@
 import { SerialPort } from "serialport";
 
 import { getSerialPort } from "../config/env.js";
-import { openSynced, scoreSerialPort, SerialRobotClient } from "../robot/serial/client.js";
+import { serialProbe } from "../daemon/robot.js";
+import { scoreSerialPort } from "../robot/serial/client.js";
 import { readPortCache } from "../robot/serial/port-cache.js";
 
 /**
@@ -33,7 +34,8 @@ Score uses the same rules as serial auto-detect: Espressif VID 303a,
 a tiny-engineer name, a CDC/JTAG name, then a serial-looking path.
 env (TINY_ENGINEER_PORT) wins over the cache, then the highest score.
 
-  --probe   Open that choice and send sync. Does not write the port cache.
+  --probe   Sync candidates through the host daemon. Does not write the port
+            cache. May leave the daemon holding a winning port.
 `;
 }
 
@@ -73,13 +75,47 @@ export function formatPortScan(opts) {
 }
 
 /**
+ * Same candidate order as historical in-process probe: env alone when set;
+ * otherwise cache then other positive-score paths.
+ * @param {{
+ *   ports: Array<{ path?: string, manufacturer?: string, friendlyName?: string, vendorId?: string }>,
+ *   envPort?: string | null,
+ *   cachedPort?: string | null,
+ * }} opts
+ * @returns {{ path: string, source: string }[]}
+ */
+export function probeCandidates(opts) {
+  const scored = opts.ports
+    .map((port) => scoreSerialPort(port))
+    .filter((row) => row !== null && row.score > 0)
+    .sort((a, b) => b.score - a.score);
+  const envPort = opts.envPort ?? null;
+  const cachedPort = opts.cachedPort ?? null;
+  /** @type {{ path: string, source: string }[]} */
+  const order = [];
+  if (envPort) {
+    order.push({ path: envPort, source: "env" });
+    return order;
+  }
+  if (cachedPort) order.push({ path: cachedPort, source: "cache" });
+  for (const row of scored) {
+    if (row.path !== cachedPort) order.push({ path: row.path, source: "autodetect" });
+  }
+  return order;
+}
+
+/**
  * @param {import("../util/output.js").Output} out
  * @param {string[]} argv
  * @param {{
  *   list?: () => Promise<Array<{ path?: string, manufacturer?: string, friendlyName?: string, vendorId?: string }>>,
  *   envPort?: string | null,
  *   cachedPort?: string | null,
- *   openClient?: (path: string) => { open: () => Promise<void>, sync: (opts?: { timeoutMs?: number }) => Promise<unknown>, close: () => Promise<void> },
+ *   probe?: (candidates: string[]) => Promise<{
+ *     ok: boolean,
+ *     results: Array<{ path: string, ok: boolean, detail: string, skipped?: boolean }>,
+ *     port?: string | null,
+ *   }>,
  *   write?: (text: string) => void,
  * }} [deps]
  */
@@ -108,37 +144,30 @@ export async function runPort(out, argv, deps = {}) {
   write(formatPortScan({ ports: listed, envPort, cachedPort }));
   if (!opts.probe) return;
 
-  const scored = listed
-    .map((port) => scoreSerialPort(port))
-    .filter((row) => row !== null && row.score > 0)
-    .sort((a, b) => b.score - a.score);
-  /** @type {{ path: string, source: string }[]} */
-  const order = [];
-  if (envPort) order.push({ path: envPort, source: "env" });
-  else {
-    if (cachedPort) order.push({ path: cachedPort, source: "cache" });
-    for (const row of scored) {
-      if (row.path !== cachedPort) order.push({ path: row.path, source: "autodetect" });
-    }
-  }
-  const openClient = deps.openClient ?? ((path) => new SerialRobotClient(path));
+  const order = probeCandidates({ ports: listed, envPort, cachedPort });
   if (order.length === 0) {
     write("probe: no candidate\n");
     process.exitCode = 1;
     return;
   }
-  for (const item of order) {
-    const client = openClient(item.path);
-    try {
-      await openSynced(client);
-      write(`probe ${item.path} (${item.source}) sync ok\n`);
-      await client.close().catch(() => {});
-      return;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      write(`probe ${item.path} (${item.source}) ${message}\n`);
-      await client.close().catch(() => {});
-    }
+
+  const sourceByPath = new Map(order.map((item) => [item.path, item.source]));
+  const probeFn =
+    deps.probe ??
+    ((candidates) => serialProbe({ candidates }));
+
+  let body;
+  try {
+    body = await probeFn(order.map((item) => item.path));
+  } catch (err) {
+    out.error(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+    return;
   }
-  process.exitCode = 1;
+
+  for (const row of body.results ?? []) {
+    const source = sourceByPath.get(row.path) ?? "autodetect";
+    write(`probe ${row.path} (${source}) ${row.detail}\n`);
+  }
+  if (!body.ok) process.exitCode = 1;
 }

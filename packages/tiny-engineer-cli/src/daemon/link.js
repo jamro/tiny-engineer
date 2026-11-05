@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs";
 
+import { hostCalloutPath } from "../robot/serial/client.js";
+
 /**
  * One SerialRobotClient session owned by the daemon.
  * @param {{
- *   connect: (opts: { port?: string | null }) => Promise<{ port: string, client: import("../robot/serial/client.js").SerialRobotClient }>,
+ *   connect: (opts: { port?: string | null, writeCache?: boolean }) => Promise<{ port: string, client: import("../robot/serial/client.js").SerialRobotClient }>,
  *   preferredPort?: string | null,
  * }} opts
  */
@@ -31,10 +33,11 @@ export function createSerialLink({ connect, preferredPort = null }) {
 
   /**
    * @param {string | null} port
+   * @param {{ writeCache?: boolean }} [connectOpts]
    * @returns {Promise<SerialSession>}
    */
-  async function openSession(port) {
-    const opened = await connect({ port });
+  async function openSession(port, connectOpts = {}) {
+    const opened = await connect({ port, ...connectOpts });
     opened.client.setEventHandler((payload) => {
       const line = payload.toString("utf8");
       for (const fn of eventSubs) fn(line);
@@ -95,6 +98,63 @@ export function createSerialLink({ connect, preferredPort = null }) {
         if (/serial port closed|port is not open/i.test(message)) markDown();
         throw err;
       }
+    },
+    /**
+     * Ordered sync probe. Does not write the port cache. Refuses while play is active.
+     * When a session is held, only that path is synced; other candidates are skipped.
+     * @param {string[]} candidates
+     * @returns {Promise<{
+     *   ok: boolean,
+     *   results: Array<{ path: string, ok: boolean, detail: string, skipped?: boolean }>,
+     *   port: string | null,
+     * }>}
+     */
+    async probe(candidates) {
+      if (playActive) {
+        throw new Error("play-active");
+      }
+      /** @type {Array<{ path: string, ok: boolean, detail: string, skipped?: boolean }>} */
+      const results = [];
+      const normalized = candidates
+        .map((path) => (typeof path === "string" ? hostCalloutPath(path.trim()) : ""))
+        .filter(Boolean);
+
+      if (session) {
+        const held = session.port;
+        let synced = false;
+        for (const path of normalized) {
+          if (path !== held) {
+            results.push({
+              path,
+              ok: false,
+              skipped: true,
+              detail: `skipped (daemon holds ${held})`,
+            });
+            continue;
+          }
+          try {
+            await session.client.request("sync", {});
+            results.push({ path, ok: true, detail: "sync ok" });
+            synced = true;
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            results.push({ path, ok: false, detail: message });
+          }
+        }
+        return { ok: synced, results, port: session.port };
+      }
+
+      for (const path of normalized) {
+        try {
+          await openSession(path, { writeCache: false });
+          results.push({ path, ok: true, detail: "sync ok" });
+          return { ok: true, results, port: session?.port ?? path };
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          results.push({ path, ok: false, detail: message });
+        }
+      }
+      return { ok: false, results, port: null };
     },
     /**
      * @param {string} wavPath

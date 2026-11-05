@@ -27,7 +27,7 @@ tiny-engineer port             # serial ports and which one auto-detect would op
 tiny-engineer reset --yes      # factory reset; confirm or --yes
 ```
 
-Serial port: `--port` / `TINY_ENGINEER_PORT`, else the cache, else autodetect (Espressif VID `303A` preferred). `tiny-engineer port` prints that choice and every host port's score. `tiny-engineer port --probe` sends `sync` and does not write the cache. A successful serial open still writes `serial-port.json` and drops it when open or `sync` fails.
+Serial port: `--port` / `TINY_ENGINEER_PORT`, else the cache, else autodetect (Espressif VID `303A` preferred). `tiny-engineer port` prints that choice and every host port's score. `tiny-engineer port --probe` asks the host daemon to `sync` candidates (same order: env, else cache then other scored paths). The CLI process does not open the tty for probe. Probe does not write the port cache. A successful probe may leave the daemon holding the winning port. If the daemon already holds a path, probe syncs that path only and skips the others. Disable and yield refuse probe like other serial commands. A successful serial open for normal robot ops still writes `serial-port.json` and drops it when open or `sync` fails.
 
 ## Host daemon
 

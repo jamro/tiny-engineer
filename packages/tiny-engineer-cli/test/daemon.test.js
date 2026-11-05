@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { daemonHelp, parseDaemonArgs, runDaemon } from "../src/daemon/commands.js";
 import {
   daemonPlay,
+  daemonProbe,
   daemonRobotRequest,
   daemonServeArgs,
   daemonStatusText,
@@ -1157,6 +1158,124 @@ test("preferred port is used when the request omits one", async () => {
     await disableDaemon({ configDir: dir });
     await serving;
   } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("robot.probe walks free candidates without writing cache flags", async () => {
+  const dir = tempConfig();
+  /** @type {Array<{ port?: string | null, writeCache?: boolean }>} */
+  const opens = [];
+  try {
+    const serving = startServer(dir, async (opts) => {
+      opens.push({ port: opts.port, writeCache: opts.writeCache });
+      if (opts.port === "/dev/bad") throw new Error("open failed");
+      return fakeSession(opts.port || "/dev/none");
+    });
+    const sock = daemonPaths(dir).sock;
+    for (let i = 0; i < 50 && !existsSync(sock); i += 1) await delay(20);
+    const body = await daemonProbe({
+      configDir: dir,
+      candidates: ["/dev/bad", "/dev/good"],
+    });
+    assert.equal(body.ok, true);
+    assert.equal(body.port, "/dev/good");
+    assert.deepEqual(
+      body.results.map((row) => ({ path: row.path, ok: row.ok, detail: row.detail })),
+      [
+        { path: "/dev/bad", ok: false, detail: "open failed" },
+        { path: "/dev/good", ok: true, detail: "sync ok" },
+      ],
+    );
+    assert.deepEqual(opens, [
+      { port: "/dev/bad", writeCache: false },
+      { port: "/dev/good", writeCache: false },
+    ]);
+    assert.match(await daemonStatusText({ configDir: dir }), /port: \/dev\/good/);
+    await disableDaemon({ configDir: dir });
+    await serving;
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("robot.probe syncs a held port and skips other candidates", async () => {
+  const dir = tempConfig();
+  try {
+    let opens = 0;
+    const serving = startServer(dir, async ({ port }) => {
+      opens += 1;
+      return fakeSession(port || "/dev/held");
+    });
+    const sock = daemonPaths(dir).sock;
+    for (let i = 0; i < 50 && !existsSync(sock); i += 1) await delay(20);
+    await daemonRobotRequest("health", {}, { configDir: dir, port: "/dev/held" });
+    assert.equal(opens, 1);
+    const body = await daemonProbe({
+      configDir: dir,
+      candidates: ["/dev/held", "/dev/other"],
+    });
+    assert.equal(body.ok, true);
+    assert.equal(opens, 1);
+    assert.equal(body.results[0]?.ok, true);
+    assert.equal(body.results[1]?.skipped, true);
+    assert.match(String(body.results[1]?.detail), /daemon holds \/dev\/held/);
+    await disableDaemon({ configDir: dir });
+    await serving;
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("robot.probe refuses while play is active", async () => {
+  const dir = tempConfig();
+  const wav = join(dir, "clip.wav");
+  /** @type {(value: Record<string, unknown>) => void} */
+  let finish = () => {};
+  /** @type {Promise<void> | undefined} */
+  let serving;
+  /** @type {Promise<unknown> | undefined} */
+  let playing;
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(wav, Buffer.alloc(4));
+    /** @type {() => void} */
+    let markStarted = () => {};
+    const started = new Promise((resolve) => {
+      markStarted = resolve;
+    });
+    serving = startServer(dir, async () => ({
+      port: "/dev/fake",
+      client: {
+        request: async () => ({ ok: true }),
+        play: () => {
+          markStarted();
+          return new Promise((resolve) => {
+            finish = resolve;
+          });
+        },
+        setEventHandler() {},
+        setLogHandler() {},
+        setCloseHandler() {},
+        close: async () => {},
+      },
+    }));
+    playing = daemonPlay({ path: wav, configDir: dir });
+    const startedInTime = await Promise.race([
+      started.then(() => true),
+      delay(2000).then(() => false),
+    ]);
+    assert.equal(startedInTime, true);
+    await assert.rejects(
+      () => daemonProbe({ configDir: dir, candidates: ["/dev/fake"] }),
+      /play-active/,
+    );
+  } finally {
+    const played = playing?.catch(() => {});
+    finish({ ok: true });
+    await disableDaemon({ configDir: dir }).catch(() => {});
+    await played;
+    if (serving) await serving;
     rmSync(dir, { recursive: true, force: true });
   }
 });

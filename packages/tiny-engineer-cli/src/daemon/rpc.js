@@ -43,6 +43,38 @@ export async function daemonPlay(opts) {
 }
 
 /**
+ * Ordered serial sync probe through the host daemon (auto-start like other serial RPCs).
+ * @param {{ candidates: string[], configDir?: string }} opts
+ * @returns {Promise<{
+ *   ok: boolean,
+ *   results: Array<{ path: string, ok: boolean, detail: string, skipped?: boolean }>,
+ *   port: string | null,
+ * }>}
+ */
+export async function daemonProbe(opts) {
+  const conn = await ensureDaemon({ configDir: opts.configDir });
+  try {
+    const res = await conn.peer.request(
+      "robot.probe",
+      { candidates: opts.candidates },
+      30_000,
+    );
+    if (typeof res.error === "string") throw new Error(res.error);
+    const wrapped = /** @type {{ body?: {
+      ok: boolean,
+      results: Array<{ path: string, ok: boolean, detail: string, skipped?: boolean }>,
+      port: string | null,
+    } }} */ (res.result);
+    if (!wrapped || typeof wrapped.body !== "object" || wrapped.body === null) {
+      throw new Error("daemon probe returned no body");
+    }
+    return wrapped.body;
+  } finally {
+    conn.socket.end();
+  }
+}
+
+/**
  * @param {{
  *   channel: "serial.events" | "serial.logs",
  *   port?: string | null,
