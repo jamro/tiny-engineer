@@ -4,6 +4,8 @@
 
 #include "api/commands.h"
 #include "display/oled.h"
+#include "events/hub.h"
+#include "extensions/push_button.h"
 #include "hardware/rgb.h"
 #include "http/handlers.h"
 #include "http/request.h"
@@ -52,7 +54,7 @@ bool readField(JsonVariantConst list, uint8_t (&out)[SETTINGS_SERVO_COUNT]) {
 // Fills the patch from the body. Returns the 400 message, or an empty string
 // when every field is known and has the right JSON type.
 String readPatch(JsonObjectConst body, SettingsPatch& patch) {
-  const char* known[16] = {};
+  const char* known[24] = {};
   size_t knownCount = 0;
   const char* wrong = nullptr;
 
@@ -74,6 +76,13 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("volume", patch.volume);
   read("welcome", patch.welcome);
   read("serial_log", patch.serialLog);
+  read("push_button", patch.pushButton);
+  read("push_button_pin", patch.pushButtonPin);
+  read("push_button_sound_down", patch.pushButtonSoundDown);
+  read("push_button_sound_up", patch.pushButtonSoundUp);
+  read("push_button_sound_click", patch.pushButtonSoundClick);
+  read("push_button_sound_double_click", patch.pushButtonSoundDoubleClick);
+  read("push_button_sound_long_click", patch.pushButtonSoundLongClick);
   read("continuous_timeout", patch.continuousTimeoutMin);
   read("loading", patch.loading);
   read("eyes_style", patch.eyesStyle);
@@ -120,6 +129,13 @@ JsonDocument settingsJson() {
   doc["volume"] = settingsVolume();
   doc["welcome"] = settingsWelcomeEnabled();
   doc["serial_log"] = settingsSerialLogEnabled();
+  doc["push_button"] = settingsPushButton();
+  doc["push_button_pin"] = settingsPushButtonPin();
+  doc["push_button_sound_down"] = settingsPushButtonSoundDown();
+  doc["push_button_sound_up"] = settingsPushButtonSoundUp();
+  doc["push_button_sound_click"] = settingsPushButtonSoundClick();
+  doc["push_button_sound_double_click"] = settingsPushButtonSoundDoubleClick();
+  doc["push_button_sound_long_click"] = settingsPushButtonSoundLongClick();
   doc["continuous_timeout"] = settingsContinuousTimeoutMin();
   doc["loading"] = settingsLoading();
   doc["eyes_style"] = settingsEyesStyle();
@@ -197,9 +213,28 @@ void handleSettingsPost(WebServer& server) {
     return;
   }
 
+  // Compare before save — saveSettings updates the in-memory token.
+  const bool tokenRotated = patch.accessToken != nullptr &&
+                            patch.accessToken[0] != '\0' &&
+                            strcmp(patch.accessToken, settingsAccessToken()) != 0;
+
+  char pinConflict[96];
+  if (settingsWouldPinConflict(patch, pinConflict, sizeof(pinConflict))) {
+    sendError(server, 400, pinConflict);
+    return;
+  }
+
   if (!saveSettings(patch)) {
     sendError(server, 400, "save failed");
     return;
+  }
+
+  if (tokenRotated) {
+    eventsHubDisconnectAll();
+  }
+
+  if (patch.pushButton.has_value() || patch.pushButtonPin.has_value()) {
+    pushButtonApplyFromSettings();
   }
 
   if (patch.oledRotate180) {

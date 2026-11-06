@@ -11,7 +11,11 @@ import {
   runSettings,
   runTest,
 } from "./commands/parity.js";
+import { runDaemon } from "./daemon/commands.js";
 import { runMonitor } from "./commands/monitor.js";
+import { runPort } from "./commands/port.js";
+import { runRules } from "./commands/rules.js";
+import { runWatch } from "./commands/watch.js";
 import { get as getIntegration, list as listIntegrations } from "./integrations/registry.js";
 import { validateAnimName, validatePlayAnimName } from "./robot/client.js";
 import { formatRobotError, robotPlay, robotSetAnim } from "./robot/transport.js";
@@ -51,7 +55,15 @@ Commands:
   park                    Center servos and hold PWM (flash-safe)
   health                  Fetch health JSON/summary
   reset [--yes]           Factory-reset device (confirm or --yes)
-  monitor                 Print serial LOG frames
+  monitor                 Print serial LOG frames (via the host daemon)
+  watch                   Print outbound events (WebSocket or serial Evt)
+  rules list|add|remove   Run a host program when the robot emits an event
+  port [--probe]          List serial ports and the auto-detect choice
+  daemon start|release|disable|status|restart|install|uninstall|stop
+                          Host session. release closes USB and stays up.
+                          release --yield refuses serial open for 180s.
+                          disable exits and refuses auto-start until start.
+                          stop is a deprecated alias of release.
 
 Options (most commands):
   --url <base>            Robot base URL (default: TINY_ENGINEER_URL, else ${DEFAULT_URL})
@@ -69,6 +81,11 @@ Config / auth:
   (not sent when URL came only from project .env and token from user/process —
   request continues without Bearer; stderr warns).
   Serial transport skips Bearer auth.
+  rules add <type> -- <program> [args...] stores an absolute program path.
+  A relative program path is resolved from the current directory.
+  The daemon does not search PATH. sh -c scripts see the login agent's PATH
+  (/usr/bin:/bin on macOS and Linux), so call programs by absolute path there too.
+  HTTP anim and hooks do not go through the daemon.
 
 Output:
   Colors/icons when stdout/stderr is a TTY (disabled by NO_COLOR or TERM=dumb).
@@ -233,6 +250,7 @@ async function runPlay(out, argv, quietGlobal) {
   const pose = opts.name ?? "talking";
   const result = await robotPlay({
     wav,
+    wavPath: opts.wavPath,
     name: opts.name,
     url: opts.url,
     transport: opts.transport,
@@ -312,6 +330,18 @@ export async function run(argv) {
       return;
     case "monitor":
       await runMonitor(out, rest);
+      return;
+    case "watch":
+      await runWatch(out, rest);
+      return;
+    case "rules":
+      await runRules(out, rest);
+      return;
+    case "port":
+      await runPort(out, rest);
+      return;
+    case "daemon":
+      await runDaemon(out, rest);
       return;
     default:
       out.error(`Unknown command: ${command}`);

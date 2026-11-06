@@ -28,6 +28,7 @@ constexpr WavClipDef kClips[kWavClipCount] = {
   {"/error.wav", "Error", "ERROR"},
   {"/abort.wav", "Abort", "ABORT"},
   {"/dead.wav", "Dead", "DEAD"},
+  {"/click.wav", "Click", "CLICK"},
 };
 
 File g_file;
@@ -171,4 +172,8 @@ void wavStreamStop() {
 
 bool wavStreamIsPlaying(WavClip clip) {
   return g_playing && g_active == clip;
+}
+
+bool wavStreamIsActive() {
+  return g_playing;
 }

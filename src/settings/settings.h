@@ -11,6 +11,10 @@ constexpr const char* SETTINGS_DEFAULT_HOSTNAME = "tiny-engineer";
 constexpr uint8_t SETTINGS_DEFAULT_VOLUME = 70;
 constexpr bool SETTINGS_DEFAULT_WELCOME = true;
 constexpr bool SETTINGS_DEFAULT_SERIAL_LOG = false;
+constexpr bool SETTINGS_DEFAULT_PUSH_BUTTON = false;
+constexpr uint8_t SETTINGS_DEFAULT_PUSH_BUTTON_PIN = 20;
+constexpr const char* SETTINGS_DEFAULT_PUSH_BUTTON_SOUND = "none";
+constexpr size_t SETTINGS_PUSH_BUTTON_SOUND_MAX_LEN = 8;
 constexpr uint32_t SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN = 5;
 constexpr const char* SETTINGS_DEFAULT_LOADING = "progress";
 constexpr const char* SETTINGS_DEFAULT_EYES_STYLE = "classic";
@@ -52,6 +56,13 @@ struct SettingsPatch {
   std::optional<uint8_t> volume;
   std::optional<bool> welcome;
   std::optional<bool> serialLog;
+  std::optional<bool> pushButton;
+  std::optional<uint8_t> pushButtonPin;
+  const char* pushButtonSoundDown = nullptr;
+  const char* pushButtonSoundUp = nullptr;
+  const char* pushButtonSoundClick = nullptr;
+  const char* pushButtonSoundDoubleClick = nullptr;
+  const char* pushButtonSoundLongClick = nullptr;
   std::optional<uint32_t> continuousTimeoutMin;
   const char* loading = nullptr;
   const char* eyesStyle = nullptr;
@@ -77,6 +88,13 @@ const char* settingsHostname();
 uint8_t settingsVolume();
 bool settingsWelcomeEnabled();
 bool settingsSerialLogEnabled();
+bool settingsPushButton();
+uint8_t settingsPushButtonPin();
+const char* settingsPushButtonSoundDown();
+const char* settingsPushButtonSoundUp();
+const char* settingsPushButtonSoundClick();
+const char* settingsPushButtonSoundDoubleClick();
+const char* settingsPushButtonSoundLongClick();
 uint32_t settingsContinuousTimeoutMin();
 const char* settingsLoading();
 const char* settingsEyesStyle();
@@ -115,9 +133,19 @@ bool settingsValidateAccessToken(const char* accessToken);
 bool settingsValidateWifiSsid(const char* wifiSsid);
 bool settingsValidateWifiPassword(const char* wifiPassword);
 bool settingsValidateRgbOrder(const char* rgbOrder);
+bool settingsValidatePushButtonPin(uint8_t pin);
+bool settingsValidatePushButtonSound(const char* sound);
+
+// True when applying the patch would leave two enabled extensions on the same GPIO.
+// Writes a plain conflict message when message/messageLen are set. Does not write NVS.
+bool settingsWouldPinConflict(
+  const SettingsPatch& patch,
+  char* message = nullptr,
+  size_t messageLen = 0
+);
 
 // Saves the fields the patch sets and keeps the others. False when a field is
-// invalid (nothing is written) or NVS fails.
+// invalid (nothing is written), pin claims conflict, or NVS fails.
 bool saveSettings(const SettingsPatch& patch);
 
 // Replaces every saved network in RAM and NVS.

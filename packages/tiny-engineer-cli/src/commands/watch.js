@@ -1,0 +1,113 @@
+import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
+import { userConfigDir } from "../config/paths.js";
+import { followDaemonChannel } from "../daemon/client.js";
+import { eventsWebSocketUrl, redactEventsUrl } from "../robot/events-url.js";
+import { parseMessage, SerialMsgType } from "../robot/serial/protocol.js";
+import { parseCommonArgs } from "../util/args.js";
+
+/**
+ * @param {Buffer} message
+ * @param {(line: string) => void} print
+ * @returns {boolean}
+ */
+export function handleWatchSerialMessage(message, print) {
+  const msg = parseMessage(message);
+  if (!msg || msg.type !== SerialMsgType.Evt) return false;
+  print(msg.payload.toString("utf8"));
+  return true;
+}
+
+/**
+ * @param {import("../util/output.js").Output} out
+ * @param {string[]} argv
+ */
+export async function runWatch(out, argv) {
+  const opts = parseCommonArgs(argv);
+  if (opts.error) {
+    out.error(opts.error);
+    process.exitCode = 1;
+    return;
+  }
+  if (opts.help) {
+    console.log(`Usage: tiny-engineer watch [options]
+
+Print outbound device events as one JSON line each.
+  --transport http|serial   Flag > TINY_ENGINEER_TRANSPORT > http
+  --url <base>              HTTP base when transport is http
+  --port <path>             Serial port when transport is serial
+
+HTTP opens ws://<host>:81/events from an http: robot URL only
+(token query when Bearer would be sent). https: is rejected.
+Serial prints Evt payloads from the host daemon and does not open the tty.
+`);
+    return;
+  }
+
+  const resolved = resolveTransport(opts.transport);
+  if (resolved.error) {
+    out.error(resolved.error);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (resolved.transport === "serial") {
+    out.info("watch serial (Ctrl+C to stop)");
+    try {
+      await followDaemonChannel({
+        channel: "serial.events",
+        port: opts.port ?? null,
+        configDir: userConfigDir(),
+        onLine: (line) => console.log(line),
+        onLinkDown: () => out.error("serial link down"),
+      });
+    } catch (err) {
+      out.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+    }
+    return;
+  }
+
+  const baseUrl = opts.url ?? getBaseUrl();
+  const token = getHttpAuthToken({ urlOverride: opts.url !== undefined });
+  let wsUrl;
+  try {
+    wsUrl = eventsWebSocketUrl(baseUrl, token);
+  } catch (err) {
+    out.error(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+    return;
+  }
+
+  let WebSocket;
+  try {
+    ({ default: WebSocket } = await import("ws"));
+  } catch {
+    out.error("watch requires the ws package");
+    process.exitCode = 1;
+    return;
+  }
+
+  await new Promise((resolve) => {
+    const socket = new WebSocket(wsUrl, { handshakeTimeout: 2000 });
+
+    socket.on("open", () => {
+      out.info(`watch ${redactEventsUrl(wsUrl)} (Ctrl+C to stop)`);
+    });
+
+    socket.on("message", (data) => {
+      const text = Buffer.isBuffer(data) ? data.toString("utf8") : String(data);
+      console.log(text);
+    });
+
+    socket.on("error", (err) => {
+      out.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+      resolve(undefined);
+    });
+
+    socket.on("close", () => {
+      process.exitCode = 1;
+      resolve(undefined);
+    });
+  });
+}
