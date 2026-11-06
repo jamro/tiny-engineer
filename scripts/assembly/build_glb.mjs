@@ -161,8 +161,6 @@ export function buildGlb(manifest, load) {
   const add = (entry, kind) => {
     const extras = { kind, component: entry.component };
     if (entry.print_group) extras.print_group = entry.print_group;
-    if (entry.color) extras.color = entry.color;
-    if (entry.mod) extras.mod = entry.mod;
     if (entry.fastener) extras.fastener = entry.fastener;
     json.nodes.push({ name: entry.id, mesh: mesh(entry.mesh), matrix: entry.matrix, extras });
     json.nodes[0].children.push(json.nodes.length - 1);

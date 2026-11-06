@@ -2,7 +2,7 @@
 """The M2 screws and nuts of the assembled robot, for the 3D viewer.
 
 Adds a hardware entry per screw and nut of ``fasteners.json`` to an
-assembly.json (extract.py's or presets.py's), with its mesh beside it, and
+assembly.json (from extract.py), with its mesh beside it, and
 fails when a line of the list does not find as many screws as it says.
 
 Where a screw goes comes from the parts' STEP exports at the manifest's
@@ -42,7 +42,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from extract import ROOT, column_major, matrix_of  # noqa: E402
 from meshes import Mesh, circle, prism, revolve  # noqa: E402
 from f3d_assembly import read_stl  # noqa: E402
-from presets import MIRRORED, print_fit, step_features, step_to_print_rotation  # noqa: E402
+from step_geometry import MIRRORED, print_fit, step_features, step_to_print_rotation  # noqa: E402
 
 CONFIG = Path(__file__).resolve().parent / "fasteners.json"
 STEPS = ROOT / "web" / "assembly" / "steps.json"

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Redirecting · Tiny Engineer</title>
+  <link rel="canonical" href="../shop/">
+  <script src="../js/build-progress.js"></script>
+  <script>
+    (function () {
+      const href = window.TinyEngineerBuild
+        ? window.TinyEngineerBuild.resumeHref("../")
+        : "../shop/";
+      document.querySelector('link[rel="canonical"]').href = href;
+      const meta = document.createElement("meta");
+      meta.httpEquiv = "refresh";
+      meta.content = "0; url=" + href;
+      document.head.appendChild(meta);
+      location.replace(href);
+    })();
+  </script>
+</head>
+<body>
+  <p><a id="build-continue" href="../shop/">Continue to build</a></p>
+  <script>
+    (function () {
+      const a = document.getElementById("build-continue");
+      if (a && window.TinyEngineerBuild) a.href = window.TinyEngineerBuild.resumeHref("../");
+    })();
+  </script>
+</body>
+</html>

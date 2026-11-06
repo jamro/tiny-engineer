@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Check the assembly viewer's build steps for parts clipping through each other.
 //
-//   node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json [web/assembly/mods/<id>.json]
+//   node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
 //
 // For each step it walks the moving parts along their paths (from where they
 // wait to where the step leaves them, as the viewer draws them: offsetsAt in
@@ -17,13 +17,11 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { meshPath, readStl } from './build_glb.mjs';
 import { makeSolid, penetration, boxesOverlap } from './clipping.mjs';
-import { applyMod, flatten, offsetsAt, phases, sceneAt, withFasteners } from '../../web/js/assembly/steps.js';
+import { flatten, offsetsAt, phases, sceneAt, withFasteners } from '../../web/js/assembly/steps.js';
 
-/** The steps for a manifest's robot: steps.json, as a mod's config changes it, with its screws and nuts. */
-export function loadSteps(stepsPath, modPath, manifest) {
-  let data = JSON.parse(readFileSync(stepsPath, 'utf8'));
-  if (modPath) data = applyMod(data, JSON.parse(readFileSync(modPath, 'utf8')));
-  return withFasteners(data, manifest.hardware);
+/** Stock steps.json plus screws and nuts from the manifest. */
+export function loadSteps(stepsPath, manifest) {
+  return withFasteners(JSON.parse(readFileSync(stepsPath, 'utf8')), manifest.hardware);
 }
 
 /** The solids of a manifest, at their assembled poses (CAD frame, mm). */
@@ -145,23 +143,22 @@ function main(argv) {
     else if (argv[i] === '--step') options.sampleMm = Number(argv[++i]);
     else args.push(argv[i]);
   }
-  const [manifestPath, stepsPath, modPath] = args;
+  const [manifestPath, stepsPath] = args;
   if (!manifestPath || !stepsPath || !(options.tolerance >= 0) || !(options.sampleMm > 0)) {
-    console.error('usage: check_clipping.mjs <assembly.json> <steps.json> [<mod.json>] [--tolerance mm] [--step mm]');
+    console.error('usage: check_clipping.mjs <assembly.json> <steps.json> [--tolerance mm] [--step mm]');
     return 2;
   }
-  const data = loadSteps(stepsPath, modPath, JSON.parse(readFileSync(manifestPath, 'utf8')));
+  const data = loadSteps(stepsPath, JSON.parse(readFileSync(manifestPath, 'utf8')));
   const solids = loadSolids(manifestPath);
   const { problems, allowed } = checkSteps(solids, data, options);
-  const name = `${stepsPath}${modPath ? ` + ${modPath}` : ''}`;
   const count = flatten(data).length;
   for (const entry of allowed) console.log(`  allowed, ≤ ${fmt(entry.allowance.mm)}: ${describe(entry)} (${entry.allowance.why})`);
   if (problems.length) {
-    console.error(`${name}: ${problems.length} clipping problem${problems.length === 1 ? '' : 's'} (tolerance ${fmt(options.tolerance)}):`);
+    console.error(`${stepsPath}: ${problems.length} clipping problem${problems.length === 1 ? '' : 's'} (tolerance ${fmt(options.tolerance)}):`);
     for (const problem of problems) console.error(`  ${describe(problem)}`);
     return 1;
   }
-  console.log(`${name}: ${count} steps, ${solids.size} parts, nothing clips (tolerance ${fmt(options.tolerance)})`);
+  console.log(`${stepsPath}: ${count} steps, ${solids.size} parts, nothing clips (tolerance ${fmt(options.tolerance)})`);
   return 0;
 }
 

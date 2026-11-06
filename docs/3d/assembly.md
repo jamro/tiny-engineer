@@ -4,7 +4,7 @@ How to join the printed parts and seat the five micro servos. Use **M2 screws** 
 
 Follow [getting-started.md](../getting-started.md) for overall build order; this file is the mechanical procedure. Start here **after** connecting and flashing.
 
-See the robot assembled in 3D, and try colours for every part: [assembly viewer](https://jamro.github.io/tiny-engineer/assembly/).
+See the stock SG90 robot assembled in 3D: [assembly viewer](https://jamro.github.io/tiny-engineer/assembly/).
 
 Screw lengths called out below (M2×4 / ×8 / ×16) match the reference list. If you substitute nearby lengths, **test-fit** first. Totals: [3d_models/README.md → Screws](../../3d_models/README.md#screws). Buyer cart: [shopping.md](../shopping.md).
 

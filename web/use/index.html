@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Use · Tiny Engineer</title>
+  <meta name="description" content="Prove Tiny Engineer over the network, then hook an agent.">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/base.css">
+</head>
+<body class="page-use">
+  <div class="wrap">
+    <header class="site-header" data-page="use" data-root="../"></header>
+    <script src="../js/site-header.js"></script>
+
+    <main>
+      <div class="build-head">
+        <script src="../js/build-progress.js"></script>
+        <nav class="build-timeline" data-stage="use" data-root="../"></nav>
+        <script src="../js/build-timeline.js"></script>
+        <div class="flash-intro">
+          <p class="eyebrow">Prove · agents</p>
+          <h1>Use</h1>
+          <p class="lede">
+            Hit the API, then hook your coding agent.
+          </p>
+        </div>
+      </div>
+
+      <section class="panel">
+        <p class="panel-label">Prove it</p>
+        <div class="panel-body stage-doc-body use-body">
+          <p>
+            Open <a href="http://tiny-engineer.local/" target="_blank" rel="noopener noreferrer"><code class="mono">http://tiny-engineer.local/</code></a>
+            (or the IP on the OLED) for the web UI.
+          </p>
+          <pre class="code-block" tabindex="0"><code>curl http://tiny-engineer.local/health
+curl -X POST "http://tiny-engineer.local/anim?name=ring"</code></pre>
+          <p>
+            Until: <code class="mono">/health</code> OK and <code class="mono">ring</code> runs
+            (motion; sound if LittleFS uploaded). If <code class="mono">.local</code> is slow,
+            use the OLED IP or <code class="mono">curl -4</code>.
+          </p>
+          <p>
+            Full API:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md" target="_blank" rel="noopener noreferrer">api.md</a>.
+          </p>
+          <p>
+            <a class="btn btn-primary" href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md" target="_blank" rel="noopener noreferrer">
+              Open integration guide
+              <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-external"></use></svg>
+            </a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p class="mono">Agent hooks: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md">docs/integration.md</a></p>
+    </footer>
+  </div>
+</body>
+</html>

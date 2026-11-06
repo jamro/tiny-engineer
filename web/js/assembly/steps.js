@@ -2,6 +2,24 @@
 // and validation against the model's parts. No DOM, so it is testable in Node
 // (scripts/assembly/test_viewer.mjs, scripts/assembly/check_steps.mjs).
 
+/** Whether the build card should show the shared servo-centering callout. */
+export function showsCenterCallout(step) {
+  return step?.center === true;
+}
+
+/** Whether the 3D view should preview the main board + ESP32 (centering or bench hint). */
+export function showsBenchElectronics(step) {
+  return step?.center === true || step?.bench === true;
+}
+
+/** Bench electronics previewed on centering / bench steps (before they are added to the build). */
+export const CENTER_BENCH_PARTS = ['MainControlBoard', 'ESP32-C3-Zero', 'ESP32-pin-headers'];
+
+/** Desk / lamp parts ghosted on centering steps so the board and ESP32 stay readable. */
+export const CENTER_COVER_PARTS = [
+  'Desk', 'DeskPad', 'DeskTop', 'LampBase', 'LampButton', 'LampDiffuser', 'LampCap',
+];
+
 /** Every step in order, with its section and its index within the section. */
 export function flatten(data) {
   const steps = [];
@@ -62,17 +80,30 @@ export function offsetsAt(steps, index, progress = 1) {
 
 /**
  * The scene at step `index`: the parts shown (added at or before it), the
- * parts moving in during it, the parts drawn as ghosts, and the parts to
- * frame (the step's `focus`, else what it adds, else its section's parts).
+ * parts moving in during it, the parts drawn as ghosts, optional centering
+ * bench `preview` parts (not yet added), and the parts to frame (the step's
+ * `focus`, else what it adds, else its section's parts).
  */
 export function sceneAt(steps, index) {
   const shown = new Set();
   for (let i = 0; i <= index && i < steps.length; i++) for (const id of steps[i].add) shown.add(id);
   const step = steps[index];
   const moving = new Set([...(step?.add ?? []), ...(step?.move ?? [])]);
+  const ghost = new Set(step?.ghost ?? []);
+  const preview = new Set();
+  if (showsBenchElectronics(step)) {
+    for (const id of CENTER_BENCH_PARTS) {
+      if (!shown.has(id)) preview.add(id);
+    }
+    for (const id of CENTER_COVER_PARTS) {
+      if (shown.has(id)) ghost.add(id);
+    }
+  }
   let focus = step?.focus ?? (moving.size ? [...moving] : null);
   if (!focus) focus = steps.filter((other) => other.section === step?.section).flatMap((other) => other.add);
-  return { shown, moving, ghost: new Set(step?.ghost ?? []), focus: focus.filter((id) => shown.has(id)) };
+  if (showsBenchElectronics(step)) focus = [...new Set([...focus, ...CENTER_BENCH_PARTS])];
+  const visible = (id) => shown.has(id) || preview.has(id);
+  return { shown, preview, moving, ghost, focus: focus.filter(visible) };
 }
 
 /**
@@ -147,6 +178,12 @@ export function validate(data, ids) {
     if (step.move.length && step.from === undefined && !step.move.every((id) => step.fromEach?.[id])) {
       problems.push(`${where}: moves parts without a from`);
     }
+    if (step.center !== undefined && typeof step.center !== 'boolean') {
+      problems.push(`${where}: center must be a boolean`);
+    }
+    if (step.bench !== undefined && typeof step.bench !== 'boolean') {
+      problems.push(`${where}: bench must be a boolean`);
+    }
   }
   for (const id of ids) if (!added.has(id)) problems.push(`no step adds ${id}`);
   // Overlaps the clipping check lets through: press fits, and a step's own allowances.
@@ -161,43 +198,4 @@ export function validate(data, ids) {
     if (!entry.why) problems.push(`${label}: say why`);
   }
   return problems;
-}
-
-/**
- * The steps for a mod (web/assembly/mods/<id>.json): sections it rewrites,
- * steps it patches, sections it appends, part ids it replaces or removes, and
- * the fits it adds.
- */
-export function applyMod(data, mod) {
-  const edits = mod?.steps ?? {};
-  const replace = mod?.replace ?? {};
-  const removed = new Set(mod?.remove ?? []);
-  const map = (ids) => (ids ?? []).map((id) => replace[id] ?? id).filter((id) => !removed.has(id));
-  const mapPairs = (entries) => entries
-    .map((entry) => ({ ...entry, parts: entry.parts.map((id) => replace[id] ?? id) }))
-    .filter((entry) => !entry.parts.some((id) => removed.has(id)));
-  const fix = (step) => {
-    const result = { ...step, add: map(step.add) };
-    if (step.move) result.move = map(step.move);
-    if (step.focus) result.focus = map(step.focus);
-    if (step.ghost) result.ghost = map(step.ghost);
-    if (step.allow) result.allow = mapPairs(step.allow);
-    if (step.fromEach) {
-      result.fromEach = Object.fromEntries(
-        Object.entries(step.fromEach).map(([id, value]) => [replace[id] ?? id, value]).filter(([id]) => !removed.has(id)),
-      );
-    }
-    return result;
-  };
-  const sections = data.sections.map((section) => {
-    const rewritten = edits.sections?.[section.id];
-    const base = rewritten ? { ...section, photo: undefined, ...rewritten, id: section.id } : section;
-    const patch = edits.patch?.[section.id] ?? {};
-    return { ...base, steps: base.steps.map((step, index) => fix({ ...step, ...(patch[index] ?? {}) })) };
-  });
-  const result = { ...data, sections: [...sections, ...(edits.append ?? []).map((section) => ({ ...section, steps: section.steps.map(fix) }))] };
-  // The mod's own fits join the stock ones (whose ids follow replace / remove).
-  const fits = [...mapPairs(data.fits ?? []), ...(mod?.fits ?? [])];
-  if (fits.length) result.fits = fits;
-  return result;
 }

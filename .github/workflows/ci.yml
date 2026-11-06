@@ -100,10 +100,9 @@ jobs:
         run: npm test --prefix packages/tiny-engineer-claude-code
 
   assembly:
-    # The 3D assembly viewer's model: read part placements from the Fusion
-    # design, check them against the exported STLs, solve the other servo
-    # presets from the design's joints, check the build steps and the joint
-    # poses / animations for parts clipping or coming apart, and pack the GLBs.
+    # The 3D assembly viewer's SG90 model: read part placements from the Fusion
+    # design, check them against the exported STLs, check the build steps and
+    # joint poses for clipping, and pack the GLB.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -123,10 +122,9 @@ jobs:
           node scripts/assembly/test_build_glb.mjs
           node scripts/assembly/test_viewer.mjs
           node scripts/assembly/test_clipping.mjs
-          python3 scripts/assembly/test_presets.py
           python3 scripts/assembly/test_fasteners.py
           python3 scripts/assembly/test_boards.py
-      - name: Build assembly models (every servo preset and mods), check steps and poses
+      - name: Build assembly model (SG90), check steps and poses
         run: scripts/assembly/build.sh artifacts/assembly/models
       - name: Upload assembly model
         uses: actions/upload-artifact@v4

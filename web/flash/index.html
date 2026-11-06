@@ -13,27 +13,21 @@
 </head>
 <body class="page-flash">
   <div class="wrap">
-    <header class="site-header">
-      <a class="brand" href="../">
-        <span class="brand-mark" aria-hidden="true"></span>
-        Tiny Engineer
-      </a>
-      <nav class="nav" aria-label="Site">
-        <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/getting-started.md">Build</a>
-        <a href="./" aria-current="page">Flash</a>
-        <a href="../screens/">Screens</a>
-        <a href="../assembly/">Assembly</a>
-        <a href="https://github.com/jamro/tiny-engineer">GitHub</a>
-      </nav>
-    </header>
+    <header class="site-header" data-page="flash" data-root="../"></header>
+    <script src="../js/site-header.js"></script>
 
     <main>
-      <div class="flash-intro">
-        <p class="eyebrow">Installer · ESP32-C3</p>
-        <h1>Flash firmware</h1>
-        <p class="lede">
-          Choose a release. Image map and install use that release’s mirrored bins — partition layout may differ by version.
-        </p>
+      <div class="build-head">
+        <script src="../js/build-progress.js"></script>
+        <nav class="build-timeline" data-stage="flash" data-root="../"></nav>
+        <script src="../js/build-timeline.js"></script>
+        <div class="flash-intro">
+          <p class="eyebrow">Installer · ESP32-C3</p>
+          <h1>Flash firmware</h1>
+          <p class="lede">
+            Choose a release, then install over USB from the browser.
+          </p>
+        </div>
       </div>
 
       <div class="hero">

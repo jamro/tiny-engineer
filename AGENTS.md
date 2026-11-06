@@ -39,7 +39,6 @@ npm run lint --prefix ui
 npm test --prefix ui
 python3 scripts/check_pcb.py
 python3 scripts/assembly/test_assembly.py
-python3 scripts/assembly/test_presets.py
 python3 scripts/assembly/test_fasteners.py
 python3 scripts/assembly/test_boards.py
 node scripts/assembly/test_build_glb.mjs

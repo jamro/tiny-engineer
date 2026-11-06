@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Assembly · Tiny Engineer</title>
-  <meta name="description" content="Tiny Engineer assembled in 3D, from the same meshes you print. Pick a colour for every part and share the result.">
+  <meta name="description" content="Tiny Engineer assembled in 3D from the same meshes you print. Walk through the build step by step.">
   <link rel="preconnect" href="https://fonts.bunny.net">
   <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
   <link rel="stylesheet" href="../css/tokens.css">
@@ -13,8 +13,7 @@
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/",
-        "fflate": "https://cdn.jsdelivr.net/npm/fflate@0.8.2/esm/browser.js"
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
       }
     }
   </script>
@@ -22,164 +21,97 @@
 </head>
 <body class="page-assembly">
   <div class="wrap">
-    <header class="site-header">
-      <a class="brand" href="../">
-        <span class="brand-mark" aria-hidden="true"></span>
-        Tiny Engineer
-      </a>
-      <nav class="nav" aria-label="Site">
-        <a href="../flash/">Flash</a>
-        <a href="../screens/">Screens</a>
-        <a href="./" aria-current="page">Assembly</a>
-        <a href="https://github.com/jamro/tiny-engineer">GitHub</a>
-        <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md">Docs</a>
-      </nav>
-    </header>
+    <header class="site-header" data-page="assembly" data-root="../"></header>
+    <script src="../js/site-header.js"></script>
 
     <main>
-      <div class="flash-intro">
-        <p class="eyebrow">3D · <span id="asm-preset-label">SG90 preset</span></p>
-        <h1>Assembly</h1>
-        <p class="lede">
-          The robot from the meshes you print. Walk through the build step by step, or colour every part and share the link.
-        </p>
-      </div>
-
-      <div class="asm-models" role="group" aria-label="Model">
-        <span class="field-label">Model</span>
-        <a class="asm-model" href="./" data-model="">Stock</a>
-        <a class="asm-model" href="./#m=halloween" data-model="halloween">Halloween mod</a>
-      </div>
-
-      <div class="asm-models" role="group" aria-label="Servo">
-        <span class="field-label">Servo</span>
-        <a class="asm-model asm-preset" href="./" data-preset="sg90" title="Tower Pro SG90 (recommended)">SG90</a>
-        <a class="asm-model asm-preset" href="./#p=fs0307" data-preset="fs0307" title="Feetech FS0307">FS0307</a>
-        <a class="asm-model asm-preset" href="./#p=es9051" data-preset="es9051" title="EMAX ES9051">ES9051</a>
-        <a class="asm-model asm-preset" href="./#p=hd1370a" data-preset="hd1370a" title="PowerHD HD-1370A">HD-1370A</a>
-      </div>
-
-      <div class="asm-models asm-download" role="group" aria-label="Print files">
-        <span class="field-label">Print files</span>
-        <button class="asm-model asm-target" type="button" data-target="home" aria-pressed="true" title="One 3MF per part, for your slicer, with the two testers to print first">Home printer · 3MF</button>
-        <button class="asm-model asm-target" type="button" data-target="service" aria-pressed="false" title="The two colour sets and the lamp diffuser as STL, to upload to a print service">Print service · STL</button>
-        <button id="asm-download" class="btn" type="button" disabled>Download ZIP</button>
-        <span id="asm-download-status" class="hint mono" role="status"></span>
+      <div class="build-head">
+        <script src="../js/build-progress.js"></script>
+        <nav class="build-timeline" data-stage="assembly" data-root="../"></nav>
+        <script src="../js/build-timeline.js"></script>
+        <div class="flash-intro">
+          <p class="eyebrow">3D · SG90</p>
+          <h1>Assembly</h1>
+          <p class="lede">
+            Step through the printable stock robot in 3D.
+          </p>
+        </div>
       </div>
 
       <div class="asm-layout">
         <section class="panel asm-view" aria-label="3D view">
-          <div id="asm-stage" class="asm-stage"></div>
-          <p id="asm-status" class="asm-status mono" role="status" data-state="loading">Loading model…</p>
-          <div class="asm-toolbar">
-            <label class="asm-range" for="asm-explode">
-              <span class="field-label">Explode</span>
-              <input id="asm-explode" type="range" min="0" max="100" value="0">
-            </label>
-            <label class="asm-check" for="asm-electronics">
-              <input id="asm-electronics" type="checkbox" checked>
-              <span>Electronics</span>
-            </label>
-            <label class="asm-check" for="asm-fasteners">
-              <input id="asm-fasteners" type="checkbox" checked>
-              <span>Screws</span>
-            </label>
-            <button id="asm-reset-view" class="btn btn-ghost" type="button">Reset view</button>
-          </div>
-          <div id="asm-joints" class="asm-joints" hidden>
-            <div class="asm-joints-head">
-              <span class="field-label">Move</span>
-              <select id="asm-anim" class="select" aria-label="Animation"></select>
-              <button id="asm-anim-play" class="btn" type="button" aria-pressed="false">Play</button>
-              <button id="asm-pose-centre" class="btn btn-ghost" type="button" title="All servos at 90°">90°</button>
-              <label class="asm-joints-range" for="asm-range">
-                <span class="hint">Range</span>
-                <select id="asm-range" class="select">
-                  <option value="10">±10° (stock)</option>
-                  <option value="25" selected>±25°</option>
-                  <option value="40">±40°</option>
-                </select>
-              </label>
+          <div id="asm-stage" class="asm-stage">
+            <div class="asm-view-controls">
+              <button id="asm-reset-view" class="asm-view-btn btn btn-ghost" type="button" aria-label="Reset view">
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-frame"></use></svg>
+              </button>
+              <button id="asm-zoom-in" class="asm-view-btn btn btn-ghost" type="button" aria-label="Zoom in">
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-zoom-in"></use></svg>
+              </button>
+              <button id="asm-zoom-out" class="asm-view-btn btn btn-ghost" type="button" aria-label="Zoom out">
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-zoom-out"></use></svg>
+              </button>
             </div>
-            <div id="asm-joint-sliders" class="asm-joint-sliders"></div>
-            <p class="hint">Poses use the firmware's −1..1 scale (<a href="https://github.com/jamro/tiny-engineer/blob/main/docs/robot-movement.md">robot movement</a>). Stock limits are 80–100°; calibration usually widens them.</p>
+            <div id="asm-start-bar" class="asm-start-bar">
+              <button id="asm-build-start" class="btn btn-primary" type="button">Start building</button>
+            </div>
+            <div id="asm-playback" class="asm-playback" hidden>
+              <div class="asm-step-head">
+                <p id="asm-step-counter" class="panel-label">Step 1</p>
+                <progress id="asm-step-progress" value="1" max="1"></progress>
+              </div>
+              <div class="asm-step-nav">
+                <button id="asm-step-prev" class="btn" type="button" aria-label="Back">
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-rewind"></use></svg>
+                </button>
+                <button id="asm-step-play" class="btn btn-ghost" type="button" aria-label="Play" aria-pressed="false">
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-play"></use></svg>
+                </button>
+                <button id="asm-step-next" class="btn btn-primary" type="button" aria-label="Next">
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-fast-forward"></use></svg>
+                </button>
+                <button id="asm-build-exit" class="btn btn-ghost" type="button" aria-label="Show the finished robot">
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-skip-end"></use></svg>
+                </button>
+              </div>
+            </div>
           </div>
+          <p id="asm-status" class="asm-status mono" role="status" data-state="loading">Loading model…</p>
         </section>
 
-        <aside class="panel asm-side" aria-label="Build steps and colours">
-          <div class="asm-tabs" role="tablist" aria-label="Mode">
-            <button id="asm-tab-build" class="asm-tab" type="button" role="tab" aria-selected="true" aria-controls="asm-build">Build steps</button>
-            <button id="asm-tab-colors" class="asm-tab" type="button" role="tab" aria-selected="false" aria-controls="asm-colors">Colours</button>
-          </div>
-
-          <div id="asm-build" class="asm-build" role="tabpanel" aria-labelledby="asm-tab-build">
+        <aside class="panel asm-side" aria-label="Build steps">
+          <div id="asm-build" class="asm-build">
             <div id="asm-build-intro" class="asm-build-intro">
               <h2 class="asm-step-title">Build it step by step</h2>
               <p id="asm-build-summary" class="asm-step-text">Follows the assembly guide, one small step at a time: each step shows the robot so far and slides the new parts in.</p>
-              <button id="asm-build-start" class="btn btn-primary" type="button">Start building</button>
             </div>
-            <div id="asm-build-player" class="asm-build-player" hidden>
-            <div class="asm-step-head">
-              <p id="asm-step-counter" class="panel-label">Step 1</p>
-              <progress id="asm-step-progress" value="1" max="1"></progress>
-            </div>
-            <p id="asm-step-section" class="asm-step-section mono"></p>
-            <h2 id="asm-step-title" class="asm-step-title"></h2>
-            <p id="asm-step-text" class="asm-step-text"></p>
-            <p id="asm-step-adds" class="hint mono"></p>
-            <p id="asm-step-screws" class="asm-step-screws mono"></p>
-            <div class="asm-step-nav">
-              <button id="asm-step-prev" class="btn" type="button">← Back</button>
-              <button id="asm-step-play" class="btn btn-ghost" type="button" aria-pressed="false">Play</button>
-              <button id="asm-step-next" class="btn btn-primary" type="button">Next →</button>
-            </div>
-            <a id="asm-step-photo" class="asm-step-photo" href="#" target="_blank" rel="noopener" hidden>
-              <img id="asm-step-photo-image" alt="" loading="lazy">
-            </a>
-            <p class="hint"><a id="asm-step-doc" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md" target="_blank" rel="noopener">This section in the assembly guide</a> · ← → keys step through.</p>
-            <button id="asm-build-exit" class="btn btn-ghost" type="button">Show the finished robot</button>
-            </div>
-            <details class="asm-outline">
-              <summary>All sections</summary>
+            <nav class="asm-outline" aria-label="Build steps">
               <ol id="asm-step-outline"></ol>
-            </details>
-          </div>
-
-          <div id="asm-colors" class="asm-colors" role="tabpanel" aria-labelledby="asm-tab-colors" hidden>
-          <div class="asm-side-head">
-            <p class="panel-label">Parts</p>
-            <div class="asm-side-actions">
-              <button id="asm-reset-colors" class="btn btn-ghost" type="button">Reset colours</button>
-              <button id="asm-share" class="btn" type="button">Copy link</button>
+            </nav>
+            <div id="asm-build-player" class="asm-build-player" hidden>
+              <h2 id="asm-step-title" class="asm-step-title"></h2>
+              <details id="asm-step-center" class="asm-center-callout callout" hidden>
+                <summary class="asm-center-summary">
+                  <svg class="icon asm-center-icon" aria-hidden="true"><use href="../media/icons.svg#i-octagon-alert"></use></svg>
+                  <span class="asm-center-label"><strong>Stop.</strong> Center at 90° before attaching</span>
+                  <span class="asm-center-hint" aria-hidden="true"></span>
+                </summary>
+                <div class="asm-center-body">
+                  <ol>
+                    <li>Plug the servo into any PCA9685 channel (channel mapping does not matter for centering).</li>
+                    <li>Power the ESP32. Join the setup Wi‑Fi (<code>TinyEngineer-XXXX</code>), open <code>http://192.168.4.1/config</code>, open <strong>Assembly support</strong>, and press <strong>Move all to 90°</strong>. Use <strong>Identify</strong> on a joint if you need to see which plug is which.</li>
+                    <li>After that joint, <strong>unplug</strong> the servo from the PCA9685 before the next awkward join.</li>
+                  </ol>
+                  <p>Do <strong>not</strong> run guided range calibration or finish the wizard (OLED, LED, speaker, home Wi‑Fi) until the final setup section. <a id="asm-step-center-doc" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md#2a-bench-window-centering" target="_blank" rel="noopener">Centering in the assembly guide</a></p>
+                </div>
+              </details>
+              <p id="asm-step-text" class="asm-step-text"></p>
+              <p id="asm-step-adds" class="hint mono"></p>
+              <p id="asm-step-screws" class="asm-step-screws mono"></p>
+              <a id="asm-step-photo" class="asm-step-photo" href="#" target="_blank" rel="noopener" hidden>
+                <img id="asm-step-photo-image" alt="" loading="lazy">
+              </a>
             </div>
-          </div>
-
-          <div id="asm-detail" class="asm-detail" hidden>
-            <div class="asm-detail-head">
-              <div>
-                <p id="asm-detail-name" class="asm-detail-name"></p>
-                <p id="asm-detail-meta" class="hint mono"></p>
-              </div>
-              <button id="asm-detail-close" class="btn btn-ghost" type="button" aria-label="Close">×</button>
-            </div>
-            <div class="asm-palette" role="group" aria-label="Filament colours"></div>
-            <div class="asm-detail-row">
-              <label class="asm-custom" for="asm-detail-custom">
-                <input id="asm-detail-custom" type="color">
-                <span>Custom colour</span>
-              </label>
-              <button id="asm-detail-reset" class="btn btn-ghost" type="button">As designed</button>
-            </div>
-          </div>
-
-          <section id="asm-finishes" class="asm-group asm-finishes" hidden>
-            <p id="asm-finishes-title" class="asm-group-title">Screws and nuts</p>
-            <div id="asm-finish-rows" class="asm-finish-rows"></div>
-            <p class="hint">M2 thread-forming screws and M2 nuts, as bought: <a href="https://github.com/jamro/tiny-engineer/blob/main/3d_models/README.md#screws">screw list</a>.</p>
-          </section>
-
-          <div id="asm-parts" class="asm-parts"></div>
-          <p class="hint">Colours as designed: copper set, black set, white diffuser. Print sets: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/order-parts.md">order printed parts</a>.</p>
           </div>
         </aside>
       </div>

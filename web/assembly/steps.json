@@ -32,12 +32,20 @@
       ]
     },
     {
+      "id": "bench-window",
+      "title": "Bench window (centering)",
+      "doc": "#2a-bench-window-centering",
+      "steps": [
+        {"title": "Keep electronics on the desk", "text": "Firmware should already be flashed. Keep the board on the desk — do not seat it in the chest yet. From here on, set each printed part on a servo that is already at 90° (shaft center). Later steps show a centering callout when you need Move all to 90°; return to the hub and do not finish the wizard until the final setup section.", "add": [], "bench": true}
+      ]
+    },
+    {
       "id": "neck",
       "title": "Neck: center a servo and attach Neck",
       "doc": "#3-neck--center-a-servo-and-attach-neck",
       "photo": "neck_1.jpg",
       "steps": [
-        {"title": "Center the neck servo", "text": "Take the next servo, no horn. Plug it into the board and use Assembly support → Move all to 90° so the shaft is at its center.", "add": ["servo-neck"], "from": [0, 0, -40]},
+        {"title": "Center the neck servo", "text": "Take the next unused servo. Do not attach a plastic horn — Neck mounts on the shaft.", "add": ["servo-neck"], "from": [0, 0, -40], "center": true},
         {"title": "Press Neck onto the shaft", "text": "Press Neck onto the servo shaft, perpendicular to the servo body, with the bulge in the middle of Neck toward the back of the servo (the cable end). Fasten with the screw that came with the servo.", "add": ["Neck"], "screws": "servo screw", "from": [0, 0, 20]},
         {"title": "Drop in the nut", "text": "Put an M2 nut in the hex pocket with the larger hole, on the robot's right. Leave the other pocket empty. Unplug the servo.", "add": [], "focus": ["Neck"]}
       ]
@@ -48,7 +56,7 @@
       "doc": "#4-join-neck-and-head",
       "photo": "neck_2.jpg",
       "steps": [
-        {"title": "Fit Neck onto the head servo", "text": "Center the head servo. Bring Neck up under Head and fit its pocket onto the head servo shaft: the arm springs over the shaft end. Then slide it on until the nut side sits flush with Head. At 90°, Neck must be perpendicular to Head.", "add": [], "move": ["Neck", "servo-neck"], "from": [0, 0, -40], "allow": [{"parts": ["Neck", "servo-head"], "mm": 2.5, "why": "Neck's arm flexes over the end of the head servo shaft and snaps into its pocket"}]},
+        {"title": "Fit Neck onto the head servo", "text": "Center the head servo first (callout). Bring Neck up under Head and fit its pocket onto the head servo shaft: the arm springs over the shaft end. Then slide it on until the nut side sits flush with Head. At 90°, Neck must be perpendicular to Head.", "add": [], "move": ["Neck", "servo-neck"], "from": [0, 0, -40], "center": true, "allow": [{"parts": ["Neck", "servo-head"], "mm": 2.5, "why": "Neck's arm flexes over the end of the head servo shaft and snaps into its pocket"}]},
         {"title": "Fasten both sides", "text": "Robot's right: M2×8 into the captured nut. Robot's left: the screw that came with the servo. Unplug the head servo.", "add": [], "focus": ["Head", "Neck"], "screws": "1 × M2×8 + servo screw"}
       ]
     },
@@ -79,7 +87,7 @@
       "doc": "#7-belly--last-servo",
       "photo": "belly_1.jpg",
       "steps": [
-        {"title": "Center the last servo", "text": "Take the last servo and center it at 90°.", "add": ["servo-body"], "from": [0, 0, -40]},
+        {"title": "Center the last servo", "text": "Take the last unused servo. Do not attach a plastic horn — BellyJoint mounts on the shaft.", "add": ["servo-body"], "from": [0, 0, -40], "center": true},
         {"title": "Press BellyJoint onto the shaft", "text": "No horn. Seat the hexagonal BellyJoint so one flat edge is parallel to the short side of the servo body. Fasten with the servo screw, then unplug the servo.", "add": ["BellyJoint"], "screws": "servo screw", "from": [0, 0, 25]}
       ]
     },
@@ -127,25 +135,6 @@
       ]
     },
     {
-      "id": "electronics",
-      "title": "Electronics inside the desk",
-      "doc": "#12-electronics-inside-the-desk",
-      "steps": [
-        {"title": "Seat the main control board", "text": "From below, tilt the board in rear edge first, over the lip of the desk's back wall, so the headers come up through the desk top. Leave servos and OLED unplugged for now. Connect the speaker and tuck it inside the desk.", "add": ["MainControlBoard"], "ghost": ["Desk", "DeskPad", "DeskTop"], "from": [0, 0, -50], "allow": [{"parts": ["MainControlBoard", "Desk"], "mm": 0.8, "why": "the board goes in tilted, its rear edge over the lip of the back wall; a straight push clips the lip"}]}
-      ]
-    },
-    {
-      "id": "esp32-lamp-base",
-      "title": "ESP32, smoke test and LampBase",
-      "doc": "#13-esp32-powerap-smoke-test-and-lampbase",
-      "steps": [
-        {"title": "Solder the pin headers to the ESP32-C3-Zero", "text": "Off the robot. Push two 9-pin male headers, long pins down, into a breadboard six rows (15.24 mm) apart, so they stay straight. Lay the module on the short pins, component side up, and solder all 18 pins from the top. Skip this if your module came with headers (ESP32-C3-Zero-M).", "add": ["ESP32-pin-headers", "ESP32-C3-Zero"], "fromEach": {"ESP32-pin-headers": [0, 0, -12], "ESP32-C3-Zero": [0, 0, 15]}, "focus": ["ESP32-C3-Zero", "ESP32-pin-headers"]},
-        {"title": "Seat the ESP32-C3-Zero from above", "text": "Push the headers' long pins through the desk-top cut into the board's two female sockets underneath; orient by the USB marking. The module sits flush. Optional: power on the board USB-C and check that the setup access point starts, then power down.", "add": [], "move": ["ESP32-C3-Zero", "ESP32-pin-headers"], "from": [0, 0, 30], "focus": ["ESP32-C3-Zero", "DeskTop", "MainControlBoard"]},
-        {"title": "LampButton under LampBase", "text": "Place LampButton under LampBase so it can press the ESP32 reset button.", "add": ["LampButton"], "from": [0, 0, 25]},
-        {"title": "Fasten LampBase", "text": "Opening over the ESP32 status LED. Two M2×8 screws; this also holds the ESP32.", "add": ["LampBase"], "screws": "2 × M2×8", "from": [0, 0, 35]}
-      ]
-    },
-    {
       "id": "props",
       "title": "Desk props: laptop, mug, bell",
       "doc": "#14-desk-props--laptop-mug-bell",
@@ -155,6 +144,32 @@
         {"title": "Laptop on the desk", "text": "Place the laptop on the desk and fasten with one M2×8 from under the desk.", "add": [], "move": ["LaptopCase", "LaptopScreen"], "screws": "1 × M2×8", "from": [0, 0, 40]},
         {"title": "Mug", "text": "Seat Coffee in Mug, place the mug on its spot, one M2×8 from under the desk.", "add": ["Mug", "Coffee"], "fromEach": {"Mug": [0, 0, 35], "Coffee": [0, 0, 55]}, "screws": "1 × M2×8"},
         {"title": "Bell", "text": "Drive an M2×16 fully into Bell first, then drive it down into the desk and secure it with a nut underneath.", "add": ["Bell"], "screws": "1 × M2×16 + nut", "from": [0, 0, 30]}
+      ]
+    },
+    {
+      "id": "electronics",
+      "title": "Electronics inside the desk",
+      "doc": "#12-electronics-inside-the-desk",
+      "steps": [
+        {"title": "Seat the main control board", "text": "From below, tilt the board in rear edge first, over the lip of the desk's back wall, so the headers come up through the desk top. Leave servos and OLED unplugged for now. Connect the speaker and tuck it inside the desk.", "add": ["MainControlBoard"], "ghost": ["Desk", "DeskPad", "DeskTop"], "from": [0, 0, -50], "allow": [{"parts": ["MainControlBoard", "Desk"], "mm": 0.8, "why": "the board goes in tilted, its rear edge over the lip of the back wall; a straight push clips the lip"}]}
+      ]
+    },
+    {
+      "id": "esp32-seat",
+      "title": "ESP32 and smoke test",
+      "doc": "#13-esp32-powerap-smoke-test-and-lampbase",
+      "steps": [
+        {"title": "Solder the pin headers to the ESP32-C3-Zero", "text": "Off the robot. Push two 9-pin male headers, long pins down, into a breadboard six rows (15.24 mm) apart, so they stay straight. Lay the module on the short pins, component side up, and solder all 18 pins from the top. Skip this if your module came with headers (ESP32-C3-Zero-M).", "add": ["ESP32-pin-headers", "ESP32-C3-Zero"], "fromEach": {"ESP32-pin-headers": [0, 0, -12], "ESP32-C3-Zero": [0, 0, 15]}, "focus": ["ESP32-C3-Zero", "ESP32-pin-headers"]},
+        {"title": "Seat the ESP32-C3-Zero from above", "text": "Push the headers' long pins through the desk-top cut into the board's two female sockets underneath; orient by the USB marking. The module sits flush. Optional: power on the board USB-C and check that the setup access point starts, then power down.", "add": [], "move": ["ESP32-C3-Zero", "ESP32-pin-headers"], "from": [0, 0, 30], "focus": ["ESP32-C3-Zero", "DeskTop", "MainControlBoard"]}
+      ]
+    },
+    {
+      "id": "esp32-lamp-base",
+      "title": "LampBase",
+      "doc": "#13-esp32-powerap-smoke-test-and-lampbase",
+      "steps": [
+        {"title": "LampButton under LampBase", "text": "Place LampButton under LampBase so it can press the ESP32 reset button.", "add": ["LampButton"], "from": [0, 0, 25]},
+        {"title": "Fasten LampBase", "text": "Opening over the ESP32 status LED. Two M2×8 screws; this also holds the ESP32.", "add": ["LampBase"], "screws": "2 × M2×8", "from": [0, 0, 35]}
       ]
     },
     {
@@ -184,7 +199,7 @@
       "steps": [
         {"title": "Left elbow", "text": "Fasten ForearmLeft to an UpperArm with one M2×8 screw.", "add": ["UpperArm", "ForearmLeft"], "fromEach": {"UpperArm": [0, 0, 0], "ForearmLeft": [14.6, 0, -15]}, "screws": "1 × M2×8"},
         {"title": "Right elbow", "text": "Fasten ForearmRight to the other UpperArm with one M2×8 screw.", "add": ["UpperArmMirror", "ForearmRight"], "fromEach": {"UpperArmMirror": [0, 0, 0], "ForearmRight": [14.6, 0, -15]}, "screws": "1 × M2×8"},
-        {"title": "Mount the arms on the chest servos", "text": "Center the hand servos. Press each arm onto its shaft (the upper arms have pockets for them), hand at shoulder height and forearm pointing toward the desk. Fasten with the servo screws.", "add": [], "move": ["UpperArm", "ForearmLeft", "UpperArmMirror", "ForearmRight"], "fromEach": {"UpperArm": [0, 80, 0], "ForearmLeft": [0, 80, 0], "UpperArmMirror": [0, -80, 0], "ForearmRight": [0, -80, 0]}, "focus": ["UpperArm", "UpperArmMirror", "Chest"], "screws": "2 × servo screw"}
+        {"title": "Mount the arms on the chest servos", "text": "Center the hand servos first (callout). Press each arm onto its shaft (the upper arms have pockets for them), hand at shoulder height and forearm pointing toward the desk. Fasten with the servo screws.", "add": [], "move": ["UpperArm", "ForearmLeft", "UpperArmMirror", "ForearmRight"], "fromEach": {"UpperArm": [0, 80, 0], "ForearmLeft": [0, 80, 0], "UpperArmMirror": [0, -80, 0], "ForearmRight": [0, -80, 0]}, "focus": ["UpperArm", "UpperArmMirror", "Chest"], "screws": "2 × servo screw", "center": true}
       ]
     },
     {
