@@ -144,13 +144,18 @@ async function main() {
       root,
       layout,
       label: partLabel,
-      onStep: (index) => setHashParam('s', String(index + 1)),
+      onStep: (index) => {
+        setHashParam('s', String(index + 1));
+        window.TinyEngineerBuild?.saveAssemblyStep(index);
+      },
       onActive: (on) => {
         $('#asm-build-intro').hidden = on;
-        $('#asm-build-player').hidden = !on;
+        $('#asm-start-bar').hidden = on;
+        $('#asm-playback').hidden = !on;
+        if (!on) $('#asm-build-player').hidden = true;
       },
       elements: {
-        section: $('#asm-step-section'), title: $('#asm-step-title'), text: $('#asm-step-text'),
+        player: $('#asm-build-player'), title: $('#asm-step-title'), text: $('#asm-step-text'),
         center: $('#asm-step-center'), centerDoc: $('#asm-step-center-doc'),
         counter: $('#asm-step-counter'), progress: $('#asm-step-progress'), screws: $('#asm-step-screws'),
         adds: $('#asm-step-adds'), photo: $('#asm-step-photo'),
@@ -160,7 +165,8 @@ async function main() {
     });
     $('#asm-build-summary').textContent = `${stepData.sections.length} sections, ${build.steps.length} steps, following the assembly guide. Each step shows the robot so far and slides the new parts in.`;
     $('#asm-build-start').addEventListener('click', () => {
-      build.setActive(true, 0);
+      const saved = window.TinyEngineerBuild?.loadAssemblyStep();
+      build.setActive(true, saved ?? 0);
     });
     $('#asm-build-exit').addEventListener('click', () => {
       if (build.active) {
@@ -170,6 +176,8 @@ async function main() {
     });
   } else {
     $('#asm-build').hidden = true;
+    const startBar = $('#asm-start-bar');
+    if (startBar) startBar.hidden = true;
   }
 
   document.addEventListener('keydown', (event) => {
@@ -178,10 +186,16 @@ async function main() {
     if (event.key === 'ArrowLeft') { build.prev(); event.preventDefault(); }
   });
   $('#asm-reset-view').addEventListener('click', () => stage.reset());
+  $('#asm-zoom-in').addEventListener('click', () => stage.zoomIn());
+  $('#asm-zoom-out').addEventListener('click', () => stage.zoomOut());
 
+  // URL hash wins (shareable links); else resume the remembered step.
   const linkedStep = Number(hashParams().get('s'));
+  const savedStep = window.TinyEngineerBuild?.loadAssemblyStep();
   if (build && linkedStep) {
     build.setActive(true, linkedStep - 1);
+  } else if (build && savedStep != null && savedStep < build.steps.length) {
+    build.setActive(true, savedStep);
   } else {
     layout();
   }

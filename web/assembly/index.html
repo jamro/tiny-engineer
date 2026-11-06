@@ -25,21 +25,58 @@
     <script src="../js/site-header.js"></script>
 
     <main>
-      <div class="flash-intro">
-        <p class="eyebrow">3D · SG90</p>
-        <h1>Assembly</h1>
-        <p class="lede">
-          The stock robot from the meshes you print. Walk through the build step by step.
-        </p>
+      <div class="build-head">
+        <script src="../js/build-progress.js"></script>
+        <nav class="build-timeline" data-stage="assembly" data-root="../"></nav>
+        <script src="../js/build-timeline.js"></script>
+        <div class="flash-intro">
+          <p class="eyebrow">3D · SG90</p>
+          <h1>Assembly</h1>
+          <p class="lede">
+            Step through the printable stock robot in 3D.
+          </p>
+        </div>
       </div>
 
       <div class="asm-layout">
         <section class="panel asm-view" aria-label="3D view">
-          <div id="asm-stage" class="asm-stage"></div>
-          <p id="asm-status" class="asm-status mono" role="status" data-state="loading">Loading model…</p>
-          <div class="asm-toolbar">
-            <button id="asm-reset-view" class="btn btn-ghost" type="button">Reset view</button>
+          <div id="asm-stage" class="asm-stage">
+            <div class="asm-view-controls">
+              <button id="asm-reset-view" class="asm-view-btn btn btn-ghost" type="button" aria-label="Reset view">
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-frame"></use></svg>
+              </button>
+              <button id="asm-zoom-in" class="asm-view-btn btn btn-ghost" type="button" aria-label="Zoom in">
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-zoom-in"></use></svg>
+              </button>
+              <button id="asm-zoom-out" class="asm-view-btn btn btn-ghost" type="button" aria-label="Zoom out">
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-zoom-out"></use></svg>
+              </button>
+            </div>
+            <div id="asm-start-bar" class="asm-start-bar">
+              <button id="asm-build-start" class="btn btn-primary" type="button">Start building</button>
+            </div>
+            <div id="asm-playback" class="asm-playback" hidden>
+              <div class="asm-step-head">
+                <p id="asm-step-counter" class="panel-label">Step 1</p>
+                <progress id="asm-step-progress" value="1" max="1"></progress>
+              </div>
+              <div class="asm-step-nav">
+                <button id="asm-step-prev" class="btn" type="button" aria-label="Back">
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-rewind"></use></svg>
+                </button>
+                <button id="asm-step-play" class="btn btn-ghost" type="button" aria-label="Play" aria-pressed="false">
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-play"></use></svg>
+                </button>
+                <button id="asm-step-next" class="btn btn-primary" type="button" aria-label="Next">
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-fast-forward"></use></svg>
+                </button>
+                <button id="asm-build-exit" class="btn btn-ghost" type="button" aria-label="Show the finished robot">
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-skip-end"></use></svg>
+                </button>
+              </div>
+            </div>
           </div>
+          <p id="asm-status" class="asm-status mono" role="status" data-state="loading">Loading model…</p>
         </section>
 
         <aside class="panel asm-side" aria-label="Build steps">
@@ -47,46 +84,34 @@
             <div id="asm-build-intro" class="asm-build-intro">
               <h2 class="asm-step-title">Build it step by step</h2>
               <p id="asm-build-summary" class="asm-step-text">Follows the assembly guide, one small step at a time: each step shows the robot so far and slides the new parts in.</p>
-              <button id="asm-build-start" class="btn btn-primary" type="button">Start building</button>
             </div>
-            <div id="asm-build-player" class="asm-build-player" hidden>
-            <div class="asm-step-head">
-              <p id="asm-step-counter" class="panel-label">Step 1</p>
-              <progress id="asm-step-progress" value="1" max="1"></progress>
-            </div>
-            <div class="asm-step-nav">
-              <button id="asm-step-prev" class="btn" type="button">← Back</button>
-              <button id="asm-step-play" class="btn btn-ghost" type="button" aria-pressed="false">Play</button>
-              <button id="asm-step-next" class="btn btn-primary" type="button">Next →</button>
-            </div>
-            <p id="asm-step-section" class="asm-step-section mono"></p>
-            <h2 id="asm-step-title" class="asm-step-title"></h2>
-            <details id="asm-step-center" class="asm-center-callout callout" hidden>
-              <summary class="asm-center-summary">
-                <span class="asm-center-label"><strong>Stop.</strong> Center at 90° before attaching</span>
-                <span class="asm-center-hint" aria-hidden="true"></span>
-              </summary>
-              <div class="asm-center-body">
-                <ol>
-                  <li>Plug the servo into any PCA9685 channel (channel mapping does not matter for centering).</li>
-                  <li>Power the ESP32. Join the setup Wi‑Fi (<code>TinyEngineer-XXXX</code>), open <code>http://192.168.4.1/config</code>, open <strong>Assembly support</strong>, and press <strong>Move all to 90°</strong>. Use <strong>Identify</strong> on a joint if you need to see which plug is which.</li>
-                  <li>After that joint, <strong>unplug</strong> the servo from the PCA9685 before the next awkward join.</li>
-                </ol>
-                <p>Do <strong>not</strong> run guided range calibration or finish the wizard (OLED, LED, speaker, home Wi‑Fi) until the final setup section. <a id="asm-step-center-doc" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md#2a-bench-window-centering" target="_blank" rel="noopener">Centering in the assembly guide</a></p>
-              </div>
-            </details>
-            <p id="asm-step-text" class="asm-step-text"></p>
-            <p id="asm-step-adds" class="hint mono"></p>
-            <p id="asm-step-screws" class="asm-step-screws mono"></p>
-            <a id="asm-step-photo" class="asm-step-photo" href="#" target="_blank" rel="noopener" hidden>
-              <img id="asm-step-photo-image" alt="" loading="lazy">
-            </a>
-            <button id="asm-build-exit" class="btn btn-ghost" type="button">Show the finished robot</button>
-            </div>
-            <details class="asm-outline">
-              <summary>All sections</summary>
+            <nav class="asm-outline" aria-label="Build steps">
               <ol id="asm-step-outline"></ol>
-            </details>
+            </nav>
+            <div id="asm-build-player" class="asm-build-player" hidden>
+              <h2 id="asm-step-title" class="asm-step-title"></h2>
+              <details id="asm-step-center" class="asm-center-callout callout" hidden>
+                <summary class="asm-center-summary">
+                  <svg class="icon asm-center-icon" aria-hidden="true"><use href="../media/icons.svg#i-octagon-alert"></use></svg>
+                  <span class="asm-center-label"><strong>Stop.</strong> Center at 90° before attaching</span>
+                  <span class="asm-center-hint" aria-hidden="true"></span>
+                </summary>
+                <div class="asm-center-body">
+                  <ol>
+                    <li>Plug the servo into any PCA9685 channel (channel mapping does not matter for centering).</li>
+                    <li>Power the ESP32. Join the setup Wi‑Fi (<code>TinyEngineer-XXXX</code>), open <code>http://192.168.4.1/config</code>, open <strong>Assembly support</strong>, and press <strong>Move all to 90°</strong>. Use <strong>Identify</strong> on a joint if you need to see which plug is which.</li>
+                    <li>After that joint, <strong>unplug</strong> the servo from the PCA9685 before the next awkward join.</li>
+                  </ol>
+                  <p>Do <strong>not</strong> run guided range calibration or finish the wizard (OLED, LED, speaker, home Wi‑Fi) until the final setup section. <a id="asm-step-center-doc" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md#2a-bench-window-centering" target="_blank" rel="noopener">Centering in the assembly guide</a></p>
+                </div>
+              </details>
+              <p id="asm-step-text" class="asm-step-text"></p>
+              <p id="asm-step-adds" class="hint mono"></p>
+              <p id="asm-step-screws" class="asm-step-screws mono"></p>
+              <a id="asm-step-photo" class="asm-step-photo" href="#" target="_blank" rel="noopener" hidden>
+                <img id="asm-step-photo-image" alt="" loading="lazy">
+              </a>
+            </div>
           </div>
         </aside>
       </div>

@@ -60,9 +60,75 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     return box.isEmpty() ? new THREE.Box3().setFromObject(root) : box;
   };
 
+  /** How many neighbor steps stay visible above/below the current one. */
+  const OUTLINE_PAD = 3;
+
+  const makeMore = (where, count) => {
+    const more = document.createElement('li');
+    more.className = `asm-outline-more asm-outline-more-${where}`;
+    more.setAttribute('aria-hidden', 'true');
+    more.textContent = `··· ${count} more`;
+    return more;
+  };
+
+  /** Rebuild the ±pad step window; mount the player under the current step. */
+  const renderOutline = () => {
+    if (!elements.outline) return;
+    elements.outline.replaceChildren();
+    if (!active) {
+      if (elements.player) {
+        elements.player.hidden = true;
+        elements.outline.closest('.asm-build')?.append(elements.player);
+      }
+      // Intro: first pad+1 steps, cue if the guide continues.
+      const end = Math.min(steps.length - 1, OUTLINE_PAD);
+      for (let i = 0; i <= end; i++) {
+        const step = steps[i];
+        const item = document.createElement('li');
+        item.className = 'asm-outline-item';
+        const label = document.createElement('span');
+        label.className = 'asm-outline-label';
+        label.textContent = `${i + 1}. ${step.title}`;
+        item.append(label);
+        elements.outline.append(item);
+      }
+      if (end < steps.length - 1) {
+        elements.outline.append(makeMore('after', steps.length - 1 - end));
+      }
+      return;
+    }
+
+    const from = Math.max(0, index - OUTLINE_PAD);
+    const to = Math.min(steps.length - 1, index + OUTLINE_PAD);
+    if (from > 0) elements.outline.append(makeMore('before', from));
+
+    for (let i = from; i <= to; i++) {
+      const step = steps[i];
+      const current = i === index;
+      const item = document.createElement('li');
+      item.className = 'asm-outline-item' + (current ? ' is-current' : '');
+      const label = document.createElement('span');
+      label.className = 'asm-outline-label';
+      label.textContent = `${i + 1}. ${step.title}`;
+      if (current) label.setAttribute('aria-current', 'step');
+      item.append(label);
+      if (current && elements.player) {
+        const panel = document.createElement('div');
+        panel.className = 'asm-outline-panel';
+        panel.append(elements.player);
+        elements.player.hidden = false;
+        item.append(panel);
+      }
+      elements.outline.append(item);
+    }
+
+    if (to < steps.length - 1) {
+      elements.outline.append(makeMore('after', steps.length - 1 - to));
+    }
+  };
+
   const render = () => {
     const step = steps[index];
-    elements.section.textContent = `${data.sections.indexOf(step.section) + 1} · ${step.section.title}`;
     elements.title.textContent = step.title;
     const showCenter = showsCenterCallout(step);
     elements.center.hidden = !showCenter;
@@ -88,13 +154,13 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     }
     elements.prev.disabled = index === 0;
     elements.next.disabled = index === steps.length - 1;
-    elements.play.textContent = playing ? 'Pause' : 'Play';
-    elements.play.setAttribute('aria-pressed', String(playing));
-    for (const item of elements.outline.querySelectorAll('[data-step]')) {
-      const first = Number(item.dataset.step);
-      const section = steps[first].section;
-      item.setAttribute('aria-current', String(section === step.section));
+    const playIcon = elements.play.querySelector('use');
+    if (playIcon) {
+      playIcon.setAttribute('href', playing ? '../media/icons.svg#i-pause' : '../media/icons.svg#i-play');
     }
+    elements.play.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+    elements.play.setAttribute('aria-pressed', String(playing));
+    renderOutline();
   };
 
   const go = (next, { animate = true } = {}) => {
@@ -133,26 +199,15 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     render();
   };
 
-  // Section outline: jump to the first step of each section.
-  elements.outline.replaceChildren();
-  data.sections.forEach((section, number) => {
-    const first = steps.findIndex((step) => step.section === section);
-    const item = document.createElement('li');
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.dataset.step = String(first);
-    button.textContent = `${number + 1}. ${section.title}`;
-    button.addEventListener('click', () => { setPlaying(false); go(first); });
-    item.append(button);
-    elements.outline.append(item);
-  });
-
   elements.prev.addEventListener('click', () => { setPlaying(false); go(index - 1); });
   elements.next.addEventListener('click', () => { setPlaying(false); go(index + 1); });
   elements.play.addEventListener('click', () => {
     if (!playing && index === steps.length - 1) go(0);
     setPlaying(!playing);
   });
+
+  // Step outline: ±3 around current; more-before / more-after cues when clipped.
+  renderOutline();
 
   return {
     steps,
@@ -169,6 +224,7 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
       setPlaying(false);
       if (stopMove) { stopMove(); stopMove = null; }
       progress = 1;
+      renderOutline();
       layout();
       stage.flyTo(new THREE.Box3().setFromObject(root), { margin: 1.25 });
     },

@@ -76,8 +76,36 @@ export function createStage(element, label) {
 
   let framed = null;
   let flight = null;
+  let zoomAnim = null;
   let userMoved = false;
   controls.addEventListener('start', () => { userMoved = true; });
+  const tickers = new Set();
+  /** Calls `tick(time)` every frame; a true return redraws. Returns a remover. */
+  const onTick = (tick) => { tickers.add(tick); return () => tickers.delete(tick); };
+
+  /** Dolly toward / away from the orbit target; smooth ease, respects min/max distance. */
+  const ZOOM_MS = 280;
+  const zoomBy = (factor) => {
+    const from = camera.position.distanceTo(controls.target);
+    const to = THREE.MathUtils.clamp(from * factor, controls.minDistance, controls.maxDistance);
+    if (Math.abs(to - from) < 1e-3) return;
+    const direction = camera.position.clone().sub(controls.target).normalize();
+    const pivot = controls.target.clone();
+    const start = performance.now();
+    userMoved = true;
+    if (zoomAnim) zoomAnim();
+    zoomAnim = onTick((time) => {
+      const t = Math.min(1, (time - start) / ZOOM_MS);
+      const e = t * t * (3 - 2 * t);
+      const distance = from + (to - from) * e;
+      camera.position.copy(pivot).addScaledVector(direction, distance);
+      controls.target.copy(pivot);
+      if (t >= 1) { zoomAnim(); zoomAnim = null; }
+      return true;
+    });
+  };
+  const zoomIn = () => zoomBy(0.8);
+  const zoomOut = () => zoomBy(1.25);
 
   /** Frame a bounding box: sets the floor under it and the home view around it. */
   const frame = (box, { keepFloor = false } = {}) => {
@@ -113,7 +141,6 @@ export function createStage(element, label) {
   resize.observe(element);
 
   let animation = 0;
-  const tickers = new Set();
   const loop = (time) => {
     animation = requestAnimationFrame(loop);
     for (const tick of tickers) if (tick(time)) dirty = true;
@@ -126,7 +153,7 @@ export function createStage(element, label) {
   animation = requestAnimationFrame(loop);
 
   return {
-    renderer, scene, camera, controls, content, invalidate, reset, frame,
+    renderer, scene, camera, controls, content, invalidate, reset, zoomIn, zoomOut, frame, onTick,
     /**
      * Glide the camera to frame `box`, keeping the direction it looks from.
      * `margin` scales the distance (1 = fits snugly).
@@ -144,7 +171,7 @@ export function createStage(element, label) {
       const toPosition = centre.clone().addScaledVector(direction, distance);
       const start = performance.now();
       if (flight) flight();
-      const remove = this.onTick((time) => {
+      const remove = onTick((time) => {
         const f = Math.min(1, (time - start) / duration);
         const e = f * f * (3 - 2 * f);
         camera.position.lerpVectors(fromPosition, toPosition, e);
@@ -156,8 +183,6 @@ export function createStage(element, label) {
     },
     /** Frame `box` again unless the user has moved the camera since the last framing. */
     refit(box) { if (!userMoved) frame(box, { keepFloor: true }); },
-    /** Calls `tick(time)` every frame; a true return redraws. Returns a remover. */
-    onTick(tick) { tickers.add(tick); return () => tickers.delete(tick); },
     dispose() {
       resize.disconnect();
       cancelAnimationFrame(animation);
