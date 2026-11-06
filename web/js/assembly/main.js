@@ -151,8 +151,9 @@ async function main() {
       },
       elements: {
         section: $('#asm-step-section'), title: $('#asm-step-title'), text: $('#asm-step-text'),
+        center: $('#asm-step-center'), centerDoc: $('#asm-step-center-doc'),
         counter: $('#asm-step-counter'), progress: $('#asm-step-progress'), screws: $('#asm-step-screws'),
-        adds: $('#asm-step-adds'), doc: $('#asm-step-doc'), photo: $('#asm-step-photo'),
+        adds: $('#asm-step-adds'), photo: $('#asm-step-photo'),
         photoImage: $('#asm-step-photo-image'), prev: $('#asm-step-prev'), next: $('#asm-step-next'),
         play: $('#asm-step-play'), outline: $('#asm-step-outline'),
       },

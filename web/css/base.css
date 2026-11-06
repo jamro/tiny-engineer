@@ -1707,7 +1707,7 @@ esp-web-install-button .button,
 
 @media (min-width: 960px) {
   .asm-layout {
-    grid-template-columns: minmax(0, 1fr) 21rem;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   }
 
   .asm-view {
@@ -1813,6 +1813,88 @@ esp-web-install-button .button,
   margin: 0;
   font-size: 1.15rem;
   line-height: 1.3;
+}
+
+.asm-center-callout {
+  padding: 0;
+}
+
+.asm-center-callout[hidden] {
+  display: none;
+}
+
+.asm-center-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  list-style: none;
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.asm-center-summary::-webkit-details-marker {
+  display: none;
+}
+
+.asm-center-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.asm-center-hint {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+
+.asm-center-hint::before {
+  content: "How";
+}
+
+.asm-center-hint::after {
+  content: "▾";
+  font-size: 0.75rem;
+  transition: transform 0.15s ease;
+}
+
+.asm-center-callout[open] .asm-center-hint::before {
+  content: "Hide";
+}
+
+.asm-center-callout[open] .asm-center-hint::after {
+  transform: rotate(-180deg);
+}
+
+.asm-center-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.75rem;
+  border-top: 1px solid rgba(255, 200, 87, 0.2);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.asm-center-body p,
+.asm-center-body ol {
+  margin: 0;
+}
+
+.asm-center-body ol {
+  padding-left: 1.2rem;
+}
+
+.asm-center-body li + li {
+  margin-top: 0.35rem;
 }
 
 .asm-step-text {

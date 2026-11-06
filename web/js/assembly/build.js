@@ -3,7 +3,10 @@
 // Sub-assemblies built off the robot wait beside it until the step that
 // mounts them (`move` in steps.json, see offsetsAt).
 import * as THREE from 'three';
-import { flatten, offsetsAt, sceneAt } from './steps.js';
+import { flatten, offsetsAt, sceneAt, showsCenterCallout } from './steps.js';
+
+/** Guide anchor for the shared centering recipe (docs/3d/assembly.md §2a). */
+const CENTER_DOC = '#2a-bench-window-centering';
 
 /** Seconds a step's parts take to slide in. */
 const MOVE_SECONDS = 0.9;
@@ -38,7 +41,7 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     const value = offsets.get(id);
     return value ? offset.fromArray(value) : null;
   };
-  const shown = (id) => !active || scene.shown.has(id);
+  const shown = (id) => !active || scene.shown.has(id) || scene.preview.has(id);
   const ghost = (id) => active && scene.ghost.has(id);
 
   /** The step's focus parts, where they end up (not where they start moving from). */
@@ -61,6 +64,11 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     const step = steps[index];
     elements.section.textContent = `${data.sections.indexOf(step.section) + 1} · ${step.section.title}`;
     elements.title.textContent = step.title;
+    const showCenter = showsCenterCallout(step);
+    elements.center.hidden = !showCenter;
+    if (elements.centerDoc) {
+      elements.centerDoc.href = `${data.docs}${CENTER_DOC}`;
+    }
     elements.text.textContent = step.text;
     elements.counter.textContent = `Step ${index + 1} of ${steps.length}`;
     elements.progress.value = index + 1;
@@ -71,7 +79,6 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     const added = step.add.filter((id) => !step.fasten?.includes(id)).map(label);
     elements.adds.hidden = !added.length;
     elements.adds.textContent = added.length ? `Adds: ${added.join(', ')}` : '';
-    elements.doc.href = `${step.section.docs ?? data.docs}${step.section.doc ?? ''}`;
     const photo = step.section.photo;
     elements.photo.hidden = !photo;
     if (photo) {

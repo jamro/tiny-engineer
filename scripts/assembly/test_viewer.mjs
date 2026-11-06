@@ -3,7 +3,10 @@
 //   node scripts/assembly/test_viewer.mjs
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { FASTEN_AT, flatten, offsetsAt, phases, sceneAt, startOffset, validate, withFasteners } from '../../web/js/assembly/steps.js';
+import {
+  CENTER_BENCH_PARTS, CENTER_COVER_PARTS, FASTEN_AT, flatten, offsetsAt, phases, sceneAt,
+  showsBenchElectronics, showsCenterCallout, startOffset, validate, withFasteners,
+} from '../../web/js/assembly/steps.js';
 import { defaultColor, resolveColors, GROUP_COLORS, HARDWARE_COLORS, PART_COLORS } from '../../web/js/assembly/colors.js';
 
 const parts = [
@@ -88,10 +91,72 @@ assert.ok(badProblems.some((problem) => problem.includes('unknown part Nope')));
 assert.ok(badProblems.some((problem) => problem.includes('mm must be a positive number')));
 assert.ok(badProblems.some((problem) => problem.includes('say why')));
 
+// Optional center flag: boolean when present.
+{
+  const withCenter = structuredClone(data);
+  withCenter.sections[0].steps[0].center = true;
+  assert.deepEqual(validate(withCenter, ['Head', 'Hat', 'Desk']), []);
+  withCenter.sections[0].steps[0].center = 'yes';
+  assert.ok(validate(withCenter, ['Head', 'Hat', 'Desk']).some((problem) => problem.includes('center must be a boolean')));
+}
+
 // The shipped steps are well formed (part ids are checked against the model by check_steps.mjs).
 const shipped = JSON.parse(readFileSync(new URL('../../web/assembly/steps.json', import.meta.url), 'utf8'));
 const shippedIds = [...new Set(flatten(shipped).flatMap((step) => step.add))];
 assert.deepEqual(validate(shipped, shippedIds), []);
+const shippedSteps = flatten(shipped);
+const centeredTitles = shippedSteps.filter((step) => step.center === true).map((step) => step.title);
+assert.deepEqual(centeredTitles, [
+  'Center the neck servo',
+  'Fit Neck onto the head servo',
+  'Center the last servo',
+  'Mount the arms on the chest servos',
+]);
+assert.ok(shipped.sections.some((section, index, list) => {
+  const prev = list[index - 1];
+  return section.id === 'bench-window' && prev?.id === 'hat' && list[index + 1]?.id === 'neck';
+}), 'bench-window sits after hat and before neck');
+assert.equal(shippedSteps.find((step) => step.title === "Seat the robot's left servo")?.center, undefined);
+assert.equal(shippedSteps.find((step) => step.title === "Seat the robot's right servo")?.center, undefined);
+assert.equal(showsCenterCallout({ center: true }), true);
+assert.equal(showsCenterCallout({ center: false }), false);
+assert.equal(showsCenterCallout({}), false);
+assert.equal(showsBenchElectronics({ bench: true }), true);
+assert.equal(showsBenchElectronics({ center: true }), true);
+assert.equal(showsBenchElectronics({}), false);
+for (const step of shippedSteps) {
+  assert.equal(showsCenterCallout(step), step.center === true);
+  assert.equal(showsBenchElectronics(step), step.center === true || step.bench === true);
+}
+
+// Bench-window and centering steps preview the board / ESP32; desk covers ghost when present.
+{
+  const bench = shippedSteps.findIndex((step) => step.title === 'Keep electronics on the desk');
+  const intro = sceneAt(shippedSteps, bench);
+  assert.equal(showsCenterCallout(shippedSteps[bench]), false, 'bench intro has no centering callout');
+  assert.ok(intro.preview.has('MainControlBoard'));
+  assert.ok(intro.preview.has('ESP32-C3-Zero'));
+  assert.ok(intro.preview.has('ESP32-pin-headers'));
+  for (const id of CENTER_BENCH_PARTS) assert.ok(intro.focus.includes(id));
+
+  const neckCenter = shippedSteps.findIndex((step) => step.title === 'Center the neck servo');
+  const early = sceneAt(shippedSteps, neckCenter);
+  assert.ok(early.preview.has('MainControlBoard'));
+  assert.ok(early.preview.has('ESP32-C3-Zero'));
+  assert.ok(early.preview.has('ESP32-pin-headers'));
+  assert.ok(!early.shown.has('MainControlBoard'), 'preview only until electronics are added');
+  for (const id of CENTER_BENCH_PARTS) assert.ok(early.focus.includes(id));
+
+  const arms = shippedSteps.findIndex((step) => step.title === 'Mount the arms on the chest servos');
+  const late = sceneAt(shippedSteps, arms);
+  assert.equal(late.preview.size, 0, 'board already added: not a preview');
+  assert.ok(late.shown.has('MainControlBoard'));
+  assert.ok(late.shown.has('ESP32-C3-Zero'));
+  for (const id of ['Desk', 'DeskPad', 'DeskTop', 'LampBase']) {
+    assert.ok(late.ghost.has(id), `${id} ghosted so the board stays readable`);
+  }
+  assert.ok(CENTER_COVER_PARTS.includes('Desk'));
+}
 
 // Fasteners in the steps.
 {

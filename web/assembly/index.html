@@ -61,13 +61,26 @@
             </div>
             <p id="asm-step-section" class="asm-step-section mono"></p>
             <h2 id="asm-step-title" class="asm-step-title"></h2>
+            <details id="asm-step-center" class="asm-center-callout callout" hidden>
+              <summary class="asm-center-summary">
+                <span class="asm-center-label"><strong>Stop.</strong> Center at 90° before attaching</span>
+                <span class="asm-center-hint" aria-hidden="true"></span>
+              </summary>
+              <div class="asm-center-body">
+                <ol>
+                  <li>Plug the servo into any PCA9685 channel (channel mapping does not matter for centering).</li>
+                  <li>Power the ESP32. Join the setup Wi‑Fi (<code>TinyEngineer-XXXX</code>), open <code>http://192.168.4.1/config</code>, open <strong>Assembly support</strong>, and press <strong>Move all to 90°</strong>. Use <strong>Identify</strong> on a joint if you need to see which plug is which.</li>
+                  <li>After that joint, <strong>unplug</strong> the servo from the PCA9685 before the next awkward join.</li>
+                </ol>
+                <p>Do <strong>not</strong> run guided range calibration or finish the wizard (OLED, LED, speaker, home Wi‑Fi) until the final setup section. <a id="asm-step-center-doc" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md#2a-bench-window-centering" target="_blank" rel="noopener">Centering in the assembly guide</a></p>
+              </div>
+            </details>
             <p id="asm-step-text" class="asm-step-text"></p>
             <p id="asm-step-adds" class="hint mono"></p>
             <p id="asm-step-screws" class="asm-step-screws mono"></p>
             <a id="asm-step-photo" class="asm-step-photo" href="#" target="_blank" rel="noopener" hidden>
               <img id="asm-step-photo-image" alt="" loading="lazy">
             </a>
-            <p class="hint"><a id="asm-step-doc" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md" target="_blank" rel="noopener">This section in the assembly guide</a> · ← → keys step through.</p>
             <button id="asm-build-exit" class="btn btn-ghost" type="button">Show the finished robot</button>
             </div>
             <details class="asm-outline">

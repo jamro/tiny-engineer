@@ -44,6 +44,8 @@ Local preview: build the GLB into `web/assembly/models/sg90.glb` (commands below
 - `move`: parts added earlier that move into place in this step, together: a sub-assembly built off the robot. Until this step they wait at `from`, added to any later moves of theirs.
 - `from` / `fromEach`: where the added or moved parts slide in from, relative to where the step leaves them (mm, CAD frame: +x the robot's front, +y its left, +z up).
 - `focus`: parts to frame (default: the parts the step adds or moves). `ghost`: parts drawn see-through.
+- `center`: optional boolean. When `true`, the build card shows the shared servo-centering callout (setup AP → Assembly support → Move all to 90°); see [assembly.md §2a](assembly.md#2a-bench-window-centering). The 3D view also previews the main control board with the ESP32 (and ghosts the desk/lamp once those exist) so the plug-in target is visible. Omit or `false` for ordinary steps.
+- `bench`: optional boolean. When `true`, the 3D view previews the main control board with the ESP32 like `center`, but without the centering callout (used for the bench-window intro).
 - `allow`: overlaps this step lets through, `{ "parts": [a, b], "mm": 2.5, "why": "…" }`. Top-level `fits` does the same for every step and for the finished robot.
 
 CI checks the steps against the extracted model (`check_steps.mjs`) and for clipping (below). When a part is added to the CAD, add it to a step.
