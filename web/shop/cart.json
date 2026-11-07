@@ -54,7 +54,7 @@
   "jlcpcb": {
     "title": "Main circuit board (factory-assembled)",
     "pathLabel": "Slowest step \u2014 weeks",
-    "disclaimer": "No partnership with JLCPCB. You order at your own risk. Their website labels change \u2014 follow the outcomes below, not exact button names.",
+    "disclaimer": "Reference boards from this design were built and checked. Your fab run is still its own order \u2014 review stock and part orientation before you pay. No partnership with JLCPCB.",
     "fullGuideUrl": "https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/order-main-control-board.md",
     "orderUrl": "https://jlcpcb.com/",
     "image": "../media/shop/main-control-board.jpg?v=r1",

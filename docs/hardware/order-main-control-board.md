@@ -6,7 +6,7 @@ Build the integrated PCB yourself from the open-source KiCad design, then return
 
 This walkthrough uses **[JLCPCB](https://jlcpcb.com/)** as one common place to order PCB + assembly (PCBA) with LCSC parts. Tiny Engineer has **no partnership** with JLCPCB — the project documents one provider the author chose; you are free to use another.
 
-Orders are at your own risk. Fabrication and assembly can go wrong (missing parts, wrong orientation, stock substitutions). Design revisions — especially early boards — can have bugs. The project cannot guarantee every order yields a working board.
+Reference boards from this design were manufactured and tested. Your order is still a separate fab run: stock, orientation, and assembly can differ, so review the manufacturer UI before you pay. The project cannot guarantee every independent order yields a working board.
 
 ## What you still buy separately
 

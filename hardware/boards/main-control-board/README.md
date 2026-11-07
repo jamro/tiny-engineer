@@ -2,10 +2,10 @@
 
 This board drives the robot's servos and speaker. Power and USB data come in on a USB-C connector. The Waveshare ESP32-C3-Zero is not soldered down; it plugs into two 9-pin sockets.
 
-- **Status:** draft (schematic and routed layout)
+- **Status:** tested
 - **KiCad:** 10
-- **Built:** not manufactured
-- **Tested:** not tested
+- **Built:** manufactured and tested
+- **Tested:** reference boards ordered and checked; each independent fab run can still differ
 
 ![Main Control Board](./main-control-board-rev-3-preview.jpg)
 
