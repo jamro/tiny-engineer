@@ -514,14 +514,13 @@ h1 {
 }
 
 .control-foot {
-  margin-top: 1rem;
+  margin-top: 1.1rem;
   max-width: 46rem;
 }
 
 .control-map {
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
 .code-block-last {
@@ -587,27 +586,48 @@ h1 {
 
 .control-grid {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
   align-items: stretch;
 }
 
-@media (min-width: 760px) {
+@media (min-width: 860px) {
   .control-grid {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    gap: 1.1rem;
+    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.9fr);
+    gap: 1.15rem;
   }
 }
 
-.control-snippets {
+.control-commands,
+.control-map {
+  min-width: 0;
+  height: 100%;
+}
+
+.control-commands {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 0.65rem;
+  gap: 0.85rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   min-width: 0;
 }
 
-.control-snippets .code-block {
-  margin: 0;
+.control-map .table-scroll {
+  flex: 1;
+}
+
+.control-map .data-table th,
+.control-map .data-table td {
+  padding: 0.7rem 0.35rem;
+}
+
+.control-map .data-table td:last-child {
+  color: var(--text);
+  font-weight: 500;
 }
 
 .ide-line {
@@ -1426,6 +1446,289 @@ h1 {
 
 .page-setup .use-body p {
   max-width: none;
+}
+
+.setup-split {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.setup-split .panel-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.setup-split .panel-label .icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--accent);
+}
+
+.setup-phone {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.setup-phone .icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.12rem;
+  color: var(--amber);
+}
+
+.setup-phone strong {
+  color: var(--text);
+}
+
+.setup-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.setup-url {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 3.1rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #5fd652;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(124, 255, 107, 0.18), rgba(124, 255, 107, 0.08)),
+    var(--raised);
+  color: var(--text);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 8px 18px rgba(0, 0, 0, 0.22);
+  text-decoration: none;
+  transition:
+    border-color var(--dur) ease,
+    background var(--dur) ease,
+    transform var(--dur) var(--ease-mech);
+}
+
+.setup-url > .icon:first-child {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.setup-url-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.setup-url-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.setup-url-host {
+  font-size: 0.76rem;
+  line-height: 1.25;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.setup-url-go {
+  width: 1rem;
+  height: 1rem;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.setup-url:hover {
+  border-color: #8fff7d;
+  background:
+    linear-gradient(180deg, rgba(124, 255, 107, 0.26), rgba(124, 255, 107, 0.1)),
+    var(--raised);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.setup-url:active {
+  transform: translateY(1px);
+}
+
+.setup-side .use-body {
+  max-width: none;
+}
+
+.setup-side .use-body p {
+  max-width: none;
+}
+
+.setup-curl {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.setup-curl-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.setup-curl-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0 0.65rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.setup-copy {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+}
+
+.setup-copy .icon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.setup-copy.is-copied {
+  border-color: rgba(124, 255, 107, 0.55);
+  color: var(--accent);
+}
+
+.setup-flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.setup-flow > li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  margin: 0;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(90deg, rgba(124, 255, 107, 0.07), transparent 46%),
+    var(--raised);
+}
+
+.setup-step-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--accent);
+}
+
+.setup-step-mark .icon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.setup-step-num {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.setup-step-title {
+  margin: 0 0 0.28rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.setup-step-text,
+.setup-screens {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.setup-step-text strong,
+.setup-screens strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.setup-wizard code {
+  font-size: 0.86em;
+  color: var(--text);
+}
+
+.setup-wizard a code {
+  color: inherit;
+}
+
+.setup-screens {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.setup-screens > li {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+  margin: 0;
+  padding: 0.55rem 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.setup-screens > li + li {
+  margin-top: 0.55rem;
+}
+
+.setup-screens .icon {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.18rem;
+  color: var(--accent);
+}
+
+.setup-screens p {
+  margin: 0;
+}
+
+@media (min-width: 960px) {
+  .setup-split {
+    grid-template-columns: minmax(0, 1.4fr) minmax(17rem, 0.85fr);
+  }
 }
 
 @media (min-width: 720px) {
