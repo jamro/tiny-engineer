@@ -157,7 +157,8 @@ publish_from_production() {
   cp "$prod/bom.csv" "$OUT_DIR/bom.csv" || return 1
   cp "$prod/positions.csv" "$OUT_DIR/positions.csv" || return 1
   local zip
-  zip="$(find "$prod" -maxdepth 1 -type f -name '*.zip' ! -path '*/backups/*' | head -n 1)"
+  # maxdepth 1 already skips subdirs; do not filter on full path (cwd may contain "backup").
+  zip="$(find "$prod" -maxdepth 1 -type f -name '*.zip' ! -iname '*backup*' | head -n 1)"
   [[ -n "$zip" ]] || die "no Gerber zip in $prod"
   cp "$zip" "$OUT_DIR/gerbers.zip" || return 1
 }

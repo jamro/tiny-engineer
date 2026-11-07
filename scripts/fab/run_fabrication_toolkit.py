@@ -144,10 +144,12 @@ def main() -> int:
     missing = [n for n in required if not (production / n).is_file()]
     zips = []
     if production.is_dir():
+        # Filter by file name only — full path can contain "backup" (e.g. ~/backups/…)
+        # and would drop every zip even though glob is non-recursive.
         zips = [
             z
             for z in production.glob("*.zip")
-            if "backup" not in z.as_posix().lower()
+            if "backup" not in z.name.lower()
         ]
     if missing or not zips:
         print(
