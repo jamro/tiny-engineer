@@ -90,6 +90,23 @@
     );
   };
 
+  const servoRadios = (root) =>
+    Array.from(root.querySelectorAll('[role="radio"]'));
+
+  const focusServoRadio = (root, id) => {
+    const btn = root.querySelector(`[role="radio"][data-servo="${CSS.escape(id)}"]`);
+    btn?.focus();
+  };
+
+  /** Select a servo preset; re-render and keep keyboard focus on the active radio. */
+  const selectServo = (id, { focus = true } = {}) => {
+    if (servoId !== id) {
+      servoId = id;
+      write(SERVO_KEY, servoId);
+    }
+    render({ restoreServoFocus: focus });
+  };
+
   const makeServoCard = (s) => {
     const selected = s.id === servoId;
     const tile = document.createElement("div");
@@ -100,6 +117,8 @@
     btn.className = "shop-servo-card";
     btn.setAttribute("role", "radio");
     btn.setAttribute("aria-checked", selected ? "true" : "false");
+    // Roving tabindex: one tab stop for the radiogroup (selected / checked).
+    btn.tabIndex = selected ? 0 : -1;
     btn.dataset.servo = s.id;
     if (s.size) {
       btn.title = `${s.label} · robot ~${s.size.replace(/^~/, "")}`;
@@ -157,10 +176,29 @@
     body.append(meta);
     btn.append(media, body);
     btn.addEventListener("click", () => {
-      if (servoId === s.id) return;
-      servoId = s.id;
-      write(SERVO_KEY, servoId);
-      render();
+      selectServo(s.id, { focus: true });
+    });
+    btn.addEventListener("keydown", (ev) => {
+      const root = el("shop-servo-picker");
+      if (!root) return;
+      const radios = servoRadios(root);
+      const i = radios.indexOf(ev.currentTarget);
+      if (i < 0) return;
+      let next = -1;
+      if (ev.key === "ArrowRight" || ev.key === "ArrowDown") {
+        next = (i + 1) % radios.length;
+      } else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") {
+        next = (i - 1 + radios.length) % radios.length;
+      } else if (ev.key === "Home") {
+        next = 0;
+      } else if (ev.key === "End") {
+        next = radios.length - 1;
+      } else {
+        return;
+      }
+      ev.preventDefault();
+      const id = radios[next]?.dataset?.servo;
+      if (id) selectServo(id, { focus: true });
     });
     tile.append(btn);
 
@@ -178,10 +216,12 @@
     return tile;
   };
 
-  const renderServos = () => {
+  const renderServos = ({ restoreServoFocus = false } = {}) => {
     const root = el("shop-servo-picker");
     const status = el("shop-servo-status");
     if (!root || !cart) return;
+
+    const hadFocus = root.contains(document.activeElement);
 
     root.replaceChildren();
 
@@ -219,6 +259,16 @@
     }
 
     other.forEach((s) => root.append(makeServoCard(s)));
+
+    // If nothing is checked yet, keep one tab stop on the first radio.
+    const radios = servoRadios(root);
+    if (radios.length && !radios.some((r) => r.tabIndex === 0)) {
+      radios[0].tabIndex = 0;
+    }
+
+    if ((restoreServoFocus || hadFocus) && servoId) {
+      focusServoRadio(root, servoId);
+    }
 
     const s = servoById(servoId);
     if (status && s) {
@@ -696,7 +746,6 @@
           tipsBtn.setAttribute("aria-expanded", open ? "true" : "false");
         };
         tipsBtn.addEventListener("click", toggleTips);
-        tipsBtn.onclick = toggleTips;
         actions.append(tipsBtn);
         body.append(actions, tipsPanel);
       } else if (actions.childNodes.length) {
@@ -724,8 +773,8 @@
     link.href = cart.advancedBreakoutsDoc;
   };
 
-  const render = () => {
-    renderServos();
+  const render = ({ restoreServoFocus = false } = {}) => {
+    renderServos({ restoreServoFocus });
     renderJlcpcb();
     renderLanes();
     renderAdvanced();
