@@ -152,12 +152,14 @@ write_source_txt() {
 publish_from_production() {
   local prod="$BOARD_DIR/production"
   mkdir -p "$OUT_DIR"
-  cp "$prod/bom.csv" "$OUT_DIR/bom.csv"
-  cp "$prod/positions.csv" "$OUT_DIR/positions.csv"
+  # Explicit status checks: callers may invoke us under `if`/`elif`, where set -e
+  # is disabled for the function body.
+  cp "$prod/bom.csv" "$OUT_DIR/bom.csv" || return 1
+  cp "$prod/positions.csv" "$OUT_DIR/positions.csv" || return 1
   local zip
   zip="$(find "$prod" -maxdepth 1 -type f -name '*.zip' ! -path '*/backups/*' | head -n 1)"
   [[ -n "$zip" ]] || die "no Gerber zip in $prod"
-  cp "$zip" "$OUT_DIR/gerbers.zip"
+  cp "$zip" "$OUT_DIR/gerbers.zip" || return 1
 }
 
 verify_out() {
@@ -176,13 +178,15 @@ export_via_toolkit() {
   local py toolkit
   py="$(find_kicad_python)" || return 1
   # wx optional: run_fabrication_toolkit.py stubs it if missing.
-  toolkit="$(ensure_toolkit_root)"
+  # Explicit || return 1: this function is called from `elif export_via_toolkit`,
+  # which disables set -e for the function body.
+  toolkit="$(ensure_toolkit_root)" || return 1
   echo "Using Toolkit via $py"
   echo "Toolkit root: $toolkit"
   rm -rf "$BOARD_DIR/production"
-  FAB_TOOLKIT_ROOT="$toolkit" "$py" "$ROOT/scripts/fab/run_fabrication_toolkit.py" --board "$PCB" --toolkit-root "$toolkit"
-  publish_from_production
-  write_source_txt "fabrication-toolkit"
+  FAB_TOOLKIT_ROOT="$toolkit" "$py" "$ROOT/scripts/fab/run_fabrication_toolkit.py" --board "$PCB" --toolkit-root "$toolkit" || return 1
+  publish_from_production || return 1
+  write_source_txt "fabrication-toolkit" || return 1
 }
 
 export_via_cli() {
