@@ -16,7 +16,7 @@ See proposal.md — Why. Shop UI is data-driven from `web/shop/cart.json` render
 **Non-Goals:**
 
 - Rewriting `docs/**` tone.
-- Turning Print/Connect/… into full in-page manuals.
+- Turning Print/Flash/… into full in-page manuals.
 - Changing fab file identities or JLCPCB both-sides-only policy.
 - Adding kit totals or checkout.
 

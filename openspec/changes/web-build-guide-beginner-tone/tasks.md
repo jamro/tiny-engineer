@@ -17,8 +17,8 @@
 
 ## 3. Other build-stage chrome
 
-- [x] 3.1 Soften Print, Connect, Flash, Assembly, Setup, and Use stage titles/ledes/primary CTAs for solder-never voice without inlining Markdown bodies; verify each stage page lede reads as plain language and still links out where it did before
-- [x] 3.2 Confirm shared timeline still lists Shop → Use on those pages; verify current stage indication remains correct after copy edits
+- [x] 3.1 Soften Print, Flash, Assembly, and Setup stage titles/ledes/primary CTAs for solder-never voice without inlining Markdown bodies; verify each stage page lede reads as plain language and still links out where it did before
+- [x] 3.2 Confirm shared timeline still lists Shop → Setup on those pages; verify current stage indication remains correct after copy edits
 
 ## 4. Integration check
 

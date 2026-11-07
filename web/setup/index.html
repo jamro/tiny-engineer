@@ -24,7 +24,7 @@
           <p class="eyebrow">First boot</p>
           <h1>Setup</h1>
           <p class="lede">
-            Join your home Wi-Fi and fine-tune the motors after the robot is built.
+            Join home Wi-Fi, fine-tune the motors, then try a pose from your computer.
           </p>
         </div>
       </div>
@@ -43,10 +43,42 @@
           </p>
         </div>
       </section>
+
+      <section class="panel">
+        <p class="panel-label">Try it</p>
+        <div class="panel-body stage-doc-body use-body">
+          <p>
+            Open <a href="http://tiny-engineer.local/" target="_blank" rel="noopener noreferrer"><code class="mono">http://tiny-engineer.local/</code></a>
+            (or the address on the face screen) for the control page.
+          </p>
+          <pre class="code-block" tabindex="0"><code>curl http://tiny-engineer.local/health
+curl -X POST "http://tiny-engineer.local/anim?name=ring"</code></pre>
+          <p>
+            Until: <code class="mono">/health</code> OK and <code class="mono">ring</code> runs
+            (motion; sound if LittleFS uploaded). If <code class="mono">.local</code> is slow,
+            use the OLED IP or <code class="mono">curl -4</code>.
+          </p>
+          <p>
+            Full API:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md" target="_blank" rel="noopener noreferrer">api.md</a>.
+          </p>
+          <p>
+            <a class="btn btn-primary" href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md" target="_blank" rel="noopener noreferrer">
+              Connect a coding agent
+              <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-external"></use></svg>
+            </a>
+          </p>
+        </div>
+      </section>
     </main>
 
     <footer class="site-footer">
-      <p class="mono">Board guide: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/main-control-board.md">docs/hardware/main-control-board.md</a></p>
+      <p class="mono">
+        Agent hooks:
+        <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md">docs/integration.md</a>
+        · board:
+        <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/main-control-board.md">main-control-board.md</a>
+      </p>
     </footer>
   </div>
 </body>

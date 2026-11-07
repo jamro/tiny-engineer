@@ -86,11 +86,11 @@ The deployed site MUST publish individual `.3mf` and `.stl` files for SG90, FS03
 - **THEN** same-origin URLs for individual part `.3mf` and `.stl` files for each supported servo return the mesh files
 
 ### Requirement: Visual system and continue
-The print page MUST use the site’s existing visual system (panels, tokens, typography) consistent with `/shop/`. It MUST provide a clear control that navigates to the next build stage (`/connect/`). The print page MUST NOT host a third-party print-service order wizard for aggregated PartsSet uploads.
+The print page MUST use the site’s existing visual system (panels, tokens, typography) consistent with `/shop/`. It MUST provide a clear control that navigates to the next build stage (`/flash/`). The print page MUST NOT host a third-party print-service order wizard for aggregated PartsSet uploads.
 
-#### Scenario: Exit to connect
+#### Scenario: Exit to flash
 - **WHEN** a visitor activates the continue control on `/print/`
-- **THEN** they navigate to `/connect/`
+- **THEN** they navigate to `/flash/`
 
 #### Scenario: No service wizard
 - **WHEN** a visitor views `/print/`

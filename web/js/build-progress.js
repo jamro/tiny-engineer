@@ -9,14 +9,14 @@
   const STAGES = [
     { id: "shop", path: "shop/" },
     { id: "print", path: "print/" },
-    { id: "connect", path: "connect/" },
     { id: "flash", path: "flash/" },
     { id: "assembly", path: "assembly/" },
     { id: "setup", path: "setup/" },
-    { id: "use", path: "use/" },
   ];
 
   const byId = new Map(STAGES.map((stage) => [stage.id, stage]));
+  /** Retired stages → current resume target. */
+  const LEGACY = { connect: "flash", use: "setup" };
 
   const read = (key) => {
     try {
@@ -40,7 +40,9 @@
   };
 
   const loadStage = () => {
-    const id = read(STAGE_KEY);
+    const raw = read(STAGE_KEY);
+    const id = LEGACY[raw] || raw;
+    if (LEGACY[raw] && byId.has(id)) write(STAGE_KEY, id);
     return byId.has(id) ? id : "shop";
   };
 

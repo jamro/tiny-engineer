@@ -1405,17 +1405,17 @@ h1 {
   min-height: calc(0.95rem * 1.4 * var(--build-head-lede-lines));
 }
 
-.page-use .use-body {
+.page-setup .use-body {
   max-width: 40rem;
 }
 
-.page-use .use-body .code-block {
+.page-setup .use-body .code-block {
   width: 100%;
   max-width: 100%;
   margin: 0;
 }
 
-.page-use .use-body p {
+.page-setup .use-body p {
   max-width: none;
 }
 
