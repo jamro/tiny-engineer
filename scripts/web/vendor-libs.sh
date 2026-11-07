@@ -55,7 +55,11 @@ THREE_ADDONS=(
 echo "Writing ${THREE_DST}…"
 rm -rf "$THREE_DST"
 mkdir -p "$THREE_DST/build"
-cp "$THREE_SRC/build/three.module.js" "$THREE_DST/build/three.module.js"
+# three.module.js imports ./three.core.js (r186+ split build).
+for core in three.module.js three.core.js; do
+  [[ -f "$THREE_SRC/build/$core" ]] || die "three pack missing build/$core"
+  cp "$THREE_SRC/build/$core" "$THREE_DST/build/$core"
+done
 for rel in "${THREE_ADDONS[@]}"; do
   src="$THREE_SRC/$rel"
   [[ -f "$src" ]] || die "missing three addon $rel"

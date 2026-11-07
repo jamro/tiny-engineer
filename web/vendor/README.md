@@ -4,7 +4,7 @@ Pinned copies served by GitHub Pages (no CDN).
 
 | Package | Version | Path |
 | --- | --- | --- |
-| three | 0.186.0 | `three/` |
+| three | 0.186.0 | `three/` (`build/three.module.js` + `three.core.js` + used addons) |
 | esp-web-tools | 10.4.0 | `esp-web-tools/` |
 
 Regenerate from the repo root:
