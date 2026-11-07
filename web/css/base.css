@@ -3456,12 +3456,6 @@ html:has(body.page-shop) {
   pointer-events: none;
 }
 
-/* Print previews sit on a light stage — dark ring still readable. */
-.print-item:not(.is-done) .print-item-media.is-light .shop-item-check-hit::before {
-  border-color: rgba(20, 20, 18, 0.35);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
-}
 
 .shop-item-check-hit .shop-card-check {
   position: static;
@@ -3769,14 +3763,68 @@ html:has(body.page-print) {
 }
 
 .print-variant-panel .shop-servo-effects {
-  margin-bottom: 0.85rem;
+  margin-bottom: 0;
 }
 
-.print-variant-panel .btn,
-.print-variant-panel .print-shop-link {
-  margin-top: 0.15rem;
-  width: auto;
-  max-width: max-content;
+/* Servo cell: label stack left, Change control right (beat .shop-servo-effects li). */
+.shop-servo-effects > li.print-variant-servo {
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0.65rem;
+  /* Room for full-height Change control + margin. */
+  padding-right: 0.45rem;
+}
+
+.print-variant-servo-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.25rem 0;
+}
+
+.print-shop-link {
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin: 0.35rem 0;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition:
+    border-color var(--dur) ease,
+    color var(--dur) ease,
+    background var(--dur) ease;
+}
+
+.print-shop-link .icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
+.print-shop-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(124, 255, 107, 0.08);
+  text-decoration: none;
 }
 
 /* Qty ×N must not vanish next to long part names (e.g. Upper Arm ×2). */
@@ -3843,6 +3891,7 @@ html:has(body.page-print) {
   gap: 1rem;
 }
 
+/* Tile grid — same tile scale as fit testers; up to 4 across. */
 .print-check-list {
   list-style: none;
   margin: 0;
@@ -3850,33 +3899,44 @@ html:has(body.page-print) {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.7rem;
+  align-items: stretch;
 }
 
-/* Bigger live preview column; keep shop-item chrome (border / done / hover). */
+@media (min-width: 520px) {
+  .print-check-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 720px) {
+  .print-check-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .print-check-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Vertical tile: preview on top, meta + downloads below (shop chrome). */
 .shop-item.print-item {
-  grid-template-columns: minmax(9.5rem, 11.5rem) minmax(0, 1fr);
-  min-height: 11.5rem;
-}
-
-@media (max-width: 520px) {
-  .shop-item.print-item {
-    grid-template-columns: 1fr;
-    min-height: 0;
-  }
-
-  .print-item-media {
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-    min-height: 12rem;
-  }
+  display: flex;
+  flex-direction: column;
+  grid-template-columns: none;
+  min-height: 0;
+  height: 100%;
 }
 
 .print-item-media.shop-item-media {
-  background: #f3f1ea;
-}
-
-.print-item-media.is-light {
-  background: #f3f1ea;
+  flex: 0 0 auto;
+  /* Match shop servo tile media proportion. */
+  aspect-ratio: 5 / 4;
+  border-right: 0;
+  border-bottom: 1px solid var(--border);
+  /* Match assembly stage clear color. */
+  background: #161616;
 }
 
 .print-preview {
@@ -3884,7 +3944,7 @@ html:has(body.page-print) {
   place-items: center;
   width: 100%;
   height: 100%;
-  min-height: 11.5rem;
+  min-height: 0;
 }
 
 .print-preview-canvas {
@@ -3913,23 +3973,27 @@ html:has(body.page-print) {
 }
 
 .print-item-body.shop-item-body {
+  flex: 1 1 auto;
   justify-content: flex-start;
-  padding: 0.9rem 1rem 0.95rem;
+  gap: 0.35rem;
+  padding: 0.75rem 0.85rem 0.85rem;
 }
 
 .print-item-actions.shop-item-actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: stretch;
   gap: 0.4rem;
   margin-top: auto;
   padding-top: 0.45rem;
 }
 
 .print-dl.shop-item-buy {
-  align-self: auto;
+  flex: 1 1 auto;
+  align-self: stretch;
+  justify-content: center;
   margin-top: 0;
-  min-width: 4.6rem;
+  min-width: 0;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.72rem;

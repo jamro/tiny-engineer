@@ -54,10 +54,21 @@
             Print files follow the servo model chosen in the Shop Section — that size is the CAD base. Pick a different model there to switch the whole set.
           </p>
           <ul class="shop-servo-effects">
-            <li>
-              <span class="shop-servo-effect-kicker mono">Servo</span>
-              <strong id="print-variant-label">—</strong>
-              <span id="print-variant-meta" class="shop-servo-effect-detail mono">—</span>
+            <li class="print-variant-servo">
+              <div class="print-variant-servo-main">
+                <span class="shop-servo-effect-kicker mono">Servo</span>
+                <strong id="print-variant-label">—</strong>
+                <span id="print-variant-meta" class="shop-servo-effect-detail mono">—</span>
+              </div>
+              <a
+                class="print-shop-link"
+                href="../shop/"
+                title="Change servo in Shop"
+                aria-label="Change servo in Shop"
+              >
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-refresh"></use></svg>
+                Change
+              </a>
             </li>
             <li>
               <span class="shop-servo-effect-kicker mono">Files</span>
@@ -72,8 +83,6 @@
           </ul>
         </div>
         <p id="print-variant-note" class="shop-step-status mono" hidden></p>
-        <p class="shop-servo-pick-label mono">Wrong servo model?</p>
-        <a class="btn print-shop-link" href="../shop/">Change in Shop Section</a>
       </section>
 
       <section id="print-testers" class="panel shop-lane" aria-label="Fit testers" hidden>

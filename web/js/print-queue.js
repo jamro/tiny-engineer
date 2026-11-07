@@ -110,13 +110,14 @@ function createPreviewPool() {
     if (!r) return;
     let any = false;
     for (const view of views.values()) {
-      if (!view.active || !view.mesh || !view.ctx) continue;
+      if (!view.active || !view.root || !view.ctx) continue;
       any = true;
-      view.mesh.rotation.y = now * 0.00045;
+      // Part + bed grid spin together.
+      view.root.rotation.y = now * 0.00045;
       const w = view.canvas.width;
       const h = view.canvas.height;
       r.setSize(w, h, false);
-      r.setClearColor(0xf3f1ea, 1);
+      r.setClearColor(0x161616, 1);
       r.render(view.scene, view.camera);
       view.ctx.clearRect(0, 0, w, h);
       view.ctx.drawImage(r.domElement, 0, 0);
@@ -148,19 +149,47 @@ function createPreviewPool() {
     return (r + g + b) / 3 < 70;
   };
 
-  /** Place camera so the mesh's bounding sphere fits with padding (rotation-safe). */
-  const fitCamera = (camera, mesh, padding = 1.55) => {
-    mesh.updateWorldMatrix(true, true);
-    const sphere = new THREE.Sphere();
-    new THREE.Box3().setFromObject(mesh).getBoundingSphere(sphere);
-    const fov = (camera.fov * Math.PI) / 180;
-    const dist = (sphere.radius / Math.sin(fov / 2)) * padding;
+  /**
+   * Shared printer-bed size (mm) for every thumb — largest stock part footprint
+   * is ~120×145 (Desk); 180 leaves margin and keeps scale comparable.
+   * Grid look matches assembly `GridHelper` (colors + dark stage).
+   */
+  const BED_SIZE = 180;
+  // 10 mm cells — denser than assembly's 20 mm so thumbs still read the mesh.
+  const BED_DIVISIONS = 18;
+
+  /** Same framing for every preview so the XY grid reads the same size. */
+  const fitCameraToBed = (camera, bedSize = BED_SIZE) => {
+    const center = new THREE.Vector3(0, bedSize * 0.12, 0);
+    const dist = bedSize * 1.55;
     const dir = new THREE.Vector3(1.05, 0.72, 1.2).normalize();
-    camera.position.copy(sphere.center).addScaledVector(dir, dist);
+    camera.position.copy(center).addScaledVector(dir, dist);
     camera.near = Math.max(dist / 200, 0.01);
     camera.far = dist * 200;
-    camera.lookAt(sphere.center);
+    camera.lookAt(center);
     camera.updateProjectionMatrix();
+  };
+
+  /**
+   * Same GridHelper palette as assembly/stage.js on XZ (printer XY after STL rotate).
+   * Fixed world size for every preview.
+   */
+  const makeBedGrid = () => {
+    const grid = new THREE.GridHelper(
+      BED_SIZE,
+      BED_DIVISIONS,
+      0x34342e,
+      0x262622,
+    );
+    grid.position.y = 0;
+    return grid;
+  };
+
+  const disposeGrid = (grid) => {
+    if (!grid) return;
+    grid.geometry?.dispose();
+    const mats = Array.isArray(grid.material) ? grid.material : [grid.material];
+    for (const mat of mats) mat?.dispose();
   };
 
   const isCopperSwatch = (color) => {
@@ -176,9 +205,9 @@ function createPreviewPool() {
 
   const displayColor = (color) => {
     const hex = String(color || "").toLowerCase();
-    if (!hex || hex === "#7a7a72") return "#5c5c56"; // testers — mid grey on white
-    if (isDarkSwatch(color)) return "#2e2e2c";
-    // Vivid silk-gold on the white stage (reads warmer than CAD copper).
+    if (!hex || hex === "#7a7a72") return "#8a8a82"; // testers — mid grey on dark stage
+    if (isDarkSwatch(color)) return "#3a3a38"; // lift black parts off dark clear
+    // Vivid silk-gold on the dark stage (reads warmer than CAD copper).
     if (isCopperSwatch(color)) return "#e0b84f";
     return color;
   };
@@ -198,21 +227,20 @@ function createPreviewPool() {
     canvas.setAttribute("aria-hidden", "true");
     host.replaceChildren(canvas);
     host.classList.remove("is-fallback");
-    host.classList.add("is-light");
     host.classList.toggle("is-dark-part", dark);
 
     const scene = new THREE.Scene();
-    // White stage — copper / black / grey all read clearly.
-    scene.background = new THREE.Color(0xf3f1ea);
+    // Match assembly stage: dark clear + GridHelper bed.
+    scene.background = new THREE.Color(0x161616);
     const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 5000);
-    const amb = new THREE.AmbientLight(0xffffff, 0.7);
-    const key = new THREE.DirectionalLight(0xffffff, 0.95);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x3a3a34, 1.4));
+    const key = new THREE.DirectionalLight(0xfff4e6, 1.6);
     key.position.set(2.4, 3.4, 4.2);
-    const fill = new THREE.DirectionalLight(0xffffff, 0.4);
+    const fill = new THREE.DirectionalLight(0xdfe8ff, 0.7);
     fill.position.set(-2.8, 1.4, -1.6);
     const rim = new THREE.DirectionalLight(0xffffff, 0.35);
     rim.position.set(-1.4, 2.6, -3.2);
-    scene.add(amb, key, fill, rim);
+    scene.add(key, fill, rim);
 
     const view = {
       host,
@@ -220,7 +248,9 @@ function createPreviewPool() {
       ctx: canvas.getContext("2d"),
       scene,
       camera,
+      root: null,
       mesh: null,
+      grid: null,
       active: false,
       color,
       label,
@@ -251,9 +281,20 @@ function createPreviewPool() {
           roughness: copper ? 0.32 : dark ? 0.62 : 0.55,
         });
         const mesh = new THREE.Mesh(geom.clone(), mat);
-        scene.add(mesh);
-        fitCamera(camera, mesh, 1.6);
+        // geom.center() → lift so the part sits on the shared bed (y = 0).
+        const box = new THREE.Box3().setFromObject(mesh);
+        mesh.position.y = -box.min.y;
+
+        const grid = makeBedGrid();
+        const root = new THREE.Group();
+        root.add(grid);
+        root.add(mesh);
+        scene.add(root);
+
+        fitCameraToBed(camera);
+        view.root = root;
         view.mesh = mesh;
+        view.grid = grid;
         requestTick();
       })
       .catch(() => {
@@ -269,6 +310,8 @@ function createPreviewPool() {
         view.mesh.geometry.dispose();
         view.mesh.material.dispose();
       }
+      disposeGrid(view.grid);
+      if (view.root) scene.remove(view.root);
       views.delete(host);
     };
   };
@@ -306,14 +349,14 @@ function relFile(filesBase, name) {
   return base + name;
 }
 
-function makeRow(item, { filesBase, swatch, checked, onToggle, previews }) {
+function makeTile(item, { filesBase, swatch, checked, onToggle, previews }) {
   const li = document.createElement("li");
   li.className =
     "shop-item print-item" + (checked.has(item.id) ? " is-done" : "");
   li.dataset.id = item.id;
 
   const media = document.createElement("div");
-  media.className = "shop-item-media print-item-media is-light";
+  media.className = "shop-item-media print-item-media";
   const dark =
     String(swatch || "").toLowerCase() === "#262624" ||
     String(swatch || "").toLowerCase() === "262624";
@@ -607,8 +650,8 @@ async function main() {
     if (on) checked.add(id);
     else checked.delete(id);
     saveChecked(checked, checkedKey);
-    const row = document.querySelector(`.print-item[data-id="${CSS.escape(id)}"]`);
-    if (row) row.classList.toggle("is-done", on);
+    const tile = document.querySelector(`.print-item[data-id="${CSS.escape(id)}"]`);
+    if (tile) tile.classList.toggle("is-done", on);
     updateProgress(data, checked);
   };
 
@@ -618,7 +661,7 @@ async function main() {
     testerList.replaceChildren();
     for (const t of data.testers || []) {
       testerList.appendChild(
-        makeRow(t, {
+        makeTile(t, {
           filesBase,
           swatch: "#7a7a72",
           checked,
@@ -681,7 +724,7 @@ async function main() {
       ul.className = "print-check-list";
       for (const p of parts) {
         ul.appendChild(
-          makeRow(p, {
+          makeTile(p, {
             filesBase,
             swatch: g.swatch,
             checked,
@@ -705,11 +748,11 @@ async function main() {
     clearBtn.addEventListener("click", () => {
       checked.clear();
       saveChecked(checked, checkedKey);
-      document.querySelectorAll(".print-item").forEach((row) => {
-        row.classList.remove("is-done");
-        const input = row.querySelector(".shop-item-check");
+      document.querySelectorAll(".print-item").forEach((tile) => {
+        tile.classList.remove("is-done");
+        const input = tile.querySelector(".shop-item-check");
         if (input) input.checked = false;
-        const mark = row.querySelector(".shop-card-check");
+        const mark = tile.querySelector(".shop-card-check");
         if (mark) mark.hidden = true;
       });
       updateProgress(data, checked);
