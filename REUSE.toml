@@ -76,3 +76,13 @@ SPDX-License-Identifier = "CERN-OHL-S-2.0"
 path = "scripts/assembly/hardware/**"
 SPDX-FileCopyrightText = "2026 Krzysztof Jamroz"
 SPDX-License-Identifier = "CERN-OHL-S-2.0"
+
+[[annotations]]
+path = "web/vendor/three/**"
+SPDX-FileCopyrightText = "2010-2026 three.js authors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web/vendor/esp-web-tools/**"
+SPDX-FileCopyrightText = "Open Home Foundation"
+SPDX-License-Identifier = "Apache-2.0"
