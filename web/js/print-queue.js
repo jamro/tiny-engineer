@@ -384,7 +384,11 @@ function makeRow(item, { filesBase, swatch, checked, onToggle, previews }) {
   actions.className = "shop-item-actions print-item-actions";
   for (const fmt of ["3mf", "stl"]) {
     const a = document.createElement("a");
-    a.className = "shop-item-buy print-dl";
+    // Same size; 3MF primary green, STL secondary via print-dl--stl.
+    a.className =
+      fmt === "3mf"
+        ? "shop-item-buy print-dl"
+        : "shop-item-buy print-dl print-dl--stl";
     a.href = relFile(filesBase, item.files[fmt]);
     a.download = item.files[fmt];
     a.title = `Download ${item.files[fmt]}`;
@@ -417,18 +421,25 @@ function makeRow(item, { filesBase, swatch, checked, onToggle, previews }) {
   return li;
 }
 
+function glanceTitle(group) {
+  // Short labels in the glance strip; full names stay on the lane panels.
+  if (group.id === "white") return "White";
+  return group.label;
+}
+
 function renderGlance(data, checked) {
   const root = el("print-order-timeline");
   const glance = el("print-glance");
   if (!root || !glance) return;
 
+  // Numbers match panel labels (2 · Testers, 3 · Copper …). Set stays panel-only.
   const steps = [
     {
       id: "testers",
-      label: "02",
+      label: "2",
       title: "Testers",
       ids: (data.testers || []).map((t) => t.id),
-      href: "#print-testers",
+      targetId: "print-testers",
     },
   ];
   const groups = [...(data.groups || [])].sort(
@@ -442,10 +453,10 @@ function renderGlance(data, checked) {
     if (!ids.length) continue;
     steps.push({
       id: g.id,
-      label: String(n).padStart(2, "0"),
-      title: g.label,
+      label: String(n),
+      title: glanceTitle(g),
       ids,
-      href: `#print-lane-${g.id}`,
+      targetId: `print-lane-${g.id}`,
       swatch: g.swatch,
     });
     n += 1;
@@ -460,7 +471,20 @@ function renderGlance(data, checked) {
     const a = document.createElement("a");
     a.className =
       "shop-order-timeline-item" + (done === total && total > 0 ? " is-complete" : "");
-    a.href = step.href;
+    a.href = `#${step.targetId}`;
+    a.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      const target = document.getElementById(step.targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      const hash = `#${step.targetId}`;
+      if (history.replaceState) {
+        history.replaceState(null, "", hash);
+      } else {
+        location.hash = hash;
+      }
+    });
     const main = document.createElement("span");
     main.className = "shop-order-timeline-main";
     const lab = document.createElement("span");
@@ -614,7 +638,10 @@ async function main() {
     );
     let stepNo = 3;
     for (const g of groups) {
-      const parts = (data.parts || []).filter((p) => p.group === g.id);
+      const parts = (data.parts || [])
+        .filter((p) => p.group === g.id)
+        .slice()
+        .sort((a, b) => (a.sort ?? 999) - (b.sort ?? 999));
       if (!parts.length) continue;
       const section = document.createElement("section");
       section.className = "panel shop-lane";
@@ -640,7 +667,14 @@ async function main() {
 
       const finish = document.createElement("p");
       finish.className = "shop-step-lede";
-      finish.textContent = g.tip ? `${g.finish}. ${g.tip}` : g.finish;
+      const finishBits = ["Print in any order within this color."];
+      if (g.finish) {
+        finishBits.push(
+          /[.!?]$/.test(g.finish) ? g.finish : `${g.finish}.`,
+        );
+      }
+      if (g.tip) finishBits.push(g.tip);
+      finish.textContent = finishBits.join(" ");
       section.appendChild(finish);
 
       const ul = document.createElement("ul");

@@ -25,7 +25,7 @@
       "finish": "White or translucent PLA",
       "swatch": "#f2efe6",
       "order": 3,
-      "tip": "Thin walls — use Arachne / Print Thin Walls in your slicer."
+      "tip": "Thin walls — enable thin-wall / Arachne mode in the slicer if the diffuser vanishes."
     }
   ],
   "testers": [
@@ -43,7 +43,7 @@
     {
       "id": "ScrewSizingTest",
       "label": "Screw hole tester",
-      "role": "Labeled sizes; shipped parts use the middle hole. Loose screw? Stuff a scrap of skirt filament in first. New default → Fusion re-export.",
+      "role": "Labeled holes; stock parts use the middle. Loose? Stuff a scrap of skirt filament in the hole.",
       "printFirst": true,
       "recommended": true,
       "files": {
@@ -62,7 +62,8 @@
       "files": {
         "3mf": "AiEmblem.3mf",
         "stl": "AiEmblem.stl"
-      }
+      },
+      "sort": 110
     },
     {
       "id": "Bell",
@@ -73,7 +74,8 @@
       "files": {
         "3mf": "Bell.3mf",
         "stl": "Bell.stl"
-      }
+      },
+      "sort": 100
     },
     {
       "id": "Belly",
@@ -84,7 +86,8 @@
       "files": {
         "3mf": "Belly.3mf",
         "stl": "Belly.stl"
-      }
+      },
+      "sort": 50
     },
     {
       "id": "BellyJoint",
@@ -95,7 +98,8 @@
       "files": {
         "3mf": "BellyJoint.3mf",
         "stl": "BellyJoint.stl"
-      }
+      },
+      "sort": 40
     },
     {
       "id": "BottomCover",
@@ -106,7 +110,8 @@
       "files": {
         "3mf": "BottomCover.3mf",
         "stl": "BottomCover.stl"
-      }
+      },
+      "sort": 55
     },
     {
       "id": "Chair",
@@ -117,7 +122,8 @@
       "files": {
         "3mf": "Chair.3mf",
         "stl": "Chair.stl"
-      }
+      },
+      "sort": 30
     },
     {
       "id": "Chest",
@@ -128,7 +134,8 @@
       "files": {
         "3mf": "Chest.3mf",
         "stl": "Chest.stl"
-      }
+      },
+      "sort": 20
     },
     {
       "id": "Coffee",
@@ -139,7 +146,8 @@
       "files": {
         "3mf": "Coffee.3mf",
         "stl": "Coffee.stl"
-      }
+      },
+      "sort": 100
     },
     {
       "id": "Desk",
@@ -150,7 +158,8 @@
       "files": {
         "3mf": "Desk.3mf",
         "stl": "Desk.stl"
-      }
+      },
+      "sort": 10
     },
     {
       "id": "DeskPad",
@@ -161,7 +170,8 @@
       "files": {
         "3mf": "DeskPad.3mf",
         "stl": "DeskPad.stl"
-      }
+      },
+      "sort": 80
     },
     {
       "id": "DeskTop",
@@ -172,7 +182,8 @@
       "files": {
         "3mf": "DeskTop.3mf",
         "stl": "DeskTop.stl"
-      }
+      },
+      "sort": 20
     },
     {
       "id": "ForearmLeft",
@@ -183,7 +194,8 @@
       "files": {
         "3mf": "ForearmLeft.3mf",
         "stl": "ForearmLeft.stl"
-      }
+      },
+      "sort": 80
     },
     {
       "id": "ForearmRight",
@@ -194,7 +206,8 @@
       "files": {
         "3mf": "ForearmRight.3mf",
         "stl": "ForearmRight.stl"
-      }
+      },
+      "sort": 85
     },
     {
       "id": "Hat",
@@ -205,7 +218,8 @@
       "files": {
         "3mf": "Hat.3mf",
         "stl": "Hat.stl"
-      }
+      },
+      "sort": 30
     },
     {
       "id": "Head",
@@ -216,7 +230,8 @@
       "files": {
         "3mf": "Head.3mf",
         "stl": "Head.stl"
-      }
+      },
+      "sort": 10
     },
     {
       "id": "LampBase",
@@ -227,7 +242,8 @@
       "files": {
         "3mf": "LampBase.3mf",
         "stl": "LampBase.stl"
-      }
+      },
+      "sort": 50
     },
     {
       "id": "LampButton",
@@ -238,7 +254,8 @@
       "files": {
         "3mf": "LampButton.3mf",
         "stl": "LampButton.stl"
-      }
+      },
+      "sort": 60
     },
     {
       "id": "LampCap",
@@ -249,7 +266,8 @@
       "files": {
         "3mf": "LampCap.3mf",
         "stl": "LampCap.stl"
-      }
+      },
+      "sort": 55
     },
     {
       "id": "LampDiffuser",
@@ -260,7 +278,8 @@
       "files": {
         "3mf": "LampDiffuser.3mf",
         "stl": "LampDiffuser.stl"
-      }
+      },
+      "sort": 10
     },
     {
       "id": "LaptopCase",
@@ -271,7 +290,8 @@
       "files": {
         "3mf": "LaptopCase.3mf",
         "stl": "LaptopCase.stl"
-      }
+      },
+      "sort": 70
     },
     {
       "id": "LaptopScreen",
@@ -282,7 +302,8 @@
       "files": {
         "3mf": "LaptopScreen.3mf",
         "stl": "LaptopScreen.stl"
-      }
+      },
+      "sort": 90
     },
     {
       "id": "Mug",
@@ -293,7 +314,8 @@
       "files": {
         "3mf": "Mug.3mf",
         "stl": "Mug.stl"
-      }
+      },
+      "sort": 90
     },
     {
       "id": "Neck",
@@ -304,7 +326,8 @@
       "files": {
         "3mf": "Neck.3mf",
         "stl": "Neck.stl"
-      }
+      },
+      "sort": 60
     },
     {
       "id": "SeatLeft",
@@ -315,7 +338,8 @@
       "files": {
         "3mf": "SeatLeft.3mf",
         "stl": "SeatLeft.stl"
-      }
+      },
+      "sort": 40
     },
     {
       "id": "SeatRight",
@@ -326,7 +350,8 @@
       "files": {
         "3mf": "SeatRight.3mf",
         "stl": "SeatRight.stl"
-      }
+      },
+      "sort": 45
     },
     {
       "id": "UpperArm",
@@ -337,7 +362,8 @@
       "files": {
         "3mf": "UpperArm.3mf",
         "stl": "UpperArm.stl"
-      }
+      },
+      "sort": 70
     }
   ],
   "servos": {

@@ -3618,8 +3618,22 @@ html:has(body.page-print) {
   margin-bottom: 0.85rem;
 }
 
-.print-variant-panel .btn {
+.print-variant-panel .btn,
+.print-variant-panel .print-shop-link {
   margin-top: 0.15rem;
+  width: auto;
+  max-width: max-content;
+}
+
+/* Qty ×N must not vanish next to long part names (e.g. Upper Arm ×2). */
+.page-print .shop-item-qty {
+  min-width: 2.35rem;
+  min-height: 1.7rem;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  border-width: 2px;
+  box-shadow: 0 0 0 1px rgba(95, 214, 82, 0.35);
 }
 
 .print-optional-tag {
@@ -3761,7 +3775,21 @@ html:has(body.page-print) {
 .print-dl.shop-item-buy {
   align-self: auto;
   margin-top: 0;
+  min-width: 4.6rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.72rem;
+}
+
+/* Same box as 3MF; secondary colors only. */
+.print-dl.print-dl--stl {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.print-dl.print-dl--stl:hover {
+  background: var(--panel);
+  border-color: var(--muted);
+  color: var(--text);
 }
