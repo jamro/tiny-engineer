@@ -53,7 +53,7 @@ These three replace the main control board. You still buy the ESP32, servos, spe
 
 ### Fasteners
 
-One buy: M2 thread-forming (self-tapping) screws for plastic (**pan-head or button-head**) plus M2 nuts. Per-step placement stays in [3d_models/README.md → Screws](../3d_models/README.md#screws).
+One buy: M2 screws (**pan-head or button-head**) plus M2 nuts. Per-step placement stays in [3d_models/README.md → Screws](../3d_models/README.md#screws).
 
 | Item | Qty |
 | --- | --- |

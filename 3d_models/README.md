@@ -44,7 +44,7 @@ Ordering from a bureau instead? Thin-wall disclaimer notes: [order printed parts
 
 ### Screws
 
-**Spec:** M2 thread-forming (self-tapping) screws for plastic, **pan-head or button-head** — heads normally sit on the plastic surface. `BottomCover` has recessed head pockets; use heads no larger than **4.0 mm diameter × 2.0 mm high** so the underside rests flat. CAD default pilot is **2.1 mm** (Fusion user parameter `screw_thread_diameter`); if your `ScrewSizingTest` winner differs, re-export at that diameter before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
+**Spec:** M2 screws, **pan-head or button-head** — heads normally sit on the plastic surface. `BottomCover` has recessed head pockets; use heads no larger than **4.0 mm diameter × 2.0 mm high** so the underside rests flat. CAD default pilot is **2.1 mm** (Fusion user parameter `screw_thread_diameter`); if your `ScrewSizingTest` winner differs, re-export at that diameter before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
 
 **One BOM for every servo preset** (`parts/sg90/`, `parts/fs0307/`, `parts/es9051/`, `parts/hd1370a/`, …). Printed parts scale with the servo choice, but the lengths below are the reference list for all of them — including smaller models for smaller servos. Buy quantities: [docs/shopping.md](../docs/shopping.md). Pilots are cut as deep as practical so nearby lengths often work too; if you already have different M2 lengths, test-fit before buying a full set. Per-step placement: [assembly guide](../docs/3d/assembly.md).
 

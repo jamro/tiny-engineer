@@ -86,7 +86,7 @@ Assembly uses **M2 screws** that thread directly into the printed PLA/PETG (no h
 
 | Parameter | Meaning |
 | --- | --- |
-| `screw_thread_diameter` | Modeled diameter of M2 self-tapping pilot holes in the printed parts. |
+| `screw_thread_diameter` | Modeled diameter of M2 screw pilot holes in the printed parts. |
 
 Related (usually leave alone): `screw_head_diameter`, `screw_head_height` — countersink / head clearance for the same fasteners.
 
