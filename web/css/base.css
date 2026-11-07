@@ -3404,8 +3404,10 @@ esp-web-install-button .button,
   background: rgba(124, 255, 107, 0.06);
 }
 
-html:has(body.page-shop) {
-  scroll-behavior: smooth;
+@media (prefers-reduced-motion: no-preference) {
+  html:has(body.page-shop) {
+    scroll-behavior: smooth;
+  }
 }
 
 .page-shop [id^="shop-step-"],
@@ -4056,8 +4058,10 @@ html:has(body.page-shop) {
   gap: 1rem;
 }
 
-html:has(body.page-print) {
-  scroll-behavior: smooth;
+@media (prefers-reduced-motion: no-preference) {
+  html:has(body.page-print) {
+    scroll-behavior: smooth;
+  }
 }
 
 .page-print [id^="print-"],
