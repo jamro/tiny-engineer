@@ -7,10 +7,14 @@ on:
       - "web/**"
       - "scripts/build_flash_catalog.py"
       - "scripts/assembly/**"
+      - "scripts/fab/**"
+      - "hardware/boards/main-control-board/**"
       - "3d_models/cad/**"
       - "3d_models/parts/*/stl/**"
+      - "3d_models/parts/*/3mf/**"
       - "3d_models/parts/*/step/**"
       - "3d_models/fusion/TinyEngineerTools/servos.json"
+      - "scripts/web/**"
       - ".github/workflows/pages.yml"
   release:
     types: [published, edited]
@@ -27,7 +31,12 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    env:
+      # Match pcb CI; bump with project KiCad major/patch.
+      KICAD_APPIMAGE_VERSION: "10.0.7"
+      KICAD_ROOT: /home/runner/kicad-appimage
+      FAB_TOOLKIT_VERSION: "5.3.1"
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -55,6 +64,126 @@ jobs:
         run: |
           pip install -r scripts/assembly/requirements.txt
           scripts/assembly/build.sh web/assembly/models
+      - name: Cache KiCad AppImage extract
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.KICAD_ROOT }}
+          key: kicad-lite-appimage-${{ env.KICAD_APPIMAGE_VERSION }}-pages-pcbnew-v2
+      - name: Cache Fabrication Toolkit
+        uses: actions/cache@v4
+        with:
+          path: artifacts/fab-tools
+          key: fabrication-toolkit-${{ env.FAB_TOOLKIT_VERSION }}-v1
+      - name: Install KiCad 10 (lite AppImage + pcbnew Python)
+        run: |
+          set -euo pipefail
+          VER="${KICAD_APPIMAGE_VERSION}"
+          DEST="${KICAD_ROOT}/${VER}"
+          ARCHIVE="kicad-${VER}-x86_64-lite.AppImage.tar"
+          CLI=""
+          if [ -x "${DEST}/usr/bin/kicad-cli" ]; then
+            CLI="${DEST}/usr/bin/kicad-cli"
+          elif [ -x "${DEST}/bin/kicad-cli" ]; then
+            CLI="${DEST}/bin/kicad-cli"
+          fi
+          if [ -z "${CLI}" ]; then
+            tmp=$(mktemp -d)
+            trap 'rm -rf "${tmp}"' EXIT
+            cd "${tmp}"
+            urls=(
+              "https://kicad-downloads.s3.cern.ch/appimage/stable/${ARCHIVE}"
+              "https://mirrors.mit.edu/kicad/appimage/stable/${ARCHIVE}"
+              "https://downloads.kicad.org/kicad/linux/explore/stable/download/${ARCHIVE}"
+            )
+            downloaded=0
+            for url in "${urls[@]}"; do
+              echo "Downloading ${url}"
+              if curl -fL --retry 5 --retry-all-errors --retry-delay 10 \
+                  --connect-timeout 30 --max-time 900 -o "${ARCHIVE}" "${url}"; then
+                downloaded=1
+                break
+              fi
+              echo "download failed; trying next mirror…"
+            done
+            if [ "${downloaded}" -ne 1 ]; then
+              echo "error: could not download KiCad ${VER} lite AppImage"
+              exit 1
+            fi
+            tar -xf "${ARCHIVE}"
+            appimage=$(echo kicad-*-x86_64-lite.AppImage)
+            chmod +x "${appimage}"
+            "./${appimage}" --appimage-extract
+            root=""
+            if [ -d AppDir ]; then
+              root=AppDir
+            elif [ -d squashfs-root ]; then
+              root=squashfs-root
+            else
+              echo "error: AppImage extract produced neither AppDir nor squashfs-root"
+              ls -la
+              exit 1
+            fi
+            mkdir -p "${KICAD_ROOT}"
+            rm -rf "${DEST}"
+            mv "${root}" "${DEST}"
+            if [ -x "${DEST}/usr/bin/kicad-cli" ]; then
+              CLI="${DEST}/usr/bin/kicad-cli"
+            elif [ -x "${DEST}/bin/kicad-cli" ]; then
+              CLI="${DEST}/bin/kicad-cli"
+            else
+              echo "error: kicad-cli not found under ${DEST}"
+              find "${DEST}" -name kicad-cli 2>/dev/null | head
+              exit 1
+            fi
+          fi
+          echo "KICAD_CLI=${CLI}" >> "${GITHUB_ENV}"
+          echo "KICAD_APPDIR=${DEST}" >> "${GITHUB_ENV}"
+          out=$("${CLI}" version)
+          echo "kicad-cli version: ${out}"
+          case "${out}" in
+            10.*) ;;
+            *)
+              echo "error: need KiCad 10.x, got ${out}"
+              exit 1
+              ;;
+          esac
+          # Resolve AppImage python with pcbnew + wx (Fabrication Toolkit).
+          export KICAD_APPDIR="${DEST}"
+          # shellcheck source=/dev/null
+          source "${GITHUB_WORKSPACE}/scripts/fab/prepare_kicad_appdir_env.sh"
+          {
+            echo "KICAD_PYTHON=${KICAD_PYTHON}"
+            echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
+            echo "PYTHONPATH=${PYTHONPATH}"
+          } >> "${GITHUB_ENV}"
+      - name: Export main-control-board fab package
+        run: |
+          set -euo pipefail
+          # Must use Fabrication Toolkit (same as production/) — no kicad-cli fallback.
+          export KICAD_CLI KICAD_APPDIR KICAD_PYTHON LD_LIBRARY_PATH PYTHONPATH
+          export FAB_TOOLKIT_VERSION
+          export FAB_CACHE_DIR="${GITHUB_WORKSPACE}/artifacts/fab-tools"
+          export FAB_REQUIRE_TOOLKIT=1
+          ./scripts/fab/export_main_control_board.sh
+          test -s web/shop/fab/main-control-board/gerbers.zip
+          test -s web/shop/fab/main-control-board/bom.csv
+          test -s web/shop/fab/main-control-board/positions.csv
+          grep -q 'method: fabrication-toolkit' web/shop/fab/main-control-board/SOURCE.txt
+          echo "Fab package:"
+          ls -la web/shop/fab/main-control-board/
+          cat web/shop/fab/main-control-board/SOURCE.txt
+          # Spot-check CPL matches Toolkit conventions (pad-center connectors).
+          head -n 5 web/shop/fab/main-control-board/positions.csv
+          head -n 5 web/shop/fab/main-control-board/bom.csv
+      - name: Sync print mesh files
+        run: |
+          set -euo pipefail
+          chmod +x scripts/web/sync-print-files.sh
+          ./scripts/web/sync-print-files.sh
+          test -s web/print/files/sg90/Head.3mf
+          test -s web/print/files/sg90/Head.stl
+          test -s web/print/files/fs0307/Head.stl
+          test -s web/print/files/es9051/Head.stl
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

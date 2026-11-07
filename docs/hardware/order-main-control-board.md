@@ -12,23 +12,39 @@ Orders are at your own risk. Fabrication and assembly can go wrong (missing part
 
 The fab builds the PCB and (if you choose PCBA) the parts soldered onto it. You still need the plug-in modules and the rest of the robot cart: [shopping.md](../shopping.md).
 
-## Prerequisites
+## 1. Get manufacturing files (no KiCad required)
 
-- **KiCad 10** (project major — see [pcb.md](../pcb.md))
-- KiCad **Fabrication Toolkit** plugin (Plugin and Content Manager → search for Fabrication Toolkit). It exports Gerbers plus JLCPCB-oriented BOM and position files.
-- An account at your chosen fab (here: JLCPCB)
+The public [Shop](https://jamro.github.io/tiny-engineer/shop/) stage publishes a JLCPCB-oriented package generated at **GitHub Pages deploy** from the board sources on that commit (always the latest site deploy — **not** a release tag):
 
-## 1. Export manufacturing files from KiCad
+| File | Role |
+| --- | --- |
+| `gerbers.zip` | Board layers + drills |
+| `bom.csv` | Bill of materials (LCSC part numbers) |
+| `positions.csv` | Pick-and-place / CPL |
 
-1. Open [`hardware/boards/main-control-board/main-control-board.kicad_pro`](../../hardware/boards/main-control-board/main-control-board.kicad_pro).
-2. Run **Fabrication Toolkit** so it writes manufacturing outputs under the board folder (typically a `production/` directory).
-3. Confirm you have at least:
-   - a Gerber **ZIP** (board layers + drills)
-   - **`bom.csv`** (bill of materials)
-   - **`positions.csv`** (component placement / CPL / pick-and-place)
-4. Keep `production/` local — it is gitignored and should not be committed.
+Download them from the shop board lane, or directly:
 
-UI names for the plugin and export dialog change over time; what matters is those three artifacts.
+- https://jamro.github.io/tiny-engineer/shop/fab/main-control-board/gerbers.zip
+- https://jamro.github.io/tiny-engineer/shop/fab/main-control-board/bom.csv
+- https://jamro.github.io/tiny-engineer/shop/fab/main-control-board/positions.csv
+
+You still need a fab account (here: JLCPCB). **Review stock and orientation** in the fab UI before you pay — downloads do not replace that check.
+
+### Alternate: export yourself with KiCad
+
+Contributors and anyone who prefers local export:
+
+1. Install **KiCad 10** (project major — see [pcb.md](../pcb.md)) and the **Fabrication Toolkit** plugin (Plugin and Content Manager).
+2. Open [`hardware/boards/main-control-board/main-control-board.kicad_pro`](../../hardware/boards/main-control-board/main-control-board.kicad_pro).
+3. Run **Fabrication Toolkit** so it writes under the board folder (typically `production/`). Confirm Gerber ZIP, `bom.csv`, and `positions.csv`. Keep `production/` local — it is gitignored.
+
+Or from a machine with KiCad’s Python (`pcbnew`) and the Toolkit installed / downloadable:
+
+```bash
+./scripts/fab/export_main_control_board.sh
+```
+
+That writes the same three public filenames under `web/shop/fab/main-control-board/` (gitignored). **GitHub Pages deploy always runs Fabrication Toolkit** (`FAB_REQUIRE_TOOLKIT=1`) so published files match a local Toolkit `production/` export (pad-center CPL + AUTO TRANSLATE). Do not use `FAB_FORCE_KICAD_CLI=1` for fab uploads — that path is not orientation-compatible.
 
 ## 2. Choose how much assembly you want
 
@@ -45,7 +61,7 @@ On **one-side** PCBA, the remaining hand work is soldering **2.54 mm female head
 Site menus and labels change. Follow the **outcomes**, not exact button names.
 
 1. Create or sign in to a JLCPCB account and start a new **PCB** order.
-2. Upload the Gerber **ZIP** from Fabrication Toolkit.
+2. Upload the Gerber **ZIP** (from Shop downloads or your local export).
 3. Keep most board options at sensible defaults. As of writing, a typical match for this board is:
 
    | Setting | Typical choice |
@@ -75,7 +91,7 @@ Site menus and labels change. Follow the **outcomes**, not exact button names.
 
 6. Continue and **review the board layout** in the fab’s viewer. Confirm outline, holes, and copper look right, then proceed.
 7. Upload **`bom.csv`** and **`positions.csv`** (the CPL / pick-and-place file), then continue.
-8. **Review the bill of materials.** Stock and catalog entries change. Check every line. ESP32 header parts may warn that **multiple catalog items match** — pick the correct one manually. Resolve out-of-stock or wrong parts here (or update the schematic LCSC fields, re-export, and upload again) before you pay.
+8. **Review the bill of materials.** Stock and catalog entries change. Check every line. ESP32 header parts may warn that **multiple catalog items match** — pick the correct one manually. Resolve out-of-stock or wrong parts here (or update the schematic LCSC fields, re-export / wait for a new site deploy, and upload again) before you pay.
 9. **Review component placement and orientation**, then continue.
 10. **Review the cost quote**, complete checkout, and track the shipment.
 

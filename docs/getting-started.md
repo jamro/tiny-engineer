@@ -36,13 +36,13 @@ flowchart LR
 
 ### 1. Shop
 
-- **Open:** [shopping.md](shopping.md). Default cart is the main control board plus the ESP32, OLED, servos, and speaker.
-- **Until:** cart in hand — main control board, ESP32, servos, OLED, speaker, M2 screws/nuts, **5 V / ≥2 A** supply, **data** USB cable, and a print path (filament or a service order). Default servos: **Tower Pro SG90**.
+- **Open:** **[Shop](https://jamro.github.io/tiny-engineer/shop/)** (checklist) or [shopping.md](shopping.md). Default cart is the main control board plus the ESP32, OLED, servos, and speaker.
+- **Until:** cart in hand — main control board, ESP32, servos, OLED, speaker, M2 screws/nuts, ~10 cm male–female jumpers (OLED/servo extensions), **5 V / ≥2 A** supply + **data** USB-C cable, and a print path (filament or a service order). Default servos: **Tower Pro SG90**.
 - **Return** here.
 
 ### 2. Print or order
 
-- **Open:** [3d_models/README.md](../3d_models/README.md) (home print; testers first) or [3d/order-parts.md](3d/order-parts.md) (no printer).
+- **Open:** **[Print](https://jamro.github.io/tiny-engineer/print/)** (checklist + downloads for the Shop servo) or [3d_models/README.md](../3d_models/README.md) (home print; testers first) or [3d/order-parts.md](3d/order-parts.md) (no printer).
 - **Until:** printed set for your servo model ready.
 - **Return** here.
 
@@ -55,7 +55,7 @@ flowchart LR
 
 ### 4. Flash
 
-- **Open:** **[Web flash](https://jamro.github.io/tiny-engineer/flash/)** (Chrome or Edge; USB-C **data** cable). Seat the ESP32 on the **main control board** first (desk electronics from step 3); a bare module alone will not open the setup AP. Pick the latest release → Connect & install. No PlatformIO or repo clone needed for stock firmware. More detail / stuck / advanced: [flash.md](flash.md).
+- **Open:** **[Web flash](https://jamro.github.io/tiny-engineer/flash/)** (Chrome or Edge; USB-C **data** cable). The page starts with a short visual prep (seat the ESP32 on the **main control board**, plug USB into the board — not the module). A bare module alone will not open the setup AP. Pick the latest release → Connect & install. No PlatformIO or repo clone needed for stock firmware. More detail / stuck / advanced: [flash.md](flash.md).
 - **Until:** stock firmware + audio on the board; setup AP **Assembly support** → **Move all to 90°** (or one servo moves). Do not finish the Wi-Fi wizard yet.
 - **Return** here. Keep electronics on the desk — do not seat them in the chest yet.
 

@@ -4,7 +4,7 @@
  * then <script src="…/js/build-timeline.js"></script> after it (build-progress.js
  * may sit between them).
  *
- * data-stage: id of the current stage (shop | print | connect | flash | assembly | setup | use | …)
+ * data-stage: id of the current stage (shop | print | flash | assembly | setup | …)
  * data-root: relative prefix to web/ root ("../" on nested pages)
  *
  * Add stages to STAGES as the build guide grows. Mount on each stage page
@@ -14,11 +14,9 @@
   const STAGES = [
     { id: "shop", label: "Shop", path: "shop/" },
     { id: "print", label: "Print", path: "print/" },
-    { id: "connect", label: "Connect", path: "connect/" },
     { id: "flash", label: "Flash", path: "flash/" },
     { id: "assembly", label: "Assembly", path: "assembly/" },
     { id: "setup", label: "Setup", path: "setup/" },
-    { id: "use", label: "Use", path: "use/" },
   ];
 
   let el = document.currentScript?.previousElementSibling;

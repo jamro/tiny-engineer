@@ -23,7 +23,7 @@ Software engineers who already use AI coding agents (Cursor, Claude Code, Antigr
 
 1. **Explain** — visitor knows Tiny Engineer is a physical desk robot for AI coding agents.
 2. **Create demand** — agent work becomes visible (move, face, bell); feels like a teammate, not a toy.
-3. **Show the build path** — Print → Connect → Flash → Assemble, with deep links into GitHub docs.
+3. **Show the build path** — Shop → Print → Flash → Assemble, with deep links into GitHub docs.
 4. **Route** — builders to [getting-started](getting-started.md); flashers to `/flash/`; hackers to GitHub / API / integrations.
 
 ## Non-goals
@@ -280,7 +280,7 @@ servos + OLED + speaker
 
 **Funnel line:**
 
-> Print → Connect → Flash → Assemble
+> Shop → Print → Flash → Assemble
 
 **Step cards / links:**
 
@@ -378,7 +378,7 @@ A visitor who only reads `/` can answer:
 - [ ] **What is it?** Desk robot that gives an AI coding agent a physical body (move, face, bell).  
 - [ ] **Why care?** Agent work becomes visible; feels like a tiny engineering teammate.  
 - [ ] **How do I control it?** `npx -y tiny-engineer setup` or `POST /anim`.  
-- [ ] **How do I build one?** Print → Connect → Flash → Assemble → [getting-started](getting-started.md).  
+- [ ] **How do I build one?** Shop → Print → Flash → Assemble → [getting-started](getting-started.md).  
 - [ ] **Where do I flash?** `/flash/` (and flash.md if stuck).  
 - [ ] **Where is proof?** Demo video / GIF and optional Show and tell.  
 

@@ -19,12 +19,14 @@ Servo size sets the size of the **whole robot**. Desk, chair, body, and pockets 
 
 Built-in presets in [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json):
 
-| Model | `servo_id` | When to use |
-| --- | --- | --- |
-| **Tower Pro SG90** (recommended) | `sg90` | Easiest to buy. Bigger desk — electronics are easier to fit and assemble. |
-| **Feetech FS0307** | `fs0307` | More compact. Looks better if you want a smaller robot. |
-| **EMAX ES9051** | `es9051` | Compact — similar footprint to FS0307, slightly taller body. |
-| **PowerHD HD-1370A** | `hd1370a` | Still supported for backward compatibility. Not the pick for a new build. |
+Assembled outer size is **height × width × depth** (H×W×D), not L×W×H.
+
+| Model | `servo_id` | Assembled size (approx. H×W×D) | When to use |
+| --- | --- | --- | --- |
+| **Tower Pro SG90** (recommended) | `sg90` | ~13 × 15 × 12 cm | Easy to find. Bigger desk — electronics are easier to fit and assemble. |
+| **Feetech FS0307** | `fs0307` | ~11 × 13 × 10 cm | Compact. Less common than SG90 — one of two similar-size alternatives. |
+| **EMAX ES9051** | `es9051` | ~11 × 13 × 10 cm | Compact alternative to FS0307 (similar footprint, slightly taller). |
+| **PowerHD HD-1370A** | `hd1370a` | — | Still supported for backward compatibility. Not the pick for a new build. |
 
 A non-standard servo is fine: measure it, add a preset, run the configurator ([Add a new servo](#add-a-new-servo)). Print parts that match that `servo_id`.
 

@@ -14,7 +14,7 @@ Individual parts are exported under [`parts/{servo_id}/`](parts/). Match the fol
 
 Two ways to get the mechanical set (same place in the build path):
 
-- **Print yourself** — use the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, **`parts/es9051/3mf/`**, or **`parts/hd1370a/3mf/`**. Ready to print in an orientation that does not need supports. **PLA** or **PETG**. Start with [Print first](#print-first).
+- **Print yourself** — interactive queue on the site: **[Print](https://jamro.github.io/tiny-engineer/print/)** (uses the Shop servo pick; live previews + `.3mf` / `.stl` downloads). Or grab the **`.3mf` files in `parts/sg90/3mf/`**, **`parts/fs0307/3mf/`**, **`parts/es9051/3mf/`**, or **`parts/hd1370a/3mf/`**. Ready to print in an orientation that does not need supports. **PLA** or **PETG**. Start with [Print first](#print-first).
 - **No printer?** — order the aggregated sets from a third-party service: [order printed parts](../docs/3d/order-parts.md). Orders are at your own risk; fit can vary by provider and design revision.
 
 ### Print first

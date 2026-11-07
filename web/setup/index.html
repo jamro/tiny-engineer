@@ -21,19 +21,19 @@
         <nav class="build-timeline" data-stage="setup" data-root="../"></nav>
         <script src="../js/build-timeline.js"></script>
         <div class="flash-intro">
-          <p class="eyebrow">Config · first boot</p>
+          <p class="eyebrow">First boot</p>
           <h1>Setup</h1>
           <p class="lede">
-            Finish board setup after the robot is assembled.
+            Join home Wi-Fi, fine-tune the motors, then try a pose from your computer.
           </p>
         </div>
       </div>
 
       <section class="panel">
-        <p class="panel-label">Setup wizard</p>
+        <p class="panel-label">On-robot wizard</p>
         <div class="panel-body stage-doc-body">
           <p>
-            Servo calibration, the setup wizard, and first boot onto home Wi-Fi.
+            Motor calibration, the setup screens, and first boot onto home Wi-Fi.
           </p>
           <p>
             <a class="btn btn-primary" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md#20-setup-wizard-and-first-boot-on-wi-fi" target="_blank" rel="noopener noreferrer">
@@ -43,11 +43,69 @@
           </p>
         </div>
       </section>
+
+      <section class="panel">
+        <p class="panel-label">Try it</p>
+        <div class="panel-body stage-doc-body use-body">
+          <p>
+            Open <a href="http://tiny-engineer.local/" target="_blank" rel="noopener noreferrer"><code class="mono">http://tiny-engineer.local/</code></a>
+            (or the address on the face screen) for the control page.
+          </p>
+          <pre class="code-block" tabindex="0"><code>curl http://tiny-engineer.local/health
+curl -X POST "http://tiny-engineer.local/anim?name=ring"</code></pre>
+          <p>
+            Until: <code class="mono">/health</code> OK and <code class="mono">ring</code> runs
+            (motion; sound if LittleFS uploaded). If <code class="mono">.local</code> is slow,
+            use the OLED IP or <code class="mono">curl -4</code>.
+          </p>
+          <p>
+            Full API:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md" target="_blank" rel="noopener noreferrer">api.md</a>.
+          </p>
+          <p>
+            <a class="btn btn-primary" href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md" target="_blank" rel="noopener noreferrer">
+              Connect a coding agent
+              <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-external"></use></svg>
+            </a>
+          </p>
+        </div>
+      </section>
+      <section class="panel shop-footer-panel" aria-label="Build complete">
+        <div class="shop-footer-main">
+          <div class="shop-footer-copy">
+            <p class="panel-label">Done</p>
+            <p class="shop-step-lede shop-footer-lede">Robot online? You’re finished with the build guide.</p>
+          </div>
+          <div class="shop-footer-actions">
+            <button id="setup-restart-guide" class="btn" type="button">Start from scratch</button>
+            <a class="btn btn-primary shop-footer-cta" href="../">Back to Home</a>
+          </div>
+        </div>
+        <details class="shop-footer-advanced">
+          <summary class="shop-footer-advanced-summary mono">
+            <span class="shop-footer-alt-tag">Advanced</span>
+            Agent hooks &amp; board docs
+          </summary>
+          <p class="shop-footer-alt mono">
+            Agent hooks:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md" target="_blank" rel="noopener noreferrer">docs/integration.md</a>
+            · board:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/main-control-board.md" target="_blank" rel="noopener noreferrer">main-control-board.md</a>
+            · API:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md" target="_blank" rel="noopener noreferrer">api.md</a>
+          </p>
+        </details>
+      </section>
     </main>
 
     <footer class="site-footer">
-      <p class="mono">Board guide: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/main-control-board.md">docs/hardware/main-control-board.md</a></p>
+      <p class="mono">Tiny Engineer build guide · Setup</p>
     </footer>
   </div>
+  <script>
+    document.getElementById("setup-restart-guide")?.addEventListener("click", () => {
+      window.TinyEngineerBuild?.restartGuide("../");
+    });
+  </script>
 </body>
 </html>

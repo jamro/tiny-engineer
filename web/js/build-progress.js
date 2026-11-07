@@ -9,14 +9,14 @@
   const STAGES = [
     { id: "shop", path: "shop/" },
     { id: "print", path: "print/" },
-    { id: "connect", path: "connect/" },
     { id: "flash", path: "flash/" },
     { id: "assembly", path: "assembly/" },
     { id: "setup", path: "setup/" },
-    { id: "use", path: "use/" },
   ];
 
   const byId = new Map(STAGES.map((stage) => [stage.id, stage]));
+  /** Retired stages → current resume target. */
+  const LEGACY = { connect: "flash", use: "setup" };
 
   const read = (key) => {
     try {
@@ -40,7 +40,9 @@
   };
 
   const loadStage = () => {
-    const id = read(STAGE_KEY);
+    const raw = read(STAGE_KEY);
+    const id = LEGACY[raw] || raw;
+    if (LEGACY[raw] && byId.has(id)) write(STAGE_KEY, id);
     return byId.has(id) ? id : "shop";
   };
 
@@ -58,6 +60,14 @@
 
   const clearAssemblyStep = () => write(STEP_KEY, null);
 
+  /** Checklist / progress keys cleared when restarting the guide from scratch. */
+  const RESTART_KEYS = [
+    STAGE_KEY,
+    STEP_KEY,
+    "tiny-engineer.shop.checked",
+    "tiny-engineer.print.checked",
+  ];
+
   /** Absolute-from-web-root path for a stage, using `root` like "../" or "./". */
   const stageHref = (id, root = "./") => {
     const stage = byId.get(id) || byId.get("shop");
@@ -66,6 +76,13 @@
 
   /** Where /build/ should send the visitor. */
   const resumeHref = (root = "../") => stageHref(loadStage(), root);
+
+  /** Wipe stage progress + shop/print checks, then open Shop. */
+  const restartGuide = (root = "../") => {
+    for (const key of RESTART_KEYS) write(key, null);
+    write(STAGE_KEY, "shop");
+    global.location.href = stageHref("shop", root);
+  };
 
   global.TinyEngineerBuild = {
     STAGES,
@@ -76,5 +93,6 @@
     clearAssemblyStep,
     stageHref,
     resumeHref,
+    restartGuide,
   };
 })(window);
