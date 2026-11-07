@@ -14,7 +14,7 @@ The `/shop/` page MUST present an in-page build cart for the default Tiny Engine
 - **THEN** the page shows servo selection, an order timeline, a JLCPCB board lane, and a checklist of default-cart items
 
 ### Requirement: Servo preset selection
-The shop page MUST let the visitor select exactly one of Tower Pro SG90, Feetech FS0307, or EMAX ES9051. SG90 MUST be the default when no saved choice exists. The shop UI MUST NOT offer PowerHD HD-1370A as a selectable preset. Human-facing selection summary MUST name the chosen model, robot size class, and buy quantity without requiring a repository path such as `parts/{servo_id}/` in the primary summary strip.
+The shop page MUST let the visitor select exactly one of Tower Pro SG90, Feetech FS0307, or EMAX ES9051. SG90 MUST be the default when no saved choice exists. The shop UI MUST NOT offer PowerHD HD-1370A as a selectable preset. Human-facing selection summary MUST name the chosen model, give a sense of robot size (approximate assembled dimensions and/or a plain size label such as larger/compact), and name the buy quantity, without requiring a repository path such as `parts/{servo_id}/` in the primary summary strip.
 
 #### Scenario: First visit
 - **WHEN** a visitor opens `/shop/` with no saved servo choice
