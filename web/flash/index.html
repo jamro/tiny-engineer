@@ -9,7 +9,16 @@
   <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
   <link rel="stylesheet" href="../css/tokens.css">
   <link rel="stylesheet" href="../css/base.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
+      }
+    }
+  </script>
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+  <script type="module" src="../js/flash-prep.js?v=usbc70"></script>
 </head>
 <body class="page-flash">
   <div class="wrap">
@@ -25,13 +34,37 @@
           <p class="eyebrow">Install software</p>
           <h1>Flash firmware</h1>
           <p class="lede">
-            Put the robot software on the board over USB — Chrome or Edge, no extra app.
+            Put the robot software on the board over USB.
           </p>
         </div>
       </div>
 
-      <div class="hero">
-        <section class="panel">
+      <div class="flash-prep-head">
+        <div class="flash-prep-copy">
+          <h2 id="flash-prep-title" class="flash-prep-title">Prepare the board</h2>
+          <p id="flash-prep-body" class="flash-prep-body">
+            Push the ESP32 module into the sockets on the main board. Line it up with the USB mark printed on the board.
+            Use a USB-C data cable into the board’s USB-C. Do not plug into the small port on the ESP32 module.
+          </p>
+        </div>
+        <aside class="flash-prep-callout callout" aria-label="Browser requirement">
+          <p class="flash-prep-callout-title"><strong>Chrome or Edge only.</strong></p>
+          <p class="flash-prep-callout-body">
+            USB-C <em>data</em> cable (charge-only cables fail).
+            Hold BOOT on the module if the port is missing.
+          </p>
+        </aside>
+      </div>
+
+      <div class="flash-main">
+        <section class="panel flash-prep" aria-label="Board preparation animation">
+          <div class="flash-prep-view">
+            <div id="flash-prep-stage" class="flash-prep-stage"></div>
+            <p id="flash-prep-status" class="flash-prep-status mono" role="status" data-state="loading">Loading model…</p>
+          </div>
+        </section>
+
+        <section class="panel flash-install-panel">
           <p class="panel-label">Install</p>
           <div class="panel-body">
             <label class="field-label" for="flash-release">Release</label>
@@ -51,53 +84,36 @@
               </esp-web-install-button>
             </div>
           </div>
-          <div class="panel-foot">
-            <p class="callout">
-              <strong>Chrome or Edge only.</strong> USB-C <em>data</em> cable.
-              C3-Zero usually enters download mode alone; hold BOOT if the port is missing.
-            </p>
-            <p class="callout">
-              Seat the C3-Zero on the <strong>main board</strong> before expecting Wi‑Fi or the config page.
-              Module alone → blink halt, no <span class="mono">TinyEngineer-XXXX</span> — flash can still be OK.
-              Serial / blink details:
-              <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md">flash docs</a>.
-            </p>
-          </div>
-        </section>
-
-        <section class="panel panel-raised">
-          <p class="panel-label">Image map</p>
-          <div class="panel-body">
-            <p class="muted">Parts and offsets come from the selected release manifest.</p>
-            <table class="offset-table">
-              <thead>
-                <tr>
-                  <th>Part</th>
-                  <th>Offset</th>
-                </tr>
-              </thead>
-              <tbody id="flash-parts">
-                <tr>
-                  <td colspan="2" class="muted">Select a release…</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="panel-foot">
-            <dl class="meta-grid">
-              <dt>Manifest</dt>
-              <dd id="flash-manifest-url" class="mono">—</dd>
-              <dt>Alt path</dt>
-              <dd><a href="https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md">pio run -t upload</a></dd>
-            </dl>
-          </div>
         </section>
       </div>
+
+      <section class="panel shop-footer-panel" aria-label="Continue to assembly">
+        <div class="shop-footer-main">
+          <div class="shop-footer-copy">
+            <p class="panel-label">Continue</p>
+            <p class="shop-step-lede shop-footer-lede">Board flashed? Next is mechanical assembly.</p>
+          </div>
+          <div class="shop-footer-actions">
+            <a class="btn btn-primary shop-footer-cta" href="../assembly/">Continue to Assembly</a>
+          </div>
+        </div>
+        <details class="shop-footer-advanced">
+          <summary class="shop-footer-advanced-summary mono">
+            <span class="shop-footer-alt-tag">Advanced</span>
+            Flash notes &amp; CLI
+          </summary>
+          <p class="shop-footer-alt mono">
+            Module alone can still flash, then blink-halts looking for the board —
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md" target="_blank" rel="noopener noreferrer">docs/flash.md</a>
+            · CLI:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md" target="_blank" rel="noopener noreferrer">pio run -t upload</a>
+          </p>
+        </details>
+      </section>
     </main>
 
     <footer class="site-footer">
-      <p>If this feels too easy, you can still solder something afterward.</p>
-      <p><a href="../">Home</a></p>
+      <p class="mono">Tiny Engineer build guide · Flash</p>
     </footer>
   </div>
   <script src="../js/flash-status.js"></script>

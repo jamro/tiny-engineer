@@ -9,8 +9,9 @@ Physical module is a **Waveshare ESP32-C3-Zero**.
 Stock firmware from the browser — no toolchain install, no repo clone.
 
 1. Open **[jamro.github.io/tiny-engineer/flash/](https://jamro.github.io/tiny-engineer/flash/)** in **Chrome or Edge**.
-2. Use a USB-C **data** cable (charge-only cables fail).
-3. Pick a release (latest is fine) → **Connect & install**.
+2. Follow the on-page **Prepare the board** guide first (seat the ESP32 on the main board using the USB mark; plug the data cable into the **board** USB-C, not the module).
+3. Use a USB-C **data** cable (charge-only cables fail).
+4. Pick a release (latest is fine) → **Connect & install**.
 
 The stock image includes app firmware and LittleFS (WAV audio). The site ships each release’s images; older tags keep their own partition layout.
 

@@ -1202,6 +1202,15 @@ h1 {
   margin-bottom: 0;
 }
 
+/* Build-guide pages: one-line stage stamp under the continue CTA. */
+.page-shop .site-footer,
+.page-print .site-footer,
+.page-flash .site-footer,
+.page-assembly .site-footer,
+.page-setup .site-footer {
+  margin-top: 1.25rem;
+}
+
 .mono {
   font-family: var(--font-mono);
 }
@@ -1524,6 +1533,151 @@ esp-web-install-button button,
 esp-web-install-button .button,
 .flash-install .btn {
   width: 100%;
+}
+
+/* Flash board prep (3D seat + USB callouts) */
+
+.flash-main {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+@media (min-width: 860px) {
+  .flash-main {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+}
+
+.page-flash .flash-prep {
+  padding: 0;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.page-flash .flash-install-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.flash-prep-head {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 0 0 1rem;
+  align-items: stretch;
+}
+
+@media (min-width: 700px) {
+  .flash-prep-head {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+}
+
+.flash-prep-copy,
+.flash-prep-callout {
+  min-width: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.flash-prep-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.15rem 0;
+}
+
+.flash-prep-callout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 100%;
+}
+
+.flash-prep-callout-title,
+.flash-prep-callout-body {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.flash-prep-callout-body {
+  color: var(--muted);
+}
+
+.flash-prep-view {
+  position: relative;
+  min-width: 0;
+}
+
+.flash-prep-stage {
+  position: relative;
+  height: min(48vh, 28rem);
+  min-height: 16rem;
+  background: #161616;
+  touch-action: none;
+}
+
+@media (min-width: 860px) {
+  .flash-prep-stage {
+    height: 100%;
+    min-height: 22rem;
+  }
+
+  .page-flash .flash-prep,
+  .page-flash .flash-prep-view {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .page-flash .flash-prep-view {
+    flex: 1;
+  }
+}
+
+.flash-prep-stage[hidden] {
+  display: none !important;
+}
+
+.flash-prep-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+  touch-action: none;
+  pointer-events: none;
+}
+
+/* Status kept for a11y / JS; not shown in the anim chrome. */
+.flash-prep-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.flash-prep-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.flash-prep-body {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 .offset-table {

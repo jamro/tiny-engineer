@@ -70,16 +70,42 @@ curl -X POST "http://tiny-engineer.local/anim?name=ring"</code></pre>
           </p>
         </div>
       </section>
+      <section class="panel shop-footer-panel" aria-label="Build complete">
+        <div class="shop-footer-main">
+          <div class="shop-footer-copy">
+            <p class="panel-label">Done</p>
+            <p class="shop-step-lede shop-footer-lede">Robot online? You’re finished with the build guide.</p>
+          </div>
+          <div class="shop-footer-actions">
+            <button id="setup-restart-guide" class="btn" type="button">Start from scratch</button>
+            <a class="btn btn-primary shop-footer-cta" href="../">Back to Home</a>
+          </div>
+        </div>
+        <details class="shop-footer-advanced">
+          <summary class="shop-footer-advanced-summary mono">
+            <span class="shop-footer-alt-tag">Advanced</span>
+            Agent hooks &amp; board docs
+          </summary>
+          <p class="shop-footer-alt mono">
+            Agent hooks:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md" target="_blank" rel="noopener noreferrer">docs/integration.md</a>
+            · board:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/main-control-board.md" target="_blank" rel="noopener noreferrer">main-control-board.md</a>
+            · API:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md" target="_blank" rel="noopener noreferrer">api.md</a>
+          </p>
+        </details>
+      </section>
     </main>
 
     <footer class="site-footer">
-      <p class="mono">
-        Agent hooks:
-        <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md">docs/integration.md</a>
-        · board:
-        <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/main-control-board.md">main-control-board.md</a>
-      </p>
+      <p class="mono">Tiny Engineer build guide · Setup</p>
     </footer>
   </div>
+  <script>
+    document.getElementById("setup-restart-guide")?.addEventListener("click", () => {
+      window.TinyEngineerBuild?.restartGuide("../");
+    });
+  </script>
 </body>
 </html>
