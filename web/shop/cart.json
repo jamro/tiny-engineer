@@ -1,0 +1,165 @@
+{
+  "format": 1,
+  "about": "UI cart for /shop/. Keep in sync manually with docs/shopping.md (qtys and default parts).",
+  "sizeConvention": {
+    "order": "H×W×D",
+    "label": "height × width × depth",
+    "note": "Assembled robot outer size. Written height × width × depth (not L×W×H)."
+  },
+  "servos": [
+    {
+      "id": "sg90",
+      "label": "Tower Pro SG90",
+      "short": "SG90",
+      "group": "recommended",
+      "tag": "Recommended",
+      "size": "~13 × 15 × 12 cm",
+      "summary": "Larger desk robot · easiest to source",
+      "default": true,
+      "qty": 5,
+      "printFolder": "parts/sg90/",
+      "image": "../media/shop/sg90.jpg",
+      "url": "https://torqpro.com/product/sg90-analog/"
+    },
+    {
+      "id": "fs0307",
+      "label": "Feetech FS0307",
+      "short": "FS0307",
+      "group": "compact",
+      "tag": "Compact",
+      "size": "~11 × 13 × 10 cm",
+      "summary": "Compact robot · same footprint as ES9051",
+      "qty": 5,
+      "printFolder": "parts/fs0307/",
+      "image": "../media/shop/fs0307.jpg",
+      "url": "https://www.pololu.com/product/3420"
+    },
+    {
+      "id": "es9051",
+      "label": "EMAX ES9051",
+      "short": "ES9051",
+      "group": "compact",
+      "tag": "Compact",
+      "size": "~11 × 13 × 10 cm",
+      "summary": "Compact robot · same footprint as FS0307",
+      "qty": 5,
+      "printFolder": "parts/es9051/",
+      "image": "../media/shop/es9051.jpg",
+      "url": "https://shop.emaxmodel.com/products/emax-es9051-4-3g-digital-mini-servo-for-rc-model"
+    }
+  ],
+  "jlcpcb": {
+    "title": "JLCPCB both-sides PCBA",
+    "pathLabel": "Long pole",
+    "disclaimer": "No partnership with JLCPCB. Orders at your own risk. Fab UI labels change — follow outcomes, not exact button names.",
+    "fullGuideUrl": "https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/order-main-control-board.md",
+    "orderUrl": "https://jlcpcb.com/",
+    "image": "../media/shop/main-control-board.jpg",
+    "steps": [
+      "Install KiCad 10 and the Fabrication Toolkit plugin.",
+      "Open the main-control-board project and export Gerber ZIP, bom.csv, and positions.csv.",
+      "At jlcpcb.com upload the Gerber ZIP, turn on PCB Assembly, both sides / Standard.",
+      "Upload bom.csv and positions.csv (CPL). Review stock and orientation, then pay.",
+      "When boards arrive: inspect, then plug in modules on Connect (no ESP32 header soldering for both-sides PCBA)."
+    ]
+  },
+  "lanes": [
+    {
+      "id": "now",
+      "label": "2",
+      "title": "Board ordered",
+      "lede": "Tick when the JLCPCB order is placed.",
+      "items": [
+        {
+          "id": "board-ordered",
+          "label": "JLCPCB both-sides PCBA ordered",
+          "qty": 1,
+          "notes": "Start this first — fab lead time is weeks.",
+          "image": "../media/shop/main-control-board.jpg",
+          "checkOnly": true,
+          "blurb": "Order first — fab lead time is weeks."
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "label": "3",
+      "title": "Plug-in modules",
+      "lede": "Parts that plug into the board. Buy links where we have a clear SKU.",
+      "items": [
+        {
+          "id": "esp32-c3-zero",
+          "label": "Waveshare ESP32-C3-Zero",
+          "qty": 1,
+          "url": "https://docs.waveshare.com/ESP32-C3-Zero",
+          "notes": "Needs two 1×9 2.54 mm male headers (often in box), or buy ESP32-C3-Zero-M with them fitted.",
+          "image": "../media/shop/esp32-c3-zero.jpg",
+          "blurb": "Headers often in box, or buy Zero-M fitted."
+        },
+        {
+          "id": "servo",
+          "label": "Hobby micro servo",
+          "qtyFrom": "servo",
+          "url": null,
+          "notes": "Buy five of one model. Do not mix. No single canonical SKU.",
+          "image": "../media/shop/sg90.jpg",
+          "blurb": "Five of one model — do not mix."
+        },
+        {
+          "id": "speaker",
+          "label": "Adafruit Mini Oval Speaker 8 Ω 1 W",
+          "qty": 1,
+          "url": "https://www.adafruit.com/product/3923",
+          "notes": null,
+          "image": "../media/shop/speaker.jpg",
+          "blurb": "Tiny oval; fits head cavity."
+        },
+        {
+          "id": "oled",
+          "label": "Waveshare 0.91inch OLED (SSD1306 128×32 I2C)",
+          "qty": 1,
+          "url": "https://www.waveshare.com/0.91inch-oled-module.htm",
+          "notes": null,
+          "image": "../media/shop/oled-091.jpg",
+          "blurb": "128×32 I2C face display."
+        }
+      ]
+    },
+    {
+      "id": "also",
+      "label": "4",
+      "title": "Fasteners and power",
+      "lede": "Common bits — assortment packs are fine.",
+      "items": [
+        {
+          "id": "m2-fasteners",
+          "label": "M2 screws + nuts",
+          "qty": 1,
+          "url": "https://www.amazon.com/1080PCS-Screw-Assortment-M2x4-25mm/dp/B0GKMVNG4D",
+          "notes": "Pan/button-head for plastic: 8× M2×4, 27× M2×8 (BottomCover heads ≤ 4.0 mm × 2.0 mm), 15× M2×16, 6× M2 nuts. Linked 1080-pc kit covers M2×4–×25 + nuts.",
+          "image": "../media/shop/m2-screws.jpg",
+          "blurb": "M2×4 / ×8 / ×16 + nuts; assortment OK."
+        },
+        {
+          "id": "power-usb",
+          "label": "5 V / ≥2 A USB supply + USB-C data cable",
+          "qty": 1,
+          "url": null,
+          "notes": "Need both: ≥2 A supply (1 A phone charger browns out) and a data USB-C cable (charge-only fails flash/serial).",
+          "image": "../media/shop/usb-power-supply.jpg",
+          "blurb": "≥2 A supply and a data USB-C cable."
+        },
+        {
+          "id": "jumpers-mf-10cm",
+          "label": "Male–female jumper wires ~10 cm",
+          "qty": 1,
+          "url": "https://www.adafruit.com/product/1953",
+          "notes": "One pack (≥10 wires). Extend OLED and servo leads when stock cables are short. Adafruit 1953 is 6″ (15 cm) M–F — fine.",
+          "image": "../media/shop/jumpers-mf.jpg",
+          "blurb": "Extend short OLED / servo leads."
+        }
+      ]
+    }
+  ],
+  "advancedBreakoutsDoc": "https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md#advanced-extra-modules"
+}

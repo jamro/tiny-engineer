@@ -13,8 +13,8 @@ Seat the PCB in the printed `Desk` during [assembly §12–13](../3d/assembly.md
 **Power / flash / serial** use the board **USB-C** (data cable). Do not also wire a separate Adafruit 5993.
 
 1. **ESP32-C3-Zero** — Plug into the top headers. Module pins pass through the dedicated cut in the desk top (see assembly). Orient using the **USB** marking on the PCB silkscreen so the module matches the cut and USB side.
-2. **OLED** — Plug into the male header labeled **OLED**.
-3. **Servos** — Plug into the labeled servo sockets. Match socket orientation (signal / 5 V / GND as labeled). Which joint → which channel: [pinout.md](pinout.md#pca9685-channels-not-esp32-gpio).
+2. **OLED** — Plug into the male header labeled **OLED**. If the stock cable is short, extend with ~10 cm male–female jumpers ([shopping](../shopping.md#power-and-cables)).
+3. **Servos** — Plug into the labeled servo sockets. Match socket orientation (signal / 5 V / GND as labeled). Which joint → which channel: [pinout.md](pinout.md#pca9685-channels-not-esp32-gpio). Same jumpers if a lead does not reach.
 4. **Speaker** — Use **one** method only, never both:
    - **Connector:** stock Adafruit Mini Oval — plug as labeled. A non-Adafruit / alternate speaker may work; check polarity. If phase is wrong or the plug pinout differs, swap wires in the connector.
    - **Solder pads:** solder the speaker leads to the dedicated speaker pads on the board.
