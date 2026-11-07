@@ -11,8 +11,10 @@ on:
       - "hardware/boards/main-control-board/**"
       - "3d_models/cad/**"
       - "3d_models/parts/*/stl/**"
+      - "3d_models/parts/*/3mf/**"
       - "3d_models/parts/*/step/**"
       - "3d_models/fusion/TinyEngineerTools/servos.json"
+      - "scripts/web/**"
       - ".github/workflows/pages.yml"
   release:
     types: [published, edited]
@@ -173,6 +175,15 @@ jobs:
           # Spot-check CPL matches Toolkit conventions (pad-center connectors).
           head -n 5 web/shop/fab/main-control-board/positions.csv
           head -n 5 web/shop/fab/main-control-board/bom.csv
+      - name: Sync print mesh files
+        run: |
+          set -euo pipefail
+          chmod +x scripts/web/sync-print-files.sh
+          ./scripts/web/sync-print-files.sh
+          test -s web/print/files/sg90/Head.3mf
+          test -s web/print/files/sg90/Head.stl
+          test -s web/print/files/fs0307/Head.stl
+          test -s web/print/files/es9051/Head.stl
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

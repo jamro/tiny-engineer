@@ -1,0 +1,364 @@
+{
+  "format": 1,
+  "about": "UI data for /print/. Color groups match PartsSetA/B + LampDiffuser. Keep in sync with assembly print_group / 3d_models/README.md.",
+  "servoStorageKey": "tiny-engineer.shop.servo",
+  "checkedStorageKey": "tiny-engineer.print.checked",
+  "defaultServo": "sg90",
+  "groups": [
+    {
+      "id": "PartsSetA",
+      "label": "Copper",
+      "finish": "Silk copper / gold (or your pick)",
+      "swatch": "#d4a84b",
+      "order": 1
+    },
+    {
+      "id": "PartsSetB",
+      "label": "Black",
+      "finish": "Black",
+      "swatch": "#262624",
+      "order": 2
+    },
+    {
+      "id": "white",
+      "label": "White / translucent",
+      "finish": "White or translucent PLA",
+      "swatch": "#f2efe6",
+      "order": 3,
+      "tip": "Thin walls — use Arachne / Print Thin Walls in your slicer."
+    }
+  ],
+  "testers": [
+    {
+      "id": "ServoSizingTester",
+      "label": "Servo pocket tester",
+      "role": "Dry-fit one real servo — should slide, not force or rattle.",
+      "printFirst": true,
+      "recommended": true,
+      "files": {
+        "3mf": "ServoSizingTester.3mf",
+        "stl": "ServoSizingTester.stl"
+      }
+    },
+    {
+      "id": "ScrewSizingTest",
+      "label": "Screw hole tester",
+      "role": "Labeled sizes; shipped parts use the middle hole. Loose screw? Stuff a scrap of skirt filament in first. New default → Fusion re-export.",
+      "printFirst": true,
+      "recommended": true,
+      "files": {
+        "3mf": "ScrewSizingTest.3mf",
+        "stl": "ScrewSizingTest.stl"
+      }
+    }
+  ],
+  "parts": [
+    {
+      "id": "AiEmblem",
+      "group": "PartsSetA",
+      "label": "AI Emblem",
+      "role": "AI emblem detail",
+      "qty": 1,
+      "files": {
+        "3mf": "AiEmblem.3mf",
+        "stl": "AiEmblem.stl"
+      }
+    },
+    {
+      "id": "Bell",
+      "group": "PartsSetA",
+      "label": "Bell",
+      "role": "Service bell",
+      "qty": 1,
+      "files": {
+        "3mf": "Bell.3mf",
+        "stl": "Bell.stl"
+      }
+    },
+    {
+      "id": "Belly",
+      "group": "PartsSetB",
+      "label": "Belly",
+      "role": "Belly",
+      "qty": 1,
+      "files": {
+        "3mf": "Belly.3mf",
+        "stl": "Belly.stl"
+      }
+    },
+    {
+      "id": "BellyJoint",
+      "group": "PartsSetA",
+      "label": "Belly Joint",
+      "role": "Hex coupler on body servo shaft",
+      "qty": 1,
+      "files": {
+        "3mf": "BellyJoint.3mf",
+        "stl": "BellyJoint.stl"
+      }
+    },
+    {
+      "id": "BottomCover",
+      "group": "PartsSetB",
+      "label": "Bottom Cover",
+      "role": "Underside cover",
+      "qty": 1,
+      "files": {
+        "3mf": "BottomCover.3mf",
+        "stl": "BottomCover.stl"
+      }
+    },
+    {
+      "id": "Chair",
+      "group": "PartsSetB",
+      "label": "Chair",
+      "role": "Chair",
+      "qty": 1,
+      "files": {
+        "3mf": "Chair.3mf",
+        "stl": "Chair.stl"
+      }
+    },
+    {
+      "id": "Chest",
+      "group": "PartsSetA",
+      "label": "Chest",
+      "role": "Chest / torso",
+      "qty": 1,
+      "files": {
+        "3mf": "Chest.3mf",
+        "stl": "Chest.stl"
+      }
+    },
+    {
+      "id": "Coffee",
+      "group": "PartsSetB",
+      "label": "Coffee",
+      "role": "Coffee fill",
+      "qty": 1,
+      "files": {
+        "3mf": "Coffee.3mf",
+        "stl": "Coffee.stl"
+      }
+    },
+    {
+      "id": "Desk",
+      "group": "PartsSetB",
+      "label": "Desk",
+      "role": "Desk structure",
+      "qty": 1,
+      "files": {
+        "3mf": "Desk.3mf",
+        "stl": "Desk.stl"
+      }
+    },
+    {
+      "id": "DeskPad",
+      "group": "PartsSetA",
+      "label": "Desk Pad",
+      "role": "Desk pad",
+      "qty": 1,
+      "files": {
+        "3mf": "DeskPad.3mf",
+        "stl": "DeskPad.stl"
+      }
+    },
+    {
+      "id": "DeskTop",
+      "group": "PartsSetB",
+      "label": "Desk Top",
+      "role": "Desk top surface",
+      "qty": 1,
+      "files": {
+        "3mf": "DeskTop.3mf",
+        "stl": "DeskTop.stl"
+      }
+    },
+    {
+      "id": "ForearmLeft",
+      "group": "PartsSetB",
+      "label": "Forearm Left",
+      "role": "Left forearm / hand",
+      "qty": 1,
+      "files": {
+        "3mf": "ForearmLeft.3mf",
+        "stl": "ForearmLeft.stl"
+      }
+    },
+    {
+      "id": "ForearmRight",
+      "group": "PartsSetB",
+      "label": "Forearm Right",
+      "role": "Right forearm / hand",
+      "qty": 1,
+      "files": {
+        "3mf": "ForearmRight.3mf",
+        "stl": "ForearmRight.stl"
+      }
+    },
+    {
+      "id": "Hat",
+      "group": "PartsSetA",
+      "label": "Hat",
+      "role": "Hat",
+      "qty": 1,
+      "files": {
+        "3mf": "Hat.3mf",
+        "stl": "Hat.stl"
+      }
+    },
+    {
+      "id": "Head",
+      "group": "PartsSetA",
+      "label": "Head",
+      "role": "Head (pitch)",
+      "qty": 1,
+      "files": {
+        "3mf": "Head.3mf",
+        "stl": "Head.stl"
+      }
+    },
+    {
+      "id": "LampBase",
+      "group": "PartsSetA",
+      "label": "Lamp Base",
+      "role": "Desk lamp base",
+      "qty": 1,
+      "files": {
+        "3mf": "LampBase.3mf",
+        "stl": "LampBase.stl"
+      }
+    },
+    {
+      "id": "LampButton",
+      "group": "PartsSetA",
+      "label": "Lamp Button",
+      "role": "Lamp button",
+      "qty": 1,
+      "files": {
+        "3mf": "LampButton.3mf",
+        "stl": "LampButton.stl"
+      }
+    },
+    {
+      "id": "LampCap",
+      "group": "PartsSetA",
+      "label": "Lamp Cap",
+      "role": "Lamp cap",
+      "qty": 1,
+      "files": {
+        "3mf": "LampCap.3mf",
+        "stl": "LampCap.stl"
+      }
+    },
+    {
+      "id": "LampDiffuser",
+      "group": "white",
+      "label": "Lamp Diffuser",
+      "role": "Lamp diffuser — thin walls; white or translucent",
+      "qty": 1,
+      "files": {
+        "3mf": "LampDiffuser.3mf",
+        "stl": "LampDiffuser.stl"
+      }
+    },
+    {
+      "id": "LaptopCase",
+      "group": "PartsSetA",
+      "label": "Laptop Case",
+      "role": "Miniature laptop body",
+      "qty": 1,
+      "files": {
+        "3mf": "LaptopCase.3mf",
+        "stl": "LaptopCase.stl"
+      }
+    },
+    {
+      "id": "LaptopScreen",
+      "group": "PartsSetB",
+      "label": "Laptop Screen",
+      "role": "Laptop screen",
+      "qty": 1,
+      "files": {
+        "3mf": "LaptopScreen.3mf",
+        "stl": "LaptopScreen.stl"
+      }
+    },
+    {
+      "id": "Mug",
+      "group": "PartsSetA",
+      "label": "Mug",
+      "role": "Mug",
+      "qty": 1,
+      "files": {
+        "3mf": "Mug.3mf",
+        "stl": "Mug.stl"
+      }
+    },
+    {
+      "id": "Neck",
+      "group": "PartsSetB",
+      "label": "Neck",
+      "role": "Neck (yaw)",
+      "qty": 1,
+      "files": {
+        "3mf": "Neck.3mf",
+        "stl": "Neck.stl"
+      }
+    },
+    {
+      "id": "SeatLeft",
+      "group": "PartsSetB",
+      "label": "Seat Left",
+      "role": "Left chair seat",
+      "qty": 1,
+      "files": {
+        "3mf": "SeatLeft.3mf",
+        "stl": "SeatLeft.stl"
+      }
+    },
+    {
+      "id": "SeatRight",
+      "group": "PartsSetB",
+      "label": "Seat Right",
+      "role": "Right chair seat",
+      "qty": 1,
+      "files": {
+        "3mf": "SeatRight.3mf",
+        "stl": "SeatRight.stl"
+      }
+    },
+    {
+      "id": "UpperArm",
+      "group": "PartsSetB",
+      "label": "Upper Arm",
+      "role": "Upper arm (print twice — left and right)",
+      "qty": 2,
+      "files": {
+        "3mf": "UpperArm.3mf",
+        "stl": "UpperArm.stl"
+      }
+    }
+  ],
+  "servos": {
+    "sg90": {
+      "label": "Tower Pro SG90",
+      "short": "SG90",
+      "size": "~13 × 15 × 12 cm",
+      "filesBase": "files/sg90/",
+      "default": true
+    },
+    "fs0307": {
+      "label": "Feetech FS0307",
+      "short": "FS0307",
+      "size": "~11 × 13 × 10 cm",
+      "filesBase": "files/fs0307/"
+    },
+    "es9051": {
+      "label": "EMAX ES9051",
+      "short": "ES9051",
+      "size": "~11 × 13 × 10 cm",
+      "filesBase": "files/es9051/"
+    }
+  }
+}

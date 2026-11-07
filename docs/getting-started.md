@@ -42,7 +42,7 @@ flowchart LR
 
 ### 2. Print or order
 
-- **Open:** [3d_models/README.md](../3d_models/README.md) (home print; testers first) or [3d/order-parts.md](3d/order-parts.md) (no printer).
+- **Open:** **[Print](https://jamro.github.io/tiny-engineer/print/)** (checklist + downloads for the Shop servo) or [3d_models/README.md](../3d_models/README.md) (home print; testers first) or [3d/order-parts.md](3d/order-parts.md) (no printer).
 - **Until:** printed set for your servo model ready.
 - **Return** here.
 
