@@ -140,9 +140,13 @@ export function createStage(element, label) {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     if (poseLocked) {
-      // Keep the live camera pose (prep anim / commitView). Only sync home for reset().
-      home.position.copy(camera.position);
-      home.target.copy(controls.target);
+      // Keep live camera on resize. Only refresh home when the user has not
+      // orbited — otherwise reset() would return to the post-orbit pose
+      // instead of the flyTo / commitView destination.
+      if (!userMoved) {
+        home.position.copy(camera.position);
+        home.target.copy(controls.target);
+      }
     } else if (framed && !userMoved) {
       frame(framed, { keepFloor: true });
     }
