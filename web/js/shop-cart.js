@@ -78,6 +78,18 @@
     return item.label;
   };
 
+  const bindImageFallback = (img, altText) => {
+    img.addEventListener(
+      "error",
+      () => {
+        img.removeAttribute("src");
+        img.alt = altText || "Image unavailable";
+        img.classList.add("shop-img-fallback");
+      },
+      { once: true }
+    );
+  };
+
   const makeServoCard = (s) => {
     const selected = s.id === servoId;
     const tile = document.createElement("div");
@@ -97,10 +109,12 @@
     media.className = "shop-servo-card-media";
     const img = document.createElement("img");
     img.src = s.image;
-    img.alt = "";
-    img.width = 1000;
-    img.height = 800;
+    img.alt = s.label || s.short || "Servo";
+    img.width = 800;
+    img.height = 640;
     img.loading = "lazy";
+    img.decoding = "async";
+    bindImageFallback(img, s.label || s.short || "Servo");
     media.append(img);
 
     if (selected) {
@@ -215,16 +229,10 @@
       lead.textContent = "Your build";
       const detail = document.createElement("span");
       detail.className = "shop-servo-outcome-detail";
-      detail.append(
-        document.createTextNode(
-          `${s.label || s.short}` +
-            (s.size ? ` · robot ${s.size}` : "") +
-            ` · buy ×${qty} identical · print `
-        )
-      );
-      const code = document.createElement("code");
-      code.textContent = s.printFolder;
-      detail.append(code);
+      detail.textContent =
+        `${s.label || s.short}` +
+        (s.size ? ` · robot ${s.size}` : "") +
+        ` · buy ×${qty} identical · later print the matching parts set`;
       status.append(lead, detail);
     }
   };
@@ -252,6 +260,27 @@
     return `${done}/${total}`;
   };
 
+  const updateContinueWarn = () => {
+    const warn = el("shop-continue-warn");
+    if (!warn || !cart) return;
+    const { done, total } = allCheckProgress();
+    if (!total || done >= total) {
+      warn.hidden = true;
+      warn.textContent = "";
+      return;
+    }
+    const board = cart.lanes?.find((l) => l.id === "now");
+    const boardDone = board ? laneProgress(board).done >= laneProgress(board).total : true;
+    const bits = [];
+    if (!boardDone) bits.push("board order still unmarked");
+    bits.push(`${total - done} shopping check${total - done === 1 ? "" : "s"} left`);
+    warn.textContent =
+      "You can still continue — " +
+      bits.join("; ") +
+      ". Printing can wait; the board often takes weeks.";
+    warn.hidden = false;
+  };
+
   const updateCheckProgress = () => {
     if (!cart) return;
     const overall = el("shop-check-progress");
@@ -271,6 +300,7 @@
     });
 
     renderTimeline();
+    updateContinueWarn();
   };
 
   const renderTimeline = () => {
@@ -281,8 +311,8 @@
     const steps = [
       {
         label: "1",
-        title: "Pick a servo",
-        meta: "✓ done",
+        title: "Choose a servo",
+        meta: "✓ chosen",
         complete: true,
         href: "#shop-step-servo",
       },
@@ -366,8 +396,9 @@
     const img = document.createElement("img");
     img.src = j.image;
     img.alt = "Tiny Engineer main control board";
-    img.width = 480;
-    img.height = 360;
+    img.width = 800;
+    img.height = 640;
+    bindImageFallback(img, "Main control board");
     media.append(img);
 
     const body = document.createElement("div");
@@ -397,7 +428,7 @@
       dl.className = "shop-jlcpcb-downloads";
       const dlLabel = document.createElement("p");
       dlLabel.className = "shop-jlcpcb-downloads-label mono";
-      dlLabel.textContent = "Fab files";
+      dlLabel.textContent = "Download these three files";
       dl.append(dlLabel);
       const dlRow = document.createElement("div");
       dlRow.className = "shop-jlcpcb-download-row";
@@ -406,12 +437,12 @@
         const a = document.createElement("a");
         a.className = "btn shop-jlcpcb-download";
         a.href = item.url;
-        // Explicit filename — empty download="" + 404 HTML becomes bom.html / positions.html in Safari.
         const fileName =
           item.filename ||
           String(item.url).split("/").pop() ||
           item.label;
         a.setAttribute("download", fileName);
+        if (item.tech) a.title = item.tech;
         if (item.icon) appendSpriteIcon(a, item.icon, { prepend: true });
         a.append(document.createTextNode(item.label));
         dlRow.append(a);
@@ -424,7 +455,6 @@
     (j.downloads || []).forEach((item) => {
       if (item?.label && item?.url) downloadByLabel.set(String(item.label), item);
     });
-    // Longest labels first so "Gerber file" wins over shorter fragments.
     const linkLabels = [...downloadByLabel.keys()].sort((a, b) => b.length - a.length);
     if (j.orderUrl) linkLabels.push("jlcpcb.com");
 
@@ -550,7 +580,11 @@
       box.id = `shop-check-${item.id}`;
       box.className = "shop-item-check";
       box.checked = isDone;
-      box.title = "Mark as ordered / owned";
+      box.setAttribute(
+        "aria-label",
+        `Mark ${itemLabel(item)} as ordered or owned`
+      );
+      box.title = "Mark as ordered or owned";
 
       const mark = document.createElement("span");
       mark.className = "shop-card-check";
@@ -575,22 +609,31 @@
       thumb.className = "shop-item-photo";
       if (item.id === "servo") {
         const s = servoById(servoId);
-        thumb.src = s?.image || item.image;
+        thumb.src = s?.thumb || s?.image || item.thumb || item.image;
         thumb.alt = s?.label || "";
       } else {
-        thumb.src = item.image;
+        thumb.src = item.thumb || item.image;
         thumb.alt = itemLabel(item);
       }
-      thumb.width = 480;
-      thumb.height = 360;
+      thumb.width = 400;
+      thumb.height = 320;
       thumb.loading = "lazy";
-      media.append(thumb, box, mark);
+      thumb.decoding = "async";
+      bindImageFallback(thumb, itemLabel(item));
+
+      const checkHit = document.createElement("label");
+      checkHit.className = "shop-item-check-hit";
+      checkHit.htmlFor = box.id;
+      checkHit.title = "Mark as ordered or owned";
+      checkHit.append(box, mark);
+
+      media.append(thumb, checkHit);
 
       const body = document.createElement("div");
       body.className = "shop-item-body";
 
-      const head = document.createElement("div");
-      head.className = "shop-item-head";
+      const itemHead = document.createElement("div");
+      itemHead.className = "shop-item-head";
 
       const name = document.createElement("label");
       name.className = "shop-item-name";
@@ -603,8 +646,8 @@
       qty.title = `Quantity: ${n}`;
       qty.setAttribute("aria-label", `Quantity ${n}`);
       qty.textContent = `×${n}`;
-      head.append(name, qty);
-      body.append(head);
+      itemHead.append(name, qty);
+      body.append(itemHead);
 
       const blurbText = item.blurb || item.notes || "";
       if (blurbText) {
@@ -617,6 +660,9 @@
         body.append(notes);
       }
 
+      const actions = document.createElement("div");
+      actions.className = "shop-item-actions";
+
       const buyUrl =
         item.id === "servo" ? servoById(servoId)?.url || item.url : item.url;
       if (buyUrl && !item.checkOnly) {
@@ -627,7 +673,34 @@
         buy.rel = "noopener noreferrer";
         buy.append("Buy");
         appendExternalIcon(buy);
-        body.append(buy);
+        actions.append(buy);
+      }
+
+      if (item.tips) {
+        const tipsBtn = document.createElement("button");
+        tipsBtn.type = "button";
+        tipsBtn.className = "btn shop-item-tips-btn";
+        tipsBtn.textContent = "Tips";
+        tipsBtn.setAttribute("aria-expanded", "false");
+        const tipsPanel = document.createElement("p");
+        tipsPanel.className = "shop-item-tips";
+        tipsPanel.id = `shop-tips-${item.id}`;
+        tipsPanel.hidden = true;
+        tipsPanel.textContent = item.tips;
+        tipsBtn.setAttribute("aria-controls", tipsPanel.id);
+        const toggleTips = (ev) => {
+          ev?.preventDefault?.();
+          const open = tipsPanel.hasAttribute("hidden");
+          if (open) tipsPanel.removeAttribute("hidden");
+          else tipsPanel.setAttribute("hidden", "");
+          tipsBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        };
+        tipsBtn.addEventListener("click", toggleTips);
+        tipsBtn.onclick = toggleTips;
+        actions.append(tipsBtn);
+        body.append(actions, tipsPanel);
+      } else if (actions.childNodes.length) {
+        body.append(actions);
       }
 
       li.append(media, body);
