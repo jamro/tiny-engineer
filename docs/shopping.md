@@ -68,7 +68,7 @@ An M2 assortment covering **M2×4–M2×16** is the easy path. Nearby lengths of
 | Item | Qty | Notes |
 | --- | --- | --- |
 | **5 V / ≥2 A** USB supply **+** USB-C **data** cable | 1 each | Need both: ≥2 A for stalled servos (1 A phone charger browns out); charge-only cables fail flash and serial. |
-| [Male–female jumper wires, **~10 cm**](https://www.adafruit.com/product/1953) | 1 pack (≥10 wires) | [Adafruit 1953](https://www.adafruit.com/product/1953) (6″ / 15 cm M–F). Extend OLED and servo leads when the stock cables are short — see [assembly §15](3d/assembly.md#15-connect-servos-and-oled) |
+| [Male–female jumper wires, **~7–12 cm**](https://www.adafruit.com/product/1953) | 1 pack (≥10 wires) | Any M–F pack in that range works. [Adafruit 1953](https://www.adafruit.com/product/1953) is 3″ (~7.5 cm) — fine. Extend OLED and servo leads when the stock cables are short — see [assembly §15](3d/assembly.md#15-connect-servos-and-oled) |
 
 ### Printed parts
 

@@ -188,7 +188,7 @@ Seat the **main control board** in `Desk`. This step mounts what you already con
 
 Easiest with the desk tipped onto its front wall so the servo headers face up, and the seated robot body beside it.
 
-1. Plug every servo lead and the OLED cable into the labeled board headers ([main-control-board.md](../hardware/main-control-board.md)). Breakout build: plug them into the PCA9685 and the harness — [assembly-modular.md](assembly-modular.md). If a lead does not reach (common for the OLED and some servos), extend it with **~10 cm male–female jumper wires** from the [shopping list](../shopping.md#power-and-cables) — keep signal / 5 V / GND (and OLED I2C lines) matched end to end.
+1. Plug every servo lead and the OLED cable into the labeled board headers ([main-control-board.md](../hardware/main-control-board.md)). Breakout build: plug them into the PCA9685 and the harness — [assembly-modular.md](assembly-modular.md). If a lead does not reach (common for the OLED and some servos), extend it with **~7–12 cm male–female jumper wires** from the [shopping list](../shopping.md#power-and-cables) — keep signal / 5 V / GND (and OLED I2C lines) matched end to end.
 2. Use the correct PCA9685 channel order following labels on the board ([pinout](../hardware/pinout.md#pca9685-channels-not-esp32-gpio)):
 
   | Channel | Joint        |

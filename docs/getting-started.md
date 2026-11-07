@@ -37,7 +37,7 @@ flowchart LR
 ### 1. Shop
 
 - **Open:** **[Shop](https://jamro.github.io/tiny-engineer/shop/)** (checklist) or [shopping.md](shopping.md). Default cart is the main control board plus the ESP32, OLED, servos, and speaker.
-- **Until:** cart in hand — main control board, ESP32, servos, OLED, speaker, M2 screws/nuts, ~10 cm male–female jumpers (OLED/servo extensions), **5 V / ≥2 A** supply + **data** USB-C cable, and a print path (filament or a service order). Default servos: **Tower Pro SG90**.
+- **Until:** cart in hand — main control board, ESP32, servos, OLED, speaker, M2 screws/nuts, ~7–12 cm male–female jumpers (OLED/servo extensions), **5 V / ≥2 A** supply + **data** USB-C cable, and a print path (filament or a service order). Default servos: **Tower Pro SG90**.
 - **Return** here.
 
 ### 2. Print or order

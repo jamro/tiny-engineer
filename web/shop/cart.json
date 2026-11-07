@@ -186,12 +186,12 @@
         },
         {
           "id": "jumpers-mf-10cm",
-          "label": "Extension wires (male\u2013female ~10 cm)",
+          "label": "Extension wires (male\u2013female ~7\u201312 cm)",
           "qty": 1,
           "url": "https://www.adafruit.com/product/1953",
-          "notes": "One pack (\u226510 wires). Extend OLED and servo leads when stock cables are short. Adafruit 1953 is 6\u2033 (15 cm) M\u2013F \u2014 fine.",
+          "notes": "One pack (\u226510 wires). Any M\u2013F length ~7\u201312 cm works. Adafruit 1953 is 3\u2033 (~7.5 cm) \u2014 fine. Extend OLED and servo leads when stock cables are short.",
           "image": "../media/shop/jumpers-mf.jpg?v=r1",
-          "blurb": "Extend short screen or servo leads when needed.",
+          "blurb": "Extend short screen or servo leads (~7\u201312 cm M\u2013F).",
           "thumb": "../media/shop/thumbs/jumpers-mf.jpg?v=r1"
         }
       ]
