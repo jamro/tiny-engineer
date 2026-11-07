@@ -23,13 +23,13 @@ Non-preset servo: measure it, add a preset, export parts — [parametric design]
 
 The default build uses the **main control board**. PCA9685, the audio amp, and USB-C are on that PCB. You plug in the ESP32, OLED, five servos, and the speaker.
 
-Order the open-source board from any fab: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). Connect it: [hardware/main-control-board.md](hardware/main-control-board.md). A cheaper assembled batch may show up later: [discussion #50](https://github.com/jamro/tiny-engineer/discussions/50). Fab lead time is part of ordering the board.
+Order the open-source board from any fab. Easiest path: download Gerber / BOM / positions from [Shop](https://jamro.github.io/tiny-engineer/shop/) (no KiCad), then follow [hardware/order-main-control-board.md](hardware/order-main-control-board.md). Connect it: [hardware/main-control-board.md](hardware/main-control-board.md). A cheaper assembled batch may show up later: [discussion #50](https://github.com/jamro/tiny-engineer/discussions/50). Fab lead time is part of ordering the board.
 
 ### Default cart
 
 | Part | Qty | Link / notes |
 | --- | --- | --- |
-| Tiny Engineer main control board | 1 | KiCad in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/) ([CERN-OHL-S](../3d_models/LICENSE)). Order: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). |
+| Tiny Engineer main control board | 1 | Open-source PCB ([CERN-OHL-S](../3d_models/LICENSE)). Fab files on [Shop](https://jamro.github.io/tiny-engineer/shop/); sources in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/). Order: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). |
 | Waveshare ESP32-C3-Zero | 1 | https://docs.waveshare.com/ESP32-C3-Zero. Needs two 1×9 2.54 mm male pin headers soldered on (often in the box), or buy the ESP32-C3-Zero-M with them fitted |
 | Tower Pro SG90 (or equivalent 9 g analog micro) | 5 | Official [Tower Pro HK SG90](https://torqpro.com/product/sg90-analog/) — buy ×5 of one model; compact: Feetech [Pololu FS0307](https://www.pololu.com/product/3420) or [EMAX ES9051](https://shop.emaxmodel.com/products/emax-es9051-4-3g-digital-mini-servo-for-rc-model) on [Shop](https://jamro.github.io/tiny-engineer/shop/) |
 | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 | https://www.adafruit.com/product/3923 |

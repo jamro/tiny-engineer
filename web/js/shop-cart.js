@@ -339,14 +339,20 @@
     });
   };
 
-  const appendExternalIcon = (node) => {
+  const appendSpriteIcon = (node, symbolId, { prepend = false } = {}) => {
+    if (!symbolId) return;
     const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     icon.setAttribute("class", "icon");
     icon.setAttribute("aria-hidden", "true");
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-    use.setAttribute("href", "../media/icons.svg#i-external");
+    use.setAttribute("href", `../media/icons.svg#${symbolId}`);
     icon.append(use);
-    node.append(icon);
+    if (prepend) node.prepend(icon);
+    else node.append(icon);
+  };
+
+  const appendExternalIcon = (node) => {
+    appendSpriteIcon(node, "i-external");
   };
 
   const renderJlcpcb = () => {
@@ -386,11 +392,84 @@
       body.append(disc);
     }
 
+    if (Array.isArray(j.downloads) && j.downloads.length) {
+      const dl = document.createElement("div");
+      dl.className = "shop-jlcpcb-downloads";
+      const dlLabel = document.createElement("p");
+      dlLabel.className = "shop-jlcpcb-downloads-label mono";
+      dlLabel.textContent = "Fab files";
+      dl.append(dlLabel);
+      const dlRow = document.createElement("div");
+      dlRow.className = "shop-jlcpcb-download-row";
+      j.downloads.forEach((item) => {
+        if (!item?.url || !item?.label) return;
+        const a = document.createElement("a");
+        a.className = "btn shop-jlcpcb-download";
+        a.href = item.url;
+        // Explicit filename — empty download="" + 404 HTML becomes bom.html / positions.html in Safari.
+        const fileName =
+          item.filename ||
+          String(item.url).split("/").pop() ||
+          item.label;
+        a.setAttribute("download", fileName);
+        if (item.icon) appendSpriteIcon(a, item.icon, { prepend: true });
+        a.append(document.createTextNode(item.label));
+        dlRow.append(a);
+      });
+      dl.append(dlRow);
+      body.append(dl);
+    }
+
+    const downloadByLabel = new Map();
+    (j.downloads || []).forEach((item) => {
+      if (item?.label && item?.url) downloadByLabel.set(String(item.label), item);
+    });
+    // Longest labels first so "Gerber file" wins over shorter fragments.
+    const linkLabels = [...downloadByLabel.keys()].sort((a, b) => b.length - a.length);
+    if (j.orderUrl) linkLabels.push("jlcpcb.com");
+
+    const appendStepWithFabLinks = (li, text) => {
+      if (!linkLabels.length) {
+        li.textContent = text;
+        return;
+      }
+      const escaped = linkLabels.map((l) =>
+        l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      );
+      const re = new RegExp(`(${escaped.join("|")})`, "g");
+      const parts = String(text).split(re);
+      parts.forEach((part) => {
+        if (part === "jlcpcb.com" && j.orderUrl) {
+          const a = document.createElement("a");
+          a.className = "shop-jlcpcb-step-file";
+          a.href = j.orderUrl;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.textContent = part;
+          li.append(a);
+          return;
+        }
+        const item = downloadByLabel.get(part);
+        if (!item) {
+          if (part) li.append(document.createTextNode(part));
+          return;
+        }
+        const a = document.createElement("a");
+        a.className = "shop-jlcpcb-step-file";
+        a.href = item.url;
+        const fileName =
+          item.filename || String(item.url).split("/").pop() || item.label;
+        a.setAttribute("download", fileName);
+        a.textContent = item.label;
+        li.append(a);
+      });
+    };
+
     const ol = document.createElement("ol");
     ol.className = "shop-jlcpcb-steps";
     (j.steps || []).forEach((step) => {
       const li = document.createElement("li");
-      li.textContent = step;
+      appendStepWithFabLinks(li, step);
       ol.append(li);
     });
     body.append(ol);

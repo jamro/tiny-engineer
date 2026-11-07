@@ -3080,6 +3080,50 @@ html:has(body.page-shop) {
   color: var(--muted);
 }
 
+.shop-jlcpcb-downloads {
+  margin: 0.25rem 0 0.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.shop-jlcpcb-downloads-label {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.shop-jlcpcb-download-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.shop-jlcpcb-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.shop-jlcpcb-download .icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.shop-jlcpcb-step-file {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.shop-jlcpcb-step-file:hover {
+  color: var(--text);
+}
+
 .shop-jlcpcb-steps {
   margin: 0.35rem 0 0;
   padding-left: 1.15rem;

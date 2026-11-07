@@ -55,12 +55,33 @@
     "fullGuideUrl": "https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/order-main-control-board.md",
     "orderUrl": "https://jlcpcb.com/",
     "image": "../media/shop/main-control-board.jpg",
+    "downloads": [
+      {
+        "id": "gerbers",
+        "label": "Gerber file",
+        "icon": "i-file-archive",
+        "url": "fab/main-control-board/gerbers.zip"
+      },
+      {
+        "id": "bom",
+        "label": "BOM file",
+        "icon": "i-table",
+        "url": "fab/main-control-board/bom.csv"
+      },
+      {
+        "id": "positions",
+        "label": "CPL file",
+        "icon": "i-map-pin",
+        "url": "fab/main-control-board/positions.csv"
+      }
+    ],
     "steps": [
-      "Install KiCad 10 and the Fabrication Toolkit plugin.",
-      "Open the main-control-board project and export Gerber ZIP, bom.csv, and positions.csv.",
-      "At jlcpcb.com upload the Gerber ZIP, turn on PCB Assembly, both sides / Standard.",
-      "Upload bom.csv and positions.csv (CPL). Review stock and orientation, then pay.",
-      "When boards arrive: inspect, then plug in modules on Connect (no ESP32 header soldering for both-sides PCBA)."
+      "Go to jlcpcb.com and sign in or create an account.",
+      "Click Order Now and upload the Gerber file.",
+      "Enable PCB Assembly at the bottom of the page.",
+      "Set PCBA Type: Standard, Assembly Side: Both sides, then continue.",
+      "Continue again and upload the BOM file and CPL file.",
+      "Review stock and orientation, then finalise checkout."
     ]
   },
   "lanes": [
