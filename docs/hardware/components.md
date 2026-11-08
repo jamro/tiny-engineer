@@ -81,35 +81,38 @@ Firmware uses **per-servo safe ranges** in [`include/servos.h`](../../include/se
 
 ### Tower Pro SG90 (recommended)
 
-Easiest to buy. Larger body → larger printed robot; electronics are easier to fit in the desk.
+Easiest to buy. Larger body → larger printed robot (~**13 × 15 × 12 cm** H×W×D assembled); electronics are easier to fit in the desk.
 
 | Field | Value |
 | --- | --- |
 | Exact model | Tower Pro SG90 analog micro (or equivalent 9 g class) |
 | `servo_id` | `sg90` |
+| Assembled robot (approx.) | ~13 × 15 × 12 cm (**H×W×D** = height × width × depth) |
 | Size | Larger than FS0307 / ES9051 / HD-1370A — see [`servos.json`](../../3d_models/fusion/TinyEngineerTools/servos.json) |
 
 Print [`3d_models/parts/sg90/3mf/`](../../3d_models/parts/sg90/3mf/).
 
 ### Feetech FS0307
 
-More compact. Use this if you want a smaller robot that looks tighter on the desk.
+More compact (~**11 × 13 × 10 cm** H×W×D assembled). Less common than Tower Pro SG90 — offered with EMAX ES9051 as similar-size alternatives. Use this if you want a smaller robot that looks tighter on the desk.
 
 | Field | Value |
 | --- | --- |
 | Exact model | Feetech FS0307 analog micro servo |
 | `servo_id` | `fs0307` |
+| Assembled robot (approx.) | ~11 × 13 × 10 cm (**H×W×D**) |
 
 Print [`3d_models/parts/fs0307/3mf/`](../../3d_models/parts/fs0307/3mf/).
 
 ### EMAX ES9051
 
-Compact — similar footprint to FS0307, slightly taller body.
+Compact alternative to Feetech FS0307 (~**11 × 13 × 10 cm** H×W×D assembled — similar smaller robot, slightly taller body). Less common than Tower Pro SG90; buy whichever compact model you can source. Do not mix with FS0307.
 
 | Field | Value |
 | --- | --- |
 | Exact model | EMAX ES9051 analog micro servo |
 | `servo_id` | `es9051` |
+| Assembled robot (approx.) | ~11 × 13 × 10 cm (**H×W×D**) |
 
 Print [`3d_models/parts/es9051/3mf/`](../../3d_models/parts/es9051/3mf/).
 

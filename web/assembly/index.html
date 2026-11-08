@@ -12,14 +12,14 @@
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
+        "three": "../vendor/three/build/three.module.js",
+        "three/addons/": "../vendor/three/examples/jsm/"
       }
     }
   </script>
   <script type="module" src="../js/assembly/main.js"></script>
 </head>
-<body class="page-assembly">
+<body class="page-assembly page-build">
   <div class="wrap">
     <header class="site-header" data-page="assembly" data-root="../"></header>
     <script src="../js/site-header.js"></script>
@@ -30,10 +30,11 @@
         <nav class="build-timeline" data-stage="assembly" data-root="../"></nav>
         <script src="../js/build-timeline.js"></script>
         <div class="flash-intro">
-          <p class="eyebrow">3D · SG90</p>
+          <p class="eyebrow">Put it together</p>
           <h1>Assembly</h1>
           <p class="lede">
-            Step through the printable stock robot in 3D.
+            Follow the 3D guide to screw and fit the printed parts into a desk robot.
+            This viewer shows the <strong>SG90</strong> model — if you picked a compact servo in Shop, your printed parts differ in size but the steps are the same.
           </p>
         </div>
       </div>
@@ -115,10 +116,33 @@
           </div>
         </aside>
       </div>
+      <section class="panel shop-footer-panel" aria-label="Continue to setup">
+        <div class="shop-footer-main">
+          <div class="shop-footer-copy">
+            <p class="panel-label">Continue</p>
+            <p class="shop-step-lede shop-footer-lede">Mechanics done? Next is first boot and Wi‑Fi setup.</p>
+          </div>
+          <div class="shop-footer-actions">
+            <a class="btn btn-primary shop-footer-cta" href="../setup/">Continue to Setup</a>
+          </div>
+        </div>
+        <details class="shop-footer-advanced">
+          <summary class="shop-footer-advanced-summary mono">
+            <span class="shop-footer-alt-tag">Advanced</span>
+            CAD source &amp; licence
+          </summary>
+          <p class="shop-footer-alt mono">
+            Model built from
+            <a href="https://github.com/jamro/tiny-engineer/tree/main/3d_models" target="_blank" rel="noopener noreferrer">3d_models/</a>
+            · CERN-OHL-S-2.0 ·
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md" target="_blank" rel="noopener noreferrer">assembly.md</a>
+          </p>
+        </details>
+      </section>
     </main>
 
     <footer class="site-footer">
-      <p class="mono">Model built from <a href="https://github.com/jamro/tiny-engineer/tree/main/3d_models">3d_models/</a> · CERN-OHL-S-2.0</p>
+      <p class="mono">Tiny Engineer build guide · Assembly</p>
     </footer>
   </div>
 </body>

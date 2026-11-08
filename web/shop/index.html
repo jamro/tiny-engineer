@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../css/tokens.css">
   <link rel="stylesheet" href="../css/base.css">
 </head>
-<body class="page-shop">
+<body class="page-shop page-build">
   <div class="wrap">
     <header class="site-header" data-page="shop" data-root="../"></header>
     <script src="../js/site-header.js"></script>
@@ -24,30 +24,96 @@
           <p class="eyebrow">Parts · cart</p>
           <h1>Shop</h1>
           <p class="lede">
-            Buy what you need before you print or connect.
+            Five quick steps — pick motors, order the board, buy plug-ins and screws, then print.
           </p>
         </div>
       </div>
 
-      <section class="panel">
-        <p class="panel-label">Shopping list</p>
-        <div class="panel-body stage-doc-body">
-          <p>
-            Servos, board, and the rest of the cart live in the shopping guide.
-          </p>
-          <p>
-            <a class="btn btn-primary" href="https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md" target="_blank" rel="noopener noreferrer">
-              Open shopping instructions
-              <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-external"></use></svg>
-            </a>
-          </p>
+      <p id="shop-status" class="shop-status mono" role="status" data-state="loading">Loading cart…</p>
+
+      <section class="panel shop-timeline-panel" aria-label="Order timeline">
+        <div class="shop-timeline-head">
+          <p class="panel-label">At a glance</p>
+          <span id="shop-check-progress" class="shop-check-progress mono" aria-live="polite"></span>
         </div>
+        <ol id="shop-order-timeline" class="shop-order-timeline"></ol>
+      </section>
+
+      <section id="shop-step-servo" class="panel shop-servo-panel" aria-label="Pick a servo">
+        <p class="panel-label">1 · Pick a servo</p>
+        <div class="shop-servo-intro">
+          <p class="shop-step-lede shop-servo-lede">
+            Choose the motor size that builds your robot. You will buy five identical ones.
+          </p>
+          <ul class="shop-servo-effects">
+            <li>
+              <span class="shop-servo-effect-kicker mono">Size</span>
+              <strong>Robot scale</strong>
+              <span class="shop-servo-effect-detail">Larger desk or compact — locked by this pick</span>
+            </li>
+            <li>
+              <span class="shop-servo-effect-kicker mono">Print</span>
+              <strong>3D parts set</strong>
+              <span class="shop-servo-effect-detail">Later print the matching parts set for this motor</span>
+            </li>
+            <li class="shop-servo-effect--buy">
+              <span class="shop-servo-effect-kicker mono">Buy</span>
+              <strong>Five of one model</strong>
+              <span class="shop-servo-effect-detail">Arms and body need five motors — same model only, never mix</span>
+            </li>
+          </ul>
+        </div>
+        <p class="shop-servo-pick-label mono">Pick one path</p>
+        <div id="shop-servo-picker" class="shop-servo-picker" role="radiogroup" aria-label="Servo preset — sets robot size"></div>
+        <p id="shop-servo-status" class="shop-step-status shop-servo-outcome mono" aria-live="polite"></p>
+      </section>
+
+      <section id="shop-step-board" class="panel shop-jlcpcb-panel" aria-label="Order main control board">
+        <p class="panel-label">2 · Order the board</p>
+        <p class="shop-step-lede">
+          Slowest step — the factory often takes <strong>weeks</strong>. Start this now.
+          Reference boards from this design were built and checked; each fab order is still independent, so review stock and orientation at checkout.
+        </p>
+        <div id="shop-jlcpcb" class="shop-jlcpcb"></div>
+      </section>
+
+      <div id="shop-lanes" class="shop-lanes"></div>
+
+      <section id="shop-step-continue" class="panel shop-footer-panel" aria-label="Continue to print">
+        <div class="shop-footer-main">
+          <div class="shop-footer-copy">
+            <p class="panel-label">5 · Continue</p>
+            <p class="shop-step-lede shop-footer-lede">Ready for 3D printing? Continue when you like.</p>
+            <p id="shop-continue-warn" class="shop-continue-warn" hidden role="status"></p>
+          </div>
+          <div class="shop-footer-actions">
+            <button id="shop-clear-checks" class="btn" type="button">Clear checks</button>
+            <a class="btn btn-primary shop-footer-cta" href="../print/">Continue to Print</a>
+          </div>
+        </div>
+        <details class="shop-footer-advanced">
+          <summary class="shop-footer-advanced-summary mono">
+            <span class="shop-footer-alt-tag">Advanced</span>
+            Extra options for contributors
+          </summary>
+          <p class="shop-footer-alt mono">
+            Skipping the factory-assembled board? Wire PCA9685 / amp / USB-C breakouts yourself —
+            <a id="shop-advanced-link" href="https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md#advanced-extra-modules" target="_blank" rel="noopener noreferrer">shopping.md</a>
+          </p>
+          <p class="shop-footer-alt mono">
+            Markdown cart:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md">docs/shopping.md</a>
+            · UI data:
+            <a href="./cart.json">cart.json</a>
+          </p>
+        </details>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p class="mono">List lives in <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md">docs/shopping.md</a></p>
+      <p class="mono">Tiny Engineer build guide · Shop</p>
     </footer>
   </div>
+  <script type="module" src="../js/shop-cart.js?v=shop-img-rescale"></script>
 </body>
 </html>

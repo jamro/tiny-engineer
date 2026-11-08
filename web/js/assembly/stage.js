@@ -78,6 +78,9 @@ export function createStage(element, label) {
   let flight = null;
   let zoomAnim = null;
   let userMoved = false;
+  /** When true, resize only updates aspect — never snaps back to a default frame(). */
+  let poseLocked = false;
+  const resizeListeners = new Set();
   controls.addEventListener('start', () => { userMoved = true; });
   const tickers = new Set();
   /** Calls `tick(time)` every frame; a true return redraws. Returns a remover. */
@@ -108,9 +111,10 @@ export function createStage(element, label) {
   const zoomOut = () => zoomBy(1.25);
 
   /** Frame a bounding box: sets the floor under it and the home view around it. */
-  const frame = (box, { keepFloor = false } = {}) => {
+  const frame = (box, { keepFloor = false, direction: fromDir = null, margin = 0.9 } = {}) => {
     framed = box.clone();
     userMoved = false;
+    poseLocked = false;
     const size = box.getSize(new THREE.Vector3());
     const centre = box.getCenter(new THREE.Vector3());
     if (!keepFloor) floor.position.y = grid.position.y = box.min.y - 0.05;
@@ -118,8 +122,8 @@ export function createStage(element, label) {
     // Fit the narrower of the two fields of view (a phone is taller than wide).
     const vertical = THREE.MathUtils.degToRad(camera.fov);
     const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * camera.aspect);
-    const distance = radius / Math.sin(Math.min(vertical, horizontal) / 2) * 0.9;
-    const direction = new THREE.Vector3(0.62, 0.42, 0.66).normalize();
+    const distance = radius / Math.sin(Math.min(vertical, horizontal) / 2) * margin;
+    const direction = (fromDir ? fromDir.clone() : new THREE.Vector3(0.62, 0.42, 0.66)).normalize();
     home.target.copy(centre);
     home.position.copy(centre).addScaledVector(direction, distance);
     key.position.copy(centre).add(new THREE.Vector3(260, 420, 300));
@@ -135,7 +139,18 @@ export function createStage(element, label) {
     renderer.setSize(width, height);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    if (framed && !userMoved) frame(framed, { keepFloor: true });
+    if (poseLocked) {
+      // Keep live camera on resize. Only refresh home when the user has not
+      // orbited — otherwise reset() would return to the post-orbit pose
+      // instead of the flyTo / commitView destination.
+      if (!userMoved) {
+        home.position.copy(camera.position);
+        home.target.copy(controls.target);
+      }
+    } else if (framed && !userMoved) {
+      frame(framed, { keepFloor: true });
+    }
+    for (const listener of resizeListeners) listener(width, height);
     invalidate();
   });
   resize.observe(element);
@@ -169,6 +184,8 @@ export function createStage(element, label) {
       const fromPosition = camera.position.clone();
       const fromTarget = controls.target.clone();
       const toPosition = centre.clone().addScaledVector(direction, distance);
+      // Keep resize/reset aimed at this frame once the glide finishes.
+      const toFramed = box.clone();
       const start = performance.now();
       if (flight) flight();
       const remove = onTick((time) => {
@@ -176,15 +193,66 @@ export function createStage(element, label) {
         const e = f * f * (3 - 2 * f);
         camera.position.lerpVectors(fromPosition, toPosition, e);
         controls.target.lerpVectors(fromTarget, centre, e);
-        if (f >= 1) { remove(); flight = null; }
+        if (f >= 1) {
+          framed = toFramed;
+          home.target.copy(centre);
+          home.position.copy(toPosition);
+          userMoved = false;
+          poseLocked = true;
+          remove();
+          flight = null;
+        }
         return true;
       });
       flight = remove;
     },
     /** Frame `box` again unless the user has moved the camera since the last framing. */
-    refit(box) { if (!userMoved) frame(box, { keepFloor: true }); },
+    refit(box) { if (!userMoved && !poseLocked) frame(box, { keepFloor: true }); },
+    /** Stop an in-flight flyTo so another camera move can take over cleanly. */
+    cancelFlight() {
+      if (flight) { flight(); flight = null; }
+    },
+    /**
+     * Remember `box` as the framed view using the current camera pose (no snap).
+     * Locks the pose so container resize will not call frame() and jump the camera.
+     * `keepFloor` leaves the grid where it is (tight zooms must not lift it into the mesh).
+     */
+    commitView(box, { keepFloor = false } = {}) {
+      framed = box.clone();
+      home.position.copy(camera.position);
+      home.target.copy(controls.target);
+      userMoved = false;
+      poseLocked = true;
+      if (box && !keepFloor) {
+        floor.position.y = grid.position.y = box.min.y - 0.05;
+      }
+      invalidate();
+    },
+    /** Lock the current camera pose against resize reframing (e.g. during a scripted take). */
+    lockPose() {
+      poseLocked = true;
+      home.position.copy(camera.position);
+      home.target.copy(controls.target);
+      invalidate();
+    },
+    /** Subscribe to container resizes (after aspect is updated). Returns a remover. */
+    onResize(listener) {
+      resizeListeners.add(listener);
+      return () => resizeListeners.delete(listener);
+    },
+    /** Pin floor/grid under `box`, `gap` mm below min.y (scene Y-up). */
+    setFloorUnder(box, gap = 0.05) {
+      floor.position.y = grid.position.y = box.min.y - gap;
+      invalidate();
+    },
+    /** Pin floor/grid to an absolute scene Y (does not track the mesh). */
+    setFloorY(y) {
+      floor.position.y = grid.position.y = y;
+      invalidate();
+    },
     dispose() {
       resize.disconnect();
+      resizeListeners.clear();
       cancelAnimationFrame(animation);
       controls.dispose();
       renderer.dispose();

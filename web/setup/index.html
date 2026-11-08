@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Setup · Tiny Engineer</title>
-  <meta name="description" content="Finish Tiny Engineer setup after assembly.">
+  <meta name="description" content="Power on the robot, finish the setup screens, and join home Wi-Fi.">
   <link rel="preconnect" href="https://fonts.bunny.net">
   <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
   <link rel="stylesheet" href="../css/tokens.css">
   <link rel="stylesheet" href="../css/base.css">
 </head>
-<body class="page-setup">
+<body class="page-setup page-build">
   <div class="wrap">
     <header class="site-header" data-page="setup" data-root="../"></header>
     <script src="../js/site-header.js"></script>
@@ -21,33 +21,214 @@
         <nav class="build-timeline" data-stage="setup" data-root="../"></nav>
         <script src="../js/build-timeline.js"></script>
         <div class="flash-intro">
-          <p class="eyebrow">Config · first boot</p>
+          <p class="eyebrow">First boot</p>
           <h1>Setup</h1>
           <p class="lede">
-            Finish board setup after the robot is assembled.
+            Use your phone for setup, then try a pose from your computer.
           </p>
         </div>
       </div>
 
-      <section class="panel">
-        <p class="panel-label">Setup wizard</p>
-        <div class="panel-body stage-doc-body">
+      <div class="setup-split">
+      <section class="panel setup-wizard" aria-labelledby="setup-wizard-label">
+        <p class="panel-label" id="setup-wizard-label">
+          <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-checklist"></use></svg>
+          On-robot wizard
+        </p>
+        <p class="setup-phone callout">
+          <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-smartphone"></use></svg>
+          <span><strong>Use your phone.</strong> It is the easiest way to tap through setup while you stand next to the robot.</span>
+        </p>
+        <ol class="setup-flow" role="list">
+          <li>
+            <span class="setup-step-mark" aria-hidden="true">
+              <svg class="icon"><use href="../media/icons.svg?v=1#i-plug"></use></svg>
+              <span class="setup-step-num mono">01</span>
+            </span>
+            <div class="setup-step-body">
+              <h2 class="setup-step-title">Connect power</h2>
+              <p class="setup-step-text">
+                The robot starts a Wi-Fi network named <code class="mono">TinyEngineer-XXXX</code>.
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="setup-step-mark" aria-hidden="true">
+              <svg class="icon"><use href="../media/icons.svg?v=1#i-wifi"></use></svg>
+              <span class="setup-step-num mono">02</span>
+            </span>
+            <div class="setup-step-body">
+              <h2 class="setup-step-title">Open setup on your phone</h2>
+              <p class="setup-step-text">
+                Join that Wi-Fi, then open
+                <a href="http://192.168.4.1/config"><code class="mono">http://192.168.4.1/config</code></a>.
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="setup-step-mark" aria-hidden="true">
+              <svg class="icon"><use href="../media/icons.svg?v=1#i-checklist"></use></svg>
+              <span class="setup-step-num mono">03</span>
+            </span>
+            <div class="setup-step-body">
+              <h2 class="setup-step-title">Walk through every screen</h2>
+              <ol class="setup-screens" role="list">
+                <li>
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-sliders"></use></svg>
+                  <p><strong>Servos.</strong> Tap <strong>Calibrate servos</strong> and follow Body, Neck, Head, then Hands.</p>
+                </li>
+                <li>
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-monitor"></use></svg>
+                  <p><strong>Screen.</strong> If the text is upside down, tap <strong>Rotate 180°</strong>.</p>
+                </li>
+                <li>
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-lightbulb"></use></svg>
+                  <p><strong>RGB mapping.</strong> Tap <strong>Red</strong>, <strong>Green</strong>, and <strong>Blue</strong>. Change the color order only if a color looks wrong.</p>
+                </li>
+                <li>
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-speaker"></use></svg>
+                  <p><strong>Speaker.</strong> Tap <strong>Play</strong> and listen for the welcome clip.</p>
+                </li>
+                <li>
+                  <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-wifi"></use></svg>
+                  <p><strong>Connection.</strong> Set the robot’s name and your home Wi-Fi (2.4 GHz only), or choose <strong>USB connection only</strong>.</p>
+                </li>
+              </ol>
+            </div>
+          </li>
+          <li>
+            <span class="setup-step-mark" aria-hidden="true">
+              <svg class="icon"><use href="../media/icons.svg?v=1#i-power"></use></svg>
+              <span class="setup-step-num mono">04</span>
+            </span>
+            <div class="setup-step-body">
+              <h2 class="setup-step-title">Power off, then on</h2>
+              <p class="setup-step-text">
+                When the wizard is finished, unplug power, then plug it back in.
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="setup-step-mark" aria-hidden="true">
+              <svg class="icon"><use href="../media/icons.svg?v=1#i-wifi"></use></svg>
+              <span class="setup-step-num mono">05</span>
+            </span>
+            <div class="setup-step-body">
+              <h2 class="setup-step-title">It joins your Wi-Fi</h2>
+              <p class="setup-step-text">
+                The robot connects to your home network. Try a pose at
+                <a href="http://tiny-engineer.local/" target="_blank" rel="noopener noreferrer"><code class="mono">http://tiny-engineer.local/</code></a>.
+              </p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <div class="setup-side">
+      <a class="setup-url" href="http://tiny-engineer.local/" target="_blank" rel="noopener noreferrer">
+        <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-monitor"></use></svg>
+        <span class="setup-url-text">
+          <span class="setup-url-label">Open control page</span>
+          <span class="setup-url-host mono">http://tiny-engineer.local/</span>
+        </span>
+        <svg class="icon setup-url-go" aria-hidden="true"><use href="../media/icons.svg?v=1#i-external"></use></svg>
+      </a>
+      <section class="panel setup-try" aria-labelledby="setup-try-label">
+        <p class="panel-label" id="setup-try-label">
+          <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-terminal"></use></svg>
+          Try it
+        </p>
+        <div class="panel-body stage-doc-body use-body">
+          <div class="setup-curl">
+            <label class="field-label" for="setup-curl-health">curl health</label>
+            <div class="setup-curl-row">
+              <input id="setup-curl-health" class="setup-curl-field mono" type="text" readonly spellcheck="false" value="curl http://tiny-engineer.local/health">
+              <button class="btn setup-copy" type="button" data-copy-target="setup-curl-health" aria-label="Copy curl health">
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-copy"></use></svg>
+              </button>
+            </div>
+          </div>
+          <div class="setup-curl">
+            <label class="field-label" for="setup-curl-ring">curl ring</label>
+            <div class="setup-curl-row">
+              <input id="setup-curl-ring" class="setup-curl-field mono" type="text" readonly spellcheck="false" value="curl -X POST &quot;http://tiny-engineer.local/anim?name=ring&quot;">
+              <button class="btn setup-copy" type="button" data-copy-target="setup-curl-ring" aria-label="Copy curl ring">
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-copy"></use></svg>
+              </button>
+            </div>
+          </div>
           <p>
-            Servo calibration, the setup wizard, and first boot onto home Wi-Fi.
-          </p>
-          <p>
-            <a class="btn btn-primary" href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md#20-setup-wizard-and-first-boot-on-wi-fi" target="_blank" rel="noopener noreferrer">
-              Open setup instructions
-              <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-external"></use></svg>
-            </a>
+            Full API:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md" target="_blank" rel="noopener noreferrer">api.md</a>.
+            Access token set? Add
+            <code class="mono">Authorization: Bearer</code> —
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md#get-auth" target="_blank" rel="noopener noreferrer">auth</a>.
           </p>
         </div>
+      </section>
+      <section class="panel setup-cli" aria-labelledby="setup-cli-label">
+        <p class="panel-label" id="setup-cli-label">
+          <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-plug"></use></svg>
+          Project hooks
+        </p>
+        <div class="panel-body stage-doc-body use-body">
+          <p>
+            In your coding project folder, run this once. It wires Cursor, Claude Code, or Antigravity so the robot reacts while you work.
+          </p>
+          <div class="setup-curl">
+            <label class="field-label" for="setup-cli-setup">CLI setup</label>
+            <div class="setup-curl-row">
+              <input id="setup-cli-setup" class="setup-curl-field mono" type="text" readonly spellcheck="false" value="npx -y tiny-engineer setup">
+              <button class="btn setup-copy" type="button" data-copy-target="setup-cli-setup" aria-label="Copy CLI setup">
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg?v=1#i-copy"></use></svg>
+              </button>
+            </div>
+          </div>
+          <p>
+            More detail:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md" target="_blank" rel="noopener noreferrer">integration.md</a>.
+          </p>
+        </div>
+      </section>
+      </div>
+      </div>
+      <section class="panel shop-footer-panel" aria-label="Build complete">
+        <div class="shop-footer-main">
+          <div class="shop-footer-copy">
+            <p class="panel-label">Done</p>
+            <p class="shop-step-lede shop-footer-lede">Robot online? You’re finished with the build guide.</p>
+          </div>
+          <div class="shop-footer-actions">
+            <button id="setup-restart-guide" class="btn" type="button">Start from scratch</button>
+            <a class="btn btn-primary shop-footer-cta" href="../">Back to Home</a>
+          </div>
+        </div>
+        <details class="shop-footer-advanced">
+          <summary class="shop-footer-advanced-summary mono">
+            <span class="shop-footer-alt-tag">Advanced</span>
+            Agent hooks &amp; board docs
+          </summary>
+          <p class="shop-footer-alt mono">
+            Agent hooks:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md" target="_blank" rel="noopener noreferrer">docs/integration.md</a>
+            · board:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/main-control-board.md" target="_blank" rel="noopener noreferrer">main-control-board.md</a>
+            · API:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md" target="_blank" rel="noopener noreferrer">api.md</a>
+          </p>
+        </details>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p class="mono">Board guide: <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/main-control-board.md">docs/hardware/main-control-board.md</a></p>
+      <p class="mono">Tiny Engineer build guide · Setup</p>
     </footer>
   </div>
+  <script>
+    document.getElementById("setup-restart-guide")?.addEventListener("click", () => {
+      window.TinyEngineerBuild?.restartGuide("../");
+    });
+  </script>
+  <script src="../js/copy-button.js"></script>
 </body>
 </html>

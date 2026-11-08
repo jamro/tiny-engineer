@@ -76,3 +76,48 @@ SPDX-License-Identifier = "CERN-OHL-S-2.0"
 path = "scripts/assembly/hardware/**"
 SPDX-FileCopyrightText = "2026 Krzysztof Jamroz"
 SPDX-License-Identifier = "CERN-OHL-S-2.0"
+
+[[annotations]]
+path = "web/vendor/three/**"
+SPDX-FileCopyrightText = "2010-2026 three.js authors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web/vendor/esp-web-tools/**"
+SPDX-FileCopyrightText = "Open Home Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Lit (lit-html / LitElement / reactive-element) is bundled into the styles chunk.
+[[annotations]]
+path = "web/vendor/esp-web-tools/styles-*.js"
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "Open Home Foundation",
+  "Google LLC",
+  "The Lit Project Contributors",
+]
+SPDX-License-Identifier = "Apache-2.0 AND BSD-3-Clause"
+
+# ROM helpers + flasher stubs are vendored esptool-js (Espressif).
+[[annotations]]
+path = [
+  "web/vendor/esp-web-tools/esp32*.js",
+  "web/vendor/esp-web-tools/stub_flasher_*.js",
+]
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "Open Home Foundation",
+  "Espressif Systems (Shanghai) CO LTD",
+]
+SPDX-License-Identifier = "Apache-2.0"
+
+# Dialog bundles esptool-js and its pako dependency.
+[[annotations]]
+path = "web/vendor/esp-web-tools/install-dialog-*.js"
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "Open Home Foundation",
+  "Espressif Systems (Shanghai) CO LTD",
+  "Vitaly Puzrin and Andrei Tuputcyn",
+]
+SPDX-License-Identifier = "Apache-2.0 AND MIT AND Zlib"

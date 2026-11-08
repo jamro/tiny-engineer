@@ -9,8 +9,16 @@
   <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
   <link rel="stylesheet" href="../css/tokens.css">
   <link rel="stylesheet" href="../css/base.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../vendor/three/build/three.module.js",
+        "three/addons/": "../vendor/three/examples/jsm/"
+      }
+    }
+  </script>
 </head>
-<body class="page-print">
+<body class="page-print page-build">
   <div class="wrap">
     <header class="site-header" data-page="print" data-root="../"></header>
     <script src="../js/site-header.js"></script>
@@ -21,33 +29,107 @@
         <nav class="build-timeline" data-stage="print" data-root="../"></nav>
         <script src="../js/build-timeline.js"></script>
         <div class="flash-intro">
-          <p class="eyebrow">3D · 3MF</p>
+          <p class="eyebrow">3D · parts</p>
           <h1>Print</h1>
           <p class="lede">
-            Print the parts that match the servos you bought.
+            Same motors as Shop. Optional fit testers first (recommended), then the full set by color.
           </p>
         </div>
       </div>
 
-      <section class="panel">
-        <p class="panel-label">3D models</p>
-        <div class="panel-body stage-doc-body">
-          <p>
-            Printables, CAD, and print-first testers live with the 3D models.
-          </p>
-          <p>
-            <a class="btn btn-primary" href="https://github.com/jamro/tiny-engineer/blob/main/3d_models/README.md" target="_blank" rel="noopener noreferrer">
-              Open print instructions
-              <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-external"></use></svg>
-            </a>
-          </p>
+      <p id="print-status" class="shop-status mono" role="status" data-state="loading">Loading parts…</p>
+
+      <section class="panel shop-timeline-panel" aria-label="Print progress" id="print-glance" hidden>
+        <div class="shop-timeline-head">
+          <p class="panel-label">At a glance</p>
+          <span id="print-check-progress" class="shop-check-progress mono" aria-live="polite"></span>
         </div>
+        <ol id="print-order-timeline" class="shop-order-timeline print-order-timeline"></ol>
+      </section>
+
+      <section id="print-variant" class="panel print-variant-panel" aria-label="Servo print set" hidden>
+        <p class="panel-label">1 · Your print set</p>
+        <div class="shop-servo-intro print-variant-intro">
+          <p class="shop-step-lede shop-servo-lede">
+            Print files follow the servo model chosen in the Shop Section — that size is the CAD base. Pick a different model there to switch the whole set.
+          </p>
+          <ul class="shop-servo-effects">
+            <li class="print-variant-servo">
+              <div class="print-variant-servo-main">
+                <span class="shop-servo-effect-kicker mono">Servo</span>
+                <strong id="print-variant-label">—</strong>
+                <span id="print-variant-meta" class="shop-servo-effect-detail mono">—</span>
+              </div>
+              <a
+                class="print-shop-link"
+                href="../shop/"
+                title="Change servo in Shop"
+                aria-label="Change servo in Shop"
+              >
+                <svg class="icon" aria-hidden="true"><use href="../media/icons.svg#i-refresh"></use></svg>
+                Change
+              </a>
+            </li>
+            <li>
+              <span class="shop-servo-effect-kicker mono">Files</span>
+              <strong>3MF + STL</strong>
+              <span class="shop-servo-effect-detail">Prefer 3MF for home printers; STL for many print services</span>
+            </li>
+            <li class="shop-servo-effect--buy">
+              <span class="shop-servo-effect-kicker mono">Order</span>
+              <strong>Testers (recommended)</strong>
+              <span class="shop-servo-effect-detail">Optional fit checks, then copper / black / white</span>
+            </li>
+          </ul>
+        </div>
+        <p id="print-variant-note" class="shop-step-status mono" hidden></p>
+      </section>
+
+      <section id="print-testers" class="panel shop-lane" aria-label="Fit testers" hidden>
+        <div class="shop-lane-head">
+          <p class="panel-label">2 · Fit testers <span class="print-optional-tag mono">optional · recommended</span></p>
+          <span id="print-tester-progress" class="shop-lane-progress mono" aria-live="polite"></span>
+        </div>
+        <p class="shop-step-lede">
+          Two small pieces to check servo pocket and M2 screw fit on your printer — saves a full-set reprint if something is off. Skip if you already know this setup.
+        </p>
+        <ul id="print-tester-list" class="print-check-list"></ul>
+      </section>
+
+      <div id="print-lanes" class="shop-lanes print-lanes" hidden></div>
+
+      <section id="print-continue" class="panel shop-footer-panel" aria-label="Continue to flash" hidden>
+        <div class="shop-footer-main">
+          <div class="shop-footer-copy">
+            <p class="panel-label">Continue</p>
+            <p class="shop-step-lede shop-footer-lede">Parts ready? Next is flashing the board over USB.</p>
+          </div>
+          <div class="shop-footer-actions">
+            <button id="print-clear-checks" class="btn" type="button">Clear checks</button>
+            <a class="btn btn-primary shop-footer-cta" href="../flash/">Continue to Flash</a>
+          </div>
+        </div>
+        <details class="shop-footer-advanced">
+          <summary class="shop-footer-advanced-summary mono">
+            <span class="shop-footer-alt-tag">Advanced</span>
+            Full print notes &amp; CAD
+          </summary>
+          <p class="shop-footer-alt mono">
+            Markdown guide:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/3d_models/README.md" target="_blank" rel="noopener noreferrer">3d_models/README.md</a>
+            · order without a printer:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/3d/order-parts.md" target="_blank" rel="noopener noreferrer">order-parts.md</a>
+            · UI data:
+            <a href="./parts.json">parts.json</a>
+          </p>
+        </details>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p class="mono">Guide lives in <a href="https://github.com/jamro/tiny-engineer/blob/main/3d_models/README.md">3d_models/README.md</a></p>
+      <p class="mono">Tiny Engineer build guide · Print</p>
     </footer>
   </div>
+  <script type="module" src="../js/print-queue.js"></script>
 </body>
 </html>
