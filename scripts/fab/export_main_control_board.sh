@@ -126,7 +126,7 @@ ensure_toolkit_root() {
     mkdir -p "$CACHE_DIR"
     local tgz="$CACHE_DIR/Fabrication-Toolkit-${TOOLKIT_VERSION}.tar.gz"
     local url="https://github.com/bennymeg/Fabrication-Toolkit/archive/refs/tags/${TOOLKIT_VERSION}.tar.gz"
-    echo "Downloading Fabrication Toolkit ${TOOLKIT_VERSION}…"
+    echo "Downloading Fabrication Toolkit ${TOOLKIT_VERSION}…" >&2
     curl -fL --retry 5 --retry-delay 5 -o "$tgz" "$url"
     rm -rf "$extract"
     tar -xzf "$tgz" -C "$CACHE_DIR"
