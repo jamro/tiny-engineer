@@ -2,45 +2,11 @@
  * Shop stage cart: load cart.json, servo pick, JLCPCB lane, checklist + localStorage.
  * Mount: empty nodes with ids shop-* in web/shop/index.html, then this script.
  */
+import { read, write, loadChecked, saveChecked } from "./storage.js";
+
 (function () {
   const SERVO_KEY = "tiny-engineer.shop.servo";
   const CHECKED_KEY = "tiny-engineer.shop.checked";
-
-  const read = (key) => {
-    try {
-      return window.localStorage?.getItem(key) ?? null;
-    } catch {
-      return null;
-    }
-  };
-
-  const write = (key, value) => {
-    try {
-      if (value == null) window.localStorage?.removeItem(key);
-      else window.localStorage?.setItem(key, String(value));
-    } catch {
-      /* private mode / quota */
-    }
-  };
-
-  const loadChecked = () => {
-    const raw = read(CHECKED_KEY);
-    if (!raw) return new Set();
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return new Set(parsed.map(String));
-      if (parsed && typeof parsed === "object") {
-        return new Set(Object.keys(parsed).filter((k) => parsed[k]));
-      }
-    } catch {
-      /* ignore */
-    }
-    return new Set();
-  };
-
-  const saveChecked = (set) => {
-    write(CHECKED_KEY, JSON.stringify([...set]));
-  };
 
   const el = (id) => document.getElementById(id);
 
@@ -53,7 +19,7 @@
 
   let cart = null;
   let servoId = null;
-  let checked = loadChecked();
+  let checked = loadChecked(CHECKED_KEY);
 
   const servoById = (id) => cart?.servos?.find((s) => s.id === id);
 
@@ -645,7 +611,7 @@
       const syncDone = () => {
         if (box.checked) checked.add(item.id);
         else checked.delete(item.id);
-        saveChecked(checked);
+        saveChecked(checked, CHECKED_KEY);
         li.classList.toggle("is-done", box.checked);
         mark.hidden = !box.checked;
         updateCheckProgress();
@@ -783,7 +749,7 @@
 
   const clearChecks = () => {
     checked = new Set();
-    saveChecked(checked);
+    saveChecked(checked, CHECKED_KEY);
     renderLanes();
     updateCheckProgress();
   };

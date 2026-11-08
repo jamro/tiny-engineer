@@ -4,46 +4,11 @@
  */
 import * as THREE from "three";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
+import { read, loadChecked, saveChecked } from "./storage.js";
 
 const SERVO_KEY = "tiny-engineer.shop.servo";
 const CHECKED_KEY = "tiny-engineer.print.checked";
 const SUPPORTED = new Set(["sg90", "fs0307", "es9051"]);
-
-const read = (key) => {
-  try {
-    return window.localStorage?.getItem(key) ?? null;
-  } catch {
-    return null;
-  }
-};
-
-const write = (key, value) => {
-  try {
-    if (value == null) window.localStorage?.removeItem(key);
-    else window.localStorage.setItem(key, String(value));
-  } catch {
-    /* private mode / quota */
-  }
-};
-
-const loadChecked = (key = CHECKED_KEY) => {
-  const raw = read(key);
-  if (!raw) return new Set();
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return new Set(parsed.map(String));
-    if (parsed && typeof parsed === "object") {
-      return new Set(Object.keys(parsed).filter((k) => parsed[k]));
-    }
-  } catch {
-    /* ignore */
-  }
-  return new Set();
-};
-
-const saveChecked = (set, key = CHECKED_KEY) => {
-  write(key, JSON.stringify([...set]));
-};
 
 const el = (id) => document.getElementById(id);
 

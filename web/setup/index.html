@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../css/tokens.css">
   <link rel="stylesheet" href="../css/base.css">
 </head>
-<body class="page-setup">
+<body class="page-setup page-build">
   <div class="wrap">
     <header class="site-header" data-page="setup" data-root="../"></header>
     <script src="../js/site-header.js"></script>
@@ -228,31 +228,7 @@
     document.getElementById("setup-restart-guide")?.addEventListener("click", () => {
       window.TinyEngineerBuild?.restartGuide("../");
     });
-
-    document.querySelectorAll(".setup-copy").forEach((button) => {
-      const icon = button.querySelector("use");
-      button.addEventListener("click", async () => {
-        const field = document.getElementById(button.dataset.copyTarget);
-        const text = field?.value ?? "";
-        let ok = true;
-        try {
-          await navigator.clipboard.writeText(text);
-        } catch {
-          field?.focus();
-          field?.select();
-          ok = document.execCommand("copy");
-        }
-        if (!icon || !ok) {
-          return;
-        }
-        icon.setAttribute("href", "../media/icons.svg?v=1#i-check");
-        button.classList.add("is-copied");
-        window.setTimeout(() => {
-          icon.setAttribute("href", "../media/icons.svg?v=1#i-copy");
-          button.classList.remove("is-copied");
-        }, 1200);
-      });
-    });
   </script>
+  <script src="../js/copy-button.js"></script>
 </body>
 </html>

@@ -279,31 +279,6 @@
     </footer>
   </div>
   <script src="js/video-poster.js" defer></script>
-  <script>
-    document.querySelectorAll(".setup-copy").forEach((button) => {
-      const icon = button.querySelector("use");
-      button.addEventListener("click", async () => {
-        const field = document.getElementById(button.dataset.copyTarget);
-        const text = field?.value ?? "";
-        let ok = true;
-        try {
-          await navigator.clipboard.writeText(text);
-        } catch {
-          field?.focus();
-          field?.select();
-          ok = document.execCommand("copy");
-        }
-        if (!icon || !ok) {
-          return;
-        }
-        icon.setAttribute("href", "media/icons.svg#i-check");
-        button.classList.add("is-copied");
-        window.setTimeout(() => {
-          icon.setAttribute("href", "media/icons.svg#i-copy");
-          button.classList.remove("is-copied");
-        }, 1200);
-      });
-    });
-  </script>
+  <script src="js/copy-button.js" defer></script>
 </body>
 </html>

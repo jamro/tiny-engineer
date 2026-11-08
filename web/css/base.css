@@ -149,21 +149,11 @@ main {
   align-items: center;
 }
 
-.page-shop .wrap,
-.page-print .wrap,
-.page-connect .wrap,
-.page-flash .wrap,
-.page-setup .wrap,
-.page-use .wrap {
+.page-build:not(.page-assembly) .wrap {
   width: min(100% - 2rem, 80rem);
 }
 
-.page-shop main,
-.page-print main,
-.page-connect main,
-.page-flash main,
-.page-setup main,
-.page-use main {
+.page-build:not(.page-assembly) main {
   gap: 1.25rem;
 }
 
@@ -1223,11 +1213,7 @@ h1 {
 }
 
 /* Build-guide pages: one-line stage stamp under the continue CTA. */
-.page-shop .site-footer,
-.page-print .site-footer,
-.page-flash .site-footer,
-.page-assembly .site-footer,
-.page-setup .site-footer {
+.page-build .site-footer {
   margin-top: 1.25rem;
 }
 
@@ -1368,13 +1354,7 @@ h1 {
   max-width: 46ch;
 }
 
-.page-shop .build-head,
-.page-print .build-head,
-.page-connect .build-head,
-.page-flash .build-head,
-.page-assembly .build-head,
-.page-setup .build-head,
-.page-use .build-head {
+.page-build .build-head {
   --build-head-lede-lines: 2;
   gap: 0.85rem;
   box-sizing: border-box;
@@ -1384,49 +1364,25 @@ h1 {
   margin-bottom: 0.15rem;
 }
 
-.page-shop .flash-intro,
-.page-print .flash-intro,
-.page-connect .flash-intro,
-.page-flash .flash-intro,
-.page-assembly .flash-intro,
-.page-setup .flash-intro,
-.page-use .flash-intro {
+.page-build .flash-intro {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   min-height: 5.75rem;
 }
 
-.page-shop .flash-intro .eyebrow,
-.page-print .flash-intro .eyebrow,
-.page-connect .flash-intro .eyebrow,
-.page-flash .flash-intro .eyebrow,
-.page-assembly .flash-intro .eyebrow,
-.page-setup .flash-intro .eyebrow,
-.page-use .flash-intro .eyebrow {
+.page-build .flash-intro .eyebrow {
   margin-bottom: 0.4rem;
 }
 
-.page-shop .flash-intro h1,
-.page-print .flash-intro h1,
-.page-connect .flash-intro h1,
-.page-flash .flash-intro h1,
-.page-assembly .flash-intro h1,
-.page-setup .flash-intro h1,
-.page-use .flash-intro h1 {
+.page-build .flash-intro h1 {
   margin: 0 0 0.4rem;
   font-size: clamp(1.6rem, 2.4vw, 2rem);
   line-height: 1.15;
   min-height: 1.15em;
 }
 
-.page-shop .flash-intro .lede,
-.page-print .flash-intro .lede,
-.page-connect .flash-intro .lede,
-.page-flash .flash-intro .lede,
-.page-assembly .flash-intro .lede,
-.page-setup .flash-intro .lede,
-.page-use .flash-intro .lede {
+.page-build .flash-intro .lede {
   font-size: 0.95rem;
   line-height: 1.4;
   max-width: 36ch;
@@ -1732,13 +1688,7 @@ h1 {
 }
 
 @media (min-width: 720px) {
-  .page-shop .build-head,
-  .page-print .build-head,
-  .page-connect .build-head,
-  .page-flash .build-head,
-  .page-assembly .build-head,
-  .page-setup .build-head,
-  .page-use .build-head {
+  .page-build .build-head {
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
@@ -1746,24 +1696,12 @@ h1 {
     min-height: 7.25rem;
   }
 
-  .page-shop .flash-intro,
-  .page-print .flash-intro,
-  .page-connect .flash-intro,
-  .page-flash .flash-intro,
-  .page-assembly .flash-intro,
-  .page-setup .flash-intro,
-  .page-use .flash-intro {
+  .page-build .flash-intro {
     order: 1;
     min-height: 5.5rem;
   }
 
-  .page-shop .build-timeline,
-  .page-print .build-timeline,
-  .page-connect .build-timeline,
-  .page-flash .build-timeline,
-  .page-assembly .build-timeline,
-  .page-setup .build-timeline,
-  .page-use .build-timeline {
+  .page-build .build-timeline {
     order: 2;
     flex: 0 0 auto;
     padding-bottom: 0.15rem;
