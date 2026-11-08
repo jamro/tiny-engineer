@@ -186,6 +186,49 @@ jobs:
           test -s web/print/files/sg90/Head.stl
           test -s web/print/files/fs0307/Head.stl
           test -s web/print/files/es9051/Head.stl
+      - name: Inject Clarity
+        env:
+          CLARITY_PROJECT_ID: ${{ vars.CLARITY_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "${CLARITY_PROJECT_ID}"
+          python3 <<'PY'
+          import os
+          from pathlib import Path
+
+          pid = os.environ["CLARITY_PROJECT_ID"].strip()
+          if not pid or any(c in pid for c in "\"'<>"):
+              raise SystemExit("invalid CLARITY_PROJECT_ID")
+
+          snippet = f"""<script type="text/javascript">
+          (function(c,l,a,r,i,t,y){{
+              c[a]=c[a]||function(){{(c[a].q=c[a].q||[]).push(arguments)}};
+              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          }})(window, document, "clarity", "script", "{pid}");
+          </script>
+          """
+
+          skip = {"web/pcba_test/index.html"}
+          injected = 0
+          for path in sorted(Path("web").rglob("*.html")):
+              rel = path.as_posix()
+              if rel in skip:
+                  continue
+              text = path.read_text(encoding="utf-8")
+              if "clarity.ms/tag/" in text or "</head>" not in text:
+                  continue
+              path.write_text(
+                  text.replace("</head>", snippet + "</head>", 1),
+                  encoding="utf-8",
+              )
+              print(f"clarity: {rel}")
+              injected += 1
+
+          if injected == 0:
+              raise SystemExit("Inject Clarity: no HTML files updated")
+          print(f"clarity: injected into {injected} files")
+          PY
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
