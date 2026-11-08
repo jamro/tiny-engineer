@@ -8,7 +8,6 @@ import { read, loadChecked, saveChecked } from "./storage.js";
 
 const SERVO_KEY = "tiny-engineer.shop.servo";
 const CHECKED_KEY = "tiny-engineer.print.checked";
-const SUPPORTED = new Set(["sg90", "fs0307", "es9051"]);
 
 const el = (id) => document.getElementById(id);
 
@@ -291,7 +290,7 @@ function resolveServo(data) {
   if (!raw) {
     return { id: defaultId, note: null, usedFallback: false };
   }
-  if (SUPPORTED.has(raw) && data.servos?.[raw]) {
+  if (Object.hasOwn(data.servos ?? {}, raw)) {
     return { id: raw, note: null, usedFallback: false };
   }
   return {
@@ -391,15 +390,17 @@ function makeTile(item, { filesBase, swatch, checked, onToggle, previews }) {
   const actions = document.createElement("div");
   actions.className = "shop-item-actions print-item-actions";
   for (const fmt of ["3mf", "stl"]) {
+    const name = item.files?.[fmt];
+    if (!name) continue;
     const a = document.createElement("a");
     // Same size; 3MF primary green, STL secondary via print-dl--stl.
     a.className =
       fmt === "3mf"
         ? "shop-item-buy print-dl"
         : "shop-item-buy print-dl print-dl--stl";
-    a.href = relFile(filesBase, item.files[fmt]);
-    a.download = item.files[fmt];
-    a.title = `Download ${item.files[fmt]}`;
+    a.href = relFile(filesBase, name);
+    a.download = name;
+    a.title = `Download ${name}`;
     const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     icon.setAttribute("class", "icon");
     icon.setAttribute("aria-hidden", "true");
