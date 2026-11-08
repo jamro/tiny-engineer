@@ -97,3 +97,27 @@ SPDX-FileCopyrightText = [
   "The Lit Project Contributors",
 ]
 SPDX-License-Identifier = "Apache-2.0 AND BSD-3-Clause"
+
+# ROM helpers + flasher stubs are vendored esptool-js (Espressif).
+[[annotations]]
+path = [
+  "web/vendor/esp-web-tools/esp32*.js",
+  "web/vendor/esp-web-tools/stub_flasher_*.js",
+]
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "Open Home Foundation",
+  "Espressif Systems (Shanghai) CO LTD",
+]
+SPDX-License-Identifier = "Apache-2.0"
+
+# Dialog bundles esptool-js and its pako dependency.
+[[annotations]]
+path = "web/vendor/esp-web-tools/install-dialog-*.js"
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "Open Home Foundation",
+  "Espressif Systems (Shanghai) CO LTD",
+  "Vitaly Puzrin and Andrei Tuputcyn",
+]
+SPDX-License-Identifier = "Apache-2.0 AND MIT AND Zlib"
