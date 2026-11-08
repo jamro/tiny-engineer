@@ -9,7 +9,12 @@ import { daemonRobotRequest, daemonStatusText, disableDaemon, releaseDaemon } fr
 import { daemonPaths } from "../src/daemon/paths.js";
 import { delay } from "../src/daemon/proc.js";
 import { serveDaemon } from "../src/daemon/server.js";
-import { reactionsSuspended } from "../src/daemon/reactions.js";
+import { writeYield } from "../src/daemon/flags.js";
+import {
+  createReactions,
+  reactionsSuspended,
+  writeReactionsSuspended,
+} from "../src/daemon/reactions.js";
 
 function freshDir() {
   const root = existsSync("/tmp") ? "/tmp" : tmpdir();
@@ -259,6 +264,29 @@ test("an active yield does not open the port for reactions", async () => {
   } finally {
     await disableDaemon({ configDir: dir });
     await serving;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("onPortOpened under yield leaves reactions suspended", () => {
+  const dir = freshDir();
+  try {
+    writeReactionsSuspended(dir);
+    writeYield(dir);
+    assert.equal(reactionsSuspended(dir), true);
+    const reactions = createReactions({
+      configDir: dir,
+      link: {
+        port: "/dev/fake",
+        ensure: async () => ({}),
+        setReactionHandler() {},
+      },
+      retryMs: 10_000,
+    });
+    reactions.onPortOpened();
+    assert.equal(reactionsSuspended(dir), true);
+    reactions.stop();
+  } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });

@@ -15,6 +15,8 @@ export function createSerialLink({ connect, preferredPort = null }) {
   let session = null;
   /** @type {Promise<SerialSession> | null} */
   let opening = null;
+  /** Bumped by release/close so in-flight connects do not re-hold the tty. */
+  let generation = 0;
   let playActive = false;
   /** @type {Set<(line: string) => void>} */
   const eventSubs = new Set();
@@ -37,7 +39,12 @@ export function createSerialLink({ connect, preferredPort = null }) {
    * @returns {Promise<SerialSession>}
    */
   async function openSession(port, connectOpts = {}) {
+    const gen = generation;
     const opened = await connect({ port, ...connectOpts });
+    if (gen !== generation) {
+      await opened.client.close().catch(() => {});
+      throw new Error("open-cancelled");
+    }
     opened.client.setEventHandler((payload) => {
       const line = payload.toString("utf8");
       for (const fn of eventSubs) fn(line);
@@ -53,7 +60,31 @@ export function createSerialLink({ connect, preferredPort = null }) {
       });
     }
     session = opened;
+    if (gen !== generation) {
+      if (session === opened) session = null;
+      await opened.client.close().catch(() => {});
+      throw new Error("open-cancelled");
+    }
     return opened;
+  }
+
+  /**
+   * Invalidate in-flight opens (old generation), then drop the held session.
+   * A newer `ensure` started after the bump may set `session` while we await
+   * the old close — leave that replacement alone.
+   * @param {"drop" | "release" | null} downReason
+   *   `null` = silent close (process shutdown). Otherwise notify subscribers.
+   */
+  async function dropSession(downReason) {
+    generation += 1;
+    const pending = opening;
+    const current = session;
+    session = null;
+    if (current && downReason) {
+      for (const fn of linkDownSubs) fn(downReason);
+    }
+    if (current) await current.client.close().catch(() => {});
+    if (pending) await pending.catch(() => {});
   }
 
   /**
@@ -204,17 +235,11 @@ export function createSerialLink({ connect, preferredPort = null }) {
      */
     async release(force = false) {
       if (playActive && !force) return false;
-      const current = session;
-      session = null;
-      if (!current) return true;
-      for (const fn of linkDownSubs) fn("release");
-      await current.client.close().catch(() => {});
+      await dropSession("release");
       return true;
     },
     async close() {
-      const current = session;
-      session = null;
-      if (current) await current.client.close().catch(() => {});
+      await dropSession(null);
     },
   };
 }

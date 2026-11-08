@@ -352,6 +352,7 @@ export function createReactions(opts) {
      * A serial command opened the port. Later event frames reach the rules.
      */
     onPortOpened() {
+      if (yieldIsActive(opts.configDir, now())) return;
       clearReactionsSuspended(opts.configDir);
       if (stopped || store.rules.length === 0 || transport !== "serial") return;
       serialWanted = true;

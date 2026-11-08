@@ -317,6 +317,30 @@ test("yield keeps the daemon and expiry does not reopen for a subscriber", async
   }
 });
 
+test("yield blocks peer robot.request without reopening", async () => {
+  const dir = tempConfig();
+  let opens = 0;
+  const serving = startServer(dir, async () => {
+    opens += 1;
+    return fakeSession("/dev/fake");
+  });
+  try {
+    await daemonRobotRequest("health", {}, { configDir: dir });
+    assert.equal(opens, 1);
+    await releaseDaemon({ configDir: dir, yield: true });
+    const peer = await tryConnect(daemonPaths(dir).sock, 500);
+    assert.ok(peer);
+    const res = await peer.peer.request("robot.request", { op: "health", fields: {} }, 1000);
+    assert.match(String(res.error ?? ""), /yielded for upload/);
+    assert.equal(opens, 1);
+    peer.socket.end();
+  } finally {
+    await disableDaemon({ configDir: dir });
+    await serving;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("disable reports an unwritable config directory", async () => {
   const dir = tempConfig();
   const blocked = join(dir, "not-a-directory");
@@ -710,6 +734,48 @@ test("overlapping ensure opens the port once", async () => {
   assert.equal(a.port, "/dev/a");
   await assert.rejects(() => link.ensure("/dev/other"), /daemon is on \/dev\/a, this command asked for \/dev\/other/);
   assert.equal(opens, 1);
+});
+
+test("release during connect does not keep the port", async () => {
+  let opens = 0;
+  let closed = 0;
+  /** @type {() => void} */
+  let releaseGate = () => {};
+  const gate = new Promise((resolve) => {
+    releaseGate = resolve;
+  });
+  const link = createSerialLink({
+    connect: async ({ port }) => {
+      opens += 1;
+      await gate;
+      return {
+        port: port || "/dev/a",
+        client: {
+          setEventHandler() {},
+          setLogHandler() {},
+          setCloseHandler() {},
+          close: async () => {
+            closed += 1;
+          },
+        },
+      };
+    },
+  });
+  const ensuring = link.ensure("/dev/a");
+  assert.equal(opens, 1);
+  const releasing = link.release();
+  releaseGate();
+  const [released, ensureErr] = await Promise.all([
+    releasing,
+    ensuring.then(
+      () => null,
+      (err) => err,
+    ),
+  ]);
+  assert.equal(released, true);
+  assert.match(String(ensureErr instanceof Error ? ensureErr.message : ensureErr ?? ""), /open-cancelled/);
+  assert.equal(link.port, null);
+  assert.equal(closed, 1);
 });
 
 test("stale close leaves the replacement session", async () => {

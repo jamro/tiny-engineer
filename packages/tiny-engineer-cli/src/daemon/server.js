@@ -3,10 +3,17 @@ import { createServer } from "node:net";
 
 import { connectSerialRobot } from "../robot/serial/client.js";
 import { createPeer } from "./ipc.js";
+import { disableActive, yieldActive } from "./flags.js";
 import { createSerialLink } from "./link.js";
 import { appendLog } from "./log.js";
 import { daemonPaths } from "./paths.js";
-import { loadIdentity, packageRootFromScript, resolveCliScript } from "./policy.js";
+import {
+  DISABLE_ERROR,
+  loadIdentity,
+  packageRootFromScript,
+  resolveCliScript,
+  YIELD_ERROR,
+} from "./policy.js";
 import { createReactions } from "./reactions.js";
 
 /**
@@ -147,6 +154,11 @@ export async function serveDaemon(opts) {
    * @param {string} method
    * @param {Record<string, unknown>} params
    */
+  function assertPortAllowed() {
+    if (disableActive(opts.configDir)) throw new Error(DISABLE_ERROR);
+    if (yieldActive(opts.configDir)) throw new Error(YIELD_ERROR);
+  }
+
   async function handle(socket, id, method, params) {
     try {
       if (method === "daemon.release") {
@@ -177,6 +189,7 @@ export async function serveDaemon(opts) {
         return;
       }
       if (method === "robot.request") {
+        assertPortAllowed();
         const port = typeof params.port === "string" ? params.port : null;
         const body = await link.request(
           String(params.op ?? ""),
@@ -189,6 +202,7 @@ export async function serveDaemon(opts) {
         return;
       }
       if (method === "robot.probe") {
+        assertPortAllowed();
         const raw = params.candidates;
         const candidates = Array.isArray(raw)
           ? raw.filter((item) => typeof item === "string")
@@ -200,6 +214,7 @@ export async function serveDaemon(opts) {
         return;
       }
       if (method === "play") {
+        assertPortAllowed();
         const port = typeof params.port === "string" ? params.port : null;
         const body = await link.play(String(params.path ?? ""), String(params.name ?? "talking"), port);
         reactions.onPortOpened();
@@ -208,6 +223,7 @@ export async function serveDaemon(opts) {
         return;
       }
       if (method === "subscribe") {
+        assertPortAllowed();
         const channel = params.channel === "serial.logs" ? "serial.logs" : "serial.events";
         const port = typeof params.port === "string" ? params.port : null;
         await link.ensure(port);
