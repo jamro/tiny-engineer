@@ -65,7 +65,7 @@ pio device monitor      # serial (115200)
 
 Before upload, a pre-script tries **`tiny-engineer park --transport serial`** ([`scripts/park_servos_before_upload.py`](../scripts/park_servos_before_upload.py)) so joints sit at mid with PWM held — fewer snaps into the printed parts. If the board is cold, CDC is busy, or the CLI is missing, the script warns and upload continues. For absolute safety, unplug servo **5 V / V+** first. Details: [hardware/servos.md](hardware/servos.md#flash-safe-park).
 
-After firmware upload, a post-script also uploads **LittleFS** ([`scripts/upload_fs_after_upload.py`](../scripts/upload_fs_after_upload.py)) so WAV assets (`welcome`, `bell`, and friends) land on the board. If animations move but stay silent, run `pio run -t uploadfs` once.
+After firmware upload, a post-script also uploads **LittleFS** ([`scripts/upload_fs_after_upload.py`](../scripts/upload_fs_after_upload.py)) so WAV assets (`welcome`, `bell`, and friends) land on the board. If animations move but stay silent, run `pio run -t uploadfs` once. That same post-step then runs **`tiny-engineer daemon start`** ([`scripts/resume_daemon_after_upload.py`](../scripts/resume_daemon_after_upload.py)) to clear the upload yield and re-arm serial event reactions (even if LittleFS upload failed). If the CLI is missing or start fails, run `tiny-engineer daemon start` yourself.
 
 Several serial ports:
 

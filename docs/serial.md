@@ -39,7 +39,7 @@ Serial commands share one host process, `tiny-engineer daemon`. The first serial
 
 `tiny-engineer daemon status` prints whether `daemon install` is on, the yield timer when a yield is active, plus pid, version, channel (`npm` or `dev`), package root, protocol, a short `source` prefix of the checkout content hash when channel is `dev`, port, reaction link, rule count, and the last reaction. It also lists the host serial ports and marks the one the daemon has open. The install line and the port list are there even when the process is down. A registry install (`npx -y tiny-engineer` or a global install) is channel `npm`. Running `node packages/tiny-engineer-cli/bin/tiny-engineer.js` from this repo is channel `dev`. A dev checkout replaces a running npm daemon. A published npm command does not replace a dev daemon. The same npm version keeps the process that is already running. `daemon status` shows which one you have. `daemon restart` from the checkout you want replaces a different dev tree. A replace (and `daemon install` that replaces a live process) aborts an in-flight serial `play` so the new daemon can take the port; plain `daemon release` without `--yield` still refuses while play is active.
 
-Before another program opens the USB serial device, run `tiny-engineer daemon release`. Firmware upload parks servos, then runs `tiny-engineer daemon release --yield` so auto-start stays off while the flash tool has the port. `tiny-engineer daemon start` clears that yield.
+Before another program opens the USB serial device, run `tiny-engineer daemon release`. Firmware upload parks servos, then runs `tiny-engineer daemon release --yield` so auto-start stays off while the flash tool has the port. After a successful `pio run -t upload` (firmware and the LittleFS post-step), a post-script runs `tiny-engineer daemon start` to clear the yield and re-arm serial reactions. `tiny-engineer daemon start` also clears a yield by hand.
 
 ## Protocol overview
 
@@ -54,7 +54,7 @@ Ops (JSON `op`): `ping`/`sync`, `servos_park`, `anim`, `settings.get`/`settings.
 
 ## PlatformIO monitor
 
-Stock PlatformIO serial monitor expects text. Framed COBS sessions look like noise. Prefer `tiny-engineer monitor` for LOG lines. The pre-upload step parks servos, then runs `daemon release --yield` so the host daemon releases the port for the flash tool. Close any other serial program before `pio run -t upload`. An optional PIO LOG filter is a follow-up, not required.
+Stock PlatformIO serial monitor expects text. Framed COBS sessions look like noise. Prefer `tiny-engineer monitor` for LOG lines. The pre-upload step parks servos, then runs `daemon release --yield` so the host daemon releases the port for the flash tool. The post-upload step runs `daemon start` after LittleFS so event rules keep working. Close any other serial program before `pio run -t upload`. An optional PIO LOG filter is a follow-up, not required.
 
 ## Related
 
