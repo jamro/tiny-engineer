@@ -2,11 +2,16 @@
 # Source after extracting KiCad AppImage into KICAD_APPDIR (Pages/CI).
 #
 # Lite AppImage ships pcbnew (+ wx) under bundled Python site-packages.
-# Ubuntu 24.04 system python is 3.12 — prefer the AppImage interpreter (3.11).
+# Ubuntu 24.04 system/toolcache Python is built against newer glibc.
+# AppImage shared/lib also ships an older libc.so.6 — putting that directory on
+# ambient LD_LIBRARY_PATH breaks host tools (head/find) with:
+#   GLIBC_2.38 not found (required by head)
+# Keep runtime libs on a wrapper around AppImage Python only.
 #
 # Usage:
 #   source scripts/fab/prepare_kicad_appdir_env.sh
-# Exports: KICAD_CLI, KICAD_PYTHON, LD_LIBRARY_PATH, PYTHONPATH
+# Exports: KICAD_CLI, KICAD_PYTHON, PYTHONPATH
+# Does not leave a libc-poisoned LD_LIBRARY_PATH in the calling shell.
 #
 # shellcheck disable=SC1091
 
@@ -15,35 +20,71 @@ if [[ -z "${KICAD_APPDIR:-}" || ! -d "${KICAD_APPDIR}" ]]; then
   return 1 2>/dev/null || exit 1
 fi
 
-_lib_candidates=(
-  "$KICAD_APPDIR/usr/lib"
-  "$KICAD_APPDIR/usr/lib/x86_64-linux-gnu"
-  "$KICAD_APPDIR/shared/lib"
-  "$KICAD_APPDIR/shared/lib/tmp/AppDir/usr/lib/x86_64-linux-gnu"
-)
-_ld_parts=()
-for _d in "${_lib_candidates[@]}"; do
-  [[ -d "$_d" ]] && _ld_parts+=("$_d")
-done
-# Extra shared libs next to pcbnew
-while IFS= read -r _d; do
-  [[ -n "$_d" ]] && _ld_parts+=("$_d")
-done < <(find "$KICAD_APPDIR" -type d \( -name 'x86_64-linux-gnu' -o -name 'lib' \) 2>/dev/null | head -n 20 || true)
+_kicad_join_paths() {
+  local IFS=:
+  echo "$*"
+}
 
-if [[ ${#_ld_parts[@]} -gt 0 ]]; then
-  _joined="$(IFS=:; echo "${_ld_parts[*]}")"
-  export LD_LIBRARY_PATH="${_joined}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}"
+# KiCad libs that are safe next to host tools (no AppImage libc).
+_host_ld_parts=()
+for _d in \
+  "$KICAD_APPDIR/usr/lib" \
+  "$KICAD_APPDIR/usr/lib/x86_64-linux-gnu" \
+  "$KICAD_APPDIR/lib" \
+  "$KICAD_APPDIR/lib/x86_64-linux-gnu" \
+  "$KICAD_APPDIR/usr/local/lib" \
+  "$KICAD_APPDIR/shared/lib/tmp/AppDir/usr/lib" \
+  "$KICAD_APPDIR/shared/lib/tmp/AppDir/usr/lib/x86_64-linux-gnu"
+do
+  [[ -d "$_d" ]] && _host_ld_parts+=("$_d")
+done
+
+# Full runtime for the AppImage interpreter (needs shared/lib, including libc).
+_runtime_ld_parts=()
+[[ -d "$KICAD_APPDIR/shared/lib" ]] && _runtime_ld_parts+=("$KICAD_APPDIR/shared/lib")
+for _d in "${_host_ld_parts[@]+"${_host_ld_parts[@]}"}"; do
+  _runtime_ld_parts+=("$_d")
+done
+if [[ -d "$KICAD_APPDIR/shared/lib/python3.11/dist-packages/wx/lib" ]]; then
+  _runtime_ld_parts+=("$KICAD_APPDIR/shared/lib/python3.11/dist-packages/wx/lib")
 fi
 
 _py_path_parts=()
-while IFS= read -r _d; do
-  [[ -n "$_d" ]] && _py_path_parts+=("$_d")
-done < <(find "$KICAD_APPDIR" -type d \( -name 'dist-packages' -o -name 'site-packages' \) 2>/dev/null | head -n 20 || true)
+for _d in \
+  "$KICAD_APPDIR/shared/lib/python3.11/dist-packages" \
+  "$KICAD_APPDIR/usr/lib/python3/dist-packages" \
+  "$KICAD_APPDIR/usr/lib/python3.11/dist-packages" \
+  "$KICAD_APPDIR/usr/local/lib/python3.11/dist-packages"
+do
+  [[ -d "$_d" ]] && _py_path_parts+=("$_d")
+done
 
-if [[ ${#_py_path_parts[@]} -gt 0 ]]; then
-  _joined="$(IFS=:; echo "${_py_path_parts[*]}")"
-  export PYTHONPATH="${_joined}${PYTHONPATH:+:}${PYTHONPATH:-}"
-fi
+# Extra site-packages without piping through host `head`.
+_n=0
+while IFS= read -r _d; do
+  [[ -n "$_d" ]] || continue
+  _dup=0
+  for _e in "${_py_path_parts[@]+"${_py_path_parts[@]}"}"; do
+    [[ "$_e" == "$_d" ]] && _dup=1 && break
+  done
+  [[ $_dup -eq 1 ]] && continue
+  _py_path_parts+=("$_d")
+  _n=$((_n + 1))
+  [[ $_n -ge 20 ]] && break
+done < <(find "$KICAD_APPDIR" -type d \( -name 'dist-packages' -o -name 'site-packages' \) 2>/dev/null || true)
+
+_runtime_ld="$(_kicad_join_paths "${_runtime_ld_parts[@]+"${_runtime_ld_parts[@]}"}")"
+_py_path="$(_kicad_join_paths "${_py_path_parts[@]+"${_py_path_parts[@]}"}")"
+
+_run_kicad_python() {
+  local _bin=$1
+  shift
+  # Do not inherit host/toolcache LD_LIBRARY_PATH — mix with AppImage libc breaks.
+  env \
+    LD_LIBRARY_PATH="${_runtime_ld}" \
+    PYTHONPATH="${_py_path}" \
+    "$_bin" "$@"
+}
 
 _cli=""
 for _c in "$KICAD_APPDIR/usr/bin/kicad-cli" "$KICAD_APPDIR/bin/kicad-cli"; do
@@ -58,16 +99,37 @@ if [[ -z "$_cli" ]]; then
 fi
 export KICAD_CLI="$_cli"
 
+# Prefer the interpreter bundled with the AppImage (linked against shared/lib).
 _py_candidates=()
 [[ -n "${KICAD_PYTHON:-}" ]] && _py_candidates+=("$KICAD_PYTHON")
+for _c in \
+  "$KICAD_APPDIR/usr/bin/python3" \
+  "$KICAD_APPDIR/usr/bin/python3.11" \
+  "$KICAD_APPDIR/bin/python3" \
+  "$KICAD_APPDIR/bin/python3.11"
+do
+  [[ -x "$_c" ]] && _py_candidates+=("$_c")
+done
+
+_n=0
 while IFS= read -r _p; do
-  [[ -n "$_p" ]] && _py_candidates+=("$_p")
-done < <(find "$KICAD_APPDIR" \( -type f -o -type l \) -name 'python3*' 2>/dev/null | head -n 30 || true)
+  [[ -n "$_p" ]] || continue
+  _py_candidates+=("$_p")
+  _n=$((_n + 1))
+  [[ $_n -ge 30 ]] && break
+done < <(find "$KICAD_APPDIR" \( -type f -o -type l \) -name 'python3*' 2>/dev/null || true)
 
 _py=""
+_seen_py=":"
 for _c in "${_py_candidates[@]}"; do
   [[ -x "$_c" ]] || continue
-  if "$_c" -c 'import pcbnew' >/dev/null 2>&1; then
+  # Skip the wrapper we may have written on a previous source in this AppDir.
+  [[ "$_c" == *kicad-python-wrap.sh ]] && continue
+  case "$_seen_py" in
+    *":$_c:"*) continue ;;
+  esac
+  _seen_py+="$_c:"
+  if _run_kicad_python "$_c" -c 'import pcbnew' >/dev/null 2>&1; then
     _py="$_c"
     break
   fi
@@ -75,15 +137,38 @@ done
 
 if [[ -z "$_py" ]]; then
   echo "error: no Python with importable pcbnew under $KICAD_APPDIR" >&2
-  echo "PYTHONPATH=${PYTHONPATH:-}" >&2
-  echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}" >&2
-  find "$KICAD_APPDIR" -name 'pcbnew*' 2>/dev/null | head -n 20 >&2 || true
+  echo "PYTHONPATH=${_py_path}" >&2
+  echo "KICAD_RUNTIME_LD_LIBRARY_PATH=${_runtime_ld}" >&2
+  _n=0
+  while IFS= read -r _p; do
+    echo "$_p" >&2
+    _n=$((_n + 1))
+    [[ $_n -ge 20 ]] && break
+  done < <(find "$KICAD_APPDIR" -name 'pcbnew*' 2>/dev/null || true)
   return 1 2>/dev/null || exit 1
 fi
-export KICAD_PYTHON="$_py"
+
+# Wrapper keeps AppImage libc off the ambient shell / GITHUB_ENV.
+_wrap="$KICAD_APPDIR/kicad-python-wrap.sh"
+cat > "$_wrap" << EOF
+#!/usr/bin/env bash
+# Auto-generated by prepare_kicad_appdir_env.sh — do not edit.
+export LD_LIBRARY_PATH=$(printf '%q' "${_runtime_ld}")
+export PYTHONPATH=$(printf '%q' "${_py_path}")
+exec $(printf '%q' "$_py") "\$@"
+EOF
+chmod +x "$_wrap"
+
+export KICAD_PYTHON="$_wrap"
+export PYTHONPATH="${_py_path}${PYTHONPATH:+:}${PYTHONPATH:-}"
+# Drop any prior libc-poisoned path from a failed attempt / stale GITHUB_ENV.
+if [[ -n "${LD_LIBRARY_PATH:-}" && "${LD_LIBRARY_PATH}" == *"${KICAD_APPDIR}/shared/lib"* ]]; then
+  unset LD_LIBRARY_PATH
+fi
 
 echo "KICAD_CLI=$KICAD_CLI"
 echo "KICAD_PYTHON=$KICAD_PYTHON"
+echo "KICAD_PYTHON_REAL=$_py"
 "$KICAD_CLI" version
 "$KICAD_PYTHON" -c 'import pcbnew; print("pcbnew", pcbnew.Version())'
 if "$KICAD_PYTHON" -c 'import wx; print("wx", wx.version())' 2>/dev/null; then

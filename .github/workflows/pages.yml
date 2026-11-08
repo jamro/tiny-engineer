@@ -68,7 +68,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.KICAD_ROOT }}
-          key: kicad-lite-appimage-${{ env.KICAD_APPIMAGE_VERSION }}-pages-pcbnew-v2
+          key: kicad-lite-appimage-${{ env.KICAD_APPIMAGE_VERSION }}-pages-pcbnew-v3
       - name: Cache Fabrication Toolkit
         uses: actions/cache@v4
         with:
@@ -153,14 +153,16 @@ jobs:
           source "${GITHUB_WORKSPACE}/scripts/fab/prepare_kicad_appdir_env.sh"
           {
             echo "KICAD_PYTHON=${KICAD_PYTHON}"
-            echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
             echo "PYTHONPATH=${PYTHONPATH}"
           } >> "${GITHUB_ENV}"
+          # Do not export AppImage LD_LIBRARY_PATH — shared/lib libc breaks host tools
+          # (GLIBC_2.38). Runtime libs live only inside kicad-python-wrap.sh.
       - name: Export main-control-board fab package
         run: |
           set -euo pipefail
           # Must use Fabrication Toolkit (same as production/) — no kicad-cli fallback.
-          export KICAD_CLI KICAD_APPDIR KICAD_PYTHON LD_LIBRARY_PATH PYTHONPATH
+          # KICAD_PYTHON is the AppImage wrap script (sets LD_LIBRARY_PATH per-process).
+          export KICAD_CLI KICAD_APPDIR KICAD_PYTHON PYTHONPATH
           export FAB_TOOLKIT_VERSION
           export FAB_CACHE_DIR="${GITHUB_WORKSPACE}/artifacts/fab-tools"
           export FAB_REQUIRE_TOOLKIT=1
