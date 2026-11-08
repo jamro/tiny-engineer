@@ -5,6 +5,7 @@ data/*/
 artifacts/
 
 .venv
+.cache
 
 node_modules/
 
