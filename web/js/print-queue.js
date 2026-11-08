@@ -16,6 +16,14 @@ const hexColor = (hex, fallback = 0x888888) => {
   return m ? parseInt(m[1], 16) : fallback;
 };
 
+/** Cap DPR so many thumbs stay cheap on 3× phones. */
+const PREVIEW_DPR_CAP = 2;
+/** Logical (CSS) edge of each square thumb bitmap. */
+const PREVIEW_CSS_SIZE = 288;
+
+const previewDpr = () =>
+  Math.min(window.devicePixelRatio || 1, PREVIEW_DPR_CAP);
+
 /** Shared WebGL → 2D canvas thumbs (one context, many views). */
 function createPreviewPool() {
   const loader = new STLLoader();
@@ -33,7 +41,10 @@ function createPreviewPool() {
         alpha: true,
         powerPreference: "low-power",
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      // Bitmaps already include DPR (see sizePreviewCanvas). Keep pixelRatio
+      // at 1 so setSize(w,h) matches the 2D thumb buffer 1:1 — otherwise
+      // drawImage crops to the top-left 1/dpr² of the scene on retina.
+      renderer.setPixelRatio(1);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.domElement.style.position = "fixed";
       renderer.domElement.style.left = "-9999px";
@@ -45,6 +56,15 @@ function createPreviewPool() {
       renderer = null;
     }
     return renderer;
+  };
+
+  const sizePreviewCanvas = (canvas) => {
+    const dpr = previewDpr();
+    const px = Math.max(1, Math.round(PREVIEW_CSS_SIZE * dpr));
+    if (canvas.width !== px || canvas.height !== px) {
+      canvas.width = px;
+      canvas.height = px;
+    }
   };
 
   const loadGeometry = (url) => {
@@ -78,13 +98,15 @@ function createPreviewPool() {
       any = true;
       // Part + bed grid spin together.
       view.root.rotation.y = now * 0.00045;
+      sizePreviewCanvas(view.canvas);
       const w = view.canvas.width;
       const h = view.canvas.height;
+      // pixelRatio is 1 → drawing buffer === w×h === thumb bitmap.
       r.setSize(w, h, false);
       r.setClearColor(0x161616, 1);
       r.render(view.scene, view.camera);
       view.ctx.clearRect(0, 0, w, h);
-      view.ctx.drawImage(r.domElement, 0, 0);
+      view.ctx.drawImage(r.domElement, 0, 0, w, h);
     }
     if (any) raf = requestAnimationFrame(tick);
   };
@@ -186,8 +208,7 @@ function createPreviewPool() {
     const dark = isDarkSwatch(color);
     const canvas = document.createElement("canvas");
     canvas.className = "print-preview-canvas";
-    canvas.width = 288;
-    canvas.height = 288;
+    sizePreviewCanvas(canvas);
     canvas.setAttribute("aria-hidden", "true");
     host.replaceChildren(canvas);
     host.classList.remove("is-fallback");
