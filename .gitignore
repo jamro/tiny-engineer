@@ -78,6 +78,8 @@ web/print/files/
 
 # Kernel Module Compile Results
 *.mod*
+# three.js ESM entry (name matches *.mod*; must stay in the Pages artifact)
+!web/vendor/three/build/three.module.js
 *.cmd
 .tmp_versions/
 modules.order
