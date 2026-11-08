@@ -4,7 +4,9 @@ Standalone desk bell. The plunger closes a 6 mm momentary switch. Wire it to the
 
 ![Bell button](bell_button_preview.jpg)
 
-Fusion source: [`3d_models/cad/TinyEngineerBellButton.f3d`](3d_models/cad/TinyEngineerBellButton.f3d). No `3mf`, `stl`, or `step` exports yet.
+Assembly: [assembly guide](assembly.md).
+
+Fusion source: [`3d_models/cad/TinyEngineerBellButton.f3d`](3d_models/cad/TinyEngineerBellButton.f3d). Printables: [`3d_models/parts/all/`](3d_models/parts/all/).
 
 | Part | Role |
 | --- | --- |
@@ -20,8 +22,6 @@ Screw holes use the stock M2 parameters (`screw_thread_diameter`, `screw_head_di
 
 ## Hookup
 
-Two wires: the selected Extension-port pin and GND. Active-low, with the ESP32 internal pull-up. Pins: GP6, GP7, GP20 (default), GP21.
-
-In the web UI, open **Extensions**, enable **Push button**, pick the pin, and save. Events (`button.down`, `button.up`, `button.click`, `button.double_click`, `button.long_click`) go out over WebSocket and serial. Each event can play `none`, `bell`, or `click`. See [docs/api.md](../../docs/api.md).
+Wire **GND** + one Extension-port GPIO (default **GP20**), enable **Push button** in the web UI **Extensions** page, and set **`button.down`** sound to **Bell**. Full wiring, pin options, events, and a CLI `rules add` example: [assembly §7](assembly.md#7-seat-button-and-wire-the-extension-port).
 
 CAD under `3d_models/` is [CERN-OHL-S-2.0](../../3d_models/LICENSE). This file is [MIT](../../LICENSE).
