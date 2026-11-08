@@ -160,6 +160,9 @@
           <p>
             Full API:
             <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md" target="_blank" rel="noopener noreferrer">api.md</a>.
+            Access token set? Add
+            <code class="mono">Authorization: Bearer</code> —
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/api.md#get-auth" target="_blank" rel="noopener noreferrer">auth</a>.
           </p>
         </div>
       </section>
@@ -231,14 +234,15 @@
       button.addEventListener("click", async () => {
         const field = document.getElementById(button.dataset.copyTarget);
         const text = field?.value ?? "";
+        let ok = true;
         try {
           await navigator.clipboard.writeText(text);
         } catch {
           field?.focus();
           field?.select();
-          document.execCommand("copy");
+          ok = document.execCommand("copy");
         }
-        if (!icon) {
+        if (!icon || !ok) {
           return;
         }
         icon.setAttribute("href", "../media/icons.svg?v=1#i-check");

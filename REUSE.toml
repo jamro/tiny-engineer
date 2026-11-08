@@ -86,3 +86,14 @@ SPDX-License-Identifier = "MIT"
 path = "web/vendor/esp-web-tools/**"
 SPDX-FileCopyrightText = "Open Home Foundation"
 SPDX-License-Identifier = "Apache-2.0"
+
+# Lit (lit-html / LitElement / reactive-element) is bundled into the styles chunk.
+[[annotations]]
+path = "web/vendor/esp-web-tools/styles-*.js"
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "Open Home Foundation",
+  "Google LLC",
+  "The Lit Project Contributors",
+]
+SPDX-License-Identifier = "Apache-2.0 AND BSD-3-Clause"
