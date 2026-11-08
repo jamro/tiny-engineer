@@ -129,6 +129,20 @@ bool ServoRanges::valid() const {
   return true;
 }
 
+bool settingsValidatePushButtonPin(uint8_t pin) {
+  return pin == 6 || pin == 7 || pin == 20 || pin == 21;
+}
+
+bool settingsValidatePushButtonSound(const char* sound) {
+  if (sound == nullptr) {
+    return false;
+  }
+
+  return strcmp(sound, "none") == 0 ||
+         strcmp(sound, "bell") == 0 ||
+         strcmp(sound, "click") == 0;
+}
+
 bool settingsValidateRgbOrder(const char* rgbOrder) {
   if (rgbOrder == nullptr) {
     return false;
@@ -153,6 +167,32 @@ const char* SettingsPatch::invalidField() const {
 
   if (volume && !settingsValidateVolume(*volume)) {
     return "volume";
+  }
+
+  if (pushButtonPin && !settingsValidatePushButtonPin(*pushButtonPin)) {
+    return "push_button_pin";
+  }
+
+  if (pushButtonSoundDown != nullptr && !settingsValidatePushButtonSound(pushButtonSoundDown)) {
+    return "push_button_sound_down";
+  }
+
+  if (pushButtonSoundUp != nullptr && !settingsValidatePushButtonSound(pushButtonSoundUp)) {
+    return "push_button_sound_up";
+  }
+
+  if (pushButtonSoundClick != nullptr && !settingsValidatePushButtonSound(pushButtonSoundClick)) {
+    return "push_button_sound_click";
+  }
+
+  if (pushButtonSoundDoubleClick != nullptr &&
+      !settingsValidatePushButtonSound(pushButtonSoundDoubleClick)) {
+    return "push_button_sound_double_click";
+  }
+
+  if (pushButtonSoundLongClick != nullptr &&
+      !settingsValidatePushButtonSound(pushButtonSoundLongClick)) {
+    return "push_button_sound_long_click";
   }
 
   if (continuousTimeoutMin && !settingsValidateContinuousTimeout(*continuousTimeoutMin)) {

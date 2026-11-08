@@ -31,6 +31,8 @@ web/print/files/
 
 # platform.io
 .pio
+.pio-home
+compile_commands.json
 
 # Prerequisites
 *.d

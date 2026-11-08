@@ -1,5 +1,6 @@
 import { resolveTransport } from "../config/env.js";
-import { connectSerialRobot } from "../robot/serial/client.js";
+import { userConfigDir } from "../config/paths.js";
+import { followDaemonChannel } from "../daemon/client.js";
 import { parseMessage, SerialMsgType } from "../robot/serial/protocol.js";
 import { parseCommonArgs } from "../util/args.js";
 
@@ -48,7 +49,7 @@ export async function runMonitor(out, argv) {
     console.log(`Usage: tiny-engineer monitor [--port <path>] [--transport serial]
 
 Print application LOG frames from the USB serial protocol.
-Exclusive use of the port (close PlatformIO monitor first).
+The host daemon owns the serial port; this command only subscribes.
 `);
     return;
   }
@@ -65,23 +66,19 @@ Exclusive use of the port (close PlatformIO monitor first).
     return;
   }
 
-  let session;
+  out.info("monitor serial (Ctrl+C to stop)");
   try {
-    session = await connectSerialRobot({ port: opts.port });
+    await followDaemonChannel({
+      channel: "serial.logs",
+      port: opts.port ?? null,
+      configDir: userConfigDir(),
+      onLine: (line) => {
+        const text = logTextFromPayload(Buffer.from(line));
+        if (text !== null) console.log(text);
+      },
+    });
   } catch (err) {
     out.error(err instanceof Error ? err.message : String(err));
     process.exitCode = 1;
-    return;
   }
-
-  out.info(`monitor ${session.port} (Ctrl+C to stop)`);
-
-  session.client.setLogHandler((payload) => {
-    const text = logTextFromPayload(payload);
-    if (text !== null) console.log(text);
-  });
-
-  process.once("SIGINT", () => {
-    session.client.close().finally(() => process.exit(0));
-  });
 }

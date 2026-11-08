@@ -133,6 +133,20 @@ bool animationIsContinuous(AnimationId id) {
   return modeByAnimId(id)->continuous;
 }
 
+bool animationDrivesWavStream(AnimationId id) {
+  switch (id) {
+    case AnimationId::Ring:
+    case AnimationId::Welcome:
+    case AnimationId::Attention:
+    case AnimationId::Error:
+    case AnimationId::Abort:
+    case AnimationId::Dead:
+      return true;
+    default:
+      return false;
+  }
+}
+
 const char* animationName(AnimationId id) {
   return modeByAnimId(id)->name;
 }

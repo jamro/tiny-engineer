@@ -31,6 +31,34 @@ bool settingsSerialLogEnabled() {
   return g_settings.serialLog;
 }
 
+bool settingsPushButton() {
+  return g_settings.pushButton;
+}
+
+uint8_t settingsPushButtonPin() {
+  return g_settings.pushButtonPin;
+}
+
+const char* settingsPushButtonSoundDown() {
+  return g_settings.pushButtonSoundDown;
+}
+
+const char* settingsPushButtonSoundUp() {
+  return g_settings.pushButtonSoundUp;
+}
+
+const char* settingsPushButtonSoundClick() {
+  return g_settings.pushButtonSoundClick;
+}
+
+const char* settingsPushButtonSoundDoubleClick() {
+  return g_settings.pushButtonSoundDoubleClick;
+}
+
+const char* settingsPushButtonSoundLongClick() {
+  return g_settings.pushButtonSoundLongClick;
+}
+
 uint32_t settingsContinuousTimeoutMin() {
   return g_settings.continuousTimeoutMin;
 }

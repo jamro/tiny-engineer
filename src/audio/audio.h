@@ -14,6 +14,9 @@ void playTone(
 
 void playSilence(int durationMs);
 void stopAllWavPlayback();
+// Starts bell/click for push-button events; preempts orphan SFX.
+// False if none, /play busy, anim owns active stream, or start failed.
+bool tryStartButtonEventSound(const char* sound);
 bool startBellPlayback();
 bool updateBellPlayback();
 void stopBellPlayback();

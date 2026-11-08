@@ -1,0 +1,196 @@
+import { userConfigDir } from "../config/paths.js";
+import { installSupervisor, osRegistrar, uninstallSupervisor } from "./install.js";
+import { clearDisable, clearYield, daemonStatusText, disableDaemon, ensureDaemon, releaseDaemon, shutdownDaemon, supervisorInstalled } from "./client.js";
+import { clearReactionsSuspended } from "./reactions.js";
+import { resolveCliScript } from "./policy.js";
+import { serveDaemon } from "./server.js";
+
+/**
+ * @param {string[]} argv
+ * @returns {{ help: boolean, yield: boolean, port?: string, serve: boolean, command: string | null, error?: string }}
+ */
+export function parseDaemonArgs(argv) {
+  let help = false;
+  let yieldStop = false;
+  let serve = false;
+  /** @type {string | undefined} */
+  let port;
+  /** @type {string | null} */
+  let command = null;
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "-h" || arg === "--help") {
+      help = true;
+      continue;
+    }
+    if (arg === "--yield") {
+      yieldStop = true;
+      continue;
+    }
+    if (arg === "--serve") {
+      serve = true;
+      continue;
+    }
+    if (arg === "--port") {
+      const next = argv[++i];
+      if (!next) return { help, yield: yieldStop, serve, port, command, error: "--port requires a value" };
+      port = next;
+      continue;
+    }
+    if (!command && !arg.startsWith("-")) {
+      command = arg;
+      continue;
+    }
+    return { help, yield: yieldStop, serve, port, command, error: `unknown daemon argument ${arg}` };
+  }
+  return { help, yield: yieldStop, serve, port, command };
+}
+
+export function daemonHelp() {
+  return `Usage: tiny-engineer daemon <start|release|disable|status|restart|install|uninstall|stop> [options]
+
+Host session for this machine. Serial commands auto-start it unless disabled.
+release closes the USB port and leaves the process up. disable exits.
+The port stays closed until the next serial command.
+
+  start [--port <path>]   Start unless already running. Clears disable and yield.
+                          Opens the USB port when serial reactions are armed
+                          (a rule in rules.json and user transport serial).
+                          Otherwise the port stays closed.
+                          --port is ignored while daemon install is on.
+  release [--yield]       Close the USB port. Process stays up.
+                          --yield refuses serial open for 180s (firmware upload).
+                          Suspends serial reaction auto-open until start,
+                          restart, or a serial command. HTTP reactions stay up.
+  disable                 Exit and refuse auto-start until start.
+  status                  Print pid, version, channel, package root, proto, and port.
+  restart [--port <path>] Clear disable and yield, then start a fresh process.
+                          Opens the USB port when serial reactions are armed.
+                          --port is the port the new process opens next.
+                          --port is ignored while daemon install is on.
+  install                 Start the login wrapper for this user. Not a boot service.
+  uninstall               Remove the login wrapper. Does not disable auto-start.
+  stop [--yield]          Deprecated alias of release / release --yield.
+`;
+}
+
+/**
+ * @param {import("../util/output.js").Output} out
+ * @param {string[]} argv
+ */
+export async function runDaemon(out, argv) {
+  const opts = parseDaemonArgs(argv);
+  if (opts.error) {
+    out.error(opts.error);
+    process.exitCode = 1;
+    return;
+  }
+  if (opts.help || (!opts.command && !opts.serve)) {
+    console.log(daemonHelp());
+    return;
+  }
+  if (opts.serve) {
+    await serveDaemon({
+      configDir: userConfigDir(),
+      preferredPort: opts.port ?? null,
+      exitProcess: true,
+    });
+    return;
+  }
+
+  const configDir = userConfigDir();
+  if (opts.command === "start") {
+    clearDisable(configDir);
+    clearYield(configDir);
+    clearReactionsSuspended(configDir);
+    try {
+      warnIgnoredPort(out, configDir, opts.port);
+      const conn = await ensureDaemon({ configDir, port: opts.port ?? null, forceStart: true });
+      await conn.peer.request("reactions.sync", {}, 2000);
+      conn.socket.end();
+    } catch (err) {
+      out.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+    }
+    return;
+  }
+  if (opts.command === "release" || opts.command === "stop") {
+    if (opts.command === "stop") {
+      const preferred = opts.yield ? "daemon release --yield" : "daemon release";
+      process.stderr.write(`note: prefer tiny-engineer ${preferred} (stop is a deprecated alias)\n`);
+    }
+    try {
+      await releaseDaemon({ configDir, yield: opts.yield });
+    } catch (err) {
+      out.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+    }
+    return;
+  }
+  if (opts.command === "disable") {
+    try {
+      await disableDaemon({ configDir });
+    } catch (err) {
+      out.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+    }
+    return;
+  }
+  if (opts.command === "install") {
+    try {
+      await installSupervisor({
+        configDir,
+        scriptPath: resolveCliScript(),
+        registrar: osRegistrar(),
+      });
+    } catch (err) {
+      out.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+    }
+    return;
+  }
+  if (opts.command === "uninstall") {
+    try {
+      await uninstallSupervisor({ configDir, registrar: osRegistrar() });
+    } catch (err) {
+      out.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+    }
+    return;
+  }
+  if (opts.command === "status") {
+    process.stdout.write(await daemonStatusText({ configDir }));
+    return;
+  }
+  if (opts.command === "restart") {
+    clearDisable(configDir);
+    clearYield(configDir);
+    clearReactionsSuspended(configDir);
+    await shutdownDaemon(configDir, "stop");
+    try {
+      warnIgnoredPort(out, configDir, opts.port);
+      const conn = await ensureDaemon({ configDir, port: opts.port ?? null, forceStart: true });
+      await conn.peer.request("reactions.sync", {}, 2000);
+      conn.socket.end();
+    } catch (err) {
+      out.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+    }
+    return;
+  }
+  out.error(`unknown daemon command ${opts.command}`);
+  console.log(daemonHelp());
+  process.exitCode = 1;
+}
+
+/**
+ * The login wrapper starts `daemon --serve` with no port.
+ * @param {import("../util/output.js").Output} out
+ * @param {string} configDir
+ * @param {string | undefined} port
+ */
+function warnIgnoredPort(out, configDir, port) {
+  if (port && supervisorInstalled(configDir)) {
+    out.info("warning: --port is ignored while daemon install is on");
+  }
+}

@@ -1,6 +1,7 @@
-import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
+import { getBaseUrl, getHttpAuthToken } from "../config/env.js";
+import { serialRequest } from "../daemon/robot.js";
 import { robotFetch } from "./client.js";
-import { serialRequest } from "./serial/client.js";
+import { withTransport } from "./with-transport.js";
 
 /**
  * @typedef {{ transport?: string, url?: string, port?: string | null }} TransportOpts
@@ -43,34 +44,32 @@ async function fromHttpResponse(response) {
  * @param {TransportOpts} opts
  * @param {() => Promise<import("./client.js").RobotResult & { bodyJson?: Record<string, unknown> }>} httpFn
  */
-async function withTransport(op, fields, opts, httpFn) {
-  const resolved = resolveTransport(opts.transport);
-  if (resolved.error) {
-    return { ok: false, error: resolved.error };
-  }
-  if (resolved.transport === "serial") {
-    try {
-      const body = await serialRequest(op, fields, { port: opts.port });
-      if (body.ok === false) {
-        return {
-          ok: false,
-          error: typeof body.error === "string" ? body.error : `${op} failed`,
-          bodyJson: body,
-        };
+async function viaTransport(op, fields, opts, httpFn) {
+  return withTransport(opts, {
+    serial: async () => {
+      try {
+        const body = await serialRequest(op, fields, { port: opts.port });
+        if (body.ok === false) {
+          return {
+            ok: false,
+            error: typeof body.error === "string" ? body.error : `${op} failed`,
+            bodyJson: body,
+          };
+        }
+        return { ok: true, bodyJson: body };
+      } catch (err) {
+        return { ok: false, error: err instanceof Error ? err.message : String(err) };
       }
-      return { ok: true, bodyJson: body };
-    } catch (err) {
-      return { ok: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  }
-  return httpFn();
+    },
+    http: httpFn,
+  });
 }
 
 /**
  * @param {TransportOpts} [opts]
  */
 export async function robotSettingsGet(opts = {}) {
-  return withTransport("settings.get", {}, opts, async () => {
+  return viaTransport("settings.get", {}, opts, async () => {
     const res = await robotFetch(
       opts.url ?? getBaseUrl(),
       "/settings",
@@ -86,7 +85,7 @@ export async function robotSettingsGet(opts = {}) {
  * @param {TransportOpts} [opts]
  */
 export async function robotSettingsSet(patch, opts = {}) {
-  return withTransport("settings.set", patch, opts, async () => {
+  return viaTransport("settings.set", patch, opts, async () => {
     const res = await robotFetch(
       opts.url ?? getBaseUrl(),
       "/settings",
@@ -109,7 +108,7 @@ export async function robotSettingsSet(patch, opts = {}) {
 export async function robotHardwareTest(name, opts = {}) {
   const path =
     name === "bell" ? "/test/audio/bell" : name === "audio" ? "/test/audio" : `/test/${name}`;
-  return withTransport("test", { name }, opts, async () => {
+  return viaTransport("test", { name }, opts, async () => {
     const res = await robotFetch(
       opts.url ?? getBaseUrl(),
       path,
@@ -126,7 +125,7 @@ export async function robotHardwareTest(name, opts = {}) {
  * @param {TransportOpts} [opts]
  */
 export async function robotServo(index, angle, opts = {}) {
-  return withTransport("servo", { index, angle }, opts, async () => {
+  return viaTransport("servo", { index, angle }, opts, async () => {
     const res = await robotFetch(
       opts.url ?? getBaseUrl(),
       "/test/servo",
@@ -146,7 +145,7 @@ export async function robotServo(index, angle, opts = {}) {
  * @param {TransportOpts} [opts]
  */
 export async function robotFactoryReset(opts = {}) {
-  return withTransport("factory_reset", {}, opts, async () => {
+  return viaTransport("factory_reset", {}, opts, async () => {
     const res = await robotFetch(
       opts.url ?? getBaseUrl(),
       "/settings/reset",
@@ -162,7 +161,7 @@ export async function robotFactoryReset(opts = {}) {
  * @param {TransportOpts} [opts]
  */
 export async function robotPark(opts = {}) {
-  return withTransport("servos_park", {}, opts, async () => {
+  return viaTransport("servos_park", {}, opts, async () => {
     const res = await robotFetch(
       opts.url ?? getBaseUrl(),
       "/servos/park",
