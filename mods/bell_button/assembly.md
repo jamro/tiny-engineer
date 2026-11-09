@@ -117,7 +117,23 @@ Drop the printed plunger into the chimney, then plug the jumpers into the main c
 1. Place `Button` into the center opening (chimney) of `ButtonPocket` so it rests on the micro-switch plunger and sticks up through `Bell`.
 2. On the main control board **Extension port**, connect one jumper to **GND** and the other to a GPIO. Default firmware pin is **GP20** — use that unless you pick another allowed pin.
 3. In the web UI open **Extensions**, turn **Push button** **on**, confirm the pin (default **GP20**; also allowed: GP6, GP7, GP21), and save. Without that toggle the switch does nothing. Change the pin there any time — move the signal wire to match.
-4. In the same Extensions Events table, set the **`button.down`** sound to **Bell**. That plays `bell.wav` as soon as you press — the most natural desk-bell feel. Leave the other event sounds on **None** unless you want extra cues.
+4. Open **Actions** and add two rules for **`button.down`** (fire-all: both run on every press):
+
+| Event | Action | Detail |
+| --- | --- | --- |
+| `button.down` | Sound | Bell |
+| `button.down` | Anim | Wakeup |
+
+That plays `bell.wav` and starts the sleep-inertia wake as soon as you press — desk-bell feel plus a wake if the robot was asleep. Save the list. Skip other events unless you want extra cues. Equivalent API:
+
+```bash
+curl -X PUT "http://tiny-engineer.local/settings/actions" \
+  -H "Content-Type: application/json" \
+  -d '{"actions":[
+    {"on":"button.down","do":"sound","sound":"bell"},
+    {"on":"button.down","do":"anim","anim":"wakeup"}
+  ]}'
+```
 
 Active-low with the ESP32 internal pull-up. With the extension on, presses publish `button.down`, `button.up`, `button.click`, `button.double_click`, and `button.long_click` over WebSocket and serial. Map those events to a host program with the CLI, for example open Music on a click:
 
