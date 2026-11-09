@@ -1,6 +1,6 @@
 {
   "name": "tiny-engineer",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Tiny Engineer CLI: setup IDE hooks, anim/play over HTTP or USB serial (--transport serial / TINY_ENGINEER_TRANSPORT). Custom agents: REST API (docs/api.md).",
   "type": "module",
   "bin": {
