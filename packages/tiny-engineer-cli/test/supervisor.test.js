@@ -59,6 +59,7 @@ test("daemon status shows install on or off", async () => {
     const on = await daemonStatusText({ configDir: dir, listPorts: async () => [] });
     assert.match(on, /daemon is not running/);
     assert.match(on, /install: on/);
+    assert.match(on, /wrapper: down/);
     const serving = serveDaemon({
       configDir: dir,
       exitProcess: false,
@@ -69,6 +70,7 @@ test("daemon status shows install on or off", async () => {
       const running = await daemonStatusText({ configDir: dir, listPorts: async () => [] });
       assert.match(running, /daemon running/);
       assert.match(running, /install: on/);
+      assert.match(running, /wrapper: down/);
     } finally {
       await disableDaemon({ configDir: dir });
       await serving;
@@ -177,7 +179,7 @@ test("login units escape spaces and special characters in paths", () => {
   assert.ok(unit.includes('Environment="TINY_ENGINEER_CONFIG_DIR=/home/Mary Ann/%%h/.config/tiny-engineer"'));
 });
 
-test("login units do not restart and use absolute paths", () => {
+test("login units restart on failure only and use absolute paths", () => {
   const opts = {
     nodePath: "/usr/local/bin/node",
     wrapperPath: "/tmp/te/daemon-wrapper.js",
@@ -185,11 +187,12 @@ test("login units do not restart and use absolute paths", () => {
   };
   const plist = launchdPlist(opts);
   assert.match(plist, /<key>RunAtLoad<\/key>/);
-  assert.doesNotMatch(plist, /KeepAlive/);
+  assert.match(plist, /<key>KeepAlive<\/key>/);
+  assert.match(plist, /<key>SuccessfulExit<\/key>\s*<false\/>/);
   assert.match(plist, /\/usr\/local\/bin\/node/);
   assert.match(plist, /\/tmp\/te\/daemon-wrapper.js/);
   const unit = systemdUnit(opts);
-  assert.doesNotMatch(unit, /Restart=/);
+  assert.match(unit, /Restart=on-failure/);
   assert.match(unit, /WantedBy=default.target/);
   assert.doesNotMatch(unit, /multi-user\.target/);
   const args = windowsTaskArgs(opts);
@@ -352,7 +355,7 @@ test("second install refreshes the target and does not start another wrapper", a
     });
     assert.match(bodies[1], /\/usr\/bin\/node-b/);
     assert.match(bodies[1], /daemon-wrapper\.js/);
-    assert.doesNotMatch(bodies[1], /Restart=/);
+    assert.match(bodies[1], /Restart=on-failure/);
     assert.equal(existsSync(daemonPaths(dir).disabled), false);
   } finally {
     if (holder) await new Promise((resolve) => holder.close(() => resolve(undefined)));

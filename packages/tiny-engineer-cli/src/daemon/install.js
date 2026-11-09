@@ -33,6 +33,8 @@ function systemdWord(value) {
  * @param {{ nodePath: string, wrapperPath: string, configDir: string }} opts
  */
 export function launchdPlist(opts) {
+  // KeepAlive SuccessfulExit=false: restart after crash (non-zero), not after
+  // clean disable/uninstall exit 0.
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -41,6 +43,11 @@ export function launchdPlist(opts) {
   <string>${SUPERVISOR_LABEL}</string>
   <key>RunAtLoad</key>
   <true/>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
   <key>ProgramArguments</key>
   <array>
     <string>${xmlText(opts.nodePath)}</string>
@@ -60,6 +67,7 @@ export function launchdPlist(opts) {
  * @param {{ nodePath: string, wrapperPath: string, configDir: string }} opts
  */
 export function systemdUnit(opts) {
+  // on-failure: crash restart only. Clean disable/uninstall exit 0 stays down.
   return `[Unit]
 Description=Tiny Engineer host daemon
 
@@ -67,6 +75,8 @@ Description=Tiny Engineer host daemon
 Type=simple
 ExecStart=${systemdWord(opts.nodePath)} ${systemdWord(opts.wrapperPath)}
 Environment=${systemdWord(`TINY_ENGINEER_CONFIG_DIR=${opts.configDir}`)}
+Restart=on-failure
+RestartSec=2
 
 [Install]
 WantedBy=default.target

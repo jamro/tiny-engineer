@@ -76,8 +76,8 @@ async function acquireWrapperLock(configDir) {
 
 /**
  * Parent loop. Restarts a child that had accepted a hello.
- * Stops after a few exits that never accept.
- * A disable file or a missing supervisor file exits 0.
+ * Early fails (no hello) keep retrying with backoff — never exit permanently
+ * while install is on. Disable / missing supervisor exits 0.
  * @param {{
  *   configDir?: string,
  *   spawnChild?: (target: { execPath: string, script: string }) => { exited: Promise<number | null>, pid?: number },
@@ -101,20 +101,27 @@ export async function runWrapper(opts = {}) {
     for (;;) {
       if (wrapperShouldStop(configDir)) return 0;
       const target = readDaemonTarget(configDir);
-      if (!target) return 1;
+      if (!target) {
+        await sleep(500);
+        continue;
+      }
       const child = (opts.spawnChild ?? ((next) => spawnServeChild(next, configDir)))(target);
       const accepted = await (opts.accepted ?? (() => waitForHello(configDir, child.pid)))();
-      const code = await child.exited;
+      await child.exited;
       if (wrapperShouldStop(configDir)) return 0;
       if (accepted) {
+        early.length = 0;
         await sleep(50);
         continue;
       }
       const stamp = now();
       early.push(stamp);
       while (early.length && stamp - early[0] > 60_000) early.shift();
-      if (early.length >= 3) return 0;
-      await sleep(30);
+      // Back off so a stuck sock/boot race does not spin the CPU. Never give up
+      // while the supervisor file is present — launchd has no KeepAlive on
+      // successful exit, so exiting here leaves reactions dead until the next
+      // CLI ensure.
+      await sleep(Math.min(5_000, 100 * Math.max(1, early.length)));
     }
   } finally {
     await lock.close();

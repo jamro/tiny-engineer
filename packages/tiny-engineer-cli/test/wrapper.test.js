@@ -39,7 +39,7 @@ test("wrapper restarts after hello and stops when disabled", async () => {
   }
 });
 
-test("wrapper stops after three exits before hello", async () => {
+test("wrapper keeps retrying exits before hello until disabled", async () => {
   const dir = tempDir();
   writeFileSync(daemonPaths(dir).supervisor, "{}\n");
   writeDaemonTarget(dir, { execPath: process.execPath, script: "/bin/tiny-engineer.js" });
@@ -49,13 +49,14 @@ test("wrapper stops after three exits before hello", async () => {
       configDir: dir,
       spawnChild() {
         n += 1;
+        if (n === 5) writeFileSync(daemonPaths(dir).disabled, "1\n");
         return { exited: Promise.resolve(1) };
       },
       accepted: async () => false,
       sleep: async () => {},
       now: () => 1000,
     });
-    assert.equal(n, 3);
+    assert.equal(n, 5);
     assert.equal(code, 0);
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -191,6 +192,7 @@ test("stale socket hello does not count as the child", async () => {
       configDir: dir,
       spawnChild() {
         n += 1;
+        if (n === 3) writeFileSync(daemonPaths(dir).disabled, "1\n");
         return { exited: Promise.resolve(1), pid: 424242 };
       },
       sleep: async () => {},

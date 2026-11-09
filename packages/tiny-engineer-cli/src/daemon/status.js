@@ -5,6 +5,7 @@ import { userConfigDir } from "../config/paths.js";
 import { tryConnect } from "./connect.js";
 import { supervisorInstalled } from "./flags.js";
 import { daemonPaths } from "./paths.js";
+import { wrapperAlive } from "./wrapper.js";
 
 /**
  * @param {string} configDir
@@ -105,6 +106,9 @@ export async function daemonStatusText(opts = {}) {
   const configDir = opts.configDir ?? userConfigDir();
   const install = installStatusLine(configDir);
   const yieldLine = yieldStatusLine(configDir, opts.now ?? Date.now());
+  const wrapperLine = supervisorInstalled(configDir)
+    ? `wrapper: ${(await wrapperAlive(configDir)) ? "up" : "down"}`
+    : null;
   const listPorts = opts.listPorts ?? (() => SerialPort.list());
   /** @type {ReturnType<typeof setTimeout> | undefined} */
   let timer;
@@ -117,7 +121,14 @@ export async function daemonStatusText(opts = {}) {
   ]).finally(() => clearTimeout(timer));
   const conn = await tryConnect(daemonPaths(configDir).sock, 300);
   if (!conn) {
-    return [`daemon is not running`, install, yieldLine, ...portStatusLines(null, listed), ""].join("\n");
+    return [
+      `daemon is not running`,
+      install,
+      ...(wrapperLine ? [wrapperLine] : []),
+      yieldLine,
+      ...portStatusLines(null, listed),
+      "",
+    ].join("\n");
   }
   try {
     const res = await conn.peer.request("daemon.status", {}, 1000);
@@ -129,6 +140,7 @@ export async function daemonStatusText(opts = {}) {
     const lines = [
       "daemon running",
       install,
+      ...(wrapperLine ? [wrapperLine] : []),
       yieldLine,
       `pid: ${body.pid}`,
       `version: ${body.version}`,

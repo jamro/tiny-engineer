@@ -270,7 +270,15 @@ export function createReactions(opts) {
     if (opening) return;
     linkState = "retrying";
     const gen = epoch;
-    opening = opts.link.ensure(port).then(() => {
+    // Cap wait so a hung serial open/kick cannot pin `opening` forever and
+    // silence the retry loop after USB replug.
+    const openBudgetMs = 8_000;
+    opening = Promise.race([
+      opts.link.ensure(port),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("serial open timed out")), openBudgetMs);
+      }),
+    ]).then(() => {
       if (stopped || gen !== epoch || !serialWanted || serialBlocked()) return;
       linkState = "up";
       detail = opts.link.port ?? "";

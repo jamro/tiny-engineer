@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
-import { mkdtempSync, rmSync } from "node:fs";
+import { constants as fsConstants, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -49,14 +49,22 @@ test("kickDarwinTty opens the tty sibling and swallows ENXIO", () => {
 
   /** @type {string[]} */
   const opened = [];
+  /** @type {unknown[]} */
+  const flags = [];
   const enxio = Object.assign(new Error("Device not configured"), { code: "ENXIO" });
   kickDarwinTty("/dev/cu.usbmodem142201", {
-    openFile(path) {
+    openFile(path, flag) {
       opened.push(path);
+      flags.push(flag);
       throw enxio;
     },
   });
   assert.deepEqual(opened, ["/dev/tty.usbmodem142201"]);
+  assert.equal(typeof flags[0], "number");
+  assert.equal(
+    /** @type {number} */ (flags[0]) & fsConstants.O_NONBLOCK,
+    fsConstants.O_NONBLOCK,
+  );
 
   /** @type {number[]} */
   const closed = [];

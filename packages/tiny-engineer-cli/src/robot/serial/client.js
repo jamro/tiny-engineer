@@ -1,4 +1,4 @@
-import { closeSync, openSync } from "node:fs";
+import { closeSync, constants as fsConstants, openSync } from "node:fs";
 
 import { SerialPort } from "serialport";
 
@@ -20,6 +20,7 @@ import {
 
 const BAUD = 115200;
 const DEFAULT_TIMEOUT_MS = 3000;
+const OPEN_TIMEOUT_MS = 3000;
 
 /**
  * macOS `/dev/tty.*` raises DTR on open. ESP32-C3 USB-Serial-JTAG treats that
@@ -53,21 +54,24 @@ export function darwinTtyPath(path) {
  * serial interface. Opening the tty sibling fails with ENXIO, and that failure
  * is what configures the driver. A successful open raises DTR and can reset
  * the chip, so call this only after sync has already failed.
+ *
+ * Must not block: a blocking `open` of `tty.*` after USB replug can hang in
+ * the kernel forever while holding the device, which freezes reaction reopen.
  * @param {string} cuPath
- * @param {{ openFile?: (path: string, flags: string) => number, closeFile?: (fd: number) => void }} [opts]
+ * @param {{ openFile?: (path: string, flags: string | number) => number, closeFile?: (fd: number) => void }} [opts]
  */
 export function kickDarwinTty(cuPath, { openFile = openSync, closeFile = closeSync } = {}) {
   const tty = darwinTtyPath(cuPath);
   if (!tty) return;
   try {
-    const fd = openFile(tty, "r+");
+    const fd = openFile(tty, fsConstants.O_RDWR | fsConstants.O_NONBLOCK);
     try {
       closeFile(fd);
     } catch {
       // The open already nudged the driver.
     }
   } catch {
-    // ENXIO is the useful case.
+    // ENXIO is the useful case; EBUSY/ENOENT are harmless.
   }
 }
 
@@ -261,15 +265,34 @@ export class SerialRobotClient {
       });
 
     await new Promise((resolve, reject) => {
-      port.open((err) => (err ? reject(err) : resolve(undefined)));
+      /** @type {ReturnType<typeof setTimeout>} */
+      const timer = setTimeout(() => {
+        try {
+          if (port.isOpen) port.close(() => {});
+        } catch {
+          // ignore
+        }
+        reject(new Error(`serial open timed out (${this.portPath})`));
+      }, OPEN_TIMEOUT_MS);
+      port.open((err) => {
+        clearTimeout(timer);
+        if (err) reject(err);
+        else resolve(undefined);
+      });
     });
 
     port.on("data", (chunk) => {
       this._decoder.feed(chunk);
     });
-    port.on("close", () => {
+    // USB unplug emits close (often with DisconnectError). A later write/close
+    // race can also emit error. Either must drop the session — an unhandled
+    // error event kills the daemon process.
+    const dropped = () => {
+      if (this._port === port) this._port = null;
       this._onClose?.();
-    });
+    };
+    port.on("close", dropped);
+    port.on("error", dropped);
 
     this._port = port;
   }
