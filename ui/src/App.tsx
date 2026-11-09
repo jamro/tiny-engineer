@@ -7,6 +7,7 @@ import { AuthGate } from "./gates/AuthGate";
 import { RebootGate } from "./gates/RebootGate";
 import { RobotProvider, useRobot } from "./robot";
 import { StatusProvider } from "./status/status";
+import { Actions } from "./views/Actions";
 import { Animations } from "./views/Animations";
 import { ApiReference } from "./views/ApiReference";
 import { Extensions } from "./views/Extensions";
@@ -47,6 +48,7 @@ function Shell() {
         <Route path="/tests" component={Tests} />
         <Route path="/servo" component={ServoControl} />
         <Route path="/extensions" component={Extensions} />
+        <Route path="/actions" component={Actions} />
         <Route path="/config" component={ConfigPage} />
         <Route path="/api" component={ApiReference} />
         <Route component={Home} />

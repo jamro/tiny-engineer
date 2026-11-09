@@ -47,17 +47,10 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
     return;
   }
 
-  if (id != AnimationId::Attention) {
-    stopAttentionPlayback();
-  }
-  if (id != AnimationId::Error) {
-    stopErrorPlayback();
-  }
-  if (id != AnimationId::Dead) {
-    stopDeadPlayback();
-  }
-  if (id != AnimationId::Abort) {
-    stopAbortPlayback();
+  // Only tear down a stream owned by the previous anim. Orphan Action/button
+  // SFX must survive transitions into Sleep/Wakeup/typing/etc.
+  if (animationDrivesWavStream(g_animation) && g_animation != id) {
+    stopAllWavPlayback();
   }
 
   const ModeEntry* fromEntry = modeByAnimId(g_animation);

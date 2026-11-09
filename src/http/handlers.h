@@ -19,6 +19,10 @@ void handleSettingsPost(WebServer& server);
 void handleSettingsReset(WebServer& server);
 void handleSettingsWifiPut(WebServer& server);
 
+void handleActionsGet(WebServer& server);
+void handleActionsPut(WebServer& server);
+void handleActionsTest(WebServer& server);
+
 void handleAudioTest(WebServer& server);
 void handleBellTest(WebServer& server);
 void handleScreenTest(WebServer& server);

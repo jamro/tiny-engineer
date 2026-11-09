@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <optional>
 
+class ActionList;
 class WifiNetworkList;
 
 constexpr uint32_t SETTINGS_DEFAULT_SLEEP_TIMEOUT_MIN = 10;
@@ -58,11 +59,6 @@ struct SettingsPatch {
   std::optional<bool> serialLog;
   std::optional<bool> pushButton;
   std::optional<uint8_t> pushButtonPin;
-  const char* pushButtonSoundDown = nullptr;
-  const char* pushButtonSoundUp = nullptr;
-  const char* pushButtonSoundClick = nullptr;
-  const char* pushButtonSoundDoubleClick = nullptr;
-  const char* pushButtonSoundLongClick = nullptr;
   std::optional<uint32_t> continuousTimeoutMin;
   const char* loading = nullptr;
   const char* eyesStyle = nullptr;
@@ -90,11 +86,6 @@ bool settingsWelcomeEnabled();
 bool settingsSerialLogEnabled();
 bool settingsPushButton();
 uint8_t settingsPushButtonPin();
-const char* settingsPushButtonSoundDown();
-const char* settingsPushButtonSoundUp();
-const char* settingsPushButtonSoundClick();
-const char* settingsPushButtonSoundDoubleClick();
-const char* settingsPushButtonSoundLongClick();
 uint32_t settingsContinuousTimeoutMin();
 const char* settingsLoading();
 const char* settingsEyesStyle();
@@ -102,6 +93,7 @@ const char* settingsAccessToken();
 bool settingsAccessTokenSet();
 const WifiNetworkList& settingsWifiNetworks();
 bool settingsWifiConfigured();
+const ActionList& settingsActions();
 const char* settingsLinkMode();
 // True after setup chose Wi-Fi or USB-only (migrated devices with saved nets count).
 bool settingsProvisioned();
@@ -150,6 +142,9 @@ bool saveSettings(const SettingsPatch& patch);
 
 // Replaces every saved network in RAM and NVS.
 bool saveWifiNetworks(const WifiNetworkList& networks);
+
+// Replaces every saved Action in RAM and NVS. False when NVS fails.
+bool saveActions(const ActionList& actions);
 
 // Clears the NVS namespace and restores the defaults, WiFi networks included,
 // but keeps the servo min/max, RGB LED byte order and OLED 180° rotation.

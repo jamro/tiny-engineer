@@ -1,3 +1,4 @@
+#include "actions/migrate.h"
 #include "serial/link.h"
 #include "serial_log.h"
 #include "settings/nvs.h"
@@ -55,11 +56,64 @@ void dropLegacyServoHold() {
   }
 }
 
+void loadActionsBlob() {
+  if (!g_settingsPrefs.isKey(kKeyActions)) {
+    return;
+  }
+
+  uint8_t blob[sizeof(ActionEntry) * ACTIONS_MAX] = {};
+  const size_t length =
+    g_settingsPrefs.getBytes(kKeyActions, blob, sizeof(blob));
+  g_actions.load(blob, length);
+}
+
+void clearLegacyButtonSoundKeys() {
+  g_settingsPrefs.remove(kKeyBtnSndDn);
+  g_settingsPrefs.remove(kKeyBtnSndUp);
+  g_settingsPrefs.remove(kKeyBtnSndClk);
+  g_settingsPrefs.remove(kKeyBtnSndDbl);
+  g_settingsPrefs.remove(kKeyBtnSndLng);
+}
+
+void migrateLegacyButtonSounds() {
+  const bool hadLegacyKeys =
+    g_settingsPrefs.isKey(kKeyBtnSndDn) ||
+    g_settingsPrefs.isKey(kKeyBtnSndUp) ||
+    g_settingsPrefs.isKey(kKeyBtnSndClk) ||
+    g_settingsPrefs.isKey(kKeyBtnSndDbl) ||
+    g_settingsPrefs.isKey(kKeyBtnSndLng);
+
+  if (!hadLegacyKeys) {
+    return;
+  }
+
+  ActionList next = g_actions;
+  const bool migrated = actionsMigrateLegacyButtonSounds(
+    next,
+    g_settings.pushButtonSoundDown,
+    g_settings.pushButtonSoundUp,
+    g_settings.pushButtonSoundClick,
+    g_settings.pushButtonSoundDoubleClick,
+    g_settings.pushButtonSoundLongClick
+  );
+
+  if (migrated) {
+    const size_t length = next.count() * sizeof(ActionEntry);
+    if (g_settingsPrefs.putBytes(kKeyActions, next.data(), length) != length) {
+      return;
+    }
+    g_actions = next;
+  }
+
+  clearLegacyButtonSoundKeys();
+}
+
 }  // namespace
 
 void initSettings() {
   g_settings = SettingsValues::defaults();
   g_wifiNetworks.clear();
+  g_actions.clear();
   bool legacyWifi = false;
 
   // RW so a missing namespace is created without Preferences NOT_FOUND ERROR.
@@ -67,6 +121,8 @@ void initSettings() {
   if (g_settingsPrefs.begin(kNs, false)) {
     g_settings.load();
     legacyWifi = loadWifiNetworks();
+    loadActionsBlob();
+    migrateLegacyButtonSounds();
     dropLegacyServoHold();
     g_settingsPrefs.end();
   } else {

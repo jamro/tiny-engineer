@@ -5,6 +5,7 @@
 
 SettingsValues g_settings = SettingsValues::defaults();
 WifiNetworkList g_wifiNetworks;
+ActionList g_actions;
 SettingsValues g_bootSettings = g_settings;
 bool g_wifiChangedSinceBoot = false;
 
@@ -67,34 +68,6 @@ void SettingsValues::apply(const SettingsPatch& patch) {
   pushButton = patch.pushButton.value_or(pushButton);
   pushButtonPin = patch.pushButtonPin.value_or(pushButtonPin);
   continuousTimeoutMin = patch.continuousTimeoutMin.value_or(continuousTimeoutMin);
-
-  if (patch.pushButtonSoundDown != nullptr) {
-    strlcpy(pushButtonSoundDown, patch.pushButtonSoundDown, sizeof(pushButtonSoundDown));
-  }
-
-  if (patch.pushButtonSoundUp != nullptr) {
-    strlcpy(pushButtonSoundUp, patch.pushButtonSoundUp, sizeof(pushButtonSoundUp));
-  }
-
-  if (patch.pushButtonSoundClick != nullptr) {
-    strlcpy(pushButtonSoundClick, patch.pushButtonSoundClick, sizeof(pushButtonSoundClick));
-  }
-
-  if (patch.pushButtonSoundDoubleClick != nullptr) {
-    strlcpy(
-      pushButtonSoundDoubleClick,
-      patch.pushButtonSoundDoubleClick,
-      sizeof(pushButtonSoundDoubleClick)
-    );
-  }
-
-  if (patch.pushButtonSoundLongClick != nullptr) {
-    strlcpy(
-      pushButtonSoundLongClick,
-      patch.pushButtonSoundLongClick,
-      sizeof(pushButtonSoundLongClick)
-    );
-  }
   servoRanges = patch.servoRanges.value_or(servoRanges);
   oledRotate180 = patch.oledRotate180.value_or(oledRotate180);
 
@@ -134,8 +107,7 @@ void SettingsValues::log(const char* prefix) const {
     line,
     sizeof(line),
     "%s sleep_timeout=%umin hostname=%s volume=%u welcome=%s serial_log=on "
-    "push_button=%s push_button_pin=%u "
-    "btn_snd=%s/%s/%s/%s/%s "
+    "push_button=%s push_button_pin=%u actions=%u "
     "continuous_timeout=%umin loading=%s eyes_style=%s "
     "access_token=%s link_mode=%s wifi_networks=%u servos=%u-%u;%u-%u;%u-%u;%u-%u;%u-%u "
     "rgb_order=%s oled_rotate_180=%s",
@@ -146,11 +118,7 @@ void SettingsValues::log(const char* prefix) const {
     welcome ? "on" : "off",
     pushButton ? "on" : "off",
     static_cast<unsigned>(pushButtonPin),
-    pushButtonSoundDown,
-    pushButtonSoundUp,
-    pushButtonSoundClick,
-    pushButtonSoundDoubleClick,
-    pushButtonSoundLongClick,
+    static_cast<unsigned>(g_actions.count()),
     static_cast<unsigned>(continuousTimeoutMin),
     loading,
     eyesStyle,

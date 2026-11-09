@@ -1,4 +1,5 @@
 import type { TargetedSubmitEvent } from "preact";
+import { Link } from "wouter-preact";
 import type { Settings } from "../api/types";
 import { Button } from "../components/Button";
 import { ConfigSection } from "../components/ConfigSection";
@@ -8,56 +9,18 @@ import { useResettableState } from "../useResettableState";
 
 const PUSH_BUTTON_PINS = [6, 7, 20, 21] as const;
 
-type ButtonSound = "none" | "bell" | "click";
-
-const BUTTON_SOUNDS: { value: ButtonSound; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "bell", label: "Bell" },
-  { value: "click", label: "Click" },
-];
-
 const BUTTON_EVENT_ROWS = [
-  {
-    key: "down",
-    api: "button.down",
-    when: "Press",
-    draft: "soundDown",
-  },
-  {
-    key: "up",
-    api: "button.up",
-    when: "Release",
-    draft: "soundUp",
-  },
-  {
-    key: "click",
-    api: "button.click",
-    when: "Short press (after 350 ms)",
-    draft: "soundClick",
-  },
-  {
-    key: "double",
-    api: "button.double_click",
-    when: "Two short presses",
-    draft: "soundDoubleClick",
-  },
-  {
-    key: "long",
-    api: "button.long_click",
-    when: "Hold 800 ms",
-    draft: "soundLongClick",
-  },
+  { key: "down", api: "button.down", when: "Press" },
+  { key: "up", api: "button.up", when: "Release" },
+  { key: "click", api: "button.click", when: "Short press (after 350 ms)" },
+  { key: "double", api: "button.double_click", when: "Two short presses" },
+  { key: "long", api: "button.long_click", when: "Hold 800 ms" },
 ] as const;
 
 function draftFrom(settings: Settings) {
   return {
     pushButton: settings.push_button,
     pushButtonPin: settings.push_button_pin,
-    soundDown: settings.push_button_sound_down,
-    soundUp: settings.push_button_sound_up,
-    soundClick: settings.push_button_sound_click,
-    soundDoubleClick: settings.push_button_sound_double_click,
-    soundLongClick: settings.push_button_sound_long_click,
   };
 }
 
@@ -95,11 +58,6 @@ function ExtensionsForm({
         json: {
           push_button: draft.pushButton,
           push_button_pin: draft.pushButtonPin,
-          push_button_sound_down: draft.soundDown,
-          push_button_sound_up: draft.soundUp,
-          push_button_sound_click: draft.soundClick,
-          push_button_sound_double_click: draft.soundDoubleClick,
-          push_button_sound_long_click: draft.soundLongClick,
         },
       },
       pending: "Saving…",
@@ -116,7 +74,7 @@ function ExtensionsForm({
       <h1>Extensions</h1>
       <p className="lede">
         Optional hardware on the Extension port. Off by default. Events go out over WebSocket and
-        serial when enabled.
+        serial when enabled. Local reactions live on the Actions page.
       </p>
       <form onSubmit={save}>
         <ConfigSection title="Push button" apply="now">
@@ -163,47 +121,26 @@ function ExtensionsForm({
                 </div>
                 <p className="hint ext-events-lede">
                   Each press publishes the event names below (<code>source</code>{" "}
-                  <code>push-button</code>). Optional sound plays on the robot when the speaker is
-                  free.
+                  <code>push-button</code>). Bind sounds or anims on{" "}
+                  <Link href="/actions">Actions</Link>.
                 </p>
-                <div className="ext-events" role="group" aria-label="Button events and sounds">
+                <div className="ext-events" role="group" aria-label="Button events">
                   <div className="ext-event-row ext-event-head" aria-hidden="true">
                     <span>Emitted event</span>
-                    <span>Sound</span>
+                    <span>When</span>
                   </div>
-                  {BUTTON_EVENT_ROWS.map((row) => {
-                    const id = `ext-push-button-sound-${row.key}`;
-                    const value = draft[row.draft];
-
-                    return (
-                      <div key={row.key} className="ext-event-row">
-                        <div className="ext-event-meta">
-                          <label htmlFor={id}>
-                            <code>{row.api}</code>
-                          </label>
-                          <span className="ext-event-when">{row.when}</span>
-                        </div>
-                        <select
-                          id={id}
-                          aria-label={`${row.api} sound`}
-                          value={value}
-                          onChange={(event) =>
-                            set({ [row.draft]: event.currentTarget.value as ButtonSound })
-                          }
-                        >
-                          {BUTTON_SOUNDS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                  {BUTTON_EVENT_ROWS.map((row) => (
+                    <div key={row.key} className="ext-event-row">
+                      <div className="ext-event-meta">
+                        <code>{row.api}</code>
                       </div>
-                    );
-                  })}
+                      <span className="ext-event-when">{row.when}</span>
+                    </div>
+                  ))}
                 </div>
                 <p className="hint">
                   Out: <code>ws://&lt;host&gt;:81/events</code> and serial <code>Evt</code>. No
-                  extra HTTP. Busy speaker skips sound; the event still publishes.
+                  extra HTTP endpoints for the button itself.
                 </p>
               </>
             ) : null}

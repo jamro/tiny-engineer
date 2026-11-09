@@ -4,6 +4,8 @@ const ROUTES = [
   ["GET", "/animations", "Animations page"],
   ["GET", "/tests", "Hardware tests page"],
   ["GET", "/servo", "Servo control page"],
+  ["GET", "/extensions", "Extensions page"],
+  ["GET", "/actions", "Actions page"],
   ["GET", "/config", "Config page"],
   ["GET", "/api", "This API reference"],
   ["GET", "/auth", "Whether API auth is required (always public)"],
@@ -12,6 +14,9 @@ const ROUTES = [
   ["POST", "/settings", "Update settings (see parameters below)"],
   ["POST", "/settings/reset", "Factory reset all settings to defaults"],
   ["PUT", "/settings/wifi", "Replace the saved WiFi networks (JSON body)"],
+  ["GET", "/settings/actions", "List on-device Actions"],
+  ["PUT", "/settings/actions", "Replace on-device Actions (JSON body)"],
+  ["POST", "/actions/test", "Simulate an event type for Actions"],
   ["GET", "/anim", "Current animation name"],
   ["POST", "/anim", "Set animation (see parameters below)"],
   ["POST", "/play", "Stream a WAV while an animation runs (see parameters below)"],
@@ -127,53 +132,6 @@ export function ApiReference() {
           </tr>
           <tr>
             <td>
-              <code>push_button_sound_down</code>
-            </td>
-            <td>string</td>
-            <td>
-              <code>none</code>, <code>bell</code>, or <code>click</code> (default none; persists
-              when off; immediate; preempts prior button SFX; skip during <code>/play</code> and
-              animation speech/bell clips)
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <code>push_button_sound_up</code>
-            </td>
-            <td>string</td>
-            <td>
-              <code>none</code>, <code>bell</code>, or <code>click</code> (default none)
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <code>push_button_sound_click</code>
-            </td>
-            <td>string</td>
-            <td>
-              <code>none</code>, <code>bell</code>, or <code>click</code> (default none)
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <code>push_button_sound_double_click</code>
-            </td>
-            <td>string</td>
-            <td>
-              <code>none</code>, <code>bell</code>, or <code>click</code> (default none)
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <code>push_button_sound_long_click</code>
-            </td>
-            <td>string</td>
-            <td>
-              <code>none</code>, <code>bell</code>, or <code>click</code> (default none)
-            </td>
-          </tr>
-          <tr>
-            <td>
               <code>continuous_timeout</code>
             </td>
             <td>integer</td>
@@ -264,6 +222,15 @@ export function ApiReference() {
         <code>POST /setup/audio</code>, and <code>POST /setup/oled</code> stay available. Servo
         ranges, RGB mapping, and screen rotation survive factory reset and can be retuned in the
         setup wizard.
+      </p>
+      <p>
+        <code>GET</code>/<code>PUT /settings/actions</code> — JSON object with array{" "}
+        <code>actions</code> (0–16 rows). Each row: string <code>on</code> (event pattern,{" "}
+        <code>*</code> wildcards), string <code>do</code> (<code>sound</code> / <code>anim</code>),
+        plus <code>sound</code> (<code>bell</code>/<code>click</code>) or <code>anim</code>{" "}
+        (animation name). <code>POST /actions/test</code> body{" "}
+        <code>{'{"type":"button.click"}'}</code> runs matching Actions without publishing an
+        outbound event.
       </p>
       <p>
         POST <code>/anim</code> &mdash; query param <code>name</code>:

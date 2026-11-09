@@ -39,26 +39,6 @@ uint8_t settingsPushButtonPin() {
   return g_settings.pushButtonPin;
 }
 
-const char* settingsPushButtonSoundDown() {
-  return g_settings.pushButtonSoundDown;
-}
-
-const char* settingsPushButtonSoundUp() {
-  return g_settings.pushButtonSoundUp;
-}
-
-const char* settingsPushButtonSoundClick() {
-  return g_settings.pushButtonSoundClick;
-}
-
-const char* settingsPushButtonSoundDoubleClick() {
-  return g_settings.pushButtonSoundDoubleClick;
-}
-
-const char* settingsPushButtonSoundLongClick() {
-  return g_settings.pushButtonSoundLongClick;
-}
-
 uint32_t settingsContinuousTimeoutMin() {
   return g_settings.continuousTimeoutMin;
 }
@@ -81,6 +61,10 @@ bool settingsAccessTokenSet() {
 
 const WifiNetworkList& settingsWifiNetworks() {
   return g_wifiNetworks;
+}
+
+const ActionList& settingsActions() {
+  return g_actions;
 }
 
 bool settingsWifiConfigured() {

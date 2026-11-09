@@ -4,10 +4,12 @@
 #include <cstdint>
 #include <cstring>
 
+#include "actions/action_list.h"
 #include "settings/settings.h"
 #include "settings/wifi_network_list.h"
 
-// Every saved setting except the WiFi networks, which have their own NVS key.
+// Every saved setting except the WiFi networks and Actions list, which have
+// their own NVS keys.
 struct SettingsValues {
   uint32_t sleepTimeoutMin;
   char hostname[SETTINGS_HOSTNAME_MAX_LEN + 1];
@@ -49,6 +51,7 @@ struct SettingsValues {
 
 extern SettingsValues g_settings;
 extern WifiNetworkList g_wifiNetworks;
+extern ActionList g_actions;
 // Hostname and loading screen are read at boot only; a change waits for a reboot.
 extern SettingsValues g_bootSettings;
 extern bool g_wifiChangedSinceBoot;

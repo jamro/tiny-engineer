@@ -26,7 +26,7 @@ body {
     sans-serif;
   background: var(--bg);
   color: var(--text);
-  max-width: 42rem;
+  max-width: 760px;
   margin: 0 auto;
   padding: 0 1rem 3rem;
   line-height: 1.5;
@@ -532,6 +532,224 @@ code {
   width: 100%;
   margin: 0;
   font-size: 0.85rem;
+}
+
+.actions-empty {
+  margin: 0 0 0.75rem;
+}
+
+.actions-table {
+  display: grid;
+  gap: 0;
+  margin: 0 0 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.actions-table-head,
+.actions-table-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1.35fr) 6.75rem minmax(7rem, 1fr) auto;
+  gap: 0.5rem 0.6rem;
+  align-items: center;
+  padding: 0.45rem 0.65rem;
+}
+
+.actions-table-head {
+  background: color-mix(in srgb, var(--border) 40%, var(--card));
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.actions-table-row {
+  border-top: 1px solid var(--border);
+}
+
+.actions-table-row:first-of-type {
+  border-top: none;
+}
+
+.actions-table-row:nth-child(even) {
+  background: color-mix(in srgb, var(--border) 18%, var(--card));
+}
+
+.actions-col-tools {
+  width: 5.5rem;
+}
+
+.actions-cell {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.actions-mobile-label {
+  display: none;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.actions-cell input,
+.actions-cell select {
+  width: 100%;
+  margin: 0;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  background: var(--card);
+}
+
+.actions-event-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem !important;
+}
+
+.actions-cell-tools {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.actions-toolbar-btn.btn,
+.actions-icon-btn.btn {
+  display: inline-flex;
+  width: auto;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0;
+  text-align: center;
+}
+
+.actions-icon-btn.btn {
+  min-width: 2.4rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.actions-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  margin: 0 0 0.85rem;
+}
+
+.actions-presets-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.actions-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.actions-chips-simulate {
+  margin: 0 0 0.65rem;
+}
+
+.actions-chip {
+  margin: 0;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actions-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.actions-chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+}
+
+.actions-chip-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--card));
+  color: var(--accent-hover);
+}
+
+.actions-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.actions-simulate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.actions-simulate input {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (width <= 560px) {
+  .actions-table-head {
+    display: none;
+  }
+
+  .actions-table-row {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    padding: 0.7rem 0.75rem;
+  }
+
+  .actions-mobile-label {
+    display: block;
+  }
+
+  .actions-cell-tools {
+    justify-content: stretch;
+  }
+
+  .actions-cell-tools .btn {
+    flex: 1;
+  }
 }
 
 .servo-actions {

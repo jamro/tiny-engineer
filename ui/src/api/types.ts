@@ -38,11 +38,6 @@ export interface Settings {
   serial_log: boolean;
   push_button: boolean;
   push_button_pin: number;
-  push_button_sound_down: "none" | "bell" | "click";
-  push_button_sound_up: "none" | "bell" | "click";
-  push_button_sound_click: "none" | "bell" | "click";
-  push_button_sound_double_click: "none" | "bell" | "click";
-  push_button_sound_long_click: "none" | "bell" | "click";
   continuous_timeout: number;
   loading: LoadingMode;
   eyes_style: string;
@@ -63,6 +58,20 @@ export interface Settings {
 export interface AnimationReply {
   ok: true;
   animation: string;
+}
+
+export type ActionDo = "sound" | "anim";
+
+export interface ActionRow {
+  on: string;
+  do: ActionDo;
+  sound?: "bell" | "click";
+  anim?: string;
+}
+
+export interface ActionsReply {
+  ok: true;
+  actions: ActionRow[];
 }
 
 export interface WifiNetwork {

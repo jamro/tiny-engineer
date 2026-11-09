@@ -147,11 +147,6 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
   putBool(kKeySerialLog, values.serialLog, before.serialLog);
   putBool(kKeyPushButton, values.pushButton, before.pushButton);
   putUInt(kKeyPushButtonPin, values.pushButtonPin, before.pushButtonPin);
-  putText(kKeyBtnSndDn, values.pushButtonSoundDown, before.pushButtonSoundDown);
-  putText(kKeyBtnSndUp, values.pushButtonSoundUp, before.pushButtonSoundUp);
-  putText(kKeyBtnSndClk, values.pushButtonSoundClick, before.pushButtonSoundClick);
-  putText(kKeyBtnSndDbl, values.pushButtonSoundDoubleClick, before.pushButtonSoundDoubleClick);
-  putText(kKeyBtnSndLng, values.pushButtonSoundLongClick, before.pushButtonSoundLongClick);
   putUInt(kKeyContTo, values.continuousTimeoutMin, before.continuousTimeoutMin);
   putText(kKeyLoading, values.loading, before.loading);
   putText(kKeyEyesStyle, values.eyesStyle, before.eyesStyle);
@@ -252,6 +247,28 @@ bool saveWifiNetworks(const WifiNetworkList& networks) {
   return true;
 }
 
+bool saveActions(const ActionList& actions) {
+  if (!openForWrite()) {
+    return false;
+  }
+
+  const size_t length = actions.count() * sizeof(ActionEntry);
+  const bool written = length == 0
+    ? !g_settingsPrefs.isKey(kKeyActions) || g_settingsPrefs.remove(kKeyActions)
+    : g_settingsPrefs.putBytes(kKeyActions, actions.data(), length) == length;
+
+  g_settingsPrefs.end();
+
+  if (!written) {
+    serialLogPrintln("Settings: Actions write failed");
+    return false;
+  }
+
+  g_actions = actions;
+  g_settings.log("Settings saved:");
+  return true;
+}
+
 bool factoryResetSettings() {
   // The hardware calibration survives a reset.
   SettingsValues next = SettingsValues::defaults();
@@ -267,6 +284,7 @@ bool factoryResetSettings() {
   g_settings = next;
   g_wifiChangedSinceBoot |= g_wifiNetworks.count() > 0;
   g_wifiNetworks.clear();
+  g_actions.clear();
   g_settings.log("Settings factory reset:");
   return true;
 }

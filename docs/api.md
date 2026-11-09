@@ -160,11 +160,6 @@ curl http://tiny-engineer.local/settings
   "serial_log": false,
   "push_button": false,
   "push_button_pin": 20,
-  "push_button_sound_down": "none",
-  "push_button_sound_up": "none",
-  "push_button_sound_click": "none",
-  "push_button_sound_double_click": "none",
-  "push_button_sound_long_click": "none",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -186,13 +181,8 @@ curl http://tiny-engineer.local/settings
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
-| `push_button` | Extension-port push-button reader (default **false**). When on, publishes immediate `button.down` / `button.up` plus `button.click` / `button.double_click` / `button.long_click` (see [Outbound events](#outbound-events)). Applies **immediately** |
+| `push_button` | Extension-port push-button reader (default **false**). When on, publishes immediate `button.down` / `button.up` plus `button.click` / `button.double_click` / `button.long_click` (see [Outbound events](#outbound-events)). Applies **immediately**. Local reactions use [Actions](#get-settingsactions) |
 | `push_button_pin` | GPIO on the Extension port for the push-button: **6**, **7**, **20**, or **21** (default **20**). Persists when `push_button` is off. Applies **immediately** when the extension is on |
-| `push_button_sound_down` | Local SFX for `button.down`: `none`, `bell`, or `click` (default **`none`**). Persists when off. Applies **immediately**. Preempts a prior button SFX; skipped during `/play` and animation speech/bell clips |
-| `push_button_sound_up` | Same allowlist for `button.up` (default **`none`**) |
-| `push_button_sound_click` | Same allowlist for `button.click` (default **`none`**) |
-| `push_button_sound_double_click` | Same allowlist for `button.double_click` (default **`none`**) |
-| `push_button_sound_long_click` | Same allowlist for `button.long_click` (default **`none`**) |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
@@ -208,7 +198,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `push_button_sound_down`, `push_button_sound_up`, `push_button_sound_click`, `push_button_sound_double_click`, `push_button_sound_long_click`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). On-device Actions are set with [`PUT /settings/actions`](#put-settingsactions). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings" \
@@ -232,11 +222,6 @@ curl -X POST "http://192.168.4.1/settings" \
   "serial_log": false,
   "push_button": false,
   "push_button_pin": 20,
-  "push_button_sound_down": "none",
-  "push_button_sound_up": "none",
-  "push_button_sound_click": "none",
-  "push_button_sound_double_click": "none",
-  "push_button_sound_long_click": "none",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -261,11 +246,6 @@ curl -X POST "http://192.168.4.1/settings" \
 | `serial_log` | boolean | USB serial debug logging |
 | `push_button` | boolean | Extension-port push-button (default **false**) |
 | `push_button_pin` | integer | Extension-port GPIO **6**, **7**, **20**, or **21** (default **20**); persists when off |
-| `push_button_sound_down` | string | `none`, `bell`, or `click` (default **`none`**); persists when off |
-| `push_button_sound_up` | string | `none`, `bell`, or `click` (default **`none`**) |
-| `push_button_sound_click` | string | `none`, `bell`, or `click` (default **`none`**) |
-| `push_button_sound_double_click` | string | `none`, `bell`, or `click` (default **`none`**) |
-| `push_button_sound_long_click` | string | `none`, `bell`, or `click` (default **`none`**) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
@@ -297,9 +277,53 @@ curl -X PUT "http://tiny-engineer.local/settings/wifi" \
 
 The list must hold 1 to 5 networks, so the robot always has one to try; factory reset clears WiFi. No JSON body → **400** `send a JSON body with Content-Type: application/json`. Body not a JSON array → **400** `body must be a JSON array`. An entry that is not an object, or has a non-string `ssid` or `password` (including `null`) → **400** `each network needs a string ssid and an optional string password`. Empty → **400** `send at least one wifi network`. New SSID without `password` → **400** `password required for a new network`. Bad length, the same SSID twice, or more than 5 networks → **400** `invalid ssid or password, duplicate ssid, or more than 5 networks`. WiFi test failure in setup AP mode → **400** with an error such as `SSID not found`, `Auth failed`, or `Timeout`.
 
+### `GET /settings/actions`
+
+List on-device Actions (event→effect bindings). Requires Bearer when auth is enabled. The SPA page `GET /actions` serves the web UI shell, not this JSON.
+
+```bash
+curl http://tiny-engineer.local/settings/actions
+```
+
+```json
+{
+  "ok": true,
+  "actions": [
+    { "on": "button.double_click", "do": "sound", "sound": "click" },
+    { "on": "button.*", "do": "anim", "anim": "welcome" }
+  ]
+}
+```
+
+### `PUT /settings/actions`
+
+Replace the whole Actions list. Body is a JSON object with array `actions` (0–**16** rows). Each row needs string `on` (1–47 chars; `*` matches any sequence in the event type) and string `do` (`sound` or `anim`), plus the matching param: `sound` (`bell`/`click`) or `anim` (animation name). Extra fields are ignored. Applies immediately. When an outbound event is published, every matching row runs in list order. Requires Bearer when auth is enabled.
+
+```bash
+curl -X PUT "http://tiny-engineer.local/settings/actions" \
+  -H "Content-Type: application/json" \
+  -d '{"actions":[{"on":"button.click","do":"sound","sound":"bell"}]}'
+```
+
+Missing `actions` array → **400**. More than 16 rows or an invalid row → **400** and the previous list remains.
+
+### `POST /actions/test`
+
+Simulate an event type: run matching Actions without publishing a WebSocket/serial envelope. Body JSON `{ "type": "button.click" }`. Requires provisioned robot + Bearer when auth is enabled (same access class as `POST /anim`). Missing/empty `type` → **400**.
+
+```bash
+curl -X POST "http://tiny-engineer.local/actions/test" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"button.double_click"}'
+```
+
+```json
+{ "ok": true, "type": "button.double_click" }
+```
+
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** Internal last-pose blob (`spose`) is cleared/reset with defaults. After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
+Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network and Actions list. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** Internal last-pose blob (`spose`) is cleared/reset with defaults. After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
 
 The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup wizard. It does not poll for reconnect.
 
@@ -317,11 +341,6 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "serial_log": false,
   "push_button": false,
   "push_button_pin": 20,
-  "push_button_sound_down": "none",
-  "push_button_sound_up": "none",
-  "push_button_sound_click": "none",
-  "push_button_sound_double_click": "none",
-  "push_button_sound_long_click": "none",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",

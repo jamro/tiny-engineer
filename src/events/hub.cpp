@@ -1,5 +1,7 @@
 #include "events/hub.h"
 
+#include "actions/dispatch.h"
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <WebSocketsServer.h>
@@ -200,6 +202,7 @@ void publishEvent(const char* type, const char* source) {
   }
 
   serialLinkEmitEvent(json, len);
+  actionsDispatch(type);
 }
 
 void publishBinary(const uint8_t* data, size_t length) {
