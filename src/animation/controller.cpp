@@ -26,7 +26,27 @@ uint32_t g_continuousStartedMs = 0;
 bool g_hasPendingAnimation = false;
 AnimationId g_pendingAnimation = AnimationId::None;
 
+// Awake/Opening wakeup: no clip; drop pending sleep; reset idle timer.
+bool ignoreWakeupIfAwake(uint32_t nowMs) {
+  if (sleepAllowsWakeup()) {
+    return false;
+  }
+
+  if (g_hasPendingAnimation &&
+      g_pendingAnimation == AnimationId::Sleep) {
+    g_hasPendingAnimation = false;
+  }
+
+  noteActivity(nowMs);
+  serialLogPrintln("[anim] ignore wakeup (awake)");
+  return true;
+}
+
 void applyAnimation(AnimationId id, uint32_t nowMs) {
+  if (id == AnimationId::Wakeup && ignoreWakeupIfAwake(nowMs)) {
+    return;
+  }
+
   if (id != AnimationId::Attention) {
     stopAttentionPlayback();
   }
@@ -90,6 +110,10 @@ void setAnimation(AnimationId id) {
     if (animationIsContinuous(id)) {
       g_continuousStartedMs = millis();
     }
+    return;
+  }
+
+  if (id == AnimationId::Wakeup && ignoreWakeupIfAwake(millis())) {
     return;
   }
 

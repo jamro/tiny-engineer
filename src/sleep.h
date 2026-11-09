@@ -12,3 +12,5 @@ void onAnimationApplied(AnimationId id, uint32_t now);
 void noteActivity(uint32_t now);
 void updateSleep(uint32_t now);
 bool isSleeping();
+// True while asleep or entering sleep (Closing / Sleeping).
+bool sleepAllowsWakeup();

@@ -144,3 +144,8 @@ void updateSleep(uint32_t now) {
 bool isSleeping() {
   return g_state == SleepState::Sleeping;
 }
+
+bool sleepAllowsWakeup() {
+  return g_state == SleepState::Sleeping ||
+         g_state == SleepState::Closing;
+}
