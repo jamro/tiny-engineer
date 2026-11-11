@@ -74,6 +74,7 @@ a:hover {
 .nav {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.35rem 0.85rem;
   font-size: 0.9rem;
 }
@@ -86,6 +87,105 @@ a:hover {
 .nav a:hover,
 .nav a[aria-current="page"] {
   color: var(--text);
+}
+
+/* Customise hub tiles */
+.customise-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .customise-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .customise-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.customise-tile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: #151515;
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    border-color var(--dur) ease,
+    box-shadow var(--dur) ease,
+    transform var(--dur) var(--ease-mech);
+}
+
+.customise-tile:hover {
+  border-color: #55554c;
+  text-decoration: none;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.customise-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.customise-tile-media {
+  display: block;
+  aspect-ratio: 5 / 4;
+  background: #0e0e0e;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.customise-tile-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.customise-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem 1.05rem;
+}
+
+.customise-tile-kicker {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.customise-tile-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.customise-tile-ext {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--muted);
+}
+
+.customise-tile-desc {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 main {
@@ -101,7 +201,9 @@ main {
   padding: 0.15rem 0 1.75rem;
 }
 
-.page-home .wrap {
+.page-home .wrap,
+.page-customise .wrap,
+.page-screens .wrap {
   width: min(100% - 2rem, 68rem);
 }
 
@@ -1977,10 +2079,6 @@ esp-web-install-button .button,
 
 .page-screens main {
   gap: 1.25rem;
-}
-
-.page-screens .wrap {
-  width: min(100% - 2rem, 72rem);
 }
 
 /* Setup once across the top; below it the editor and the preview start at

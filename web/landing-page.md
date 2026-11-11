@@ -82,10 +82,11 @@ One source: [`web/js/site-header.js`](../web/js/site-header.js). Mounted on `/`,
 Links (same set every page; `aria-current` from `data-page`):
 
 - Brand → `/`
-- Build → `docs/getting-started.md` on GitHub
-- Flash → `/flash/`
-- Screens → `/screens/`
-- Assembly → `/assembly/`
+- Build → `/build/` (build-stage pages shop…setup highlight Build; stage timeline owns those steps)
+- Customise → `/customise/` tile hub (also current on `/screens/`)
+  - Screens tile → `/screens/`
+  - Halloween tile → `mods/halloween/README.md` on GitHub
+  - Bell button tile → `mods/bell_button/README.md` on GitHub
 - GitHub → repo root
 
 Page-specific docs links stay in page body, not top nav. `/pcba_test/` stays brand-only (line tool).
