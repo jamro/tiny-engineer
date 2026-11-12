@@ -229,6 +229,49 @@ jobs:
               raise SystemExit("Inject Clarity: no HTML files updated")
           print(f"clarity: injected into {injected} files")
           PY
+      - name: Inject Umami
+        env:
+          UMAMI_WEBSITE_ID: ${{ vars.UMAMI_WEBSITE_ID }}
+        run: |
+          set -euo pipefail
+          test -n "${UMAMI_WEBSITE_ID}"
+          python3 <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          wid = os.environ["UMAMI_WEBSITE_ID"].strip()
+          if not re.fullmatch(
+              r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+              wid,
+          ):
+              raise SystemExit("invalid UMAMI_WEBSITE_ID")
+
+          snippet = (
+              f'<script defer src="https://cloud.umami.is/script.js" '
+              f'data-website-id="{wid}"></script>\n'
+          )
+
+          skip = {"web/pcba_test/index.html"}
+          injected = 0
+          for path in sorted(Path("web").rglob("*.html")):
+              rel = path.as_posix()
+              if rel in skip:
+                  continue
+              text = path.read_text(encoding="utf-8")
+              if "cloud.umami.is/script.js" in text or "</head>" not in text:
+                  continue
+              path.write_text(
+                  text.replace("</head>", snippet + "</head>", 1),
+                  encoding="utf-8",
+              )
+              print(f"umami: {rel}")
+              injected += 1
+
+          if injected == 0:
+              raise SystemExit("Inject Umami: no HTML files updated")
+          print(f"umami: injected into {injected} files")
+          PY
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
