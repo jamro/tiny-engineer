@@ -20,9 +20,12 @@ constexpr float kMinEyeRadiusPx = 1.0f;  // smaller eyes are not drawn
 constexpr float kClosedHalfWidth = 0.9f;
 constexpr float kClosedSagPx = 2.2f;
 constexpr float kClosedHappyAbove = 0.5f;
-// Round eyes stay round down to this height; line shapes (> <, x, hearts)
-// break into dashes when squashed, so they switch to the lid line earlier.
-constexpr float kRoundClosedBelowPx = 1.4f;
+// Round eyes flatter than this (height ÷ width radius) draw the lid line: a
+// thinner ellipse reads as a bar, not a blink. Compared with the width, since
+// scripted blinks squash the pose height itself, not just the open amount.
+constexpr float kRoundClosedBelow = 0.22f;
+// Line shapes (> <, x, hearts) break into dashes when squashed, so they
+// switch to the lid line earlier, at this fraction of their open height.
 constexpr float kLineShapeClosedBelow = 0.4f;
 
 // Happy carve: an ellipse rising from below. Wide while subtle so the whole
@@ -457,7 +460,7 @@ void drawEye(Canvas& c, const EyeShape& e) {
 
   const float ry = e.ry * clamp01(e.open);
   const float closedBelow =
-    e.kind == EyeKind::Round ? kRoundClosedBelowPx : kLineShapeClosedBelow * e.ry;
+    e.kind == EyeKind::Round ? kRoundClosedBelow * e.rx : kLineShapeClosedBelow * e.ry;
   if (ry < closedBelow) {
     drawClosedEye(c, e);
     return;
