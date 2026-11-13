@@ -36,6 +36,7 @@ struct EyeShape {
   float pupil;    // pupil radius, px; 0 hides it (shrinks to fit a squint)
   float gazeX;    // where the pupil looks, -1..1 (left .. right)
   float gazeY;    // -1..1 (up .. down)
+  float pupilShake;  // px the pupil is pushed sideways (the bell's shake)
   float sparkle;  // white catch-light in the pupil (hole in a heart); 0 hides it
 };
 
@@ -51,10 +52,22 @@ struct Mouth {
   bool hollow;      // outline only ("o") instead of filled
 };
 
+// A star flying out of an eye (and its trail): a plus with `arm` px arms,
+// or one pixel when arm is 0.
+struct Spark {
+  int16_t x;
+  int16_t y;
+  int8_t arm;
+};
+
+constexpr uint8_t kMaxSparks = 96;
+
 struct Face {
   EyeShape left;
   EyeShape right;
   Mouth mouth;
+  Spark sparks[kMaxSparks];
+  uint8_t sparkCount;  // sparks in use
   float blush;  // 0..1 dither density under the outer eye corners
   // Twinkle stars beside the eyes: hidden below 0.3, then a plus sign whose
   // arms are (glint - 0.3) px, rounded down. 3 gives the largest (2 px arms).

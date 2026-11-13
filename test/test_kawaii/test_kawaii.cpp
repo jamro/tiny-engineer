@@ -3,6 +3,7 @@
 #include <unity.h>
 
 #include "display/eyes/styles/kawaii/animator.h"
+#include "display/eyes/styles/kawaii/burst.h"
 #include "display/eyes/styles/kawaii/compose.h"
 #include "display/eyes/styles/kawaii/expression.h"
 #include "display/eyes/styles/kawaii/face.h"
@@ -683,45 +684,108 @@ void test_error_abort_dead_say_their_lines() {
   TEST_ASSERT_FALSE(fitsStock(Line::Count, dead, 2));
 }
 
-void test_bell_builds_suspense_then_rings() {
+void test_bell_breathes_in_until_the_ding() {
   BellCelebration bell;
   bell.reset(0);
-
-  // Wind-up: eager at first, then suspense builds and holds.
-  const Expression eager = bell.update(0, false);
-  const Expression tense = bell.update(900, false);
-  TEST_ASSERT_TRUE(tense.lid > eager.lid + 0.2f);      // narrowed onto the bell
-  TEST_ASSERT_TRUE(tense.pupil < eager.pupil);
-  TEST_ASSERT_TRUE(tense.quiver > 0.2f);               // a nervous tremble
-  TEST_ASSERT_TRUE(tense.mouthOpenDown < eager.mouthOpenDown - 1.0f);  // holding its breath
-  TEST_ASSERT_EQUAL_FLOAT(tense.lid, bell.update(1200, false).lid);
-
-  // The ding, then bliss for as long as the bell rings, with open eyes.
-  bell.reset(0);
-  TEST_ASSERT_EQUAL_FLOAT(expressionFor(Mood::Excited).scale, bell.update(600, true).scale);
-  const Expression bliss = bell.update(1500, true);
-  TEST_ASSERT_TRUE(bliss.happyLeft < 0.5f);  // pupils stay visible
-  TEST_ASSERT_TRUE(bliss.quiver > 0.9f);
-  TEST_ASSERT_EQUAL_FLOAT(bliss.quiver, bell.update(2500, true).quiver);
-
-  // The ring ends at 2600: the shiver fades smaller and slower over 500 ms.
-  const Expression start = bell.update(2600, false);
-  const Expression mid = bell.update(2850, false);
-  TEST_ASSERT_TRUE(mid.quiver < start.quiver && mid.quiver > 0.0f);
-  TEST_ASSERT_TRUE(mid.quiverHz < start.quiverHz);
-  const Expression after = bell.update(3200, false);
-  TEST_ASSERT_EQUAL_FLOAT(0.0f, after.quiver);
-  TEST_ASSERT_EQUAL_FLOAT(expressionFor(Mood::Afterglow).lid, after.lid);
+  const Expression start = bell.update(0, false);
+  const Expression full = bell.update(900, false);
+  TEST_ASSERT_TRUE(full.rise > start.rise + 2.5f);             // the face lifts
+  TEST_ASSERT_TRUE(full.mouthOpenDown > start.mouthOpenDown + 1.5f);  // drawing in an "o"
+  TEST_ASSERT_EQUAL_FLOAT(1.0f, full.mouthHollow);
+  TEST_ASSERT_TRUE(full.pupil < start.pupil);                  // pupils tighten
+  TEST_ASSERT_EQUAL_FLOAT(full.rise, bell.update(1300, false).rise);  // held to the ding
+  for (uint32_t t = 0; t <= 1300; t += 100) {
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, bell.update(t, false).quiver);  // no shaking yet
+  }
 }
 
-void test_bell_without_a_clip_still_celebrates() {
+void test_bell_yells_then_pupils_shake_with_the_ring() {
+  BellCelebration bell;
+  bell.reset(0);
+  bell.update(500, false);
+  const Expression yell = bell.update(1000, true);  // the ding
+  TEST_ASSERT_TRUE(yell.mouthOpenDown > 6.0f);       // a big excited yell
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, yell.rise);           // the breath lets go
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, 1.0f, bell.ring(1040));  // strike peak
+
+  const Expression strike = bell.update(1040, true);
+  const Expression mid = bell.update(1700, true);
+  const Expression tail = bell.update(2300, false);
+  TEST_ASSERT_TRUE(strike.quiver > 1.9f);
+  TEST_ASSERT_TRUE(mid.quiver < strike.quiver && mid.quiver > 0.5f);
+  TEST_ASSERT_TRUE(tail.quiver > 0.0f && tail.quiver < mid.quiver);  // still at its last
+  TEST_ASSERT_TRUE(tail.quiverHz < strike.quiverHz);                 // slowing down
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, bell.update(2400, false).quiver);    // the ring is gone
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, bell.ring(2400));
+  TEST_ASSERT_TRUE(mid.happyLeft < 0.5f);                              // eyes open: pupils show
+  TEST_ASSERT_EQUAL_FLOAT(
+    expressionFor(Mood::Afterglow).lid, bell.update(3000, false).lid
+  );
+}
+
+void test_bell_without_a_clip_still_dings() {
   BellCelebration bell;
   bell.reset(10000);
-  TEST_ASSERT_TRUE(bell.update(11400, false).quiver < 0.5f);  // still winding up
-  bell.update(11500, false);                                 // the ding comes anyway
-  TEST_ASSERT_TRUE(bell.update(12500, false).quiver > 0.9f);  // ringing
-  bell.update(13400, false);                                 // the silent ring ends
-  TEST_ASSERT_EQUAL_FLOAT(0.0f, bell.update(14000, false).quiver);
+  TEST_ASSERT_FALSE(bell.update(11400, false).quiver > 0.0f);
+  TEST_ASSERT_FALSE(bell.dinged());
+  bell.update(11500, false);
+  TEST_ASSERT_TRUE(bell.dinged());
+  TEST_ASSERT_TRUE(bell.update(11540, false).quiver > 1.9f);
+}
+
+void test_only_the_pupils_shake() {
+  static uint8_t still[kFrameBytes];
+  Face f = plainFace();
+  f.right.rx = 0.0f;
+  render(f, still, kFrameBytes);
+  float cx = 0.0f;
+  float cy = 0.0f;
+  memcpy(g_frame, still, kFrameBytes);
+  pupilCentroid(cx, cy);
+
+  f.left.pupilShake = 2.0f;
+  render(f, g_frame, kFrameBytes);
+  float x = 0.0f;
+  float y = 0.0f;
+  pupilCentroid(x, y);
+  TEST_ASSERT_TRUE(x > cx + 1.0f);  // the pupil moved
+
+  for (int row = 0; row < kHeight; row++) {  // the eye's outline did not
+    int first = -1;
+    int stillFirst = -1;
+    for (int px = 0; px < 64; px++) {
+      first = first < 0 && pixelAt(g_frame, px, row) ? px : first;
+      stillFirst = stillFirst < 0 && pixelAt(still, px, row) ? px : stillFirst;
+    }
+    TEST_ASSERT_EQUAL_INT(stillFirst, first);
+  }
+}
+
+void test_stars_fly_out_of_the_eyes() {
+  Face f = plainFace();
+  addStarBurst(f, 250, 0.5f);
+  TEST_ASSERT_TRUE(f.sparkCount > 4);
+  int left = 0;
+  int right = 0;
+  for (uint8_t i = 0; i < f.sparkCount; i++) {
+    left += f.sparks[i].x < 32 - 11 ? 1 : 0;   // out past the left eye's outer side
+    right += f.sparks[i].x > 96 + 11 ? 1 : 0;  // and the right eye's
+  }
+  TEST_ASSERT_EQUAL_INT(f.sparkCount, left + right);
+  TEST_ASSERT_TRUE(left > 0 && right > 0);
+
+  Face loud = plainFace();
+  Face quiet = plainFace();
+  addStarBurst(loud, 250, 1.0f);
+  addStarBurst(quiet, 250, 0.05f);
+  TEST_ASSERT_TRUE(loud.sparkCount > quiet.sparkCount);  // trails fade with the ring
+
+  Face over = plainFace();
+  addStarBurst(over, 1500, 0.0f);
+  TEST_ASSERT_EQUAL_INT(0, over.sparkCount);  // gone with the ring
+
+  render(f, g_frame, kFrameBytes);  // drawn without overflow
+  TEST_ASSERT_TRUE(litCount(0, 0, 20, 31) > 0);
 }
 
 void test_shiver_changes_speed_without_jumping() {
@@ -768,8 +832,11 @@ int main(int, char**) {
   RUN_TEST(test_hello_human_says_the_words);
   RUN_TEST(test_psst_human_says_the_words);
   RUN_TEST(test_error_abort_dead_say_their_lines);
-  RUN_TEST(test_bell_builds_suspense_then_rings);
-  RUN_TEST(test_bell_without_a_clip_still_celebrates);
+  RUN_TEST(test_bell_breathes_in_until_the_ding);
+  RUN_TEST(test_bell_yells_then_pupils_shake_with_the_ring);
+  RUN_TEST(test_bell_without_a_clip_still_dings);
+  RUN_TEST(test_only_the_pupils_shake);
+  RUN_TEST(test_stars_fly_out_of_the_eyes);
   RUN_TEST(test_shiver_changes_speed_without_jumping);
   RUN_TEST(test_idle_is_mostly_smiles_with_accents);
   RUN_TEST(test_idle_survives_millis_wrap);

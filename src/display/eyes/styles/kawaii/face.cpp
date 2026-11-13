@@ -478,7 +478,7 @@ void drawPupil(Canvas& c, const EyeShape& e, EyeMask& eye) {
   // smile moves the pupil as far as anywhere else; the lid just covers it.
   // Centers snap to whole pixels, so the pupil moves without changing shape.
   const float travel = fmaxf(0.0f, e.rx - r - kPupilRimPx + kPupilTuckPx);
-  const int px = floorInt(e.cx + gx * travel);
+  const int px = floorInt(e.cx + gx * travel + e.pupilShake);
   const int py = floorInt(e.cy + gy * travel);
 
   // The pupil may only darken eye pixels at least the rim away from its edge.
@@ -841,6 +841,10 @@ bool render(const Face& face, uint8_t* frame, size_t frameBytes) {
   drawMouth(canvas, face.mouth);
   drawGlint(canvas, face.left, face.glint);
   drawGlint(canvas, face.right, face.glint);
+  for (uint8_t i = 0; i < face.sparkCount && i < kMaxSparks; i++) {
+    const Spark& s = face.sparks[i];
+    canvas.star((float)s.x, (float)s.y, s.arm);
+  }
   return true;
 }
 

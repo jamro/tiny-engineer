@@ -185,7 +185,7 @@ curl http://tiny-engineer.local/settings
 | `push_button_pin` | GPIO on the Extension port for the push-button: **6**, **7**, **20**, or **21** (default **20**). Persists when `push_button` is off. Applies **immediately** when the extension is on |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
-| `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), `dots` (12×12 circles), or `kawaii` (sparkly round eyes with a little mouth and blush). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes); kawaii moods are under [Kawaii eyes](#kawaii-eyes) |
+| `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), `dots` (12×12 circles), or `kawaii` (round eyes with big moving pupils, a talking mouth, and blush). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes); kawaii moods are under [Kawaii eyes](#kawaii-eyes) |
 | `access_token_set` | `true` when a non-empty access token is stored (secret itself is never returned) |
 | `link_mode` | `""` unprovisioned, `"wifi"`, or `"usb"` (connection mode; see [`serial.md`](serial.md)) |
 | `wifi_configured` | `true` when at least one WiFi network is saved |
@@ -612,7 +612,7 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 { "ok": true, "animation": "typing" }
 ```
 
-Eye detail below for `eyes_style=classic` (default). With `eyes_style=cover`, the same sequences drive full-half bars ([Cover eyes](#cover-eyes)). With `eyes_style=dots`, the same sequences drive 12×12 circles ([Dots eyes](#dots-eyes)). With `eyes_style=kawaii`, the same sequences move and blink a kawaii face whose expression follows the animation ([Kawaii eyes](#kawaii-eyes)). With `eyes_style=kaomoji`, faces follow [Kaomoji eyes](#kaomoji-eyes) instead of procedural blinks, glances, flicker, or X eyes. Servo/audio behavior is the same for every style.
+Eye detail below for `eyes_style=classic` (default). With `eyes_style=cover`, the same sequences drive full-half bars ([Cover eyes](#cover-eyes)). With `eyes_style=dots`, the same sequences drive 12×12 circles ([Dots eyes](#dots-eyes)). With `eyes_style=kawaii`, the same sequences move and blink a kawaii face whose expression follows the animation and whose mouth says the voice clips ([Kawaii eyes](#kawaii-eyes)). With `eyes_style=kaomoji`, faces follow [Kaomoji eyes](#kaomoji-eyes) instead of procedural blinks, glances, flicker, or X eyes. Servo/audio behavior is the same for every style.
 
 Durations and quoted lines below are the stock clips in [`assets/`](../assets/). A filesystem built with `custom_audio_mod` can replace some of those WAVs. Phrase timing then follows that clip's `.cue` file on LittleFS (`/welcome.cue` and the same pattern for `attention`, `error`, `abort`, and `dead`). See [flash.md](flash.md).
 
@@ -660,7 +660,9 @@ When `eyes_style=dots`, each eye is a filled circle. At the classic open height 
 
 #### Kawaii eyes
 
-When `eyes_style=kawaii`, each eye is a round eye about 23 px across with a big dark pupil and white catch-lights in it (one round light and two small dots). A small mouth sits between the eyes, with dithered blush under the outer corners. The classic pose still drives position, height, glances, and blinks, and the pupils look where its glances point: at the task or the human, down at the keyboard while typing, up while thinking. Moods change pupil size (small when surprised or angry, large when sad). A pupil otherwise keeps its size: lids, smiles, and blinks cover it like eyelids, and a white rim always stays around it. A closed eye draws a `‿` lid line (`∩` while smiling). Each animation picks a mood, and the face eases into it. Eye size, happy crescents, and mouth opening use springs with a little overshoot. Shape changes that cannot morph (round eyes to `> <`, `x x`, or hearts) happen behind a quick blink.
+When `eyes_style=kawaii`, each eye is a round eye about 23 px across with a big dark pupil and white catch-lights in it (one round light and two small dots). A small mouth sits between the eyes, with dithered blush under the outer corners. The classic pose still drives position, height, glances, and blinks, and the pupils look where its glances point: at the task or the human, up while thinking. Two animations lead the eyes themselves: `typing` reads code instead of following the typing jitter, and `ring` keeps the eyes full size instead of the classic small circles. Moods change pupil size (small when surprised or angry, large when sad). A pupil otherwise keeps its size: lids, smiles, and blinks cover it like eyelids, and a white rim always stays around it. A closed eye draws a `‿` lid line (`∩` while smiling). Each animation picks a mood, and the face eases into it. Eye size, happy crescents, and mouth opening use springs with a little overshoot. Shape changes that cannot morph (round eyes to `> <`, `x x`, or hearts) happen behind a quick blink.
+
+While `welcome`, `attention`, `error`, `abort`, or `dead` plays its stock clip, the mouth says the words in sync (quoted below), closing on p, b, m, t, d, and k. A custom clip with its own `.cue` file says something else, so the mouth babbles through it instead.
 
 | Animation / phase | Mood |
 | --- | --- |
@@ -668,15 +670,15 @@ When `eyes_style=kawaii`, each eye is a round eye about 23 px across with a big 
 | `typing` | Mostly focused: lids slightly lowered, short mouth. The eyes read code: a few lines word by word, then a dart to another spot, and again. Now and then a pleased smile, a quick `^ ^` grin, or a wink; these come more often the longer it has been since an `error`, `abort`, or `dead` (most often after about 90 s) |
 | `reading` | Mostly lids barely lowered, small `ω`. Now and then a pleased, happy read, an "ooh" (`o` mouth, wider eyes), or a grin; more often while work goes well |
 | `thinking` | Mostly lids slightly lowered, wobbly mouth off to one side. Now and then an "aha!": eyes widen and look up, star glints, a little hop, open smile; then back to thinking |
-| `ring` | A celebration. Wind-up: eager, then suspense builds over 0.8 s and holds until the strike (eyes narrow onto the bell, the mouth holds its breath, a nervous tremble grows). The ding: eyes pop wide, stars, a hop, an open grin. While the bell rings: open sparkling eyes, full blush, open smile, a delighted shiver. When the ring ends, the shiver winds down over 0.5 s, smaller and slower, into a dreamy afterglow (half-closed happy eyes, `ω`). Keyed to the bell clip; without it the ding comes after 1.5 s |
-| `welcome` | Excited. While `welcome.wav` plays, the mouth says the words in sync: "Hello, human. What are we building today?" A custom clip with its own `welcome.cue` says something else, so the mouth babbles through its greeting and question instead |
-| `attention` | Curious: slightly wide eyes, small `o`. While `attention.wav` plays, the mouth says the words in sync: "Psst... human... you might want to take a look." A custom clip with its own `attention.cue` gets syllable babble instead |
-| `error` | Angry: lids tilted down at the inner corners, frown. While `error.wav` plays, the mouth says "Uh-oh. Human, we have a problem." |
-| `abort` | Panic: `> <` eyes, wavy mouth. While `abort.wav` plays, the mouth says "Fine. I didn't want to finish it anyway." |
+| `ring` | A celebration, keyed to the bell's ding. Wind-up: a deep breath that deepens until the strike (the face rises, eyes widen, pupils tighten, cheeks flush, the mouth draws in a big `o`). The ding: an excited yell (eyes pop, huge open mouth) and stars burst from the outer sides of the eyes, swirling off-screen with trails that shorten as the bell fades. Only the pupils shake, with the bell's own loudness, from the strike to the last of the ring (about 1.4 s). Then a dreamy afterglow (half-closed happy eyes, `ω`). Without a bell clip the ding comes after 1.5 s |
+| `welcome` | Excited; says "Hello, human. What are we building today?" |
+| `attention` | Curious: slightly wide eyes, small `o`; says "Psst... human... you might want to take a look." |
+| `error` | Angry: lids tilted down at the inner corners, frown; says "Uh-oh. Human, we have a problem." |
+| `abort` | Panic: `> <` eyes, wavy mouth; says "Fine. I didn't want to finish it anyway." |
 | `wakeup` | Sleepy: heavy lids, yawn |
 | `talking` | The mouth talks in syllables, shaped as `ah` (tall), `ee` (wide), or `o` (round). With `/play` audio it opens with the speech loudness and changes shape on each syllable onset. Without audio it babbles in short phrases with pauses |
 | `sleep` / sleep-close | Lids close, small `ω` |
-| `dead` | Sad (lids tilted down at the outer corners, frown), then `x x` eyes during the X hold. While `dead.wav` plays, the mouth says "Insufficient resources... shutting doooowwwnnn". Each spoken clip falls back to syllable babble when a custom `.cue` replaces it |
+| `dead` | Sad (lids tilted down at the outer corners, frown), then `x x` eyes during the X hold. Says "Insufficient resources... shutting doooowwwnnn" |
 
 Wrong params return **400**:
 

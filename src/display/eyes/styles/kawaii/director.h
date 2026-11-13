@@ -44,14 +44,15 @@ class MoodDirector {
   uint32_t accentEndAt_ = 0;
 };
 
-// The bell, as one continuous face:
-// - wind-up: eager, then suspense builds (eyes narrow onto the bell, the
-//   mouth holds its breath, a nervous tremble grows) and holds until...
-// - the ding: eyes pop wide, stars, a hop, an open grin;
-// - bliss while the bell rings: open sparkling eyes, a delighted shiver;
-// - when the ring ends, the shiver winds down, smaller and slower, like the
-//   bell dying away, into a dreamy afterglow.
-// Keyed to the bell clip; without one, the ding and its end come on time.
+// The bell, as one continuous face, keyed to the ding (the moment the bell
+// clip starts):
+// - wind-up: a deep breath that keeps deepening until the ding (the face
+//   rises, eyes widen, pupils tighten, the mouth draws in a big "o");
+// - the ding: an excited yell, then open sparkling eyes;
+// - the pupils (only) shake with the bell's own loudness, from the strike
+//   down to the last of the ring;
+// - then a dreamy afterglow.
+// Without a bell clip, the ding comes after a wait and plays the same way.
 class BellCelebration {
  public:
   // Call when the ring starts.
@@ -59,16 +60,18 @@ class BellCelebration {
   // The face at `now`; `bellPlaying`: the bell clip is playing.
   Expression update(uint32_t now, bool bellPlaying);
 
+  bool dinged() const { return rung_; }
+  uint32_t sinceDing(uint32_t now) const { return rung_ ? now - dingMs_ : 0; }
+  // The stock bell's loudness since the ding, 0..1 (0 once it has died away).
+  float ring(uint32_t now) const;
+
  private:
-  Expression windUp(uint32_t now) const;
+  Expression breath(uint32_t now) const;
   Expression afterDing(uint32_t now) const;
 
   uint32_t startedMs_ = 0;
   bool rung_ = false;
-  bool heard_ = false;   // the clip actually played
-  bool ended_ = false;
   uint32_t dingMs_ = 0;
-  uint32_t endMs_ = 0;
 };
 
 }  // namespace kawaii

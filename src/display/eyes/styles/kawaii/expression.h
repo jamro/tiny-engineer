@@ -36,8 +36,9 @@ enum class Mood : uint8_t {
   Pleased,    // a content smile mid-task: work is going well
   Aha,        // thinking: an idea lands, eyes up and bright
   // The bell (ring): see BellCelebration in director.h.
-  Suspense,   // held breath before the ding: narrowed, trembling, mouth tight
-  Bliss,      // joy while the bell rings: open sparkling eyes, shivering
+  Suspense,   // a full deep breath before the ding: risen, wide, inhaling "o"
+  Yell,       // the ding: eyes pop, a huge excited yell
+  Bliss,      // joy while the bell rings: open sparkling eyes
   Afterglow,  // dreamy half-closed happy eyes, ω
   Count
 };
@@ -67,8 +68,9 @@ struct Expression {
   float blush;          // 0..1
   float glint;          // 0..1 twinkle star strength
   float bounce;         // hop height, px
-  float quiver;         // shiver, px each way
-  float quiverHz;       // how fast it shivers (not eased: the phase carries on)
+  float rise;           // px the whole face lifts (a deep breath)
+  float quiver;         // pupil shake, px each way (not eased: set per frame)
+  float quiverHz;       // how fast the pupils shake (the phase carries on)
   float mouthWidth;     // px
   float mouthCurve;     // px, see Mouth::curve
   float mouthOmega;     // 0..1, see Mouth::omega

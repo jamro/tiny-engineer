@@ -1,5 +1,6 @@
 #include "display/eyes/styles/kawaii/director.h"
 
+#include <cmath>
 #include <cstddef>
 
 namespace kawaii {
@@ -155,12 +156,33 @@ Mood MoodDirector::update(uint32_t now, float flow) {
 
 namespace {
 
-constexpr uint32_t kBellWaitMs = 1500;     // no bell by then: ding anyway
-constexpr uint32_t kSilentRingMs = 1900;   // how long a missing bell "rings"
-constexpr uint32_t kBuildUpMs = 800;       // eager to full suspense
-constexpr uint32_t kDingMs = 350;          // the burst of joy
-constexpr uint32_t kWindDownMs = 500;      // the shiver fading after the ring
-constexpr float kWindDownHz = 3.0f;        // shiver speed as it fades out
+constexpr uint32_t kBellWaitMs = 1500;  // no bell by then: ding anyway
+constexpr uint32_t kBreathMs = 900;     // eager to a full breath
+constexpr uint32_t kYellMs = 300;       // the yell before it eases into bliss
+constexpr uint32_t kYellEaseMs = 300;
+constexpr uint32_t kAfterglowMs = 500;  // bliss to afterglow, once the ring ends
+
+// Pupil shake from the ring's loudness: a power below 1 keeps the fading
+// tail visible to the end; it slows as the ring dies.
+constexpr float kShakeMaxPx = 2.0f;
+constexpr float kShakeCurve = 0.4f;
+constexpr float kShakeSlowHz = 6.0f;
+constexpr float kShakeFastHz = 18.0f;
+
+// The stock assets/bell.wav loudness (percent of its peak) from the start
+// of the clip: the strike at 10-40 ms, a shimmer, then a long decay that is
+// gone by 1400 ms.
+struct Level {
+  uint16_t atMs;
+  uint8_t pct;
+};
+constexpr Level kBellRing[] = {
+  {0, 0}, {15, 85}, {40, 100}, {130, 72}, {160, 30}, {250, 38}, {400, 27},
+  {450, 15}, {550, 21}, {700, 17}, {900, 13}, {1000, 10}, {1100, 7},
+  {1200, 5}, {1300, 2}, {1400, 0},
+};
+constexpr size_t kBellRingCount = sizeof(kBellRing) / sizeof(kBellRing[0]);
+constexpr uint32_t kRingEndMs = kBellRing[kBellRingCount - 1].atMs;
 
 // Ease in and out, 0..1.
 float smooth(float t) {
@@ -177,55 +199,53 @@ float since(uint32_t now, uint32_t at) {
 void BellCelebration::reset(uint32_t now) {
   startedMs_ = now;
   rung_ = false;
-  heard_ = false;
-  ended_ = false;
 }
 
-Expression BellCelebration::windUp(uint32_t now) const {
-  const float t = since(now, startedMs_) / (float)kBuildUpMs;
+float BellCelebration::ring(uint32_t now) const {
+  const uint32_t t = sinceDing(now);
+  if (!rung_ || t >= kRingEndMs) {
+    return 0.0f;
+  }
+  size_t i = 0;
+  while (i + 2 < kBellRingCount && t >= kBellRing[i + 1].atMs) {
+    i++;
+  }
+  const Level& a = kBellRing[i];
+  const Level& b = kBellRing[i + 1];
+  const float f = (float)(t - a.atMs) / (float)(b.atMs - a.atMs);
+  return lerp(a.pct, b.pct, f) / 100.0f;
+}
+
+Expression BellCelebration::breath(uint32_t now) const {
+  // Breathing in deeper and deeper; eases in so the last of it is the fullest.
+  const float t = since(now, startedMs_) / (float)kBreathMs;
   return blend(expressionFor(Mood::Curious), expressionFor(Mood::Suspense), smooth(t));
 }
 
 Expression BellCelebration::afterDing(uint32_t now) const {
-  if (since(now, dingMs_) < (float)kDingMs) {
-    return expressionFor(Mood::Excited);
+  const float t = since(now, dingMs_);
+  Expression e = expressionFor(Mood::Yell);
+  if (t >= (float)kYellMs) {
+    e = blend(e, expressionFor(Mood::Bliss), (t - kYellMs) / (float)kYellEaseMs);
   }
-  Expression e = expressionFor(Mood::Bliss);
-  if (!ended_) {
-    return e;
+  if (t >= (float)kRingEndMs) {
+    e = blend(e, expressionFor(Mood::Afterglow), smooth((t - kRingEndMs) / (float)kAfterglowMs));
   }
 
-  // Wind down: the shiver shrinks and slows, then the face settles.
-  const float t = since(now, endMs_) / (float)kWindDownMs;
-  if (t >= 1.0f) {
-    return expressionFor(Mood::Afterglow);
-  }
-  const float left = 1.0f - smooth(t);
-  Expression out = blend(e, expressionFor(Mood::Afterglow), smooth(t));
-  out.quiver = e.quiver * left;
-  out.quiverHz = lerp(kWindDownHz, e.quiverHz, left);
-  return out;
+  // The pupils shake with the bell: hardest on the strike, fading and
+  // slowing with the ring, still at its last.
+  const float level = ring(now);
+  e.quiver = level > 0.0f ? kShakeMaxPx * powf(level, kShakeCurve) : 0.0f;
+  e.quiverHz = lerp(kShakeSlowHz, kShakeFastHz, sqrtf(level));
+  return e;
 }
 
 Expression BellCelebration::update(uint32_t now, bool bellPlaying) {
   if (!rung_ && (bellPlaying || reached(now, startedMs_ + kBellWaitMs))) {
     rung_ = true;
-    heard_ = bellPlaying;
     dingMs_ = now;
   }
-  if (!rung_) {
-    return windUp(now);
-  }
-
-  if (!ended_) {
-    const bool clipDone = heard_ && !bellPlaying;
-    const bool silentDone = !heard_ && reached(now, dingMs_ + kSilentRingMs);
-    if (clipDone || silentDone) {
-      ended_ = true;
-      endMs_ = now;
-    }
-  }
-  return afterDing(now);
+  return rung_ ? afterDing(now) : breath(now);
 }
 
 }  // namespace kawaii

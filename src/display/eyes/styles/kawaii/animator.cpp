@@ -134,7 +134,8 @@ void Animator::easeValues(const Expression& t, float dt) {
   approach(c.blush, t.blush, w.blush);
   approach(c.glint, t.glint, w.glint);
   approach(c.bounce, t.bounce, w.bounce);
-  approach(c.quiver, t.quiver, w.bounce);
+  approach(c.rise, t.rise, w.lid);
+  c.quiver = t.quiver;  // follows the bell's loudness frame by frame
   c.quiverHz = t.quiverHz;
   quiverPhase_ = fmodf(quiverPhase_ + kTwoPi * t.quiverHz * dt * kSecondsPerMs, kTwoPi);
   approach(c.mouthWidth, t.mouthWidth, w.mouth);

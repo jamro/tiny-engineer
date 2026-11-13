@@ -13,6 +13,7 @@
 #include "display/eyes/core/blink.h"
 #include "display/eyes/core/constants.h"
 #include "display/eyes/styles/kawaii/animator.h"
+#include "display/eyes/styles/kawaii/burst.h"
 #include "display/eyes/styles/kawaii/compose.h"
 #include "display/eyes/styles/kawaii/face.h"
 #include "display/eyes/styles/kawaii/lines.h"
@@ -119,7 +120,8 @@ float workFlow(uint32_t now) {
   return kawaii::clamp01((float)(now - g_calmSinceMs) / (float)kFlowRampMs);
 }
 
-// The bell: suspense through the wind-up, joy on the ding, a fading shiver.
+// The bell: a deep breath through the wind-up, a yell on the ding, pupils
+// shaking with the ring.
 kawaii::Expression ringFace(uint32_t modeStartedMs, uint32_t now) {
   if (!g_ringing || modeStartedMs != g_ringStartedMs) {
     g_bell.reset(now);
@@ -357,6 +359,9 @@ void drawFrame(EyeMode mode, uint32_t now) {
   };
   kawaii::Face face = {};
   kawaii::composeFace(pose, g_animator, now, face);
+  if (g_ringing && g_bell.dinged()) {
+    kawaii::addStarBurst(face, g_bell.sinceDing(now), g_bell.ring(now));
+  }
   if (!kawaii::render(face, g_frame, sizeof(g_frame))) {
     return;
   }

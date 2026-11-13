@@ -8,7 +8,7 @@ Extensible eye renderers selected by Config / `POST /settings` `{"eyes_style":"â
 | `kaomoji` | Animated faces from TinyEngineerExpressions |
 | `cover` | Full-half bars for mods with a mask with eye holes; height changes via top and/or bottom black margins |
 | `dots` | 12Ã—12 filled circles; diameter tracks pose height, center tracks pose |
-| `kawaii` | Sparkly round eyes, little mouth, blush; moods ease per animation, idle mixes smiles with winks and excitement ([`kawaii/`](kawaii/)) |
+| `kawaii` | Round eyes with big moving pupils, a talking mouth, and blush. Each animation has its own mood (with occasional accents while idle, typing, reading, or thinking), the mouth says the stock voice clips in sync, and the bell gets a celebration ([`kawaii/`](kawaii/)) |
 
 ## Add a style
 

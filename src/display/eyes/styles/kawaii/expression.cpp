@@ -11,7 +11,7 @@ namespace {
 const char* const kMoodNames[] = {
   "content", "smile", "grin", "wink_left", "wink_right", "excited", "love",
   "focused", "reading", "thinking", "surprised", "curious", "angry", "panic",
-  "sleepy", "sad", "dizzy", "talking", "asleep", "pleased", "aha", "suspense", "bliss", "afterglow",
+  "sleepy", "sad", "dizzy", "talking", "asleep", "pleased", "aha", "suspense", "yell", "bliss", "afterglow",
 };
 
 static_assert(
@@ -75,6 +75,7 @@ Expression blend(const Expression& a, const Expression& b, float t) {
   e.blush = lerp(a.blush, b.blush, t);
   e.glint = lerp(a.glint, b.glint, t);
   e.bounce = lerp(a.bounce, b.bounce, t);
+  e.rise = lerp(a.rise, b.rise, t);
   e.quiver = lerp(a.quiver, b.quiver, t);
   e.quiverHz = lerp(a.quiverHz, b.quiverHz, t);
   e.mouthWidth = lerp(a.mouthWidth, b.mouthWidth, t);
@@ -251,15 +252,28 @@ Expression expressionFor(Mood mood) {
       e.bounce = 1.2f;
       break;
     case Mood::Suspense:
-      e.lid = 0.35f;       // narrowed in focus
-      e.pupil = 0.75f;
-      e.gazeY = 0.35f;     // eyes on the bell
-      e.scale = 0.97f;
-      e.mouthWidth = 6.0f;  // held breath
-      e.mouthCurve = 0.0f;
-      e.blush = 0.6f;
-      e.quiver = 0.35f;    // a nervous tremble
-      e.quiverHz = 18.0f;
+      // Lungs full: the face lifts, eyes widen, pupils tighten, cheeks
+      // flush, and the mouth is a big inhaling "o".
+      e.rise = 3.0f;
+      e.scale = 1.12f;
+      e.pupil = 0.7f;
+      e.sparkle = 1.1f;
+      oMouth(e, 9.0f, 4.0f);
+      e.mouthOpenUp = 3.0f;
+      e.blush = 1.0f;
+      break;
+    case Mood::Yell:
+      // Letting it all out: eyes pop, a huge open yell.
+      e.scale = 1.18f;
+      e.pupil = 1.05f;
+      e.sparkle = 1.3f;
+      e.mouthWidth = 16.0f;
+      e.mouthCurve = 2.0f;
+      e.mouthOpenUp = 2.0f;
+      e.mouthOpenDown = 6.5f;
+      e.blush = 1.0f;
+      e.glint = 1.0f;
+      e.bounce = 1.5f;
       break;
     case Mood::Bliss:
       // Open, so the shivering pupils show.
@@ -273,8 +287,6 @@ Expression expressionFor(Mood mood) {
       e.blush = 1.0f;
       e.glint = 1.0f;
       e.bounce = 0.6f;
-      e.quiver = 1.0f;
-      e.quiverHz = 14.0f;
       break;
     case Mood::Afterglow:
       e.happyLeft = e.happyRight = 0.55f;

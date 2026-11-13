@@ -74,14 +74,15 @@ void composeFace(const Pose& pose, const Animator& animator, uint32_t now, Face&
   const float hop = -fabsf(wave(now, kHopPeriodMs)) * e.bounce;
   const float open = pose.open * animator.kindOpen();
 
-  const float shiver = e.quiver * sinf(animator.quiverPhase());
-  EyePose left = withHop(pose.left, hop);
-  EyePose right = withHop(pose.right, hop);
-  left.cx += shiver;
-  right.cx += shiver;
+  EyePose left = withHop(pose.left, hop - e.rise);
+  EyePose right = withHop(pose.right, hop - e.rise);
 
   out.left = eyeFrom(left, 1, e, e.happyLeft, open, pose);
   out.right = eyeFrom(right, -1, e, e.happyRight, open, pose);
+  // Only the pupils shake; the eyes hold still around them.
+  const float shake = e.quiver * sinf(animator.quiverPhase());
+  out.left.pupilShake = shake;
+  out.right.pupilShake = shake;
   out.mouth = mouthFrom(left, right, e);
   out.blush = e.blush;
   out.glint = e.glint * (kGlintBase + kGlintSwing * wave(now, kGlintPeriodMs));
