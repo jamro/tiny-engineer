@@ -23,11 +23,11 @@ struct Pose {
 };
 
 constexpr float kEyeRadius = 11.0f;  // px at scale 1
-constexpr float kPupilRadius = 0.38f;  // × eye radius at pupil 1
+constexpr float kPupilRadius = 0.65f;  // × kEyeRadius at pupil 1, whatever the eye scale
 constexpr float kMouthDrop = 7.5f;   // mouth below the eye centers, px
 
 // Builds the face to render from the pose, the eased expression, and time
-// (hop, twinkle).
+// (hop, twinkle stars). Pupils and catch-lights hold their size.
 void composeFace(const Pose& pose, const Animator& animator, uint32_t now, Face& out);
 
 }  // namespace kawaii

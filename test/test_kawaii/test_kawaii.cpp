@@ -8,6 +8,7 @@
 #include "display/eyes/styles/kawaii/face.h"
 #include "display/eyes/styles/kawaii/idle.h"
 #include "display/eyes/styles/kawaii/speech.h"
+#include "display/eyes/styles/kawaii/tracker.h"
 
 using namespace kawaii;
 
@@ -96,7 +97,7 @@ void test_open_eye_has_a_pupil_and_catch_light() {
   TEST_ASSERT_FALSE(pixelAt(g_frame, 97, 17));
 }
 
-// Mean x and y of the dark pixels inside the left eye's box.
+// Mean x and y of the dark pixels inside the left eye (the pupil).
 void pupilCentroid(float& x, float& y) {
   float sx = 0.0f;
   float sy = 0.0f;
@@ -105,7 +106,7 @@ void pupilCentroid(float& x, float& y) {
     for (int px = 22; px <= 42; px++) {
       const float dx = px + 0.5f - 32.0f;
       const float dy = py + 0.5f - 16.0f;
-      if (dx * dx + dy * dy < 9.0f * 9.0f && !pixelAt(g_frame, px, py)) {
+      if (dx * dx + dy * dy < 10.0f * 10.0f && !pixelAt(g_frame, px, py)) {  // inside the eye
         sx += px;
         sy += py;
         n++;
@@ -128,13 +129,47 @@ void test_pupil_follows_the_gaze() {
   float x = 0.0f;
   float y = 0.0f;
   pupilCentroid(x, y);
-  TEST_ASSERT_TRUE(x > cx + 3.0f);
+  TEST_ASSERT_TRUE(x > cx + 1.0f);
 
   f = plainFace();
   f.left.gazeY = -1.0f;
   render(f, g_frame, kFrameBytes);
   pupilCentroid(x, y);
-  TEST_ASSERT_TRUE(y < cy - 3.0f);
+  TEST_ASSERT_TRUE(y < cy - 1.0f);
+}
+
+// Lit pixels of the left eye's box.
+int leftEyeLit(const uint8_t* frame) {
+  int n = 0;
+  for (int y = 0; y < kHeight; y++) {
+    for (int x = 0; x < 64; x++) {
+      n += pixelAt(frame, x, y) ? 1 : 0;
+    }
+  }
+  return n;
+}
+
+// Gliding the gaze must not change how big the pupil looks.
+void test_pupil_keeps_its_size_while_it_moves() {
+  static uint8_t bare[kFrameBytes];
+  int size = -1;
+  for (int i = -20; i <= 20; i++) {
+    Face f = plainFace();
+    f.right.rx = 0.0f;
+    f.left.sparkle = 0.0f;  // count the pupil alone
+    f.left.gazeX = i * 0.02f;  // within the travel that never tucks under the rim
+    f.left.gazeY = -i * 0.015f;
+    render(f, g_frame, kFrameBytes);
+    f.left.pupil = 0.0f;
+    render(f, bare, kFrameBytes);
+
+    const int dark = leftEyeLit(bare) - leftEyeLit(g_frame);
+    TEST_ASSERT_TRUE(dark > 100);
+    if (size < 0) {
+      size = dark;
+    }
+    TEST_ASSERT_EQUAL_INT(size, dark);
+  }
 }
 
 // The pupil never reaches the eye's outline: every row and column keeps the
@@ -197,6 +232,35 @@ void test_pupil_keeps_a_rim() {
       }
     }
   }
+}
+
+void test_typing_reads_lines_then_darts() {
+  CodeReader reader(testRand);
+  reader.reset(0);
+
+  Gaze prev = reader.update(0);
+  int words = 0;
+  int newLines = 0;
+  int darts = 0;
+  for (uint32_t now = 33; now < 30000u; now += 33) {
+    const Gaze g = reader.update(now);
+    TEST_ASSERT_TRUE(g.x >= -0.6f && g.x <= 0.8f);
+    TEST_ASSERT_TRUE(g.y >= -0.4f && g.y <= 0.81f);
+    if (g.x != prev.x || g.y != prev.y) {
+      if (g.y == prev.y && g.x > prev.x) {
+        words++;
+        TEST_ASSERT_TRUE(g.x - prev.x < 0.15f);  // a word at a time
+      } else if (g.y > prev.y && g.y - prev.y < 0.13f && g.x < prev.x) {
+        newLines++;
+      } else {
+        darts++;
+      }
+    }
+    prev = g;
+  }
+  TEST_ASSERT_TRUE(words > 30);
+  TEST_ASSERT_TRUE(newLines > 3);
+  TEST_ASSERT_TRUE(darts > 3);
 }
 
 void test_full_smile_has_no_pupil() {
@@ -491,7 +555,9 @@ int main(int, char**) {
   RUN_TEST(test_render_is_pure);
   RUN_TEST(test_open_eye_has_a_pupil_and_catch_light);
   RUN_TEST(test_pupil_follows_the_gaze);
+  RUN_TEST(test_pupil_keeps_its_size_while_it_moves);
   RUN_TEST(test_pupil_keeps_a_rim);
+  RUN_TEST(test_typing_reads_lines_then_darts);
   RUN_TEST(test_full_smile_has_no_pupil);
   RUN_TEST(test_closed_eye_is_a_lid_line);
   RUN_TEST(test_happy_eye_is_a_crescent);

@@ -660,12 +660,12 @@ When `eyes_style=dots`, each eye is a filled circle. At the classic open height 
 
 #### Kawaii eyes
 
-When `eyes_style=kawaii`, each eye is a round eye about 23 px across with a dark pupil and a small white catch-light in it. A small mouth sits between the eyes, with dithered blush under the outer corners. The classic pose still drives position, height, glances, and blinks, and the pupils look where its glances point: at the task or the human, down at the keyboard while typing, up while thinking. Moods change pupil size (small when surprised or angry, large when sad). Lids and smiles never cut into a pupil; it moves or shrinks to stay inside the eye. A closed eye draws a `‿` lid line (`∩` while smiling). Each animation picks a mood, and the face eases into it. Eye size, happy crescents, and mouth opening use springs with a little overshoot. Shape changes that cannot morph (round eyes to `> <`, `x x`, or hearts) happen behind a quick blink.
+When `eyes_style=kawaii`, each eye is a round eye about 23 px across with a big dark pupil and white catch-lights in it (one round light and two small dots). A small mouth sits between the eyes, with dithered blush under the outer corners. The classic pose still drives position, height, glances, and blinks, and the pupils look where its glances point: at the task or the human, down at the keyboard while typing, up while thinking. Moods change pupil size (small when surprised or angry, large when sad). A pupil otherwise keeps its size: lids, smiles, and blinks cover it like eyelids, and a white rim always stays around it. A closed eye draws a `‿` lid line (`∩` while smiling). Each animation picks a mood, and the face eases into it. Eye size, happy crescents, and mouth opening use springs with a little overshoot. Shape changes that cannot morph (round eyes to `> <`, `x x`, or hearts) happen behind a quick blink.
 
 | Animation / phase | Mood |
 | --- | --- |
 | `none` (idle) | Mostly a `ω` or `‿` smile. Every 4.5–10 s, a short accent: `^ ^` grin, a wink, excited (bigger eyes, hop, twinkles, open grin), or rarely heart eyes |
-| `typing` | Focused: lids slightly lowered, short mouth |
+| `typing` | Focused: lids slightly lowered, short mouth. The eyes read code: a few lines word by word, then a dart to another spot, and again |
 | `reading` | Lids barely lowered, small `ω` |
 | `thinking` | Lids slightly lowered, wobbly mouth off to one side |
 | `ring` | Surprised: wide eyes, `o` mouth |

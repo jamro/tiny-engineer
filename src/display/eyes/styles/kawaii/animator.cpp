@@ -33,7 +33,7 @@ constexpr float kSparkleTau = 120.0f;
 constexpr float kGlintTau = 160.0f;
 constexpr float kBounceTau = 140.0f;
 constexpr float kBlushTau = 280.0f;
-constexpr float kGazeTau = 60.0f;  // quick, like a saccade
+constexpr float kGazeTau = 150.0f;  // pupils glide rather than jump
 
 // Fraction of the remaining distance an exponential approach covers in dtMs.
 float easeWeight(float dtMs, float tauMs) {
@@ -130,6 +130,7 @@ void Animator::easeValues(const Expression& t, float dt) {
   approach(c.pupil, t.pupil, w.sparkle);
   approach(c.gazeX, t.gazeX, w.gaze);
   approach(c.gazeY, t.gazeY, w.gaze);
+  approach(c.followGlance, t.followGlance, w.gaze);
   approach(c.blush, t.blush, w.blush);
   approach(c.glint, t.glint, w.glint);
   approach(c.bounce, t.bounce, w.bounce);

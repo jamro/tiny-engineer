@@ -53,6 +53,7 @@ struct Expression {
   float pupil;          // pupil size multiplier (0 hides it)
   float gazeX;          // mood's own look, added to the pose glance, -1..1
   float gazeY;          // -1 up .. 1 down
+  float followGlance;   // 0..1 of the choreography's glances to follow
   float sparkle;        // catch-light size multiplier
   float scale;          // eye radius multiplier
   float blush;          // 0..1

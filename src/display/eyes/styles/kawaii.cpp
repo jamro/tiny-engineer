@@ -12,6 +12,7 @@
 #include "display/eyes/styles/kawaii/face.h"
 #include "display/eyes/styles/kawaii/idle.h"
 #include "display/eyes/styles/kawaii/speech.h"
+#include "display/eyes/styles/kawaii/tracker.h"
 #include "display/oled.h"
 #include "display/oled_internal.h"
 
@@ -34,6 +35,7 @@ uint8_t g_frame[kawaii::kFrameBytes];
 kawaii::Animator g_animator;
 kawaii::IdleDirector g_idle(anim::randRangeMs);
 kawaii::Babbler g_babbler(anim::randRangeMs);
+kawaii::CodeReader g_reader(anim::randRangeMs);
 kawaii::Mood g_lastMood = kawaii::Mood::Count;
 uint32_t g_lastFrameMs = 0;
 bool g_armed = false;
@@ -108,28 +110,39 @@ void stepAnimator(const kawaii::Expression& target, uint32_t now) {
   g_lastFrameMs = now;
 }
 
-kawaii::EyePose eyePose(const Eye& eye) {
-  return {
-    eye.x + eye.width * 0.5f,
-    eye.y + eye.height * 0.5f,
-    (float)eye.height / (float)eyes::DEFAULT_LEFT.height
-  };
+// Center of an eye; integer halves, so a height change alone does not read
+// as a glance.
+float centerOf(int16_t pos, int16_t size) {
+  return (float)(pos + size / 2);
 }
 
-// The pupils look where the shared choreography moved the eyes. Centers use
-// integer halves, so a height change alone does not read as a glance.
-float glance(int16_t pos, int16_t size, int16_t restPos, int16_t restSize, float range) {
-  return (float)((pos + size / 2) - (restPos + restSize / 2)) / range;
+// An eye where the choreography put it, with its glance scaled by `follow`
+// (moods can calm a jittery glance down). Heights still follow fully.
+kawaii::EyePose eyePose(const Eye& eye, const Eye& rest, float follow) {
+  const float restX = rest.x + rest.width * 0.5f;
+  const float restY = rest.y + rest.height * 0.5f;
+  return {
+    restX + follow * (eye.x + eye.width * 0.5f - restX),
+    restY + follow * (eye.y + eye.height * 0.5f - restY),
+    (float)eye.height / (float)rest.height
+  };
 }
 
 void drawFrame(uint32_t now) {
   const Eye& left = leftEye();
+  const float follow = g_animator.current().followGlance;
+  const float glanceX = (centerOf(left.x, left.width) -
+    centerOf(eyes::DEFAULT_LEFT.x, eyes::DEFAULT_LEFT.width)) / kGlanceRangeXPx;
+  const float glanceY = (centerOf(left.y, left.height) -
+    centerOf(eyes::DEFAULT_LEFT.y, eyes::DEFAULT_LEFT.height)) / kGlanceRangeYPx;
+
+  // The pupils look where the shared choreography moved the eyes.
   const kawaii::Pose pose = {
-    eyePose(left),
-    eyePose(rightEye()),
+    eyePose(left, eyes::DEFAULT_LEFT, follow),
+    eyePose(rightEye(), eyes::DEFAULT_RIGHT, follow),
     blinkOpenAmount(),
-    glance(left.x, left.width, eyes::DEFAULT_LEFT.x, eyes::DEFAULT_LEFT.width, kGlanceRangeXPx),
-    glance(left.y, left.height, eyes::DEFAULT_LEFT.y, eyes::DEFAULT_LEFT.height, kGlanceRangeYPx),
+    follow * glanceX,
+    follow * glanceY,
   };
   kawaii::Face face = {};
   kawaii::composeFace(pose, g_animator, now, face);
@@ -157,6 +170,13 @@ void drawKawaii(
   kawaii::Expression target = kawaii::expressionFor(mood);
   if (mood == kawaii::Mood::Talking) {
     kawaii::applyVoice(target, currentVoice(now));
+  } else if (mood == kawaii::Mood::Focused) {
+    if (g_lastMood != kawaii::Mood::Focused) {
+      g_reader.reset(now);  // typing just began: pick a spot to read
+    }
+    const kawaii::Gaze gaze = g_reader.update(now);
+    target.gazeX = gaze.x;
+    target.gazeY = gaze.y;
   }
   g_lastMood = mood;
 

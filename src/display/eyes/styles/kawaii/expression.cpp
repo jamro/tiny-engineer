@@ -21,6 +21,7 @@ Expression neutral() {
   Expression e = {};
   e.kind = EyeKind::Round;
   e.pupil = 1.0f;
+  e.followGlance = 1.0f;
   e.sparkle = 1.0f;
   e.scale = 1.0f;
   e.mouthWidth = 10.0f;
@@ -95,8 +96,8 @@ Expression expressionFor(Mood mood) {
       break;
     case Mood::Excited:
       e.scale = 1.12f;
-      e.pupil = 1.15f;  // big shiny pupils
-      e.sparkle = 1.25f;
+      e.pupil = 1.08f;  // big shiny pupils
+      e.sparkle = 1.1f;
       e.mouthWidth = 12.0f;
       e.mouthCurve = 2.0f;
       e.mouthOpenDown = 4.5f;
@@ -113,6 +114,7 @@ Expression expressionFor(Mood mood) {
     case Mood::Focused:
       e.lid = 0.22f;
       e.pupil = 0.9f;
+      e.followGlance = 0.0f;  // the code reader leads, not the typing jitter
       e.mouthWidth = 7.0f;
       e.mouthCurve = 0.5f;
       e.blush = 0.2f;
@@ -125,6 +127,7 @@ Expression expressionFor(Mood mood) {
       break;
     case Mood::Thinking:
       e.lid = 0.15f;
+      e.followGlance = 0.5f;  // a calm look aside, not the full swing
       e.mouthWidth = 8.0f;
       e.mouthCurve = -0.5f;
       e.mouthWave = 0.8f;
@@ -162,7 +165,7 @@ Expression expressionFor(Mood mood) {
       break;
     case Mood::Sleepy:
       e.lid = 0.45f;
-      e.pupil = 0.9f;
+      e.pupil = 0.75f;
       e.gazeY = 0.3f;
       e.sparkle = 0.0f;
       oMouth(e, 6.0f, 2.6f);
@@ -171,7 +174,7 @@ Expression expressionFor(Mood mood) {
     case Mood::Sad:
       e.lid = 0.15f;
       e.tilt = -0.5f;
-      e.pupil = 1.25f;  // big puppy pupils, looking down
+      e.pupil = 1.12f;  // big puppy pupils, looking down
       e.gazeY = 0.45f;
       e.sparkle = 1.15f;
       e.mouthWidth = 8.0f;
