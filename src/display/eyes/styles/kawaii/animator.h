@@ -19,6 +19,9 @@ class Animator {
   const Expression& current() const { return current_; }
   // 0..1 extra eye openness for the blink that hides a kind swap.
   float kindOpen() const { return kindOpen_; }
+  // Where the shiver is in its cycle, radians. It advances at the target's
+  // quiverHz, so the shiver can speed up or slow down without a jump.
+  float quiverPhase() const { return quiverPhase_; }
 
  private:
   enum class KindPhase : uint8_t { None, Closing, Opening };
@@ -46,6 +49,7 @@ class Animator {
   float openDownVel_ = 0.0f;
   KindPhase kindPhase_ = KindPhase::None;
   float kindOpen_ = 1.0f;
+  float quiverPhase_ = 0.0f;
   EaseWeights weights_;
 };
 

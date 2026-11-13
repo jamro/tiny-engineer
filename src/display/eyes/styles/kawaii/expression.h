@@ -35,8 +35,9 @@ enum class Mood : uint8_t {
   // Accents while working (see director.h).
   Pleased,    // a content smile mid-task: work is going well
   Aha,        // thinking: an idea lands, eyes up and bright
-  // The bell (ring): Curious wind-up, Excited ding, then these.
-  Bliss,      // ^ ^ squeezed shut with joy, shivering, "ahh~"
+  // The bell (ring): see BellCelebration in director.h.
+  Suspense,   // held breath before the ding: narrowed, trembling, mouth tight
+  Bliss,      // joy while the bell rings: open sparkling eyes, shivering
   Afterglow,  // dreamy half-closed happy eyes, ω
   Count
 };
@@ -66,7 +67,8 @@ struct Expression {
   float blush;          // 0..1
   float glint;          // 0..1 twinkle star strength
   float bounce;         // hop height, px
-  float quiver;         // delighted shiver, px each way
+  float quiver;         // shiver, px each way
+  float quiverHz;       // how fast it shivers (not eased: the phase carries on)
   float mouthWidth;     // px
   float mouthCurve;     // px, see Mouth::curve
   float mouthOmega;     // 0..1, see Mouth::omega
@@ -80,5 +82,8 @@ struct Expression {
 // The preset for `mood`. The numbers in each preset are hand-tuned looks,
 // labelled by the mood they belong to.
 Expression expressionFor(Mood mood);
+
+// a..b by t (0..1) on every eased value; the eye kind switches at the end.
+Expression blend(const Expression& a, const Expression& b, float t);
 
 }  // namespace kawaii

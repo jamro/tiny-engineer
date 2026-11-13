@@ -1,5 +1,7 @@
 #include "display/eyes/styles/kawaii/expression.h"
 
+#include "display/eyes/styles/kawaii/util.h"
+
 #include <cstddef>
 
 namespace kawaii {
@@ -9,7 +11,7 @@ namespace {
 const char* const kMoodNames[] = {
   "content", "smile", "grin", "wink_left", "wink_right", "excited", "love",
   "focused", "reading", "thinking", "surprised", "curious", "angry", "panic",
-  "sleepy", "sad", "dizzy", "talking", "asleep", "pleased", "aha", "bliss", "afterglow",
+  "sleepy", "sad", "dizzy", "talking", "asleep", "pleased", "aha", "suspense", "bliss", "afterglow",
 };
 
 static_assert(
@@ -55,6 +57,36 @@ void wink(Expression& e, bool left) {
 }
 
 }  // namespace
+
+Expression blend(const Expression& a, const Expression& b, float t) {
+  t = clamp01(t);
+  Expression e = b;
+  e.kind = t < 1.0f ? a.kind : b.kind;
+  e.happyLeft = lerp(a.happyLeft, b.happyLeft, t);
+  e.happyRight = lerp(a.happyRight, b.happyRight, t);
+  e.lid = lerp(a.lid, b.lid, t);
+  e.tilt = lerp(a.tilt, b.tilt, t);
+  e.pupil = lerp(a.pupil, b.pupil, t);
+  e.gazeX = lerp(a.gazeX, b.gazeX, t);
+  e.gazeY = lerp(a.gazeY, b.gazeY, t);
+  e.followGlance = lerp(a.followGlance, b.followGlance, t);
+  e.sparkle = lerp(a.sparkle, b.sparkle, t);
+  e.scale = lerp(a.scale, b.scale, t);
+  e.blush = lerp(a.blush, b.blush, t);
+  e.glint = lerp(a.glint, b.glint, t);
+  e.bounce = lerp(a.bounce, b.bounce, t);
+  e.quiver = lerp(a.quiver, b.quiver, t);
+  e.quiverHz = lerp(a.quiverHz, b.quiverHz, t);
+  e.mouthWidth = lerp(a.mouthWidth, b.mouthWidth, t);
+  e.mouthCurve = lerp(a.mouthCurve, b.mouthCurve, t);
+  e.mouthOmega = lerp(a.mouthOmega, b.mouthOmega, t);
+  e.mouthOpenUp = lerp(a.mouthOpenUp, b.mouthOpenUp, t);
+  e.mouthOpenDown = lerp(a.mouthOpenDown, b.mouthOpenDown, t);
+  e.mouthWave = lerp(a.mouthWave, b.mouthWave, t);
+  e.mouthShift = lerp(a.mouthShift, b.mouthShift, t);
+  e.mouthHollow = lerp(a.mouthHollow, b.mouthHollow, t);
+  return e;
+}
 
 const char* moodName(Mood mood) {
   const size_t index = (size_t)mood;
@@ -218,16 +250,31 @@ Expression expressionFor(Mood mood) {
       e.glint = 1.0f;
       e.bounce = 1.2f;
       break;
+    case Mood::Suspense:
+      e.lid = 0.35f;       // narrowed in focus
+      e.pupil = 0.75f;
+      e.gazeY = 0.35f;     // eyes on the bell
+      e.scale = 0.97f;
+      e.mouthWidth = 6.0f;  // held breath
+      e.mouthCurve = 0.0f;
+      e.blush = 0.6f;
+      e.quiver = 0.35f;    // a nervous tremble
+      e.quiverHz = 18.0f;
+      break;
     case Mood::Bliss:
-      e.happyLeft = e.happyRight = 1.0f;
-      e.scale = 1.05f;
+      // Open, so the shivering pupils show.
+      e.happyLeft = e.happyRight = 0.3f;
+      e.scale = 1.08f;
+      e.pupil = 1.1f;
+      e.sparkle = 1.25f;
       e.mouthWidth = 12.0f;
       e.mouthCurve = 2.5f;
       e.mouthOpenDown = 3.5f;
       e.blush = 1.0f;
       e.glint = 1.0f;
-      e.bounce = 0.8f;
-      e.quiver = 0.9f;
+      e.bounce = 0.6f;
+      e.quiver = 1.0f;
+      e.quiverHz = 14.0f;
       break;
     case Mood::Afterglow:
       e.happyLeft = e.happyRight = 0.55f;

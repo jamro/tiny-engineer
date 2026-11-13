@@ -155,31 +155,77 @@ Mood MoodDirector::update(uint32_t now, float flow) {
 
 namespace {
 
-constexpr uint32_t kBellWaitMs = 1500;  // no bell by then: ding anyway
-constexpr uint32_t kDingMs = 350;       // the burst of joy
-constexpr uint32_t kBlissMs = 1600;     // bliss while the bell sustains
+constexpr uint32_t kBellWaitMs = 1500;     // no bell by then: ding anyway
+constexpr uint32_t kSilentRingMs = 1900;   // how long a missing bell "rings"
+constexpr uint32_t kBuildUpMs = 800;       // eager to full suspense
+constexpr uint32_t kDingMs = 350;          // the burst of joy
+constexpr uint32_t kWindDownMs = 500;      // the shiver fading after the ring
+constexpr float kWindDownHz = 3.0f;        // shiver speed as it fades out
+
+// Ease in and out, 0..1.
+float smooth(float t) {
+  t = clamp01(t);
+  return t * t * (3.0f - 2.0f * t);
+}
+
+float since(uint32_t now, uint32_t at) {
+  return (float)(now - at);
+}
 
 }  // namespace
 
 void BellCelebration::reset(uint32_t now) {
   startedMs_ = now;
   rung_ = false;
+  heard_ = false;
+  ended_ = false;
 }
 
-Mood BellCelebration::update(uint32_t now, bool bellPlaying) {
+Expression BellCelebration::windUp(uint32_t now) const {
+  const float t = since(now, startedMs_) / (float)kBuildUpMs;
+  return blend(expressionFor(Mood::Curious), expressionFor(Mood::Suspense), smooth(t));
+}
+
+Expression BellCelebration::afterDing(uint32_t now) const {
+  if (since(now, dingMs_) < (float)kDingMs) {
+    return expressionFor(Mood::Excited);
+  }
+  Expression e = expressionFor(Mood::Bliss);
+  if (!ended_) {
+    return e;
+  }
+
+  // Wind down: the shiver shrinks and slows, then the face settles.
+  const float t = since(now, endMs_) / (float)kWindDownMs;
+  if (t >= 1.0f) {
+    return expressionFor(Mood::Afterglow);
+  }
+  const float left = 1.0f - smooth(t);
+  Expression out = blend(e, expressionFor(Mood::Afterglow), smooth(t));
+  out.quiver = e.quiver * left;
+  out.quiverHz = lerp(kWindDownHz, e.quiverHz, left);
+  return out;
+}
+
+Expression BellCelebration::update(uint32_t now, bool bellPlaying) {
   if (!rung_ && (bellPlaying || reached(now, startedMs_ + kBellWaitMs))) {
     rung_ = true;
+    heard_ = bellPlaying;
     dingMs_ = now;
   }
   if (!rung_) {
-    return Mood::Curious;  // winding up
+    return windUp(now);
   }
 
-  const uint32_t t = now - dingMs_;
-  if (t < kDingMs) {
-    return Mood::Excited;
+  if (!ended_) {
+    const bool clipDone = heard_ && !bellPlaying;
+    const bool silentDone = !heard_ && reached(now, dingMs_ + kSilentRingMs);
+    if (clipDone || silentDone) {
+      ended_ = true;
+      endMs_ = now;
+    }
   }
-  return t < kBlissMs ? Mood::Bliss : Mood::Afterglow;
+  return afterDing(now);
 }
 
 }  // namespace kawaii

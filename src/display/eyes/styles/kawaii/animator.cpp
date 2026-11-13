@@ -135,6 +135,8 @@ void Animator::easeValues(const Expression& t, float dt) {
   approach(c.glint, t.glint, w.glint);
   approach(c.bounce, t.bounce, w.bounce);
   approach(c.quiver, t.quiver, w.bounce);
+  c.quiverHz = t.quiverHz;
+  quiverPhase_ = fmodf(quiverPhase_ + kTwoPi * t.quiverHz * dt * kSecondsPerMs, kTwoPi);
   approach(c.mouthWidth, t.mouthWidth, w.mouth);
   approach(c.mouthCurve, t.mouthCurve, w.mouth);
   approach(c.mouthOmega, t.mouthOmega, w.mouth);

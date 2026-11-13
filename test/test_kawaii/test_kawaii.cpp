@@ -683,23 +683,60 @@ void test_error_abort_dead_say_their_lines() {
   TEST_ASSERT_FALSE(fitsStock(Line::Count, dead, 2));
 }
 
-void test_bell_celebrates() {
+void test_bell_builds_suspense_then_rings() {
   BellCelebration bell;
   bell.reset(0);
-  TEST_ASSERT_TRUE(bell.update(300, false) == Mood::Curious);  // winding up
-  TEST_ASSERT_TRUE(bell.update(600, true) == Mood::Excited);   // ding!
-  TEST_ASSERT_TRUE(bell.update(800, true) == Mood::Excited);
-  TEST_ASSERT_TRUE(bell.update(1200, true) == Mood::Bliss);
-  TEST_ASSERT_TRUE(bell.update(2000, false) == Mood::Bliss);
-  TEST_ASSERT_TRUE(bell.update(2400, false) == Mood::Afterglow);
 
-  // No bell clip on the filesystem: the ding still comes.
+  // Wind-up: eager at first, then suspense builds and holds.
+  const Expression eager = bell.update(0, false);
+  const Expression tense = bell.update(900, false);
+  TEST_ASSERT_TRUE(tense.lid > eager.lid + 0.2f);      // narrowed onto the bell
+  TEST_ASSERT_TRUE(tense.pupil < eager.pupil);
+  TEST_ASSERT_TRUE(tense.quiver > 0.2f);               // a nervous tremble
+  TEST_ASSERT_TRUE(tense.mouthOpenDown < eager.mouthOpenDown - 1.0f);  // holding its breath
+  TEST_ASSERT_EQUAL_FLOAT(tense.lid, bell.update(1200, false).lid);
+
+  // The ding, then bliss for as long as the bell rings, with open eyes.
+  bell.reset(0);
+  TEST_ASSERT_EQUAL_FLOAT(expressionFor(Mood::Excited).scale, bell.update(600, true).scale);
+  const Expression bliss = bell.update(1500, true);
+  TEST_ASSERT_TRUE(bliss.happyLeft < 0.5f);  // pupils stay visible
+  TEST_ASSERT_TRUE(bliss.quiver > 0.9f);
+  TEST_ASSERT_EQUAL_FLOAT(bliss.quiver, bell.update(2500, true).quiver);
+
+  // The ring ends at 2600: the shiver fades smaller and slower over 500 ms.
+  const Expression start = bell.update(2600, false);
+  const Expression mid = bell.update(2850, false);
+  TEST_ASSERT_TRUE(mid.quiver < start.quiver && mid.quiver > 0.0f);
+  TEST_ASSERT_TRUE(mid.quiverHz < start.quiverHz);
+  const Expression after = bell.update(3200, false);
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, after.quiver);
+  TEST_ASSERT_EQUAL_FLOAT(expressionFor(Mood::Afterglow).lid, after.lid);
+}
+
+void test_bell_without_a_clip_still_celebrates() {
+  BellCelebration bell;
   bell.reset(10000);
-  TEST_ASSERT_TRUE(bell.update(11000, false) == Mood::Curious);
-  TEST_ASSERT_TRUE(bell.update(11600, false) == Mood::Excited);
+  TEST_ASSERT_TRUE(bell.update(11400, false).quiver < 0.5f);  // still winding up
+  bell.update(11500, false);                                 // the ding comes anyway
+  TEST_ASSERT_TRUE(bell.update(12500, false).quiver > 0.9f);  // ringing
+  bell.update(13400, false);                                 // the silent ring ends
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, bell.update(14000, false).quiver);
+}
 
-  TEST_ASSERT_TRUE(expressionFor(Mood::Bliss).quiver > 0.0f);  // shivering with joy
-  TEST_ASSERT_EQUAL_FLOAT(1.0f, expressionFor(Mood::Bliss).happyLeft);
+void test_shiver_changes_speed_without_jumping() {
+  Animator a;
+  Expression e = expressionFor(Mood::Bliss);
+  a.snap(e);
+  float prev = a.quiverPhase();
+  for (int i = 0; i < 60; i++) {
+    e.quiverHz = 14.0f - i * 0.2f;  // slowing down
+    a.update(e, 33);
+    float step = a.quiverPhase() - prev;
+    step = step < 0.0f ? step + 6.2831853f : step;
+    TEST_ASSERT_TRUE(step <= 6.2831853f * 14.0f * 0.033f + 0.001f);  // never skips ahead
+    prev = a.quiverPhase();
+  }
 }
 
 int main(int, char**) {
@@ -731,7 +768,9 @@ int main(int, char**) {
   RUN_TEST(test_hello_human_says_the_words);
   RUN_TEST(test_psst_human_says_the_words);
   RUN_TEST(test_error_abort_dead_say_their_lines);
-  RUN_TEST(test_bell_celebrates);
+  RUN_TEST(test_bell_builds_suspense_then_rings);
+  RUN_TEST(test_bell_without_a_clip_still_celebrates);
+  RUN_TEST(test_shiver_changes_speed_without_jumping);
   RUN_TEST(test_idle_is_mostly_smiles_with_accents);
   RUN_TEST(test_idle_survives_millis_wrap);
   RUN_TEST(test_working_moods_are_mostly_focused_with_positive_accents);

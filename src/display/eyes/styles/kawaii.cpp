@@ -119,8 +119,8 @@ float workFlow(uint32_t now) {
   return kawaii::clamp01((float)(now - g_calmSinceMs) / (float)kFlowRampMs);
 }
 
-// The bell: celebrate from the wind-up through the ding to the afterglow.
-kawaii::Mood ringMood(uint32_t modeStartedMs, uint32_t now) {
+// The bell: suspense through the wind-up, joy on the ding, a fading shiver.
+kawaii::Expression ringFace(uint32_t modeStartedMs, uint32_t now) {
   if (!g_ringing || modeStartedMs != g_ringStartedMs) {
     g_bell.reset(now);
     g_ringStartedMs = modeStartedMs;
@@ -134,12 +134,9 @@ kawaii::Mood currentMood(
 ) {
   const bool sleeping = sleepPhase == EyeStyleSleepPhase::Closing || animation == AnimationId::Sleep;
   if (!sleeping && mode == EyeMode::Ring) {
-    const kawaii::Mood mood = ringMood(modeStartedMs, now);
-    g_ringing = true;
     g_directing = false;
-    return mood;
+    return kawaii::Mood::Bliss;  // drawKawaii() asks ringFace() for the face
   }
-  g_ringing = false;
   kawaii::Activity activity = kawaii::Activity::Idle;
   if (sleeping || !activityFor(mode, activity)) {
     g_directing = false;
@@ -385,7 +382,10 @@ void drawKawaii(
   }
 
   const kawaii::Mood mood = currentMood(mode, animation, modeStartedMs, now, sleepPhase);
-  kawaii::Expression target = kawaii::expressionFor(mood);
+  const bool ringing = mode == EyeMode::Ring && mood != kawaii::Mood::Asleep;
+  kawaii::Expression target =
+    ringing ? ringFace(modeStartedMs, now) : kawaii::expressionFor(mood);
+  g_ringing = ringing;
   if (mood == kawaii::Mood::Talking) {
     kawaii::applyVoice(target, currentVoice(now));
   }

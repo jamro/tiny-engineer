@@ -34,7 +34,7 @@ Every tuning value is a named constant at the top of the file that uses it:
 - **Accent timing and odds per activity**: the `kPersonalities` table in [`director.cpp`](director.cpp); how long work must go well to reach the most frequent accents: `kFlowRampMs` in [`../kawaii.cpp`](../kawaii.cpp).
 - **Typing gaze** (line length, word timing, lines per spot, dart range): [`tracker.cpp`](tracker.cpp).
 - **Lip sync**: each line's keyframes, its stock cue times (`kScripts`), and `kLeadMs` in [`lines.cpp`](lines.cpp). Re-key a track if its stock clip changes; to mouth another clip, add a `Line`, its track and `kScripts` entry there, and a `SpokenClip` entry in [`../kawaii.cpp`](../kawaii.cpp).
-- **The bell celebration** (wind-up, ding, bliss, afterglow timing): `BellCelebration` in [`director.cpp`](director.cpp); the Bliss shiver: `kQuiverPeriodMs` in [`compose.cpp`](compose.cpp).
+- **The bell celebration** (suspense build-up, ding, bliss, wind-down timing and shiver fade): `BellCelebration` in [`director.cpp`](director.cpp); the shiver itself: `quiver` / `quiverHz` in the Suspense and Bliss presets ([`expression.cpp`](expression.cpp)).
 - **Talking rhythm and vowel shapes**: the `kVowels` table and babble constants in [`speech.cpp`](speech.cpp).
 - **Hop, twinkle, and mouth placement**: [`compose.cpp`](compose.cpp) and `kEyeRadius` / `kMouthDrop` in [`compose.h`](compose.h).
 

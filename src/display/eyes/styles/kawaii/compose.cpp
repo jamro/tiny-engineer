@@ -9,7 +9,6 @@ namespace kawaii {
 namespace {
 
 constexpr uint32_t kHopPeriodMs = 360;
-constexpr uint32_t kQuiverPeriodMs = 70;  // a fast, small shiver
 constexpr uint32_t kGlintPeriodMs = 560;
 constexpr float kGlintBase = 1.6f;   // star size at full glint, mid-swing
 constexpr float kGlintSwing = 1.4f;
@@ -75,7 +74,7 @@ void composeFace(const Pose& pose, const Animator& animator, uint32_t now, Face&
   const float hop = -fabsf(wave(now, kHopPeriodMs)) * e.bounce;
   const float open = pose.open * animator.kindOpen();
 
-  const float shiver = e.quiver * wave(now, kQuiverPeriodMs);
+  const float shiver = e.quiver * sinf(animator.quiverPhase());
   EyePose left = withHop(pose.left, hop);
   EyePose right = withHop(pose.right, hop);
   left.cx += shiver;

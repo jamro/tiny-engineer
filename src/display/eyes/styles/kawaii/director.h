@@ -44,21 +44,31 @@ class MoodDirector {
   uint32_t accentEndAt_ = 0;
 };
 
-// The bell: an eager wind-up, a burst of joy on the ding, bliss while the
-// bell sustains, then a dreamy afterglow. Keyed to the moment the bell
-// clip starts; if it never plays (no clip on the filesystem), the ding
-// comes after a wait instead.
+// The bell, as one continuous face:
+// - wind-up: eager, then suspense builds (eyes narrow onto the bell, the
+//   mouth holds its breath, a nervous tremble grows) and holds until...
+// - the ding: eyes pop wide, stars, a hop, an open grin;
+// - bliss while the bell rings: open sparkling eyes, a delighted shiver;
+// - when the ring ends, the shiver winds down, smaller and slower, like the
+//   bell dying away, into a dreamy afterglow.
+// Keyed to the bell clip; without one, the ding and its end come on time.
 class BellCelebration {
  public:
   // Call when the ring starts.
   void reset(uint32_t now);
-  // `bellPlaying`: the bell clip is playing right now.
-  Mood update(uint32_t now, bool bellPlaying);
+  // The face at `now`; `bellPlaying`: the bell clip is playing.
+  Expression update(uint32_t now, bool bellPlaying);
 
  private:
+  Expression windUp(uint32_t now) const;
+  Expression afterDing(uint32_t now) const;
+
   uint32_t startedMs_ = 0;
   bool rung_ = false;
+  bool heard_ = false;   // the clip actually played
+  bool ended_ = false;
   uint32_t dingMs_ = 0;
+  uint32_t endMs_ = 0;
 };
 
 }  // namespace kawaii
