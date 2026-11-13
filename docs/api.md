@@ -185,7 +185,7 @@ curl http://tiny-engineer.local/settings
 | `push_button_pin` | GPIO on the Extension port for the push-button: **6**, **7**, **20**, or **21** (default **20**). Persists when `push_button` is off. Applies **immediately** when the extension is on |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
-| `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
+| `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), `dots` (12×12 circles), or `kawaii` (sparkly round eyes with a little mouth and blush). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes); kawaii moods are under [Kawaii eyes](#kawaii-eyes) |
 | `access_token_set` | `true` when a non-empty access token is stored (secret itself is never returned) |
 | `link_mode` | `""` unprovisioned, `"wifi"`, or `"usb"` (connection mode; see [`serial.md`](serial.md)) |
 | `wifi_configured` | `true` when at least one WiFi network is saved |
@@ -248,7 +248,7 @@ curl -X POST "http://192.168.4.1/settings" \
 | `push_button_pin` | integer | Extension-port GPIO **6**, **7**, **20**, or **21** (default **20**); persists when off |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
-| `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
+| `eyes_style` | string | `classic`, `kaomoji`, `cover`, `dots`, or `kawaii` |
 | `access_token` | string | 0–64 printable ASCII, no space at either end; empty string clears the token and disables auth. Setting or rotating a non-empty value disconnects WebSocket `/events` subscribers (they must reconnect with the new token); clearing does not |
 | `link_mode` | string | `wifi` or `usb`; setup Connection step uses `usb` for USB-only; Wi-Fi mode is usually set when saving networks via [`PUT /settings/wifi`](#put-settingswifi) |
 | `servo_mins` | integer array | Five integers `0`–`180` (`head, neck, left, right, body`); setup AP only; must be sent with `servo_maxs` |
@@ -612,7 +612,7 @@ curl -X POST "http://tiny-engineer.local/anim?name=none"
 { "ok": true, "animation": "typing" }
 ```
 
-Eye detail below for `eyes_style=classic` (default). With `eyes_style=cover`, the same sequences drive full-half bars ([Cover eyes](#cover-eyes)). With `eyes_style=dots`, the same sequences drive 12×12 circles ([Dots eyes](#dots-eyes)). With `eyes_style=kaomoji`, faces follow [Kaomoji eyes](#kaomoji-eyes) instead of procedural blinks, glances, flicker, or X eyes. Servo/audio behavior is the same for every style.
+Eye detail below for `eyes_style=classic` (default). With `eyes_style=cover`, the same sequences drive full-half bars ([Cover eyes](#cover-eyes)). With `eyes_style=dots`, the same sequences drive 12×12 circles ([Dots eyes](#dots-eyes)). With `eyes_style=kawaii`, the same sequences move and blink a kawaii face whose expression follows the animation ([Kawaii eyes](#kawaii-eyes)). With `eyes_style=kaomoji`, faces follow [Kaomoji eyes](#kaomoji-eyes) instead of procedural blinks, glances, flicker, or X eyes. Servo/audio behavior is the same for every style.
 
 Durations and quoted lines below are the stock clips in [`assets/`](../assets/). A filesystem built with `custom_audio_mod` can replace some of those WAVs. Phrase timing then follows that clip's `.cue` file on LittleFS (`/welcome.cue` and the same pattern for `attention`, `error`, `abort`, and `dead`). See [flash.md](flash.md).
 
@@ -630,7 +630,7 @@ Durations and quoted lines below are the stock clips in [`assets/`](../assets/).
 | `abort` | **One-shot** resigned abort gesture synced to `abort.wav` (~2.5 s, "Fine. I didn't want to finish it anyway."). Raises both hands, lifts the head, and twists the neck sideways before audio starts. During playback it shrugs, dips the head, and adds a dismissive side twist. **Classic eyes:** matching glances/squints. Requires `abort.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, returns to `none` pose and `GET /anim` reports `none`. |
 | `dead` | **Hold.** Out-of-power: same obstacle pose as `error`, then `dead.wav` (~3.4 s, "Insufficient resources, shutting doooooowwwwnnnn..."). **Classic eyes:** failing-display flicker (irregular heights + brief blank pulses, denser near the end of the first line); at ~1.7 s ("shutting down") eyes squeeze nearly shut (~300 ms) while head/hands collapse over **~500 ms**, hold shut briefly (~200 ms), then snap to **X X** while the drawn-out shutdown still plays. If audio fails to start, collapse immediately. Stays with X eyes and pulsing red until another animation is requested. **Cover:** same flicker and squeeze as height changes, then both halves stay black (no X). **Dots:** same flicker and squeeze as circle size, then X marks in 12×12 boxes. **Kaomoji:** Sad face (no X). Does not auto-return to `none`. Requires `dead.wav` on LittleFS. |
 | `wakeup` | **One-shot** sleep-inertia wake (~5.5 s + settle), same sequence as boot `loading=sleep_inertia`. Plays only while asleep or entering sleep (`sleep` nod-off / OLED-off sleep). If already awake (or mid eye-open), request is a no-op: current animation stays, a pending `sleep` is cancelled, and the idle sleep timer resets; HTTP still returns success. **Classic eyes:** open over 2 s (cubic ease) from closed, two blinks at 2.4 s and 3.8 s. Head rises from chin-down with a fading neck wave. Always moves head/neck/hands when it plays (API path). After completion, `GET /anim` reports `none`. Does not play welcome audio — use `welcome` for that. |
-| `sleep` | **One-shot** nod-off (~2 s). Lids droop toward nearly shut (0–0.7 s) while the head barely moves, then a small resist: lids ease back toward half open as the head starts down (0.7–1.1 s). Lids then shut and the head eases to chin-down (`SLEEP_HEAD_DOWN`, same pose `wakeup` starts from) by 2.0 s. OLED blanks when the lids hit shut (`DISPLAYOFF`). **Classic, cover, dots:** that lid curve. **Kaomoji:** Sleep face during the close window, then blank. Same path as the idle `sleep_timeout`. Holds `sleep` until the head settles; then `GET /anim` reports `none` while the device stays asleep until another non-`sleep`/`none` animation wakes it. After the sleep pose is still for 2 s, PWM is full-off (same limp as `none`). |
+| `sleep` | **One-shot** nod-off (~2 s). Lids droop toward nearly shut (0–0.7 s) while the head barely moves, then a small resist: lids ease back toward half open as the head starts down (0.7–1.1 s). Lids then shut and the head eases to chin-down (`SLEEP_HEAD_DOWN`, same pose `wakeup` starts from) by 2.0 s. OLED blanks when the lids hit shut (`DISPLAYOFF`). **Classic, cover, dots, kawaii:** that lid curve. **Kaomoji:** Sleep face during the close window, then blank. Same path as the idle `sleep_timeout`. Holds `sleep` until the head settles; then `GET /anim` reports `none` while the device stays asleep until another non-`sleep`/`none` animation wakes it. After the sleep pose is still for 2 s, PWM is full-off (same limp as `none`). |
 
 #### Kaomoji eyes
 
@@ -657,6 +657,26 @@ When `eyes_style=cover`, each eye is a solid white rectangle filling one half of
 #### Dots eyes
 
 When `eyes_style=dots`, each eye is a filled circle. At the classic open height the circle’s bounding box is 12×12 px, centered on the classic eye. Diameter scales with rendered height (`12 * height / 14`), so blinks, squints, wide looks, and the `dead` flicker shrink or grow the dots. Height 0 draws nothing (full blink or sleep close). Glance, scan, and look-up/down move the circle with the classic center. The `dead` X hold draws X marks in 12×12 boxes at those centers. Diameter is capped at the 32 px panel height.
+
+#### Kawaii eyes
+
+When `eyes_style=kawaii`, each eye is a round eye about 23 px across. It has two sparkle highlights, a small mouth between the eyes, and dithered blush under the outer corners. The classic pose still drives position, height, glances, and blinks. A closed eye draws a `‿` lid line (`∩` while smiling). Each animation picks a mood, and the face eases into it. Eye size, happy crescents, and mouth opening use springs with a little overshoot. Shape changes that cannot morph (round eyes to `> <`, `x x`, or hearts) happen behind a quick blink.
+
+| Animation / phase | Mood |
+| --- | --- |
+| `none` (idle) | Mostly a `ω` or `‿` smile. Every 4.5–10 s, a short accent: `^ ^` grin, a wink, excited (bigger eyes, hop, twinkles, open grin), or rarely heart eyes |
+| `typing` | Focused: lids slightly lowered, short mouth |
+| `reading` | Lids barely lowered, small `ω` |
+| `thinking` | Lids slightly lowered, wobbly mouth off to one side |
+| `ring` | Surprised: wide eyes, `o` mouth |
+| `welcome` | Excited |
+| `attention` | Curious: slightly wide eyes, small `o` |
+| `error` | Angry: lids tilted down at the inner corners, frown |
+| `abort` | Panic: `> <` eyes, wavy mouth |
+| `wakeup` | Sleepy: heavy lids, yawn |
+| `talking` | Smile; mouth opens with speech loudness from `/play` |
+| `sleep` / sleep-close | Lids close, small `ω` |
+| `dead` | Sad (lids tilted down at the outer corners, frown), then `x x` eyes during the X hold |
 
 Wrong params return **400**:
 

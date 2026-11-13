@@ -14,7 +14,7 @@ import { useAccessToken } from "./useAccessToken";
 import { useWifiNetworks } from "./useWifiNetworks";
 import { WifiNetworksSection } from "./WifiNetworksSection";
 
-const EYES_STYLES = ["classic", "kaomoji", "cover", "dots"];
+const EYES_STYLES = ["classic", "kaomoji", "cover", "dots", "kawaii"];
 
 // An emptied number field reads NaN; the stock volume stands in until the user types again.
 const clampVolume = (value: number) => (Number.isNaN(value) ? 70 : clamp(value, 0, 100));
