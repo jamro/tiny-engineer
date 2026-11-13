@@ -32,6 +32,16 @@ Every tuning value is a named constant at the top of the file that uses it:
 - **Talking rhythm and vowel shapes**: the `kVowels` table and babble constants in [`speech.cpp`](speech.cpp).
 - **Hop, twinkle, and mouth placement**: [`compose.cpp`](compose.cpp) and `kEyeRadius` / `kMouthDrop` in [`compose.h`](compose.h).
 
+## Frame budget
+
+Audio clips run through the same `loop()` as the eyes. Each pass feeds one 512-sample WAV chunk (23 ms at 22 050 Hz), then draws a frame every 33 ms. `display.display()` alone holds the I²C bus for about 12 ms. If a pass takes longer than the chunk it delivered, the I2S buffer runs dry and the audio clips, which hits `welcome` first because Excited at the welcome pose is the largest face.
+
+The ESP32-C3 has no FPU, so every float operation is a library call. Keep a frame (ease, compose, render) to about **600 k instructions**: a welcome frame is about 510 k, heart eyes about 1.2 M (idle only, no clip playing).
+
+- Test geometry in float only at the edges of a row, then write whole runs (`runAround`, `LidCut::trim`).
+- Precompute per-row and per-column terms instead of recomputing them per pixel.
+- Never draw a shape twice per frame.
+
 ## Adding a mood
 
 1. Add it to `Mood` in [`expression.h`](expression.h). Idle-family moods go before `Love`, because `isIdleMood` relies on that order.

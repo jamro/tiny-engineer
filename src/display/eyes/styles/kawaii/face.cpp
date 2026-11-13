@@ -111,30 +111,57 @@ Span pixelSpan(float mid, float halfWidth) {
   return {(int)ceilf(mid - halfWidth - 0.5f), floorInt(mid + halfWidth - 0.5f)};
 }
 
-// Shapes are drawn twice: a Gap pass clears a one-pixel ring around them (so
-// blush underneath never touches an eye), then the Ink pass draws them.
-enum class Pass : uint8_t { Gap, Ink };
+// Moves `x`, a float-solved estimate, to the last pixel in [lo, hi] where
+// `keep` holds, for a test that is true up to a boundary and false after it.
+// Returns lo - 1 when none qualify. Checking the edge pixels with the exact
+// test keeps the result identical to testing every pixel.
+template <typename Keep>
+int lastKept(int x, int lo, int hi, Keep keep) {
+  x = x < lo - 1 ? lo - 1 : (x > hi ? hi : x);
+  while (x >= lo && !keep(x)) {
+    x--;
+  }
+  while (x < hi && keep(x + 1)) {
+    x++;
+  }
+  return x;
+}
+
+// Float pixel index clamped to [lo, hi] so the int conversion is defined.
+float clampIndex(float v, int lo, int hi) {
+  return fminf(fmaxf(v, (float)lo), (float)hi);
+}
+
+// The run of pixels in [lo, hi] near mid ± halfWidth for which `inside`
+// holds (true on one contiguous run). Empty (first > last) when none do.
+template <typename Inside>
+Span runAround(float mid, float halfWidth, int lo, int hi, Inside inside) {
+  const Span none = {hi + 1, hi};
+  const float before = clampIndex(mid - halfWidth - 0.5f, lo - 1, hi + 1);
+  const float end = clampIndex(mid + halfWidth - 0.5f, lo - 1, hi + 1);
+  const int first = lastKept(floorInt(before), lo, hi, [&](int x) { return !inside(x); }) + 1;
+  if (first > hi || !inside(first)) {
+    return none;
+  }
+  return {first, lastKept(floorInt(end), first, hi, inside)};
+}
 
 class Canvas {
  public:
-  Canvas(uint8_t* bits, Pass pass) : bits_(bits), pass_(pass) {}
+  explicit Canvas(uint8_t* bits) : bits_(bits) {}
 
-  void plot(int x, int y) {
-    if (pass_ == Pass::Ink) {
-      set(x, y, true);
+  void plot(int x, int y) { set(x, y, true); }
+  void erase(int x, int y) { set(x, y, false); }
+
+  // Lights x0..x1 on row y (nothing when x0 > x1).
+  void run(int x0, int x1, int y) {
+    if (y < 0 || y >= kHeight) {
       return;
     }
-    for (int dy = -1; dy <= 1; dy++) {
-      for (int dx = -1; dx <= 1; dx++) {
-        set(x + dx, y + dy, false);
-      }
-    }
-  }
-
-  // Holes only matter for ink: the gap ring is around the outline.
-  void erase(int x, int y) {
-    if (pass_ == Pass::Ink) {
-      set(x, y, false);
+    x0 = x0 < 0 ? 0 : x0;
+    x1 = x1 >= kWidth ? kWidth - 1 : x1;
+    for (int x = x0; x <= x1; x++) {
+      set(x, y, true);
     }
   }
 
@@ -155,13 +182,21 @@ class Canvas {
     }
 
     const float r2 = r * r;
+    const int lo = floorInt(cx - r);
+    const int hi = floorInt(cx + r);
     for (int y = floorInt(cy - r); y <= floorInt(cy + r); y++) {
-      for (int x = floorInt(cx - r); x <= floorInt(cx + r); x++) {
+      const float dy = center(y) - cy;
+      const float rest = r2 - dy * dy;
+      if (rest < 0.0f) {
+        continue;
+      }
+      const auto inside = [&](int x) {
         const float dx = center(x) - cx;
-        const float dy = center(y) - cy;
-        if (dx * dx + dy * dy <= r2) {
-          erase(x, y);
-        }
+        return dx * dx + dy * dy <= r2;
+      };
+      const Span hole = runAround(cx, sqrtf(rest), lo, hi, inside);
+      for (int x = hole.first; x <= hole.last; x++) {
+        erase(x, y);
       }
     }
   }
@@ -195,7 +230,6 @@ class Canvas {
   }
 
   uint8_t* bits_;
-  Pass pass_;
 };
 
 // ---------------------------------------------------------------- eyes ---
@@ -226,6 +260,15 @@ class HappyCarve {
       ry_(ry * kCarveHeight),
       cy_(e.cy + ry - happy * kCarveRise * ry + ry_) {}
 
+  // Pixels of `row` carved out at height py; empty (first > last) if none.
+  Span carved(const Span& row, float cx, float py) const {
+    const float w = halfWidthAt(py);
+    if (w <= 0.0f) {
+      return {row.last + 1, row.last};
+    }
+    return runAround(cx, w, row.first, row.last, [&](int x) { return fabsf(center(x) - cx) < w; });
+  }
+
   // Half-width carved out of row `py`; negative when the row misses it.
   float halfWidthAt(float py) const {
     if (!active_) {
@@ -252,6 +295,25 @@ class LidCut {
 
   float edgeAt(float px) const { return base_ + slope_ * (px - cx_); }
   bool hides(float px, float py) const { return py < edgeAt(px); }
+
+  // Narrows `s` to the pixels of row py that are below the lid. False when
+  // the lid covers the whole row.
+  bool trim(Span& s, float py) const {
+    const auto hidden = [&](int x) { return hides(center(x), py); };
+    if (slope_ == 0.0f) {
+      return !hidden(s.first);
+    }
+
+    // Pixel index where the lid line crosses this row.
+    const float cross = clampIndex(cx_ + (py - base_) / slope_ - 0.5f, s.first - 1, s.last + 1);
+    if (slope_ > 0.0f) {
+      // Lid lower toward +x: visible on the left.
+      s.last = lastKept(floorInt(cross), s.first, s.last, [&](int x) { return !hidden(x); });
+    } else {
+      s.first = lastKept((int)ceilf(cross) - 1, s.first, s.last, hidden) + 1;
+    }
+    return s.first <= s.last;
+  }
 
  private:
   float cx_;
@@ -284,6 +346,8 @@ void drawRoundEye(Canvas& c, const EyeShape& e, float ry) {
   const HappyCarve carve(e, ry, happy);
   const LidCut lid(e, ry);
 
+  // Per row: the ellipse span, trimmed by the lid, minus the carve. Only
+  // the edges are tested in float; the runs between them are plain writes.
   for (int y = floorInt(e.cy - ry); y <= floorInt(e.cy + ry); y++) {
     const float py = center(y);
     const float t = (py - e.cy) / ry;
@@ -291,35 +355,38 @@ void drawRoundEye(Canvas& c, const EyeShape& e, float ry) {
       continue;
     }
 
-    const Span span = pixelSpan(e.cx, e.rx * sqrtf(1.0f - t * t));
-    const float carveHalfW = carve.halfWidthAt(py);
-    for (int x = span.first; x <= span.last; x++) {
-      const float px = center(x);
-      if (fabsf(px - e.cx) >= carveHalfW && !lid.hides(px, py)) {
-        c.plot(x, y);
-      }
+    Span row = pixelSpan(e.cx, e.rx * sqrtf(1.0f - t * t));
+    if (row.first > row.last || !lid.trim(row, py)) {
+      continue;
     }
+    const Span hole = carve.carved(row, e.cx, py);
+    c.run(row.first, hole.first - 1, y);
+    c.run(hole.last + 1, row.last, y);
   }
 
   drawSparkles(c, e, ry, happy, lid);
+}
+
+// Lights the run of row y within halfStroke of x = mid.
+void stroke(Canvas& c, float mid, float halfStroke, int y) {
+  const int lo = floorInt(mid - halfStroke);
+  const Span run = runAround(mid, halfStroke, lo, floorInt(mid + halfStroke), [&](int x) {
+    return fabsf(center(x) - mid) <= halfStroke;
+  });
+  c.run(run.first, run.last, y);
 }
 
 // ">" for the screen-left eye, "<" for the right: points at the nose.
 void drawChevron(Canvas& c, const EyeShape& e, float ry) {
   const float h = ry * kChevronHeight;
   const float w = e.rx * kChevronWidth;
+  const int top = floorInt(e.cy - h);
+  const int bottom = floorInt(e.cy + h);
 
-  for (int y = floorInt(e.cy - h); y <= floorInt(e.cy + h); y++) {
+  for (int y = top; y <= bottom; y++) {
     const float a = fabsf(center(y) - e.cy) / h;
-    if (a > 1.0f) {
-      continue;
-    }
-
-    const float xc = e.cx + e.side * (w * 0.5f - w * a);
-    for (int x = floorInt(xc - kChevronHalfStrokePx); x <= floorInt(xc + kChevronHalfStrokePx); x++) {
-      if (fabsf(center(x) - xc) <= kChevronHalfStrokePx) {
-        c.plot(x, y);
-      }
+    if (a <= 1.0f) {
+      stroke(c, e.cx + e.side * (w * 0.5f - w * a), kChevronHalfStrokePx, y);
     }
   }
 }
@@ -327,41 +394,49 @@ void drawChevron(Canvas& c, const EyeShape& e, float ry) {
 void drawCross(Canvas& c, const EyeShape& e, float ry) {
   const float h = ry * kCrossHeight;
   const float w = e.rx * kCrossWidth;
-  const float reach = w + kCrossHalfStrokePx + 1.0f;
+  const int top = floorInt(e.cy - h);
+  const int bottom = floorInt(e.cy + h);
 
-  for (int y = floorInt(e.cy - h); y <= floorInt(e.cy + h); y++) {
+  for (int y = top; y <= bottom; y++) {
     const float d = (center(y) - e.cy) / h;
-    if (fabsf(d) > 1.0f) {
-      continue;
-    }
-
-    // The two strokes cross at the center: one at +d·w, the other at -d·w.
-    const float xa = e.cx + d * w;
-    const float xb = e.cx - d * w;
-    for (int x = floorInt(e.cx - reach); x <= floorInt(e.cx + reach); x++) {
-      const float px = center(x);
-      if (fabsf(px - xa) <= kCrossHalfStrokePx || fabsf(px - xb) <= kCrossHalfStrokePx) {
-        c.plot(x, y);
-      }
+    if (fabsf(d) <= 1.0f) {
+      // The two strokes cross at the center: one at +d·w, the other at -d·w.
+      stroke(c, e.cx + d * w, kCrossHalfStrokePx, y);
+      stroke(c, e.cx - d * w, kCrossHalfStrokePx, y);
     }
   }
 }
 
-// Inside the unit heart (X² + Y² − 1)³ − X²Y³ ≤ 0.
-bool insideHeart(float X, float Y) {
-  const float a = X * X + Y * Y - 1.0f;
-  return a * a * a - X * X * Y * Y * Y <= 0.0f;
+constexpr int kMaxHeartCols = 64;  // wider than any eye the panel can show
+
+// Inside the unit heart (X² + Y² − 1)³ − X²Y³ ≤ 0, with X² precomputed.
+bool insideHeart(float X2, float Y) {
+  const float a = X2 + Y * Y - 1.0f;
+  return a * a * a - X2 * Y * Y * Y <= 0.0f;
 }
 
 void drawHeart(Canvas& c, const EyeShape& e, float ry) {
   const float sx = e.rx * kHeartScale;
   const float sy = ry * kHeartScale;
+  const int top = floorInt(e.cy - ry * kHeartScan);
+  const int bottom = floorInt(e.cy + ry * kHeartScan);
+  const int left = floorInt(e.cx - e.rx * kHeartScan);
+  const int cols = floorInt(e.cx + e.rx * kHeartScan) - left + 1;
+  if (cols <= 0 || cols > kMaxHeartCols) {
+    return;
+  }
 
-  for (int y = floorInt(e.cy - ry * kHeartScan); y <= floorInt(e.cy + ry * kHeartScan); y++) {
+  float X2[kMaxHeartCols];
+  for (int k = 0; k < cols; k++) {
+    const float X = (center(left + k) - e.cx) / sx;
+    X2[k] = X * X;
+  }
+
+  for (int y = top; y <= bottom; y++) {
     const float Y = (e.cy - center(y)) / sy + kHeartLift;
-    for (int x = floorInt(e.cx - e.rx * kHeartScan); x <= floorInt(e.cx + e.rx * kHeartScan); x++) {
-      if (insideHeart((center(x) - e.cx) / sx, Y)) {
-        c.plot(x, y);
+    for (int k = 0; k < cols; k++) {
+      if (insideHeart(X2[k], Y)) {
+        c.plot(left + k, y);
       }
     }
   }
@@ -406,24 +481,70 @@ void drawEye(Canvas& c, const EyeShape& e) {
 
 // --------------------------------------------------------------- blush ---
 
-// Placed from the open-eye geometry so it holds still through blinks.
-void drawBlush(Canvas& c, const EyeShape& e, float amount) {
+constexpr int kBlushMaxCols = (int)(2.0f * kBlushRxPx) + 2;
+constexpr int kBlushMaxRows = (int)(2.0f * kBlushRyPx) + 2;
+static_assert(kBlushMaxCols <= 16, "blush mask rows are 16 bits");
+
+bool nearLit(const uint8_t* frame, int x, int y) {
+  for (int dy = -1; dy <= 1; dy++) {
+    for (int dx = -1; dx <= 1; dx++) {
+      if (pixelAt(frame, x + dx, y + dy)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// d2: squared distance from the blush center in radii (1 = rim).
+bool blushDot(int x, int y, float d2, float amount) {
+  if (d2 >= 1.0f) {
+    return false;
+  }
+  // Soft edge: density falls off toward the rim.
+  const float level = amount * clamp01((1.0f - d2) * kBlushEdgeSoftness);
+  return kBayer[y & 3][x & 3] < level * kBlushDitherScale;
+}
+
+// Under the outer corner, placed from the open-eye geometry so it holds still
+// through blinks. Every dot is decided against the finished eyes before any
+// is drawn, so the blush keeps a one-pixel gap from them without counting
+// its own dots.
+void drawBlush(Canvas& c, const uint8_t* frame, const EyeShape& e, float amount) {
   if (amount <= kMinBlush || e.rx < kMinEyeRadiusPx) {
     return;
   }
 
   const float bx = e.cx - e.side * (e.rx + kBlushOutsetPx);
   const float by = e.cy + kBlushDrop * e.rx;
+  const int x0 = floorInt(bx - kBlushRxPx);
+  const int y0 = floorInt(by - kBlushRyPx);
+  const int cols = floorInt(bx + kBlushRxPx) - x0 + 1;
+  const int rows = floorInt(by + kBlushRyPx) - y0 + 1;
 
-  for (int y = floorInt(by - kBlushRyPx); y <= floorInt(by + kBlushRyPx); y++) {
-    for (int x = floorInt(bx - kBlushRxPx); x <= floorInt(bx + kBlushRxPx); x++) {
-      const float nx = (center(x) - bx) / kBlushRxPx;
-      const float ny = (center(y) - by) / kBlushRyPx;
-      const float d2 = nx * nx + ny * ny;
-      // Soft edge: density falls off toward the rim.
-      const float level = amount * clamp01((1.0f - d2) * kBlushEdgeSoftness);
-      if (d2 < 1.0f && kBayer[y & 3][x & 3] < level * kBlushDitherScale) {
-        c.plot(x, y);
+  float nx2[kBlushMaxCols];
+  for (int k = 0; k < cols && k < kBlushMaxCols; k++) {
+    const float nx = (center(x0 + k) - bx) / kBlushRxPx;
+    nx2[k] = nx * nx;
+  }
+
+  uint16_t mask[kBlushMaxRows] = {};
+  for (int r = 0; r < rows && r < kBlushMaxRows; r++) {
+    const int y = y0 + r;
+    const float ny = (center(y) - by) / kBlushRyPx;
+    const float ny2 = ny * ny;
+    for (int k = 0; k < cols && k < kBlushMaxCols; k++) {
+      const int x = x0 + k;
+      if (blushDot(x, y, nx2[k] + ny2, amount) && !nearLit(frame, x, y)) {
+        mask[r] |= (uint16_t)(1u << k);
+      }
+    }
+  }
+
+  for (int r = 0; r < kBlushMaxRows; r++) {
+    for (int k = 0; k < kBlushMaxCols; k++) {
+      if (mask[r] & (1u << k)) {
+        c.plot(x0 + k, y0 + r);
       }
     }
   }
@@ -462,9 +583,8 @@ float lipAt(const Mouth& m, float u, float omega) {
   const float single = 1.0f - u * u;
   const float twinU = 2.0f * fabsf(u) - 1.0f;  // each half as its own -1..1
   const float twin = 1.0f - twinU * twinU;
-  return m.cy
-    + m.curve * ((1.0f - omega) * single + omega * twin)
-    + m.wave * sinf(u * kMouthWaveCycles * kPi);
+  const float lip = m.cy + m.curve * ((1.0f - omega) * single + omega * twin);
+  return m.wave == 0.0f ? lip : lip + m.wave * sinf(u * kMouthWaveCycles * kPi);
 }
 
 bool mouthEdges(const Mouth& m, MouthColumns& out) {
@@ -552,20 +672,16 @@ bool render(const Face& face, uint8_t* frame, size_t frameBytes) {
   }
 
   memset(frame, 0, kFrameBytes);
-  Canvas ink(frame, Pass::Ink);
-  Canvas gap(frame, Pass::Gap);
+  Canvas canvas(frame);
 
-  // Blush first; the eyes then clear a one-pixel ring before drawing on top.
-  drawBlush(ink, face.left, face.blush);
-  drawBlush(ink, face.right, face.blush);
-  drawEye(gap, face.left);
-  drawEye(gap, face.right);
-  drawEye(ink, face.left);
-  drawEye(ink, face.right);
+  drawEye(canvas, face.left);
+  drawEye(canvas, face.right);
+  drawBlush(canvas, frame, face.left, face.blush);
+  drawBlush(canvas, frame, face.right, face.blush);
 
-  drawMouth(ink, face.mouth);
-  drawGlint(ink, face.left, face.glint);
-  drawGlint(ink, face.right, face.glint);
+  drawMouth(canvas, face.mouth);
+  drawGlint(canvas, face.left, face.glint);
+  drawGlint(canvas, face.right, face.glint);
   return true;
 }
 
