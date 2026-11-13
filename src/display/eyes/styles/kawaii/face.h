@@ -53,10 +53,13 @@ struct Face {
   EyeShape right;
   Mouth mouth;
   float blush;  // 0..1 dither density under the outer eye corners
-  float glint;  // 0..3 arm length of the twinkle stars beside the eyes
+  // Twinkle stars beside the eyes: hidden below 0.3, then a plus sign whose
+  // arms are (glint - 0.3) px, rounded down. 3 gives the largest (2 px arms).
+  float glint;
 };
 
 // Draws `face` into `frame` (cleared first). False if the buffer is too small.
+// Pure: no state is kept between calls.
 bool render(const Face& face, uint8_t* frame, size_t frameBytes);
 
 // True if pixel (x, y) is lit in a frame produced by render().

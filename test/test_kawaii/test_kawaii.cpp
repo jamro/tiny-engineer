@@ -1,8 +1,12 @@
 #include <cstring>
 #include <unity.h>
 
+#include "display/eyes/styles/kawaii/animator.h"
+#include "display/eyes/styles/kawaii/compose.h"
+#include "display/eyes/styles/kawaii/expression.h"
 #include "display/eyes/styles/kawaii/face.h"
-#include "display/eyes/styles/kawaii/mood.h"
+#include "display/eyes/styles/kawaii/idle.h"
+#include "display/eyes/styles/kawaii/speech.h"
 
 using namespace kawaii;
 
@@ -63,6 +67,20 @@ void test_render_rejects_small_buffer() {
   TEST_ASSERT_FALSE(render(f, g_frame, kFrameBytes - 1));
   TEST_ASSERT_FALSE(render(f, nullptr, kFrameBytes));
   TEST_ASSERT_TRUE(render(f, g_frame, kFrameBytes));
+}
+
+void test_render_is_pure() {
+  Face f = plainFace();
+  f.blush = 1.0f;
+  f.mouth.width = 9.0f;
+  f.mouth.openDown = 3.0f;
+
+  static uint8_t again[kFrameBytes];
+  memset(again, 0xFF, sizeof(again));  // stale pixels must not survive
+  render(f, g_frame, kFrameBytes);
+  render(plainFace(), again, kFrameBytes);  // unrelated frame in between
+  render(f, again, kFrameBytes);
+  TEST_ASSERT_EQUAL_MEMORY(g_frame, again, kFrameBytes);
 }
 
 void test_open_eye_has_body_and_sparkle() {
@@ -229,16 +247,89 @@ void test_long_gap_is_clamped() {
   TEST_ASSERT_TRUE(a.current().scale < 1.5f);
 }
 
-void test_speech_opens_the_mouth() {
-  Expression quiet = expressionFor(Mood::Talking);
-  Expression loud = quiet;
-  applySpeech(quiet, 0.05f, true);
-  applySpeech(loud, 0.9f, true);
-  TEST_ASSERT_TRUE(loud.mouthOpenDown > quiet.mouthOpenDown + 2.0f);
+void test_voice_opens_the_resting_mouth() {
+  const Expression rest = expressionFor(Mood::Talking);
 
-  Expression clamped = expressionFor(Mood::Talking);
-  applySpeech(clamped, 5.0f, true);
-  TEST_ASSERT_TRUE(clamped.mouthOpenDown <= 0.6f + 4.5f + 0.001f);
+  Expression closed = rest;
+  applyVoice(closed, {0.0f, Vowel::Ah});
+  TEST_ASSERT_EQUAL_FLOAT(rest.mouthWidth, closed.mouthWidth);
+  TEST_ASSERT_EQUAL_FLOAT(rest.mouthOpenDown, closed.mouthOpenDown);
+
+  Expression ah = rest;
+  applyVoice(ah, {1.0f, Vowel::Ah});
+  TEST_ASSERT_TRUE(ah.mouthOpenDown > rest.mouthOpenDown + 3.0f);
+
+  Expression ee = rest;
+  applyVoice(ee, {1.0f, Vowel::Ee});
+  TEST_ASSERT_TRUE(ee.mouthWidth > ah.mouthWidth);
+  TEST_ASSERT_TRUE(ee.mouthOpenDown < ah.mouthOpenDown);
+
+  Expression oo = rest;
+  applyVoice(oo, {1.0f, Vowel::Oo});
+  TEST_ASSERT_TRUE(oo.mouthWidth < rest.mouthWidth);
+  TEST_ASSERT_EQUAL_FLOAT(1.0f, oo.mouthHollow);
+
+  Expression murmur = rest;
+  applyVoice(murmur, {0.2f, Vowel::Oo});  // too small to read as a ring
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, murmur.mouthHollow);
+
+  Expression loud = rest;
+  applyVoice(loud, {5.0f, Vowel::Ah});  // clamped to fully open
+  TEST_ASSERT_EQUAL_FLOAT(ah.mouthOpenDown, loud.mouthOpenDown);
+}
+
+void test_babble_speaks_in_phrases() {
+  Babbler babbler(testRand);
+  babbler.reset(0);
+
+  uint32_t openMs = 0;
+  uint32_t quietRunMs = 0;
+  uint32_t longestQuietMs = 0;
+  bool sawVowel[(size_t)Vowel::Count] = {};
+
+  for (uint32_t now = 0; now < 20000u; now += 33) {
+    const Voice v = babbler.babble(now);
+    TEST_ASSERT_TRUE(v.level >= 0.0f && v.level <= 1.0f);
+    sawVowel[(size_t)v.vowel] = true;
+    openMs += v.level > 0.3f ? 33 : 0;
+    quietRunMs = v.level < 0.01f ? quietRunMs + 33 : 0;
+    longestQuietMs = quietRunMs > longestQuietMs ? quietRunMs : longestQuietMs;
+  }
+
+  TEST_ASSERT_TRUE(openMs > 20000u / 5);   // the mouth really moves
+  TEST_ASSERT_TRUE(longestQuietMs >= 200);  // with pauses between phrases
+  TEST_ASSERT_TRUE(sawVowel[(size_t)Vowel::Ah]);
+  TEST_ASSERT_TRUE(sawVowel[(size_t)Vowel::Ee]);
+  TEST_ASSERT_TRUE(sawVowel[(size_t)Vowel::Oo]);
+}
+
+void test_babble_survives_millis_wrap() {
+  Babbler babbler(testRand);
+  const uint32_t start = 0xFFFFFFFFu - 2000u;
+  babbler.reset(start);
+
+  float loudest = 0.0f;
+  for (uint32_t t = 0; t < 6000u; t += 33) {
+    const float level = babbler.babble(start + t).level;
+    TEST_ASSERT_TRUE(level >= 0.0f && level <= 1.0f);
+    loudest = level > loudest ? level : loudest;
+  }
+  TEST_ASSERT_TRUE(loudest > 0.3f);
+}
+
+void test_follow_tracks_audio() {
+  Babbler babbler(testRand);
+  babbler.reset(0);
+
+  TEST_ASSERT_EQUAL_FLOAT(0.8f, babbler.follow(0, 0.8f, 0.0f, true).level);
+  TEST_ASSERT_TRUE(babbler.follow(33, 0.8f, 0.0f, false).level < 0.4f);  // gate closed
+
+  bool sawVowel[(size_t)Vowel::Count] = {};
+  for (uint32_t now = 0; now < 5000u; now += 33) {
+    const bool onset = (now / 33) % 6 == 0;
+    sawVowel[(size_t)babbler.follow(now, 0.6f, onset ? 0.6f : 0.0f, true).vowel] = true;
+  }
+  TEST_ASSERT_TRUE(sawVowel[(size_t)Vowel::Ah] + sawVowel[(size_t)Vowel::Ee] + sawVowel[(size_t)Vowel::Oo] >= 2);
 }
 
 void test_idle_is_mostly_smiles_with_accents() {
@@ -251,7 +342,7 @@ void test_idle_is_mostly_smiles_with_accents() {
 
   for (uint32_t now = 0; now < 10u * 60u * 1000u; now += 33) {
     const Mood m = idle.update(now);
-    TEST_ASSERT_TRUE(m <= Mood::Love);  // idle family only
+    TEST_ASSERT_TRUE(isIdleMood(m));
     sawAccent[(size_t)m] = true;
     if (m == Mood::Content || m == Mood::Smile) {
       smileMs += 33;
@@ -281,6 +372,7 @@ void test_idle_survives_millis_wrap() {
 int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_render_rejects_small_buffer);
+  RUN_TEST(test_render_is_pure);
   RUN_TEST(test_open_eye_has_body_and_sparkle);
   RUN_TEST(test_closed_eye_is_a_lid_line);
   RUN_TEST(test_happy_eye_is_a_crescent);
@@ -293,7 +385,10 @@ int main(int, char**) {
   RUN_TEST(test_kind_swap_blinks_through);
   RUN_TEST(test_expression_eases_and_settles);
   RUN_TEST(test_long_gap_is_clamped);
-  RUN_TEST(test_speech_opens_the_mouth);
+  RUN_TEST(test_voice_opens_the_resting_mouth);
+  RUN_TEST(test_babble_speaks_in_phrases);
+  RUN_TEST(test_babble_survives_millis_wrap);
+  RUN_TEST(test_follow_tracks_audio);
   RUN_TEST(test_idle_is_mostly_smiles_with_accents);
   RUN_TEST(test_idle_survives_millis_wrap);
   return UNITY_END();
