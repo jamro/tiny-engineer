@@ -25,6 +25,10 @@ struct Voice {
 // Opens the expression's resting mouth toward the vowel's shape by `level`.
 void applyVoice(Expression& target, const Voice& voice);
 
+// Gives any mood the talking resting mouth (a small parted smile), so
+// syllables read clearly; the rest of the mood is kept.
+void speakingMouth(Expression& target);
+
 class Babbler {
  public:
   explicit Babbler(RandRange rand) : rand_(rand) {}

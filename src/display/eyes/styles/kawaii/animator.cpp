@@ -134,6 +134,7 @@ void Animator::easeValues(const Expression& t, float dt) {
   approach(c.blush, t.blush, w.blush);
   approach(c.glint, t.glint, w.glint);
   approach(c.bounce, t.bounce, w.bounce);
+  approach(c.quiver, t.quiver, w.bounce);
   approach(c.mouthWidth, t.mouthWidth, w.mouth);
   approach(c.mouthCurve, t.mouthCurve, w.mouth);
   approach(c.mouthOmega, t.mouthOmega, w.mouth);

@@ -9,7 +9,7 @@ namespace {
 const char* const kMoodNames[] = {
   "content", "smile", "grin", "wink_left", "wink_right", "excited", "love",
   "focused", "reading", "thinking", "surprised", "curious", "angry", "panic",
-  "sleepy", "sad", "dizzy", "talking", "asleep", "pleased", "aha",
+  "sleepy", "sad", "dizzy", "talking", "asleep", "pleased", "aha", "bliss", "afterglow",
 };
 
 static_assert(
@@ -217,6 +217,25 @@ Expression expressionFor(Mood mood) {
       e.blush = 0.6f;
       e.glint = 1.0f;
       e.bounce = 1.2f;
+      break;
+    case Mood::Bliss:
+      e.happyLeft = e.happyRight = 1.0f;
+      e.scale = 1.05f;
+      e.mouthWidth = 12.0f;
+      e.mouthCurve = 2.5f;
+      e.mouthOpenDown = 3.5f;
+      e.blush = 1.0f;
+      e.glint = 1.0f;
+      e.bounce = 0.8f;
+      e.quiver = 0.9f;
+      break;
+    case Mood::Afterglow:
+      e.happyLeft = e.happyRight = 0.55f;
+      e.lid = 0.2f;
+      e.gazeY = -0.25f;  // dreamy, looking up
+      catMouth(e, 12.0f);
+      e.blush = 0.9f;
+      e.glint = 0.4f;
       break;
     case Mood::Count:
       break;

@@ -6,6 +6,7 @@
 #include "display/eyes/styles/kawaii/compose.h"
 #include "display/eyes/styles/kawaii/expression.h"
 #include "display/eyes/styles/kawaii/face.h"
+#include "display/eyes/styles/kawaii/lines.h"
 #include "display/eyes/styles/kawaii/director.h"
 #include "display/eyes/styles/kawaii/speech.h"
 #include "display/eyes/styles/kawaii/tracker.h"
@@ -608,6 +609,99 @@ void test_work_going_well_brings_more_smiles() {
   TEST_ASSERT_TRUE(smooth.accents > rough.accents * 3 / 2);
 }
 
+void test_mouth_line_ramps_between_keyframes() {
+  const Viseme track[] = {{100, Vowel::Ah, 0}, {200, Vowel::Oo, 80}, {300, Vowel::Oo, 0}};
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, mouthLine(track, 3, 50).level);   // before
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, 0.4f, mouthLine(track, 3, 150).level);
+  TEST_ASSERT_TRUE(mouthLine(track, 3, 150).vowel == Vowel::Oo);  // opening toward "o"
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, 0.8f, mouthLine(track, 3, 200).level);
+  TEST_ASSERT_TRUE(mouthLine(track, 3, 250).vowel == Vowel::Oo);  // closing keeps it
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, mouthLine(track, 3, 300).level);  // after
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, mouthLine(track, 0, 150).level);
+}
+
+void test_hello_human_says_the_words() {
+  // Times are where the stock welcome.wav says each sound.
+  TEST_ASSERT_TRUE(say(Line::HelloHuman, 210).level > 0.6f);   // "lo"
+  TEST_ASSERT_TRUE(say(Line::HelloHuman, 210).vowel == Vowel::Oo);
+  TEST_ASSERT_TRUE(say(Line::HelloHuman, 670).level > 0.6f);   // "man"
+  TEST_ASSERT_TRUE(say(Line::HelloHuman, 670).vowel == Vowel::Ah);
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, say(Line::HelloHuman, 1000).level);  // the pause
+  TEST_ASSERT_TRUE(say(Line::HelloHuman, 1760).level < 0.1f);  // lips shut just before the "b"
+  TEST_ASSERT_TRUE(say(Line::HelloHuman, 1860).vowel == Vowel::Ee);  // "buil"
+  TEST_ASSERT_TRUE(say(Line::HelloHuman, 2340).vowel == Vowel::Ah);  // "day"
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, say(Line::HelloHuman, 2700).level);  // done
+
+  const uint32_t stock[] = {800, 1340, 2400, 2680};
+  const uint32_t custom[] = {900, 1340, 2400, 2680};
+  TEST_ASSERT_TRUE(fitsStock(Line::HelloHuman, stock, 4));
+  TEST_ASSERT_FALSE(fitsStock(Line::HelloHuman, custom, 4));  // a custom clip
+  TEST_ASSERT_FALSE(fitsStock(Line::HelloHuman, stock, 3));   // wrong cue file
+}
+
+void test_psst_human_says_the_words() {
+  // Times are where the stock attention.wav says each sound (the track
+  // leads by 40 ms).
+  TEST_ASSERT_TRUE(say(Line::PsstHuman, 80).level < 0.05f);    // lips shut for the "P"
+  TEST_ASSERT_TRUE(say(Line::PsstHuman, 300).level > 0.2f);    // "sss": a small toothy hiss
+  TEST_ASSERT_TRUE(say(Line::PsstHuman, 300).vowel == Vowel::Ee);
+  TEST_ASSERT_TRUE(say(Line::PsstHuman, 870).level > 0.6f);    // "man"
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, say(Line::PsstHuman, 1200).level);  // the pause
+  TEST_ASSERT_TRUE(say(Line::PsstHuman, 1760).level > 0.7f);   // "might"
+  TEST_ASSERT_TRUE(say(Line::PsstHuman, 2620).vowel == Vowel::Oo);  // "look"
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, say(Line::PsstHuman, 2900).level);  // done
+
+  const uint32_t stock[] = {640, 1540, 2960};
+  const uint32_t custom[] = {640, 1600, 2960};
+  TEST_ASSERT_TRUE(fitsStock(Line::PsstHuman, stock, 3));
+  TEST_ASSERT_FALSE(fitsStock(Line::PsstHuman, custom, 3));  // a custom clip
+}
+
+void test_error_abort_dead_say_their_lines() {
+  // "Uh-oh. Human, we have a problem."
+  TEST_ASSERT_TRUE(say(Line::UhOhHuman, 220).vowel == Vowel::Oo);     // "oh"
+  TEST_ASSERT_TRUE(say(Line::UhOhHuman, 860).level < 0.1f);          // lips shut for the "m"
+  TEST_ASSERT_TRUE(say(Line::UhOhHuman, 1760).level > 0.7f);         // "pro"
+  TEST_ASSERT_TRUE(say(Line::UhOhHuman, 1860).level < 0.1f);         // the "b"
+  // "Fine. I didn't want to finish it anyway."
+  TEST_ASSERT_TRUE(say(Line::FineAnyway, 100).level < 0.15f);        // "F": lip on teeth
+  TEST_ASSERT_TRUE(say(Line::FineAnyway, 220).level > 0.6f);         // "fine"
+  TEST_ASSERT_TRUE(say(Line::FineAnyway, 1320).vowel == Vowel::Ah);  // "want"
+  // "Insufficient resources... shutting doooowwwnnn"
+  TEST_ASSERT_TRUE(say(Line::ShuttingDown, 1040).vowel == Vowel::Oo);  // "sour"
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, say(Line::ShuttingDown, 1700).level);  // the breath
+  TEST_ASSERT_TRUE(say(Line::ShuttingDown, 2400).level > 0.8f);        // "doooow"
+  TEST_ASSERT_TRUE(say(Line::ShuttingDown, 2700).vowel == Vowel::Oo);  // winding down
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, say(Line::ShuttingDown, 3100).level);
+
+  const uint32_t error[] = {460, 1060, 2140, 2220};
+  const uint32_t abortCues[] = {520, 1350, 2050, 2500};
+  const uint32_t dead[] = {1700, 3410};
+  TEST_ASSERT_TRUE(fitsStock(Line::UhOhHuman, error, 4));
+  TEST_ASSERT_TRUE(fitsStock(Line::FineAnyway, abortCues, 4));
+  TEST_ASSERT_TRUE(fitsStock(Line::ShuttingDown, dead, 2));
+  TEST_ASSERT_FALSE(fitsStock(Line::Count, dead, 2));
+}
+
+void test_bell_celebrates() {
+  BellCelebration bell;
+  bell.reset(0);
+  TEST_ASSERT_TRUE(bell.update(300, false) == Mood::Curious);  // winding up
+  TEST_ASSERT_TRUE(bell.update(600, true) == Mood::Excited);   // ding!
+  TEST_ASSERT_TRUE(bell.update(800, true) == Mood::Excited);
+  TEST_ASSERT_TRUE(bell.update(1200, true) == Mood::Bliss);
+  TEST_ASSERT_TRUE(bell.update(2000, false) == Mood::Bliss);
+  TEST_ASSERT_TRUE(bell.update(2400, false) == Mood::Afterglow);
+
+  // No bell clip on the filesystem: the ding still comes.
+  bell.reset(10000);
+  TEST_ASSERT_TRUE(bell.update(11000, false) == Mood::Curious);
+  TEST_ASSERT_TRUE(bell.update(11600, false) == Mood::Excited);
+
+  TEST_ASSERT_TRUE(expressionFor(Mood::Bliss).quiver > 0.0f);  // shivering with joy
+  TEST_ASSERT_EQUAL_FLOAT(1.0f, expressionFor(Mood::Bliss).happyLeft);
+}
+
 int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_render_rejects_small_buffer);
@@ -633,6 +727,11 @@ int main(int, char**) {
   RUN_TEST(test_babble_speaks_in_phrases);
   RUN_TEST(test_babble_survives_millis_wrap);
   RUN_TEST(test_follow_tracks_audio);
+  RUN_TEST(test_mouth_line_ramps_between_keyframes);
+  RUN_TEST(test_hello_human_says_the_words);
+  RUN_TEST(test_psst_human_says_the_words);
+  RUN_TEST(test_error_abort_dead_say_their_lines);
+  RUN_TEST(test_bell_celebrates);
   RUN_TEST(test_idle_is_mostly_smiles_with_accents);
   RUN_TEST(test_idle_survives_millis_wrap);
   RUN_TEST(test_working_moods_are_mostly_focused_with_positive_accents);

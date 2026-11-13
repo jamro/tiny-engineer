@@ -13,6 +13,7 @@ Each frame flows top to bottom:
 | [`../kawaii.cpp`](../kawaii.cpp) | Firmware glue: maps `EyeMode` to a `Mood`, reads `/play` speech, steps the animator, blits the frame to the SSD1306 |
 | [`director.h`](director.h) | `MoodDirector`: each activity's personality, a base mood with occasional accents (idle: smiles with grins, winks, excitement, hearts; typing: focused with pleased smiles, grins, winks; reading: pleased reads and "ooh"; thinking: "aha!"). Accents come more often while work goes well |
 | [`tracker.h`](tracker.h) | `CodeReader`: the typing gaze (reads a few lines, darts to another spot, repeats) |
+| [`lines.h`](lines.h) | Scripted lines keyed to the stock clips (`Line`: welcome, attention, error, abort, dead): the mouth says the actual words in sync. Which clips the face mouths: the `SpokenClip` table in [`../kawaii.cpp`](../kawaii.cpp) |
 | [`speech.h`](speech.h) | `Babbler` and `applyVoice`: syllables and vowel mouth shapes for `talking`, from audio or invented |
 | [`expression.h`](expression.h) | `Mood` enum and `expressionFor`: one preset `Expression` per mood |
 | [`animator.h`](animator.h) | `Animator`: springs and exponential easing toward the target expression; blink-through for shape swaps |
@@ -32,6 +33,8 @@ Every tuning value is a named constant at the top of the file that uses it:
 - **Motion feel** (spring frequency and damping, easing time constants, swap blink): [`animator.cpp`](animator.cpp).
 - **Accent timing and odds per activity**: the `kPersonalities` table in [`director.cpp`](director.cpp); how long work must go well to reach the most frequent accents: `kFlowRampMs` in [`../kawaii.cpp`](../kawaii.cpp).
 - **Typing gaze** (line length, word timing, lines per spot, dart range): [`tracker.cpp`](tracker.cpp).
+- **Lip sync**: each line's keyframes, its stock cue times (`kScripts`), and `kLeadMs` in [`lines.cpp`](lines.cpp). Re-key a track if its stock clip changes; to mouth another clip, add a `Line`, its track and `kScripts` entry there, and a `SpokenClip` entry in [`../kawaii.cpp`](../kawaii.cpp).
+- **The bell celebration** (wind-up, ding, bliss, afterglow timing): `BellCelebration` in [`director.cpp`](director.cpp); the Bliss shiver: `kQuiverPeriodMs` in [`compose.cpp`](compose.cpp).
 - **Talking rhythm and vowel shapes**: the `kVowels` table and babble constants in [`speech.cpp`](speech.cpp).
 - **Hop, twinkle, and mouth placement**: [`compose.cpp`](compose.cpp) and `kEyeRadius` / `kMouthDrop` in [`compose.h`](compose.h).
 

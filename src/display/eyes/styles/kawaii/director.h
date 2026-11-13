@@ -44,4 +44,21 @@ class MoodDirector {
   uint32_t accentEndAt_ = 0;
 };
 
+// The bell: an eager wind-up, a burst of joy on the ding, bliss while the
+// bell sustains, then a dreamy afterglow. Keyed to the moment the bell
+// clip starts; if it never plays (no clip on the filesystem), the ding
+// comes after a wait instead.
+class BellCelebration {
+ public:
+  // Call when the ring starts.
+  void reset(uint32_t now);
+  // `bellPlaying`: the bell clip is playing right now.
+  Mood update(uint32_t now, bool bellPlaying);
+
+ private:
+  uint32_t startedMs_ = 0;
+  bool rung_ = false;
+  uint32_t dingMs_ = 0;
+};
+
 }  // namespace kawaii

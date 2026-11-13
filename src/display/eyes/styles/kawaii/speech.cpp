@@ -65,6 +65,18 @@ void applyVoice(Expression& target, const Voice& voice) {
   target.mouthHollow = open.hollow && level >= kHollowFromLevel ? 1.0f : 0.0f;
 }
 
+void speakingMouth(Expression& target) {
+  const Expression talk = expressionFor(Mood::Talking);
+  target.mouthWidth = talk.mouthWidth;
+  target.mouthCurve = talk.mouthCurve;
+  target.mouthOmega = talk.mouthOmega;
+  target.mouthOpenUp = talk.mouthOpenUp;
+  target.mouthOpenDown = talk.mouthOpenDown;
+  target.mouthWave = talk.mouthWave;
+  target.mouthShift = talk.mouthShift;
+  target.mouthHollow = talk.mouthHollow;
+}
+
 void Babbler::reset(uint32_t now) {
   armed_ = true;
   inPhrase_ = false;

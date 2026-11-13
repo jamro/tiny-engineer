@@ -153,4 +153,33 @@ Mood MoodDirector::update(uint32_t now, float flow) {
   return base_;
 }
 
+namespace {
+
+constexpr uint32_t kBellWaitMs = 1500;  // no bell by then: ding anyway
+constexpr uint32_t kDingMs = 350;       // the burst of joy
+constexpr uint32_t kBlissMs = 1600;     // bliss while the bell sustains
+
+}  // namespace
+
+void BellCelebration::reset(uint32_t now) {
+  startedMs_ = now;
+  rung_ = false;
+}
+
+Mood BellCelebration::update(uint32_t now, bool bellPlaying) {
+  if (!rung_ && (bellPlaying || reached(now, startedMs_ + kBellWaitMs))) {
+    rung_ = true;
+    dingMs_ = now;
+  }
+  if (!rung_) {
+    return Mood::Curious;  // winding up
+  }
+
+  const uint32_t t = now - dingMs_;
+  if (t < kDingMs) {
+    return Mood::Excited;
+  }
+  return t < kBlissMs ? Mood::Bliss : Mood::Afterglow;
+}
+
 }  // namespace kawaii
