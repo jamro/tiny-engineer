@@ -6,7 +6,7 @@
 #include "display/eyes/styles/kawaii/compose.h"
 #include "display/eyes/styles/kawaii/expression.h"
 #include "display/eyes/styles/kawaii/face.h"
-#include "display/eyes/styles/kawaii/idle.h"
+#include "display/eyes/styles/kawaii/director.h"
 #include "display/eyes/styles/kawaii/speech.h"
 #include "display/eyes/styles/kawaii/tracker.h"
 
@@ -513,8 +513,8 @@ void test_follow_tracks_audio() {
 }
 
 void test_idle_is_mostly_smiles_with_accents() {
-  IdleDirector idle(testRand);
-  idle.reset(0);
+  MoodDirector idle(testRand);
+  idle.reset(0, Activity::Idle);
 
   uint32_t smileMs = 0;
   uint32_t totalMs = 0;
@@ -537,9 +537,9 @@ void test_idle_is_mostly_smiles_with_accents() {
 }
 
 void test_idle_survives_millis_wrap() {
-  IdleDirector idle(testRand);
+  MoodDirector idle(testRand);
   const uint32_t start = 0xFFFFFFFFu - 20000u;
-  idle.reset(start);
+  idle.reset(start, Activity::Idle);
 
   bool sawAccent = false;
   for (uint32_t t = 0; t < 60000u; t += 33) {
@@ -547,6 +547,65 @@ void test_idle_survives_millis_wrap() {
     sawAccent = sawAccent || (m != Mood::Content && m != Mood::Smile);
   }
   TEST_ASSERT_TRUE(sawAccent);
+}
+
+// Ten minutes of an activity: share of time on the base mood, which moods
+// appeared, and how many accents started.
+struct ActivityRun {
+  uint32_t baseMs = 0;
+  uint32_t accents = 0;
+  bool saw[(size_t)Mood::Count] = {};
+};
+
+ActivityRun runActivity(Activity activity, Mood base, float flow) {
+  MoodDirector director(testRand);
+  director.reset(0, activity);
+  ActivityRun run;
+  Mood prev = base;
+  for (uint32_t now = 0; now < 10u * 60u * 1000u; now += 33) {
+    const Mood m = director.update(now, flow);
+    run.saw[(size_t)m] = true;
+    run.baseMs += m == base ? 33 : 0;
+    run.accents += (m != base && prev == base) ? 1 : 0;
+    prev = m;
+  }
+  return run;
+}
+
+void test_working_moods_are_mostly_focused_with_positive_accents() {
+  struct Case {
+    Activity activity;
+    Mood base;
+    Mood allowed[4];
+  };
+  const Case cases[] = {
+    {Activity::Typing, Mood::Focused, {Mood::Pleased, Mood::Grin, Mood::WinkLeft, Mood::WinkRight}},
+    {Activity::Reading, Mood::Reading, {Mood::Pleased, Mood::Curious, Mood::Grin, Mood::Grin}},
+    {Activity::Thinking, Mood::Thinking, {Mood::Aha, Mood::Pleased, Mood::Aha, Mood::Aha}},
+  };
+
+  for (const Case& c : cases) {
+    const ActivityRun run = runActivity(c.activity, c.base, 0.5f);
+    TEST_ASSERT_TRUE(run.baseMs * 100 / (10u * 60u * 1000u) >= 75);  // mostly working
+    TEST_ASSERT_TRUE(run.accents >= 10);                             // but not all the time
+    TEST_ASSERT_TRUE(run.saw[(size_t)c.allowed[0]]);
+    for (size_t m = 0; m < (size_t)Mood::Count; m++) {
+      if (!run.saw[m] || (Mood)m == c.base) {
+        continue;
+      }
+      bool ok = false;
+      for (Mood a : c.allowed) {
+        ok = ok || (Mood)m == a;
+      }
+      TEST_ASSERT_TRUE_MESSAGE(ok, moodName((Mood)m));
+    }
+  }
+}
+
+void test_work_going_well_brings_more_smiles() {
+  const ActivityRun rough = runActivity(Activity::Typing, Mood::Focused, 0.0f);
+  const ActivityRun smooth = runActivity(Activity::Typing, Mood::Focused, 1.0f);
+  TEST_ASSERT_TRUE(smooth.accents > rough.accents * 3 / 2);
 }
 
 int main(int, char**) {
@@ -576,5 +635,7 @@ int main(int, char**) {
   RUN_TEST(test_follow_tracks_audio);
   RUN_TEST(test_idle_is_mostly_smiles_with_accents);
   RUN_TEST(test_idle_survives_millis_wrap);
+  RUN_TEST(test_working_moods_are_mostly_focused_with_positive_accents);
+  RUN_TEST(test_work_going_well_brings_more_smiles);
   return UNITY_END();
 }

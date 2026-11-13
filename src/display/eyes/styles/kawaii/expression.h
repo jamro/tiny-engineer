@@ -5,7 +5,8 @@
 #include "display/eyes/styles/kawaii/face.h"
 
 // Moods and the expression each one targets. Pure data: easing lives in
-// animator.h, the idle personality in idle.h, speech in speech.h.
+// animator.h, the personalities (base moods and accents) in director.h,
+// speech in speech.h.
 
 namespace kawaii {
 
@@ -31,6 +32,9 @@ enum class Mood : uint8_t {
   Dizzy,      // dead: x x
   Talking,    // resting mouth; speech.h opens it per syllable
   Asleep,
+  // Accents while working (see director.h).
+  Pleased,    // a content smile mid-task: work is going well
+  Aha,        // thinking: an idea lands, eyes up and bright
   Count
 };
 

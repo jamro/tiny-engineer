@@ -665,9 +665,9 @@ When `eyes_style=kawaii`, each eye is a round eye about 23 px across with a big 
 | Animation / phase | Mood |
 | --- | --- |
 | `none` (idle) | Mostly a `ω` or `‿` smile. Every 4.5–10 s, a short accent: `^ ^` grin, a wink, excited (bigger eyes, hop, twinkles, open grin), or rarely heart eyes |
-| `typing` | Focused: lids slightly lowered, short mouth. The eyes read code: a few lines word by word, then a dart to another spot, and again |
-| `reading` | Lids barely lowered, small `ω` |
-| `thinking` | Lids slightly lowered, wobbly mouth off to one side |
+| `typing` | Mostly focused: lids slightly lowered, short mouth. The eyes read code: a few lines word by word, then a dart to another spot, and again. Now and then a pleased smile, a quick `^ ^` grin, or a wink; these come more often the longer it has been since an `error`, `abort`, or `dead` (most often after about 90 s) |
+| `reading` | Mostly lids barely lowered, small `ω`. Now and then a pleased, happy read, an "ooh" (`o` mouth, wider eyes), or a grin; more often while work goes well |
+| `thinking` | Mostly lids slightly lowered, wobbly mouth off to one side. Now and then an "aha!": eyes widen and look up, star glints, a little hop, open smile; then back to thinking |
 | `ring` | Surprised: wide eyes, `o` mouth |
 | `welcome` | Excited |
 | `attention` | Curious: slightly wide eyes, small `o` |

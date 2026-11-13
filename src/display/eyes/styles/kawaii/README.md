@@ -11,7 +11,7 @@ Each frame flows top to bottom:
 | File | Owns |
 | --- | --- |
 | [`../kawaii.cpp`](../kawaii.cpp) | Firmware glue: maps `EyeMode` to a `Mood`, reads `/play` speech, steps the animator, blits the frame to the SSD1306 |
-| [`idle.h`](idle.h) | `IdleDirector`: idle personality (Content / Smile with grin, wink, excited, and heart-eye accents) |
+| [`director.h`](director.h) | `MoodDirector`: each activity's personality, a base mood with occasional accents (idle: smiles with grins, winks, excitement, hearts; typing: focused with pleased smiles, grins, winks; reading: pleased reads and "ooh"; thinking: "aha!"). Accents come more often while work goes well |
 | [`tracker.h`](tracker.h) | `CodeReader`: the typing gaze (reads a few lines, darts to another spot, repeats) |
 | [`speech.h`](speech.h) | `Babbler` and `applyVoice`: syllables and vowel mouth shapes for `talking`, from audio or invented |
 | [`expression.h`](expression.h) | `Mood` enum and `expressionFor`: one preset `Expression` per mood |
@@ -30,7 +30,7 @@ Every tuning value is a named constant at the top of the file that uses it:
 - **Shape geometry** (pupil and catch-light, happy carve, lid, blush, stars, line shapes): [`face.cpp`](face.cpp).
 - **Where the pupils look**: the glance ranges in [`../kawaii.cpp`](../kawaii.cpp) (choreography), plus each mood's `gazeX` / `gazeY` and `pupil` size in [`expression.cpp`](expression.cpp).
 - **Motion feel** (spring frequency and damping, easing time constants, swap blink): [`animator.cpp`](animator.cpp).
-- **Idle timing and accent odds**: the `kAccents` table in [`idle.cpp`](idle.cpp).
+- **Accent timing and odds per activity**: the `kPersonalities` table in [`director.cpp`](director.cpp); how long work must go well to reach the most frequent accents: `kFlowRampMs` in [`../kawaii.cpp`](../kawaii.cpp).
 - **Typing gaze** (line length, word timing, lines per spot, dart range): [`tracker.cpp`](tracker.cpp).
 - **Talking rhythm and vowel shapes**: the `kVowels` table and babble constants in [`speech.cpp`](speech.cpp).
 - **Hop, twinkle, and mouth placement**: [`compose.cpp`](compose.cpp) and `kEyeRadius` / `kMouthDrop` in [`compose.h`](compose.h).
@@ -50,7 +50,7 @@ The ESP32-C3 has no FPU, so every float operation is a library call. Keep a fram
 
 1. Add it to `Mood` in [`expression.h`](expression.h). Idle-family moods go before `Love`, because `isIdleMood` relies on that order.
 2. Add its name to `kMoodNames` and its preset to `expressionFor`. A `static_assert` and `-Wswitch` catch a missing name or case.
-3. Map an `EyeMode` to it in `modeMood` ([`../kawaii.cpp`](../kawaii.cpp)), or add it to the `kAccents` table in [`idle.cpp`](idle.cpp).
+3. Map an `EyeMode` to it in `modeMood` ([`../kawaii.cpp`](../kawaii.cpp)), or add it as an accent in the `kPersonalities` table in [`director.cpp`](director.cpp).
 4. Add a row to the kawaii table in [docs/api.md](../../../../../docs/api.md#kawaii-eyes).
 
 A new eye shape (`EyeKind`) needs a draw function and a `case` in `drawEye` ([`face.cpp`](face.cpp)). The animator swaps shapes behind a blink on its own.

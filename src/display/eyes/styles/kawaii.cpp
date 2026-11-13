@@ -10,7 +10,7 @@
 #include "display/eyes/styles/kawaii/animator.h"
 #include "display/eyes/styles/kawaii/compose.h"
 #include "display/eyes/styles/kawaii/face.h"
-#include "display/eyes/styles/kawaii/idle.h"
+#include "display/eyes/styles/kawaii/director.h"
 #include "display/eyes/styles/kawaii/speech.h"
 #include "display/eyes/styles/kawaii/tracker.h"
 #include "display/oled.h"
@@ -31,9 +31,16 @@ constexpr uint32_t kSnapAfterGapMs = 250;
 constexpr float kGlanceRangeXPx = 5.0f;
 constexpr float kGlanceRangeYPx = 3.0f;
 
+// Work "going well": accents come more often the longer it has been since
+// an error, abort or dead, reaching their most frequent after this long.
+constexpr uint32_t kFlowRampMs = 90000;
+
 uint8_t g_frame[kawaii::kFrameBytes];
 kawaii::Animator g_animator;
-kawaii::IdleDirector g_idle(anim::randRangeMs);
+kawaii::MoodDirector g_director(anim::randRangeMs);
+bool g_directing = false;  // the director owns the mood (idle or a working mode)
+bool g_wasTyping = false;
+uint32_t g_calmSinceMs = 0;  // last error / abort / dead
 kawaii::Babbler g_babbler(anim::randRangeMs);
 kawaii::CodeReader g_reader(anim::randRangeMs);
 kawaii::Mood g_lastMood = kawaii::Mood::Count;
@@ -71,19 +78,61 @@ kawaii::Mood modeMood(EyeMode mode) {
   return kawaii::Mood::Content;
 }
 
+// Modes with a personality (a base mood plus accents); the rest map straight
+// to one mood.
+bool activityFor(EyeMode mode, kawaii::Activity& out) {
+  switch (mode) {
+    case EyeMode::Idle:
+      out = kawaii::Activity::Idle;
+      return true;
+    case EyeMode::Typing:
+      out = kawaii::Activity::Typing;
+      return true;
+    case EyeMode::Reading:
+      out = kawaii::Activity::Reading;
+      return true;
+    case EyeMode::Thinking:
+      out = kawaii::Activity::Thinking;
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool isSetback(EyeMode mode) {
+  return mode == EyeMode::Error || mode == EyeMode::Abort || mode == EyeMode::Dead;
+}
+
+// 0 right after a setback .. 1 once work has gone well for kFlowRampMs.
+float workFlow(uint32_t now) {
+  return kawaii::clamp01((float)(now - g_calmSinceMs) / (float)kFlowRampMs);
+}
+
 kawaii::Mood currentMood(EyeMode mode, AnimationId animation, uint32_t now, EyeStyleSleepPhase sleepPhase) {
   const bool sleeping = sleepPhase == EyeStyleSleepPhase::Closing || animation == AnimationId::Sleep;
-  if (sleeping) {
-    return kawaii::Mood::Asleep;
-  }
-  if (mode != EyeMode::Idle) {
-    return modeMood(mode);
+  kawaii::Activity activity = kawaii::Activity::Idle;
+  if (sleeping || !activityFor(mode, activity)) {
+    g_directing = false;
+    return sleeping ? kawaii::Mood::Asleep : modeMood(mode);
   }
 
-  if (!kawaii::isIdleMood(g_lastMood)) {
-    g_idle.reset(now);  // idle just began: start from a smile
+  if (!g_directing || g_director.activity() != activity) {
+    g_director.reset(now, activity);  // start from the base mood
+    g_directing = true;
   }
-  return g_idle.update(now);
+  return g_director.update(now, workFlow(now));
+}
+
+// Typing: the eyes read code whatever the face, accents included, and skip
+// the choreography's typing jitter.
+void applyTypingGaze(kawaii::Expression& target, uint32_t now) {
+  if (!g_wasTyping) {
+    g_reader.reset(now);  // typing just began: pick a spot to read
+  }
+  const kawaii::Gaze gaze = g_reader.update(now);
+  target.gazeX = gaze.x;
+  target.gazeY = gaze.y;
+  target.followGlance = 0.0f;
 }
 
 // Talking: opens the mouth per syllable, from /play audio when it streams.
@@ -166,18 +215,20 @@ void drawKawaii(
     return;
   }
 
+  if (isSetback(mode)) {
+    g_calmSinceMs = now;
+  }
+
   const kawaii::Mood mood = currentMood(mode, animation, now, sleepPhase);
   kawaii::Expression target = kawaii::expressionFor(mood);
   if (mood == kawaii::Mood::Talking) {
     kawaii::applyVoice(target, currentVoice(now));
-  } else if (mood == kawaii::Mood::Focused) {
-    if (g_lastMood != kawaii::Mood::Focused) {
-      g_reader.reset(now);  // typing just began: pick a spot to read
-    }
-    const kawaii::Gaze gaze = g_reader.update(now);
-    target.gazeX = gaze.x;
-    target.gazeY = gaze.y;
   }
+  const bool typing = mode == EyeMode::Typing && mood != kawaii::Mood::Asleep;
+  if (typing) {
+    applyTypingGaze(target, now);
+  }
+  g_wasTyping = typing;
   g_lastMood = mood;
 
   stepAnimator(target, now);
