@@ -50,7 +50,10 @@ struct Expression {
   float happyRight;
   float lid;            // 0..1, see EyeShape::lid
   float tilt;           // see EyeShape::tilt
-  float sparkle;        // highlight size multiplier
+  float pupil;          // pupil size multiplier (0 hides it)
+  float gazeX;          // mood's own look, added to the pose glance, -1..1
+  float gazeY;          // -1 up .. 1 down
+  float sparkle;        // catch-light size multiplier
   float scale;          // eye radius multiplier
   float blush;          // 0..1
   float glint;          // 0..1 twinkle star strength

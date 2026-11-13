@@ -32,6 +32,7 @@ class Animator {
     float glint = 0.0f;
     float bounce = 0.0f;
     float blush = 0.0f;
+    float gaze = 0.0f;
   };
 
   void advanceKindSwap(EyeKind target, float dtMs);

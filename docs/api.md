@@ -660,7 +660,7 @@ When `eyes_style=dots`, each eye is a filled circle. At the classic open height 
 
 #### Kawaii eyes
 
-When `eyes_style=kawaii`, each eye is a round eye about 23 px across. It has two sparkle highlights, a small mouth between the eyes, and dithered blush under the outer corners. The classic pose still drives position, height, glances, and blinks. A closed eye draws a `‿` lid line (`∩` while smiling). Each animation picks a mood, and the face eases into it. Eye size, happy crescents, and mouth opening use springs with a little overshoot. Shape changes that cannot morph (round eyes to `> <`, `x x`, or hearts) happen behind a quick blink.
+When `eyes_style=kawaii`, each eye is a round eye about 23 px across with a dark pupil and a small white catch-light in it. A small mouth sits between the eyes, with dithered blush under the outer corners. The classic pose still drives position, height, glances, and blinks, and the pupils look where its glances point: at the task or the human, down at the keyboard while typing, up while thinking. Moods change pupil size (small when surprised or angry, large when sad). Lids and smiles never cut into a pupil; it moves or shrinks to stay inside the eye. A closed eye draws a `‿` lid line (`∩` while smiling). Each animation picks a mood, and the face eases into it. Eye size, happy crescents, and mouth opening use springs with a little overshoot. Shape changes that cannot morph (round eyes to `> <`, `x x`, or hearts) happen behind a quick blink.
 
 | Animation / phase | Mood |
 | --- | --- |

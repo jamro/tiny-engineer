@@ -32,7 +32,8 @@ EyeShape eyeFrom(
   const Expression& e,
   float happy,
   float open,
-  float sparkle
+  float sparkle,
+  const Pose& look
 ) {
   EyeShape eye = {};
   eye.kind = e.kind;
@@ -45,6 +46,9 @@ EyeShape eyeFrom(
   eye.happy = happy;
   eye.lid = e.lid;
   eye.tilt = e.tilt;
+  eye.pupil = kPupilRadius * eye.rx * e.pupil;
+  eye.gazeX = look.gazeX + e.gazeX;
+  eye.gazeY = look.gazeY + e.gazeY;
   eye.sparkle = sparkle;
   return eye;
 }
@@ -76,8 +80,8 @@ void composeFace(const Pose& pose, const Animator& animator, uint32_t now, Face&
   const EyePose left = withHop(pose.left, hop);
   const EyePose right = withHop(pose.right, hop);
 
-  out.left = eyeFrom(left, 1, e, e.happyLeft, open, e.sparkle * twinkle);
-  out.right = eyeFrom(right, -1, e, e.happyRight, open, e.sparkle * twinkle);
+  out.left = eyeFrom(left, 1, e, e.happyLeft, open, e.sparkle * twinkle, pose);
+  out.right = eyeFrom(right, -1, e, e.happyRight, open, e.sparkle * twinkle, pose);
   out.mouth = mouthFrom(left, right, e);
   out.blush = e.blush;
   out.glint = e.glint * (kGlintBase + kGlintSwing * wave(now, kGlintPeriodMs));

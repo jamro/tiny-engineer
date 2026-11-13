@@ -20,6 +20,7 @@ static_assert(
 Expression neutral() {
   Expression e = {};
   e.kind = EyeKind::Round;
+  e.pupil = 1.0f;
   e.sparkle = 1.0f;
   e.scale = 1.0f;
   e.mouthWidth = 10.0f;
@@ -94,6 +95,7 @@ Expression expressionFor(Mood mood) {
       break;
     case Mood::Excited:
       e.scale = 1.12f;
+      e.pupil = 1.15f;  // big shiny pupils
       e.sparkle = 1.25f;
       e.mouthWidth = 12.0f;
       e.mouthCurve = 2.0f;
@@ -110,6 +112,7 @@ Expression expressionFor(Mood mood) {
       break;
     case Mood::Focused:
       e.lid = 0.22f;
+      e.pupil = 0.9f;
       e.mouthWidth = 7.0f;
       e.mouthCurve = 0.5f;
       e.blush = 0.2f;
@@ -130,12 +133,14 @@ Expression expressionFor(Mood mood) {
       break;
     case Mood::Surprised:
       e.scale = 1.12f;
+      e.pupil = 0.65f;  // shocked: small pupils in wide eyes
       e.sparkle = 1.2f;
       oMouth(e, 7.0f, 3.0f);
       e.blush = 0.3f;
       break;
     case Mood::Curious:
       e.scale = 1.05f;
+      e.pupil = 0.85f;
       e.sparkle = 1.1f;
       oMouth(e, 6.0f, 2.0f);
       e.blush = 0.3f;
@@ -143,6 +148,7 @@ Expression expressionFor(Mood mood) {
     case Mood::Angry:
       e.lid = 0.32f;
       e.tilt = 0.55f;
+      e.pupil = 0.75f;
       e.sparkle = 0.8f;
       e.mouthWidth = 9.0f;
       e.mouthCurve = -2.2f;
@@ -156,6 +162,8 @@ Expression expressionFor(Mood mood) {
       break;
     case Mood::Sleepy:
       e.lid = 0.45f;
+      e.pupil = 0.9f;
+      e.gazeY = 0.3f;
       e.sparkle = 0.0f;
       oMouth(e, 6.0f, 2.6f);
       e.blush = 0.3f;
@@ -163,6 +171,8 @@ Expression expressionFor(Mood mood) {
     case Mood::Sad:
       e.lid = 0.15f;
       e.tilt = -0.5f;
+      e.pupil = 1.25f;  // big puppy pupils, looking down
+      e.gazeY = 0.45f;
       e.sparkle = 1.15f;
       e.mouthWidth = 8.0f;
       e.mouthCurve = -2.0f;

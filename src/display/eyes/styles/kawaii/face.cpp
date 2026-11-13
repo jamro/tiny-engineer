@@ -38,19 +38,23 @@ constexpr float kCarveRise = 1.55f;  // at happy = 1 the carve top is this far u
 // Upper lid: how far `lid` = 1 lowers it from the top edge.
 constexpr float kLidTravel = 1.2f;
 
-// Sparkle highlights: offset from the eye center and radius (× the smaller
-// eye radius). Same light for both eyes.
-struct Sparkle {
-  float dx;
-  float dy;
-  float radius;
-};
-constexpr Sparkle kBigSparkle = {-0.36f, -0.36f, 0.3f};
-constexpr Sparkle kSmallSparkle = {0.42f, 0.4f, 0.17f};
-constexpr Sparkle kHeartSparkle = {-0.45f, -0.42f, 0.18f};
-constexpr float kSparkleMinEyeHeightPx = 5.0f;  // shorter eyes have no room
-constexpr float kSparkleMinStrength = 0.05f;
-constexpr float kSparkleLidClearancePx = 1.5f;  // keeps a lowered lid from notching it
+// Pupil: a dark disc that follows the gaze. It always keeps a rim of eye
+// around it, so lids and smiles never notch the outline; a squint shrinks it.
+constexpr float kPupilRimPx = 1.5f;
+constexpr float kMinPupilRadiusPx = 1.6f;  // smaller is skipped (blinks, ^ ^)
+constexpr float kPupilShrink = 0.85f;  // per try when a squint has no room
+// Catch-light: a white dot inside the pupil, up and to the left in both eyes.
+// White on black, so it never reads as a second pupil.
+constexpr float kCatchLightRadius = 0.36f;  // × pupil radius at sparkle 1
+constexpr float kCatchLightOffset = -0.3f;  // × pupil radius, on both axes
+constexpr float kMinCatchLightRadiusPx = 0.9f;
+// Heart eyes have no pupil, just a dark highlight hole: offset from the
+// center (× radii) and radius (× the smaller radius).
+constexpr float kHeartHoleDx = -0.45f;
+constexpr float kHeartHoleDy = -0.42f;
+constexpr float kHeartHoleRadius = 0.18f;
+constexpr float kHeartHoleMinEyeHeightPx = 5.0f;  // shorter hearts have no room
+constexpr float kMinSparkle = 0.05f;
 constexpr float kMinHoleRadiusPx = 1.1f;  // smaller reads as a stray pixel, not a sparkle
 
 // Line shapes: extent within the eye box and stroke half-width.
@@ -154,7 +158,6 @@ class Canvas {
   explicit Canvas(uint8_t* bits) : bits_(bits) {}
 
   void plot(int x, int y) { set(x, y, true); }
-  void erase(int x, int y) { set(x, y, false); }
 
   // Lights x0..x1 on row y (nothing when x0 > x1).
   void run(int x0, int x1, int y) {
@@ -179,11 +182,8 @@ class Canvas {
     }
   }
 
-  void clearDisc(float cx, float cy, float r) {
-    if (r < kMinHoleRadiusPx) {
-      return;
-    }
-
+  // Lights (on) or clears every pixel whose center is within r of (cx, cy).
+  void disc(float cx, float cy, float r, bool on) {
     const float r2 = r * r;
     const int lo = floorInt(cx - r);
     const int hi = floorInt(cx + r);
@@ -197,9 +197,9 @@ class Canvas {
         const float dx = center(x) - cx;
         return dx * dx + dy * dy <= r2;
       };
-      const Span hole = runAround(cx, sqrtf(rest), lo, hi, inside);
-      for (int x = hole.first; x <= hole.last; x++) {
-        erase(x, y);
+      const Span span = runAround(cx, sqrtf(rest), lo, hi, inside);
+      for (int x = span.first; x <= span.last; x++) {
+        set(x, y, on);
       }
     }
   }
@@ -272,6 +272,9 @@ class HappyCarve {
     return runAround(cx, w, row.first, row.last, [&](int x) { return fabsf(center(x) - cx) < w; });
   }
 
+  // Highest point of the carve; below the eye when there is none.
+  float top(float eyeBottom) const { return active_ ? cy_ - ry_ : eyeBottom; }
+
   // Half-width carved out of row `py`; negative when the row misses it.
   float halfWidthAt(float py) const {
     if (!active_) {
@@ -324,24 +327,122 @@ class LidCut {
   float slope_;
 };
 
-void drawSparkles(Canvas& c, const EyeShape& e, float ry, float happy, const LidCut& lid) {
-  // Fade as the eye squints so a thin crescent is never punched through.
-  const float strength = e.sparkle * (1.0f - happy) * (1.0f - clamp01(e.lid));
-  if (ry < kSparkleMinEyeHeightPx || strength <= kSparkleMinStrength) {
-    return;
+// Gaze inside the unit circle, so diagonal looks travel no further.
+void unitGaze(const EyeShape& e, float& gx, float& gy) {
+  gx = e.gazeX;
+  gy = e.gazeY;
+  const float len2 = gx * gx + gy * gy;
+  if (len2 > 1.0f) {
+    const float len = sqrtf(len2);
+    gx /= len;
+    gy /= len;
+  }
+}
+
+// The visible part of a round eye: inside the ellipse, below the lid, and
+// outside the happy carve.
+class EyeArea {
+ public:
+  EyeArea(const EyeShape& e, float ry, const HappyCarve& carve, const LidCut& lid)
+    : e_(e), ry_(ry), carve_(carve), lid_(lid) {}
+
+  float cx() const { return e_.cx; }
+  float cy() const { return e_.cy; }
+  float rx() const { return e_.rx; }
+  float ry() const { return ry_; }
+  float lidAt(float x) const { return lid_.edgeAt(x); }
+  float bottom() const { return fminf(e_.cy + ry_, carve_.top(e_.cy + ry_)); }
+
+  bool contains(float x, float y) const {
+    const float nx = (x - e_.cx) / e_.rx;
+    const float ny = (y - e_.cy) / ry_;
+    return nx * nx + ny * ny <= 1.0f && !lid_.hides(x, y) &&
+      fabsf(x - e_.cx) >= carve_.halfWidthAt(y);
   }
 
-  const float fit = fminf(e.rx, ry);
-  const float bigR = strength * kBigSparkle.radius * fit;
-  const float bigX = e.cx + kBigSparkle.dx * e.rx;
-  const float lowestTop = lid.edgeAt(bigX) + kSparkleLidClearancePx;
-  const float bigY = fmaxf(e.cy + kBigSparkle.dy * ry, lowestTop + bigR);
-  c.clearDisc(bigX, bigY, bigR);
-  c.clearDisc(
-    e.cx + kSmallSparkle.dx * e.rx,
-    e.cy + kSmallSparkle.dy * ry,
-    strength * kSmallSparkle.radius * fit
-  );
+  // True if a disc of radius r at (x, y), plus the rim, is all visible eye.
+  bool fits(float x, float y, float r) const {
+    const float reach = r + kPupilRimPx;
+    for (const Dir& d : kFitDirs) {
+      if (!contains(x + reach * d.x, y + reach * d.y)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+ private:
+  struct Dir {
+    float x;
+    float y;
+  };
+  // Twelve directions around a circle, 30° apart.
+  static constexpr Dir kFitDirs[] = {
+    {1.0f, 0.0f}, {0.866f, 0.5f}, {0.5f, 0.866f}, {0.0f, 1.0f},
+    {-0.5f, 0.866f}, {-0.866f, 0.5f}, {-1.0f, 0.0f}, {-0.866f, -0.5f},
+    {-0.5f, -0.866f}, {0.0f, -1.0f}, {0.5f, -0.866f}, {0.866f, -0.5f},
+  };
+
+  const EyeShape& e_;
+  float ry_;
+  const HappyCarve& carve_;
+  const LidCut& lid_;
+};
+
+// Where a pupil of radius r looks: the gaze scaled to the room left around
+// it, then clear of the lid and carve and back inside the travel ellipse at
+// that height. A second pass settles a tilted lid, which is lower at a side.
+void aimPupil(const EyeArea& a, float gx, float gy, float r, float& px, float& py) {
+  const float travelX = fmaxf(0.0f, a.rx() - r - kPupilRimPx);
+  const float travelY = fmaxf(0.0f, a.ry() - r - kPupilRimPx);
+  px = a.cx() + gx * travelX;
+  py = a.cy() + gy * travelY;
+
+  for (int pass = 0; pass < 2; pass++) {
+    const float lidLow = fmaxf(a.lidAt(px - r), a.lidAt(px + r));
+    const float lo = fmaxf(a.cy() - travelY, lidLow + r + kPupilRimPx);
+    const float hi = fminf(a.cy() + travelY, a.bottom() - r - kPupilRimPx);
+    py = lo > hi ? (lo + hi) * 0.5f : fminf(fmaxf(py, lo), hi);
+
+    const float v = travelY > 0.0f ? (py - a.cy()) / travelY : 0.0f;
+    const float reach = travelX * sqrtf(fmaxf(0.0f, 1.0f - v * v));
+    px = a.cx() + fminf(fmaxf(px - a.cx(), -reach), reach);
+  }
+}
+
+// Places the pupil as asked when it fits; otherwise slides it toward the
+// middle, then shrinks it. False when even the smallest pupil has no room.
+bool placePupil(const EyeArea& a, float gx, float gy, float& r, float& px, float& py) {
+  constexpr float kPulls[] = {1.0f, 0.5f, 0.0f};  // share of the sideways look kept
+  for (; r >= kMinPupilRadiusPx; r *= kPupilShrink) {
+    aimPupil(a, gx, gy, r, px, py);
+    for (float pull : kPulls) {
+      const float x = a.cx() + (px - a.cx()) * pull;
+      if (a.fits(x, py, r)) {
+        px = x;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void drawPupil(Canvas& c, const EyeShape& e, const EyeArea& area) {
+  float r = fminf(e.pupil, e.rx - kPupilRimPx);
+  float gx = 0.0f;
+  float gy = 0.0f;
+  unitGaze(e, gx, gy);
+  float px = 0.0f;
+  float py = 0.0f;
+  if (!placePupil(area, gx, gy, r, px, py)) {
+    return;
+  }
+  c.disc(px, py, r, false);
+
+  const float light = e.sparkle * kCatchLightRadius * r;
+  if (light >= kMinCatchLightRadiusPx) {
+    c.disc(px + kCatchLightOffset * r, py + kCatchLightOffset * r, light, true);
+  }
 }
 
 void drawRoundEye(Canvas& c, const EyeShape& e, float ry) {
@@ -367,7 +468,7 @@ void drawRoundEye(Canvas& c, const EyeShape& e, float ry) {
     c.run(hole.last + 1, row.last, y);
   }
 
-  drawSparkles(c, e, ry, happy, lid);
+  drawPupil(c, e, EyeArea(e, ry, carve, lid));
 }
 
 // Lights the run of row y within halfStroke of x = mid.
@@ -444,12 +545,9 @@ void drawHeart(Canvas& c, const EyeShape& e, float ry) {
     }
   }
 
-  if (ry >= kSparkleMinEyeHeightPx && e.sparkle > kSparkleMinStrength) {
-    c.clearDisc(
-      e.cx + kHeartSparkle.dx * e.rx,
-      e.cy + kHeartSparkle.dy * ry,
-      e.sparkle * kHeartSparkle.radius * fminf(e.rx, ry)
-    );
+  const float hole = e.sparkle * kHeartHoleRadius * fminf(e.rx, ry);
+  if (ry >= kHeartHoleMinEyeHeightPx && e.sparkle > kMinSparkle && hole >= kMinHoleRadiusPx) {
+    c.disc(e.cx + kHeartHoleDx * e.rx, e.cy + kHeartHoleDy * ry, hole, false);
   }
 }
 

@@ -26,7 +26,8 @@ The pose comes from the shared classic eye modes, so glances, scans, blinks, and
 Every tuning value is a named constant at the top of the file that uses it:
 
 - **Look of a mood**: the preset in `expressionFor` ([`expression.cpp`](expression.cpp)).
-- **Shape geometry** (sparkles, happy carve, lid, blush, stars, line shapes): [`face.cpp`](face.cpp).
+- **Shape geometry** (pupil and catch-light, happy carve, lid, blush, stars, line shapes): [`face.cpp`](face.cpp).
+- **Where the pupils look**: the glance ranges in [`../kawaii.cpp`](../kawaii.cpp) (choreography), plus each mood's `gazeX` / `gazeY` and `pupil` size in [`expression.cpp`](expression.cpp).
 - **Motion feel** (spring frequency and damping, easing time constants, swap blink): [`animator.cpp`](animator.cpp).
 - **Idle timing and accent odds**: the `kAccents` table in [`idle.cpp`](idle.cpp).
 - **Talking rhythm and vowel shapes**: the `kVowels` table and babble constants in [`speech.cpp`](speech.cpp).
@@ -36,7 +37,7 @@ Every tuning value is a named constant at the top of the file that uses it:
 
 Audio clips run through the same `loop()` as the eyes. Each pass feeds one 512-sample WAV chunk (23 ms at 22 050 Hz), then draws a frame every 33 ms. `display.display()` alone holds the I²C bus for about 12 ms. If a pass takes longer than the chunk it delivered, the I2S buffer runs dry and the audio clips, which hits `welcome` first because Excited at the welcome pose is the largest face.
 
-The ESP32-C3 has no FPU, so every float operation is a library call. Keep a frame (ease, compose, render) to about **600 k instructions**: a welcome frame is about 510 k, heart eyes about 1.2 M (idle only, no clip playing).
+The ESP32-C3 has no FPU, so every float operation is a library call. Keep a frame (ease, compose, render) to about **600 k instructions**: a welcome frame is about 550 k, heart eyes about 1.2 M (idle only, no clip playing).
 
 - Test geometry in float only at the edges of a row, then write whole runs (`runAround`, `LidCut::trim`).
 - Precompute per-row and per-column terms instead of recomputing them per pixel.

@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-// Kawaii face renderer: big round eyes with sparkles, a little mouth, and
+// Kawaii face renderer: big round eyes with moving pupils, a little mouth, and
 // dithered blush. Every feature is a continuous parameter so the animator
 // can ease between moods. Pure C++ (no Arduino), so it builds for native
 // tests and host previews.
@@ -33,7 +33,10 @@ struct EyeShape {
   float happy;    // 0 round .. 1 "∩" crescent (cheeks push the lower lid up)
   float lid;      // 0 none .. 1 upper lid lowered past the center
   float tilt;     // + lowers the inner corner (angry), - the outer (sad)
-  float sparkle;  // highlight size; 0 hides them
+  float pupil;    // pupil radius, px; 0 hides it (shrinks to fit a squint)
+  float gazeX;    // where the pupil looks, -1..1 (left .. right)
+  float gazeY;    // -1..1 (up .. down)
+  float sparkle;  // white catch-light in the pupil (hole in a heart); 0 hides it
 };
 
 struct Mouth {

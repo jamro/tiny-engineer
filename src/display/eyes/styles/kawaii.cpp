@@ -25,6 +25,11 @@ namespace {
 // jump straight to the mood instead of easing from a stale face.
 constexpr uint32_t kSnapAfterGapMs = 250;
 
+// Eye-mode glances that map to a full look to one side (error and attention
+// look ±5 px at the task or the human; thinking looks 2-3 px up).
+constexpr float kGlanceRangeXPx = 5.0f;
+constexpr float kGlanceRangeYPx = 3.0f;
+
 uint8_t g_frame[kawaii::kFrameBytes];
 kawaii::Animator g_animator;
 kawaii::IdleDirector g_idle(anim::randRangeMs);
@@ -111,8 +116,21 @@ kawaii::EyePose eyePose(const Eye& eye) {
   };
 }
 
+// The pupils look where the shared choreography moved the eyes. Centers use
+// integer halves, so a height change alone does not read as a glance.
+float glance(int16_t pos, int16_t size, int16_t restPos, int16_t restSize, float range) {
+  return (float)((pos + size / 2) - (restPos + restSize / 2)) / range;
+}
+
 void drawFrame(uint32_t now) {
-  const kawaii::Pose pose = {eyePose(leftEye()), eyePose(rightEye()), blinkOpenAmount()};
+  const Eye& left = leftEye();
+  const kawaii::Pose pose = {
+    eyePose(left),
+    eyePose(rightEye()),
+    blinkOpenAmount(),
+    glance(left.x, left.width, eyes::DEFAULT_LEFT.x, eyes::DEFAULT_LEFT.width, kGlanceRangeXPx),
+    glance(left.y, left.height, eyes::DEFAULT_LEFT.y, eyes::DEFAULT_LEFT.height, kGlanceRangeYPx),
+  };
   kawaii::Face face = {};
   kawaii::composeFace(pose, g_animator, now, face);
   if (!kawaii::render(face, g_frame, sizeof(g_frame))) {

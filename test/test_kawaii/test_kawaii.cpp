@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstring>
 #include <unity.h>
 
@@ -29,6 +30,7 @@ EyeShape roundEye(float cx, int8_t side) {
   e.rx = kEyeRadius;
   e.ry = kEyeRadius;
   e.open = 1.0f;
+  e.pupil = kPupilRadius * kEyeRadius;
   e.sparkle = 1.0f;
   return e;
 }
@@ -83,14 +85,128 @@ void test_render_is_pure() {
   TEST_ASSERT_EQUAL_MEMORY(g_frame, again, kFrameBytes);
 }
 
-void test_open_eye_has_body_and_sparkle() {
+void test_open_eye_has_a_pupil_and_catch_light() {
   render(plainFace(), g_frame, kFrameBytes);
 
-  TEST_ASSERT_TRUE(pixelAt(g_frame, 33, 18));   // body, right of center
-  TEST_ASSERT_FALSE(pixelAt(g_frame, 28, 12));  // big highlight, upper left
+  TEST_ASSERT_TRUE(pixelAt(g_frame, 24, 16));   // white of the eye
+  TEST_ASSERT_FALSE(pixelAt(g_frame, 33, 17));  // pupil, at the center
+  TEST_ASSERT_TRUE(pixelAt(g_frame, 30, 14));   // catch-light, upper left in the pupil
   TEST_ASSERT_FALSE(pixelAt(g_frame, 32, 2));   // above the eye
   TEST_ASSERT_FALSE(pixelAt(g_frame, 64, 16));  // between the eyes
-  TEST_ASSERT_TRUE(pixelAt(g_frame, 97, 18));
+  TEST_ASSERT_FALSE(pixelAt(g_frame, 97, 17));
+}
+
+// Mean x and y of the dark pixels inside the left eye's box.
+void pupilCentroid(float& x, float& y) {
+  float sx = 0.0f;
+  float sy = 0.0f;
+  int n = 0;
+  for (int py = 6; py <= 26; py++) {
+    for (int px = 22; px <= 42; px++) {
+      const float dx = px + 0.5f - 32.0f;
+      const float dy = py + 0.5f - 16.0f;
+      if (dx * dx + dy * dy < 9.0f * 9.0f && !pixelAt(g_frame, px, py)) {
+        sx += px;
+        sy += py;
+        n++;
+      }
+    }
+  }
+  x = n > 0 ? sx / n : 0.0f;
+  y = n > 0 ? sy / n : 0.0f;
+}
+
+void test_pupil_follows_the_gaze() {
+  float cx = 0.0f;
+  float cy = 0.0f;
+  render(plainFace(), g_frame, kFrameBytes);
+  pupilCentroid(cx, cy);
+
+  Face f = plainFace();
+  f.left.gazeX = 1.0f;
+  render(f, g_frame, kFrameBytes);
+  float x = 0.0f;
+  float y = 0.0f;
+  pupilCentroid(x, y);
+  TEST_ASSERT_TRUE(x > cx + 3.0f);
+
+  f = plainFace();
+  f.left.gazeY = -1.0f;
+  render(f, g_frame, kFrameBytes);
+  pupilCentroid(x, y);
+  TEST_ASSERT_TRUE(y < cy - 3.0f);
+}
+
+// The pupil never reaches the eye's outline: every row and column keeps the
+// same lit extremes as the same eye drawn with no pupil.
+void test_pupil_keeps_a_rim() {
+  static uint8_t bare[kFrameBytes];
+  const float lids[][2] = {{0.0f, 0.0f}, {0.32f, 0.55f}, {0.45f, 0.0f}, {0.15f, -0.5f}};
+  const float happies[] = {0.0f, 0.22f, 0.5f};
+
+  for (const auto& lid : lids) {
+    for (float happy : happies) {
+      for (int dir = 0; dir < 8; dir++) {
+        Face f = plainFace();
+        f.right.rx = 0.0f;  // left eye only
+        f.left.lid = lid[0];
+        f.left.tilt = lid[1];
+        f.left.happy = happy;
+        f.left.gazeX = cosf(dir * 0.785398f) * 1.5f;  // past the edge on purpose
+        f.left.gazeY = sinf(dir * 0.785398f) * 1.5f;
+        render(f, g_frame, kFrameBytes);
+        f.left.pupil = 0.0f;
+        render(f, bare, kFrameBytes);
+
+        for (int y = 0; y < kHeight; y++) {
+          int first = -1;
+          int last = -1;
+          int bareFirst = -1;
+          int bareLast = -1;
+          for (int x = 0; x < 64; x++) {
+            if (pixelAt(g_frame, x, y)) {
+              first = first < 0 ? x : first;
+              last = x;
+            }
+            if (pixelAt(bare, x, y)) {
+              bareFirst = bareFirst < 0 ? x : bareFirst;
+              bareLast = x;
+            }
+          }
+          TEST_ASSERT_EQUAL_INT(bareFirst, first);
+          TEST_ASSERT_EQUAL_INT(bareLast, last);
+        }
+        for (int x = 0; x < 64; x++) {
+          int top = -1;
+          int bareTop = -1;
+          int bottom = -1;
+          int bareBottom = -1;
+          for (int y = 0; y < kHeight; y++) {
+            if (pixelAt(g_frame, x, y)) {
+              top = top < 0 ? y : top;
+              bottom = y;
+            }
+            if (pixelAt(bare, x, y)) {
+              bareTop = bareTop < 0 ? y : bareTop;
+              bareBottom = y;
+            }
+          }
+          TEST_ASSERT_EQUAL_INT(bareTop, top);
+          TEST_ASSERT_EQUAL_INT(bareBottom, bottom);
+        }
+      }
+    }
+  }
+}
+
+void test_full_smile_has_no_pupil() {
+  static uint8_t bare[kFrameBytes];
+  Face f = plainFace();
+  f.left.happy = 1.0f;
+  render(f, g_frame, kFrameBytes);
+  f.left.pupil = 0.0f;
+  render(f, bare, kFrameBytes);
+  TEST_ASSERT_EQUAL_MEMORY(bare, g_frame, kFrameBytes);
 }
 
 void test_closed_eye_is_a_lid_line() {
@@ -373,7 +489,10 @@ int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_render_rejects_small_buffer);
   RUN_TEST(test_render_is_pure);
-  RUN_TEST(test_open_eye_has_body_and_sparkle);
+  RUN_TEST(test_open_eye_has_a_pupil_and_catch_light);
+  RUN_TEST(test_pupil_follows_the_gaze);
+  RUN_TEST(test_pupil_keeps_a_rim);
+  RUN_TEST(test_full_smile_has_no_pupil);
   RUN_TEST(test_closed_eye_is_a_lid_line);
   RUN_TEST(test_happy_eye_is_a_crescent);
   RUN_TEST(test_lid_and_tilt_cut_the_top);
