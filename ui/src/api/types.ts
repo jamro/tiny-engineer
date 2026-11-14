@@ -38,6 +38,11 @@ export interface Settings {
   serial_log: boolean;
   push_button: boolean;
   push_button_pin: number;
+  lcd1602: boolean;
+  lcd1602_backlight_boot: boolean;
+  lcd1602_boot: "none" | "last" | "config";
+  lcd1602_line1: string;
+  lcd1602_line2: string;
   continuous_timeout: number;
   loading: LoadingMode;
   eyes_style: string;

@@ -6,8 +6,9 @@
 #include "animation.h"
 #include "audio/audio.h"
 #include "display/oled.h"
-#include "extensions/push_button.h"
+#include "extensions/push_button/push_button.h"
 #include "hardware/i2c_health.h"
+
 #include "hardware/pca9685_servos.h"
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"

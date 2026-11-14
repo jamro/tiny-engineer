@@ -8,7 +8,7 @@
 #include "api/busy.h"
 #include "audio/audio_cues.h"
 #include "audio/wav_stream.h"
-#include "extensions/push_button_sfx.h"
+#include "extensions/push_button/sfx.h"
 #include "pins.h"
 #include "display/oled.h"
 #include "settings/settings.h"

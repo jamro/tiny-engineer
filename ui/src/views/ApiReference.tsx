@@ -35,6 +35,11 @@ const ROUTES = [
   ["POST", "/setup/audio", "Setup AP only: play welcome.wav from LittleFS"],
   ["POST", "/setup/oled", "Setup AP only: preview OLED 180° rotation (see parameters below)"],
   ["POST", "/servos/park", "Center all servos at mid and hold PWM until reboot"],
+  ["GET", "/extensions/lcd1602/text", "LCD 1602 logical text state"],
+  ["POST", "/extensions/lcd1602/text", "Update LCD 1602 text (partial JSON)"],
+  ["DELETE", "/extensions/lcd1602/text", "Clear both LCD 1602 lines"],
+  ["GET", "/extensions/lcd1602/brightness", "LCD 1602 backlight brightness"],
+  ["POST", "/extensions/lcd1602/brightness", "Set LCD 1602 backlight brightness"],
 ] as const;
 
 export function ApiReference() {
@@ -129,6 +134,37 @@ export function ApiReference() {
             </td>
             <td>integer</td>
             <td>Extension-port GPIO 6, 7, 20, or 21 (default 20; persists when off; immediate)</td>
+          </tr>
+          <tr>
+            <td>
+              <code>lcd1602</code>
+            </td>
+            <td>boolean</td>
+            <td>Waveshare LCD1602 I2C extension (default false; immediate)</td>
+          </tr>
+          <tr>
+            <td>
+              <code>lcd1602_backlight_boot</code>
+            </td>
+            <td>boolean</td>
+            <td>Turn backlight on at enable/boot (default true; immediate)</td>
+          </tr>
+          <tr>
+            <td>
+              <code>lcd1602_boot</code>
+            </td>
+            <td>string</td>
+            <td>
+              Boot content: <code>none</code>, <code>last</code>, or <code>config</code> (default{" "}
+              <code>none</code>; immediate)
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>lcd1602_line1</code> / <code>lcd1602_line2</code>
+            </td>
+            <td>string</td>
+            <td>Configured boot lines when boot is <code>config</code> (max 64; immediate)</td>
           </tr>
           <tr>
             <td>

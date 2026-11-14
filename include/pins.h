@@ -55,3 +55,11 @@ constexpr int SERVO_MAX_US = 2200;
 constexpr int OLED_WIDTH  = 128;
 constexpr int OLED_HEIGHT = 32;
 constexpr uint8_t OLED_ADDRESS = 0x3C;
+
+// =====================================================
+// Waveshare LCD1602 I2C (AiP31068L + SN3193) — LCD 1602 extension
+// =====================================================
+
+// Wiki lists LCD as 8-bit 0x7C → 7-bit 0x3E. SN3193 uses 0x6B as Wire addr.
+constexpr uint8_t LCD1602_ADDRESS = 0x3E;
+constexpr uint8_t LCD1602_LED_ADDRESS = 0x6B;

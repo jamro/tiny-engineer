@@ -143,6 +143,24 @@ bool settingsValidatePushButtonSound(const char* sound) {
          strcmp(sound, "click") == 0;
 }
 
+bool settingsValidateLcd1602Boot(const char* boot) {
+  if (boot == nullptr) {
+    return false;
+  }
+
+  return strcmp(boot, "none") == 0 ||
+         strcmp(boot, "last") == 0 ||
+         strcmp(boot, "config") == 0;
+}
+
+bool settingsValidateLcd1602Line(const char* line) {
+  if (line == nullptr) {
+    return false;
+  }
+
+  return strlen(line) <= SETTINGS_LCD1602_LINE_MAX_LEN;
+}
+
 bool settingsValidateRgbOrder(const char* rgbOrder) {
   if (rgbOrder == nullptr) {
     return false;
@@ -171,6 +189,18 @@ const char* SettingsPatch::invalidField() const {
 
   if (pushButtonPin && !settingsValidatePushButtonPin(*pushButtonPin)) {
     return "push_button_pin";
+  }
+
+  if (lcd1602Boot != nullptr && !settingsValidateLcd1602Boot(lcd1602Boot)) {
+    return "lcd1602_boot";
+  }
+
+  if (lcd1602Line1 != nullptr && !settingsValidateLcd1602Line(lcd1602Line1)) {
+    return "lcd1602_line1";
+  }
+
+  if (lcd1602Line2 != nullptr && !settingsValidateLcd1602Line(lcd1602Line2)) {
+    return "lcd1602_line2";
   }
 
   if (continuousTimeoutMin && !settingsValidateContinuousTimeout(*continuousTimeoutMin)) {

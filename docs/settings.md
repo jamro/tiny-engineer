@@ -2,9 +2,9 @@
 
 Persistent settings live in NVS (namespace `te`) under [`src/settings/`](../src/settings/). They are exposed on `GET`/`POST /settings`, the Config web UI, and must stay in sync with API docs.
 
-**HTTP / JSON** (`POST /settings` body and `GET /settings` fields — see [api.md](api.md)): `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `continuous_timeout`, `loading`, `eyes_style`, `access_token`, `servo_mins` / `servo_maxs`, `rgb_order`, `oled_rotate_180`. WiFi networks have their own endpoint, `PUT /settings/wifi`, and show as `wifi_networks`. On-device Actions use `GET`/`PUT /settings/actions`.
+**HTTP / JSON** (`POST /settings` body and `GET /settings` fields — see [api.md](api.md)): `sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `lcd1602`, `lcd1602_backlight_boot`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`, `continuous_timeout`, `loading`, `eyes_style`, `access_token`, `servo_mins` / `servo_maxs`, `rgb_order`, `oled_rotate_180`. WiFi networks have their own endpoint, `PUT /settings/wifi`, and show as `wifi_networks`. On-device Actions use `GET`/`PUT /settings/actions`.
 
-**NVS keys** (≤15 chars; defined in [`nvs.h`](../src/settings/nvs.h)): `sleep_m`, `host`, `vol`, `welcome`, `serial_log`, `ext_btn` (`push_button`), `ext_btn_pin` (`push_button_pin`), `cont_to`, `loading`, `eyes_sty`, `access_tok`, `wifi_nets` (blob of up to 5 networks; replaces the older single-network `wifi_ssid` / `wifi_pass`, which are migrated on load), `actions` (Actions blob, up to 16 rows), `sranges`, `rgb_ord`, `oled_rot`. Last commanded servo angles live in the same namespace as key `spose` (internal; not a settings API field). Boot migrates legacy `btn_snd_*` keys into Actions then removes them, and drops leftover `srv_hold`. Add new short keys there — do not reuse HTTP names as NVS keys unless they already fit the length limit.
+**NVS keys** (≤15 chars; defined in [`nvs.h`](../src/settings/nvs.h)): `sleep_m`, `host`, `vol`, `welcome`, `serial_log`, `ext_btn` (`push_button`), `ext_btn_pin` (`push_button_pin`), `ext_lcd` (`lcd1602`), `ext_lcd_bl` (`lcd1602_backlight_boot`), `ext_lcd_boot`, `ext_lcd_l1`, `ext_lcd_l2`, `ext_lcd_last` (LCD last-state blob; not a settings API field), `cont_to`, `loading`, `eyes_sty`, `access_tok`, `wifi_nets` (blob of up to 5 networks; replaces the older single-network `wifi_ssid` / `wifi_pass`, which are migrated on load), `actions` (Actions blob, up to 16 rows), `sranges`, `rgb_ord`, `oled_rot`. Last commanded servo angles live in the same namespace as key `spose` (internal; not a settings API field). Boot migrates legacy `btn_snd_*` keys into Actions then removes them, and drops leftover `srv_hold`. Add new short keys there — do not reuse HTTP names as NVS keys unless they already fit the length limit.
 
 Follow the same pattern for a new setting.
 
@@ -45,7 +45,7 @@ Call the getter wherever the value affects behavior (e.g. `settingsVolume()` in 
 ### 4. Web UI — [`ui/`](../ui/)
 
 1. Add the field to `Settings` in [`ui/src/api/types.ts`](../ui/src/api/types.ts).
-2. Add a control to `ConfigForm` in [`ui/src/config/ConfigForm.tsx`](../ui/src/config/ConfigForm.tsx): read it in `draftFrom()` and send it from `save()`. Use `.range-row` + range/number for 0–N scales (see volume). Exception: extension toggles/pin (`push_button` / `push_button_pin`) live on the Extensions page; event→effect bindings live on the Actions page (`/settings/actions`).
+2. Add a control to `ConfigForm` in [`ui/src/config/ConfigForm.tsx`](../ui/src/config/ConfigForm.tsx): read it in `draftFrom()` and send it from `save()`. Use `.range-row` + range/number for 0–N scales (see volume). Exception: extension toggles/fields (`push_button` / `push_button_pin`, `lcd1602` / …) live on the Extensions page; event→effect bindings live on the Actions page (`/settings/actions`).
 3. API reference table under POST `/settings` in [`ui/src/views/ApiReference.tsx`](../ui/src/views/ApiReference.tsx): param, type, range.
 4. Home Config card blurb if the setting is user-facing.
 

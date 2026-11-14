@@ -5,7 +5,8 @@
 #include "api/commands.h"
 #include "display/oled.h"
 #include "events/hub.h"
-#include "extensions/push_button.h"
+#include "extensions/lcd1602/lcd1602.h"
+#include "extensions/push_button/push_button.h"
 #include "hardware/rgb.h"
 #include "http/handlers.h"
 #include "http/request.h"
@@ -54,7 +55,7 @@ bool readField(JsonVariantConst list, uint8_t (&out)[SETTINGS_SERVO_COUNT]) {
 // Fills the patch from the body. Returns the 400 message, or an empty string
 // when every field is known and has the right JSON type.
 String readPatch(JsonObjectConst body, SettingsPatch& patch) {
-  const char* known[19] = {};
+  const char* known[24] = {};
   size_t knownCount = 0;
   const char* wrong = nullptr;
 
@@ -78,6 +79,11 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("serial_log", patch.serialLog);
   read("push_button", patch.pushButton);
   read("push_button_pin", patch.pushButtonPin);
+  read("lcd1602", patch.lcd1602);
+  read("lcd1602_backlight_boot", patch.lcd1602BacklightBoot);
+  read("lcd1602_boot", patch.lcd1602Boot);
+  read("lcd1602_line1", patch.lcd1602Line1);
+  read("lcd1602_line2", patch.lcd1602Line2);
   read("continuous_timeout", patch.continuousTimeoutMin);
   read("loading", patch.loading);
   read("eyes_style", patch.eyesStyle);
@@ -126,6 +132,11 @@ JsonDocument settingsJson() {
   doc["serial_log"] = settingsSerialLogEnabled();
   doc["push_button"] = settingsPushButton();
   doc["push_button_pin"] = settingsPushButtonPin();
+  doc["lcd1602"] = settingsLcd1602();
+  doc["lcd1602_backlight_boot"] = settingsLcd1602BacklightBoot();
+  doc["lcd1602_boot"] = settingsLcd1602Boot();
+  doc["lcd1602_line1"] = settingsLcd1602Line1();
+  doc["lcd1602_line2"] = settingsLcd1602Line2();
   doc["continuous_timeout"] = settingsContinuousTimeoutMin();
   doc["loading"] = settingsLoading();
   doc["eyes_style"] = settingsEyesStyle();
@@ -225,6 +236,14 @@ void handleSettingsPost(WebServer& server) {
 
   if (patch.pushButton.has_value() || patch.pushButtonPin.has_value()) {
     pushButtonApplyFromSettings();
+  }
+
+  if (patch.lcd1602.has_value() ||
+      patch.lcd1602BacklightBoot.has_value() ||
+      patch.lcd1602Boot != nullptr ||
+      patch.lcd1602Line1 != nullptr ||
+      patch.lcd1602Line2 != nullptr) {
+    lcd1602ApplyFromSettings();
   }
 
   if (patch.oledRotate180) {

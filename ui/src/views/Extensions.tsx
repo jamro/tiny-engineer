@@ -17,10 +17,21 @@ const BUTTON_EVENT_ROWS = [
   { key: "long", api: "button.long_click", when: "Hold 800 ms" },
 ] as const;
 
+const LCD_BOOT_MODES = [
+  { value: "none", label: "Nothing" },
+  { value: "last", label: "Last content" },
+  { value: "config", label: "Configured lines" },
+] as const;
+
 function draftFrom(settings: Settings) {
   return {
     pushButton: settings.push_button,
     pushButtonPin: settings.push_button_pin,
+    lcd1602: settings.lcd1602,
+    lcd1602BacklightBoot: settings.lcd1602_backlight_boot,
+    lcd1602Boot: settings.lcd1602_boot,
+    lcd1602Line1: settings.lcd1602_line1,
+    lcd1602Line2: settings.lcd1602_line2,
   };
 }
 
@@ -58,6 +69,11 @@ function ExtensionsForm({
         json: {
           push_button: draft.pushButton,
           push_button_pin: draft.pushButtonPin,
+          lcd1602: draft.lcd1602,
+          lcd1602_backlight_boot: draft.lcd1602BacklightBoot,
+          lcd1602_boot: draft.lcd1602Boot,
+          lcd1602_line1: draft.lcd1602Line1,
+          lcd1602_line2: draft.lcd1602Line2,
         },
       },
       pending: "Saving…",
@@ -73,8 +89,8 @@ function ExtensionsForm({
     <main>
       <h1>Extensions</h1>
       <p className="lede">
-        Optional hardware on the Extension port. Off by default. Events go out over WebSocket and
-        serial when enabled. Local reactions live on the Actions page.
+        Optional hardware on the Extension port. Off by default. Button events go out over WebSocket
+        and serial when enabled. Local reactions live on the Actions page.
       </p>
       <form onSubmit={save}>
         <ConfigSection title="Push button" apply="now">
@@ -141,6 +157,85 @@ function ExtensionsForm({
                 <p className="hint">
                   Out: <code>ws://&lt;host&gt;:81/events</code> and serial <code>Evt</code>. No
                   extra HTTP endpoints for the button itself.
+                </p>
+              </>
+            ) : null}
+          </div>
+        </ConfigSection>
+
+        <ConfigSection title="LCD 1602" apply="now">
+          <div className="form-group">
+            <div className="toggle-row">
+              <input
+                type="checkbox"
+                id="ext-lcd1602"
+                checked={draft.lcd1602}
+                onChange={(event) => set({ lcd1602: event.currentTarget.checked })}
+              />
+              <label htmlFor="ext-lcd1602">Enable LCD 1602</label>
+            </div>
+            {draft.lcd1602 ? (
+              <>
+                <div className="toggle-row">
+                  <input
+                    type="checkbox"
+                    id="ext-lcd1602-bl"
+                    checked={draft.lcd1602BacklightBoot}
+                    onChange={(event) =>
+                      set({ lcd1602BacklightBoot: event.currentTarget.checked })
+                    }
+                  />
+                  <label htmlFor="ext-lcd1602-bl">Backlight on boot</label>
+                </div>
+                <div className="field-head">
+                  <span>Boot content</span>
+                </div>
+                <div className="choice-row" role="radiogroup" aria-label="LCD boot content">
+                  {LCD_BOOT_MODES.map((mode) => {
+                    const id = `ext-lcd1602-boot-${mode.value}`;
+
+                    return (
+                      <label key={mode.value} className="choice-option" htmlFor={id}>
+                        <input
+                          type="radio"
+                          id={id}
+                          name="ext-lcd1602-boot"
+                          value={mode.value}
+                          checked={draft.lcd1602Boot === mode.value}
+                          onChange={() => set({ lcd1602Boot: mode.value })}
+                        />
+                        <span>{mode.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {draft.lcd1602Boot === "config" ? (
+                  <>
+                    <label htmlFor="ext-lcd1602-line1">Line 1</label>
+                    <input
+                      id="ext-lcd1602-line1"
+                      type="text"
+                      maxLength={64}
+                      value={draft.lcd1602Line1}
+                      onInput={(event) => set({ lcd1602Line1: event.currentTarget.value })}
+                    />
+                    <label htmlFor="ext-lcd1602-line2">Line 2</label>
+                    <input
+                      id="ext-lcd1602-line2"
+                      type="text"
+                      maxLength={64}
+                      value={draft.lcd1602Line2}
+                      onInput={(event) => set({ lcd1602Line2: event.currentTarget.value })}
+                    />
+                  </>
+                ) : null}
+                <p className="hint">
+                  Waveshare LCD1602 I2C on the Extension I2C port (J3): VCC=+3.3V, GND, SDA, SCL.
+                  Fixed addresses 0x3E (LCD) / 0x6B (backlight). No outbound events.
+                </p>
+                <p className="hint">
+                  API: <code>/extensions/lcd1602/text</code>,{" "}
+                  <code>/extensions/lcd1602/brightness</code>.
                 </p>
               </>
             ) : null}

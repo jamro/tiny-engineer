@@ -39,6 +39,26 @@ uint8_t settingsPushButtonPin() {
   return g_settings.pushButtonPin;
 }
 
+bool settingsLcd1602() {
+  return g_settings.lcd1602;
+}
+
+bool settingsLcd1602BacklightBoot() {
+  return g_settings.lcd1602BacklightBoot;
+}
+
+const char* settingsLcd1602Boot() {
+  return g_settings.lcd1602Boot;
+}
+
+const char* settingsLcd1602Line1() {
+  return g_settings.lcd1602Line1;
+}
+
+const char* settingsLcd1602Line2() {
+  return g_settings.lcd1602Line2;
+}
+
 uint32_t settingsContinuousTimeoutMin() {
   return g_settings.continuousTimeoutMin;
 }

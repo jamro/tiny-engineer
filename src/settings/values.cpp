@@ -44,6 +44,11 @@ SettingsValues SettingsValues::defaults() {
     SETTINGS_DEFAULT_PUSH_BUTTON_SOUND,
     sizeof(values.pushButtonSoundLongClick)
   );
+  values.lcd1602 = SETTINGS_DEFAULT_LCD1602;
+  values.lcd1602BacklightBoot = SETTINGS_DEFAULT_LCD1602_BACKLIGHT_BOOT;
+  strlcpy(values.lcd1602Boot, SETTINGS_DEFAULT_LCD1602_BOOT, sizeof(values.lcd1602Boot));
+  values.lcd1602Line1[0] = '\0';
+  values.lcd1602Line2[0] = '\0';
   values.continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   strlcpy(values.loading, SETTINGS_DEFAULT_LOADING, sizeof(values.loading));
   strlcpy(values.eyesStyle, SETTINGS_DEFAULT_EYES_STYLE, sizeof(values.eyesStyle));
@@ -67,6 +72,8 @@ void SettingsValues::apply(const SettingsPatch& patch) {
   serialLog = patch.serialLog.value_or(serialLog);
   pushButton = patch.pushButton.value_or(pushButton);
   pushButtonPin = patch.pushButtonPin.value_or(pushButtonPin);
+  lcd1602 = patch.lcd1602.value_or(lcd1602);
+  lcd1602BacklightBoot = patch.lcd1602BacklightBoot.value_or(lcd1602BacklightBoot);
   continuousTimeoutMin = patch.continuousTimeoutMin.value_or(continuousTimeoutMin);
   servoRanges = patch.servoRanges.value_or(servoRanges);
   oledRotate180 = patch.oledRotate180.value_or(oledRotate180);
@@ -94,6 +101,18 @@ void SettingsValues::apply(const SettingsPatch& patch) {
   if (patch.rgbOrder != nullptr) {
     strlcpy(rgbOrder, patch.rgbOrder, sizeof(rgbOrder));
   }
+
+  if (patch.lcd1602Boot != nullptr) {
+    strlcpy(lcd1602Boot, patch.lcd1602Boot, sizeof(lcd1602Boot));
+  }
+
+  if (patch.lcd1602Line1 != nullptr) {
+    strlcpy(lcd1602Line1, patch.lcd1602Line1, sizeof(lcd1602Line1));
+  }
+
+  if (patch.lcd1602Line2 != nullptr) {
+    strlcpy(lcd1602Line2, patch.lcd1602Line2, sizeof(lcd1602Line2));
+  }
 }
 
 void SettingsValues::log(const char* prefix) const {
@@ -107,7 +126,7 @@ void SettingsValues::log(const char* prefix) const {
     line,
     sizeof(line),
     "%s sleep_timeout=%umin hostname=%s volume=%u welcome=%s serial_log=on "
-    "push_button=%s push_button_pin=%u actions=%u "
+    "push_button=%s push_button_pin=%u lcd1602=%s lcd1602_boot=%s actions=%u "
     "continuous_timeout=%umin loading=%s eyes_style=%s "
     "access_token=%s link_mode=%s wifi_networks=%u servos=%u-%u;%u-%u;%u-%u;%u-%u;%u-%u "
     "rgb_order=%s oled_rotate_180=%s",
@@ -118,6 +137,8 @@ void SettingsValues::log(const char* prefix) const {
     welcome ? "on" : "off",
     pushButton ? "on" : "off",
     static_cast<unsigned>(pushButtonPin),
+    lcd1602 ? "on" : "off",
+    lcd1602Boot,
     static_cast<unsigned>(g_actions.count()),
     static_cast<unsigned>(continuousTimeoutMin),
     loading,

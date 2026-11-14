@@ -171,6 +171,11 @@ curl http://tiny-engineer.local/settings
   "serial_log": false,
   "push_button": false,
   "push_button_pin": 20,
+  "lcd1602": false,
+  "lcd1602_backlight_boot": true,
+  "lcd1602_boot": "none",
+  "lcd1602_line1": "",
+  "lcd1602_line2": "",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -194,6 +199,10 @@ curl http://tiny-engineer.local/settings
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
 | `push_button` | Extension-port push-button reader (default **false**). When on, publishes immediate `button.down` / `button.up` plus `button.click` / `button.double_click` / `button.long_click` (see [Outbound events](#outbound-events)). Applies **immediately**. Local reactions use [Actions](#get-settingsactions) |
 | `push_button_pin` | GPIO on the Extension port for the push-button: **6**, **7**, **20**, or **21** (default **20**). Persists when `push_button` is off. Applies **immediately** when the extension is on |
+| `lcd1602` | Waveshare LCD1602 I2C extension (default **false**). When on, serves `/extensions/lcd1602/…`. Applies **immediately**. Emits no events |
+| `lcd1602_backlight_boot` | Turn backlight on at enable/boot (default **true**). When false, wait for `POST /extensions/lcd1602/brightness`. Persists when off. Applies **immediately** |
+| `lcd1602_boot` | Boot content: `none`, `last`, or `config` (default **`none`**). Persists when off. Applies **immediately** |
+| `lcd1602_line1` / `lcd1602_line2` | Configured boot lines when `lcd1602_boot` is `config` (max **64** chars each, default empty). Persists when off. Applies **immediately** |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking` / `waiting`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), `dots` (12×12 circles), or `kawaii` (round eyes with big moving pupils, a talking mouth, and blush). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes); kawaii moods are under [Kawaii eyes](#kawaii-eyes) |
@@ -209,7 +218,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). On-device Actions are set with [`PUT /settings/actions`](#put-settingsactions). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `lcd1602`, `lcd1602_backlight_boot`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). On-device Actions are set with [`PUT /settings/actions`](#put-settingsactions). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings" \
@@ -233,6 +242,11 @@ curl -X POST "http://192.168.4.1/settings" \
   "serial_log": false,
   "push_button": false,
   "push_button_pin": 20,
+  "lcd1602": false,
+  "lcd1602_backlight_boot": true,
+  "lcd1602_boot": "none",
+  "lcd1602_line1": "",
+  "lcd1602_line2": "",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -257,6 +271,10 @@ curl -X POST "http://192.168.4.1/settings" \
 | `serial_log` | boolean | USB serial debug logging |
 | `push_button` | boolean | Extension-port push-button (default **false**) |
 | `push_button_pin` | integer | Extension-port GPIO **6**, **7**, **20**, or **21** (default **20**); persists when off |
+| `lcd1602` | boolean | Waveshare LCD1602 extension (default **false**) |
+| `lcd1602_backlight_boot` | boolean | Backlight on enable/boot (default **true**) |
+| `lcd1602_boot` | string | `none` / `last` / `config` (default **`none`**) |
+| `lcd1602_line1` / `lcd1602_line2` | string | Boot lines for `config` (max **64**) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, `dots`, or `kawaii` |
@@ -352,6 +370,11 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "serial_log": false,
   "push_button": false,
   "push_button_pin": 20,
+  "lcd1602": false,
+  "lcd1602_backlight_boot": true,
+  "lcd1602_boot": "none",
+  "lcd1602_line1": "",
+  "lcd1602_line2": "",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -537,6 +560,35 @@ Wrong fields return **400**:
 | `invalid rotate_180` | `rotate_180` present but not a boolean |
 
 Save with `POST /settings` `{"oled_rotate_180":true}` (setup AP only). The saved value applies immediately and on the next boot.
+
+### LCD 1602 extension (`/extensions/lcd1602/…`)
+
+Waveshare LCD1602 I2C (AiP31068 @ `0x3E`, SN3193 backlight @ `0x6B`) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but the backlight chip (`0x6B`) does not ACK → brightness **503** `backlight not found`. No outbound events.
+
+#### `GET` / `POST` / `DELETE /extensions/lcd1602/text`
+
+`GET` returns the full logical lines (not only the 16-column viewport):
+
+```json
+{
+  "line1": { "text": "HELLO", "align": "left" },
+  "line2": { "text": "", "align": "left" }
+}
+```
+
+`POST` accepts a partial JSON body. Omitted `line1` / `line2` leave that line unchanged. Each present line object needs `text` (0–64 chars; empty clears the line) and optional `align` (`left` / `right` / `center`, default **`left`**). Lines longer than 16 characters ignore align and marquee LTR.
+
+```bash
+curl -X POST "http://tiny-engineer.local/extensions/lcd1602/text" \
+  -H "Content-Type: application/json" \
+  -d '{"line1":{"text":"HELLO","align":"center"}}'
+```
+
+`DELETE` clears both lines and leaves brightness unchanged.
+
+#### `GET` / `POST /extensions/lcd1602/brightness`
+
+`GET` → `{"brightness":50}`. `POST` body `{"brightness":0..100}` (0 = backlight off). SN3193 NACK → **503** `backlight not found`. Successful text/clear/brightness updates persist **last** state for `lcd1602_boot=last`.
 
 ### `POST /servos/park`
 
