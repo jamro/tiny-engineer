@@ -224,7 +224,8 @@ void lcd1602Poll() {
     }
 
     const size_t len = strlen(line.text);
-    g_scrollIndex[row] = (g_scrollIndex[row] + 1) % len;
+    const size_t cycle = lcd1602ScrollCycleLen(len);
+    g_scrollIndex[row] = (g_scrollIndex[row] + 1) % cycle;
     if (g_scrollIndex[row] == 0) {
       g_atWrapPause[row] = true;
       g_nextScrollMs[row] = now + kScrollWrapPauseMs;

@@ -42,6 +42,15 @@ test("parseCommonArgs help and missing --url value", () => {
   assert.equal(parseCommonArgs(["--url"]).error, "--url requires a value");
 });
 
+test("parseCommonArgs passthroughUnknown keeps --key=value in rest", () => {
+  const parsed = parseCommonArgs(["lcd1602", "text", "set", "--line1=HELLO", "--transport", "serial"], {
+    passthroughUnknown: true,
+  });
+  assert.equal(parsed.error, undefined);
+  assert.equal(parsed.transport, "serial");
+  assert.deepEqual(parsed.rest, ["lcd1602", "text", "set", "--line1=HELLO"]);
+});
+
 test("parseCommonArgs accepts quiet before or after ide id", () => {
   assert.equal(parseCommonArgs(["cursor", "-q"]).quiet, true);
   assert.deepEqual(parseCommonArgs(["cursor", "-q"]).rest, ["cursor"]);

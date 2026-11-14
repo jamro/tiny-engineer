@@ -50,7 +50,11 @@ Before another program opens the USB serial device, run `tiny-engineer daemon re
 - **Provisioning:** while unprovisioned or in setup AP, only sync/ping and `servos_park`. Full API after a connection mode is chosen (Wi‑Fi or USB-only). Serial does **not** use Bearer auth.
 - **Busy:** long play holds a global busy lock; a second play (HTTP or serial) gets `busy`.
 
-Ops (JSON `op`): `ping`/`sync`, `servos_park`, `anim`, `settings.get`/`settings.set`, `test`, `servo`, `health`, `factory_reset`, `play` / `play_end`, plus stream data/credit/error frames.
+Ops (JSON `op`): `ping`/`sync`, `servos_park`, `anim`, `settings.get`/`settings.set`, `ext`, `test`, `servo`, `health`, `factory_reset`, `play` / `play_end`, plus stream data/credit/error frames.
+
+`settings.get` / `settings.set` over serial include a **LCD slice** (`lcd1602`, `lcd1602_backlight_boot`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`) so USB-only hosts can enable the Waveshare module. Other HTTP settings fields (wifi list, actions, push_button, …) may still be missing on serial — full GET `/settings` parity is a follow-up.
+
+`ext` mirrors HTTP `/extensions/<id>/<suffix>`: `{ "op":"ext", "id":"lcd1602", "suffix":"text"|"brightness", "method":"GET"|"POST"|"DELETE", ...body }`. Same disabled/validation/hardware errors as HTTP. CLI: `tiny-engineer ext lcd1602 text|brightness …`.
 
 ## PlatformIO monitor
 

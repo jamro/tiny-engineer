@@ -39,8 +39,13 @@ void test_long_line_scroll_window() {
   TEST_ASSERT_EQUAL_STRING("BCDEFGHIJKLMNOPQ", out);
   lcd1602FormatViewport(line, 4, out);
   TEST_ASSERT_EQUAL_STRING("EFGHIJKLMNOPQRST", out);
+  // After last char: 3-space gap before wrapping to A.
   lcd1602FormatViewport(line, 19, out);
-  TEST_ASSERT_EQUAL_STRING("TABCDEFGHIJKLMNO", out);
+  TEST_ASSERT_EQUAL_STRING("T   ABCDEFGHIJKL", out);
+  lcd1602FormatViewport(line, 20, out);
+  TEST_ASSERT_EQUAL_STRING("   ABCDEFGHIJKLM", out);
+  lcd1602FormatViewport(line, 23, out);
+  TEST_ASSERT_EQUAL_STRING("ABCDEFGHIJKLMNOP", out);
 }
 
 void test_empty_line_clears() {

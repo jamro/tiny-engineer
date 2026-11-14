@@ -26,7 +26,7 @@ function parseParityArgs(argv) {
     }
     filtered.push(arg);
   }
-  const common = parseCommonArgs(filtered);
+  const common = parseCommonArgs(filtered, { passthroughUnknown: true });
   return { ...common, yes, restPos: common.rest };
 }
 
@@ -49,7 +49,8 @@ export async function runSettings(out, argv, quietGlobal) {
     console.log(`Usage: tiny-engineer settings [get|set] [options]
 
   settings get
-  settings set --key=value ...   (volume, welcome, serial_log, link_mode, eyes_style, hostname)
+  settings set --key=value ...   (volume, welcome, serial_log, link_mode, eyes_style, hostname,
+                                  lcd1602, lcd1602_backlight_boot, lcd1602_boot, lcd1602_line1, lcd1602_line2)
 
 Options:
   --transport <http|serial>  --url <base>  --port <path>

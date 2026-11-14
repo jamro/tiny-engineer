@@ -13,6 +13,7 @@
 
 #include "animation.h"
 #include "api/commands.h"
+#include "extensions/http_registry.h"
 #include "firmware_version.h"
 #include "network/wifi_connect.h"
 #include "serial/frame.h"
@@ -232,6 +233,11 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
     body["volume"] = settingsVolume();
     body["welcome"] = settingsWelcomeEnabled();
     body["serial_log"] = settingsSerialLogEnabled();
+    body["lcd1602"] = settingsLcd1602();
+    body["lcd1602_backlight_boot"] = settingsLcd1602BacklightBoot();
+    body["lcd1602_boot"] = settingsLcd1602Boot();
+    body["lcd1602_line1"] = settingsLcd1602Line1();
+    body["lcd1602_line2"] = settingsLcd1602Line2();
     body["continuous_timeout"] = settingsContinuousTimeoutMin();
     body["loading"] = settingsLoading();
     body["eyes_style"] = settingsEyesStyle();
@@ -305,6 +311,46 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
       patch.hostname = req["hostname"].as<const char*>();
       any = true;
     }
+    if (!req["lcd1602"].isUnbound()) {
+      if (!req["lcd1602"].is<bool>()) {
+        sendJsonRes(id, 400, "invalid lcd1602", body);
+        return;
+      }
+      patch.lcd1602 = req["lcd1602"].as<bool>();
+      any = true;
+    }
+    if (!req["lcd1602_backlight_boot"].isUnbound()) {
+      if (!req["lcd1602_backlight_boot"].is<bool>()) {
+        sendJsonRes(id, 400, "invalid lcd1602_backlight_boot", body);
+        return;
+      }
+      patch.lcd1602BacklightBoot = req["lcd1602_backlight_boot"].as<bool>();
+      any = true;
+    }
+    if (!req["lcd1602_boot"].isUnbound()) {
+      if (!req["lcd1602_boot"].is<const char*>()) {
+        sendJsonRes(id, 400, "invalid lcd1602_boot", body);
+        return;
+      }
+      patch.lcd1602Boot = req["lcd1602_boot"].as<const char*>();
+      any = true;
+    }
+    if (!req["lcd1602_line1"].isUnbound()) {
+      if (!req["lcd1602_line1"].is<const char*>()) {
+        sendJsonRes(id, 400, "invalid lcd1602_line1", body);
+        return;
+      }
+      patch.lcd1602Line1 = req["lcd1602_line1"].as<const char*>();
+      any = true;
+    }
+    if (!req["lcd1602_line2"].isUnbound()) {
+      if (!req["lcd1602_line2"].is<const char*>()) {
+        sendJsonRes(id, 400, "invalid lcd1602_line2", body);
+        return;
+      }
+      patch.lcd1602Line2 = req["lcd1602_line2"].as<const char*>();
+      any = true;
+    }
 
     if (!any) {
       sendJsonRes(id, 400, "send at least one setting", body);
@@ -313,6 +359,41 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
 
     const ApiResult result = apiSaveSettings(patch);
     sendJsonRes(id, result.code, result.error, body);
+    return;
+  }
+
+  if (strcmp(op, "ext") == 0) {
+    const char* extId = req["id"] | static_cast<const char*>(nullptr);
+    const char* suffix = req["suffix"] | static_cast<const char*>(nullptr);
+    const char* method = req["method"] | static_cast<const char*>(nullptr);
+
+    JsonDocument payload;
+    JsonObject payloadObj = payload.to<JsonObject>();
+    if (req.is<JsonObjectConst>()) {
+      for (JsonPairConst field : req.as<JsonObjectConst>()) {
+        const char* key = field.key().c_str();
+        if (strcmp(key, "op") == 0 ||
+            strcmp(key, "id") == 0 ||
+            strcmp(key, "suffix") == 0 ||
+            strcmp(key, "method") == 0) {
+          continue;
+        }
+        payloadObj[key] = field.value();
+      }
+    }
+
+    char err[96];
+    err[0] = '\0';
+    JsonDocument out;
+    const int code = extensionInvoke(extId, suffix, method, payloadObj, out, err, sizeof(err));
+    if (code != 200) {
+      sendJsonRes(id, code, err[0] != '\0' ? err : "ext failed", body);
+      return;
+    }
+    for (JsonPair field : out.as<JsonObject>()) {
+      body[field.key()] = field.value();
+    }
+    sendJsonRes(id, 200, nullptr, body);
     return;
   }
 

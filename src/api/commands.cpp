@@ -6,6 +6,7 @@
 #include "animation.h"
 #include "audio/audio.h"
 #include "display/oled.h"
+#include "extensions/lcd1602/lcd1602.h"
 #include "extensions/push_button/push_button.h"
 #include "hardware/i2c_health.h"
 
@@ -65,6 +66,13 @@ ApiResult apiSaveSettings(const SettingsPatch& patch) {
   }
   if (patch.pushButton.has_value() || patch.pushButtonPin.has_value()) {
     pushButtonApplyFromSettings();
+  }
+  if (patch.lcd1602.has_value() ||
+      patch.lcd1602BacklightBoot.has_value() ||
+      patch.lcd1602Boot != nullptr ||
+      patch.lcd1602Line1 != nullptr ||
+      patch.lcd1602Line2 != nullptr) {
+    lcd1602ApplyFromSettings();
   }
   return {true, 200, nullptr};
 }

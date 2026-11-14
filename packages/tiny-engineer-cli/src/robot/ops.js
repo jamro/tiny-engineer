@@ -171,3 +171,37 @@ export async function robotPark(opts = {}) {
     return fromHttpResponse(res);
   });
 }
+
+/**
+ * Extension API over HTTP path or serial `ext` op.
+ * @param {{
+ *   id: string,
+ *   suffix: string,
+ *   method: string,
+ *   body?: Record<string, unknown>,
+ * }} call
+ * @param {TransportOpts} [opts]
+ */
+export async function robotExt(call, opts = {}) {
+  const { id, suffix, method, body = {} } = call;
+  const path = `/extensions/${id}/${suffix}`;
+  return viaTransport(
+    "ext",
+    { id, suffix, method, ...body },
+    opts,
+    async () => {
+      const upper = method.toUpperCase();
+      /** @type {RequestInit} */
+      const init = {
+        method: upper,
+        signal: AbortSignal.timeout(10_000),
+      };
+      if (upper === "POST") {
+        init.headers = { "Content-Type": "application/json" };
+        init.body = JSON.stringify(body);
+      }
+      const res = await robotFetch(opts.url ?? getBaseUrl(), path, init, httpToken(opts));
+      return fromHttpResponse(res);
+    },
+  );
+}

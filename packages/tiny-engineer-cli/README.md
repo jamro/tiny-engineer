@@ -25,7 +25,7 @@ Cold `npx` can be slow: `setup` writes hook **`timeout` ≥ 30**. Prefer registr
 | Area | Commands |
 | --- | --- |
 | Hooks / setup | `setup`, `uninstall`, `doctor`, `hook <ide>` |
-| Robot | `anim`, `play`, `settings`, `test`, `servo`, `park`, `health`, `reset` |
+| Robot | `anim`, `play`, `settings`, `ext`, `test`, `servo`, `park`, `health`, `reset` |
 | Serial / events | `monitor`, `watch`, `port`, `daemon …`, `rules …` |
 
 Full flag list: `tiny-engineer --help` and `tiny-engineer daemon --help`.
