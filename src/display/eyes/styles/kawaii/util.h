@@ -9,9 +9,17 @@ namespace kawaii {
 constexpr float kPi = 3.14159265f;
 constexpr float kTwoPi = 2.0f * kPi;
 
-// Returns a value in [lo, hi). Firmware passes anim::randRangeMs; tests pass a
-// seeded generator so behavior is reproducible.
+// Returns a value in [lo, hi): hi itself is never returned, and an empty
+// range (hi <= lo) returns lo. Tests pass a seeded generator so behavior is
+// reproducible; firmware adapts anim::randRangeMs with upperExclusive.
 using RandRange = uint32_t (*)(uint32_t lo, uint32_t hi);
+
+// Adapts a generator that returns [lo, hi] (inclusive, like
+// anim::randRangeMs) to RandRange's [lo, hi).
+template <uint32_t (*Inclusive)(uint32_t lo, uint32_t hi)>
+uint32_t upperExclusive(uint32_t lo, uint32_t hi) {
+  return hi <= lo ? lo : Inclusive(lo, hi - 1u);
+}
 
 inline float clamp01(float v) {
   if (v < 0.0f) {

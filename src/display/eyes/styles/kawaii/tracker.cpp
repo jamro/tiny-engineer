@@ -55,7 +55,10 @@ void CodeReader::nextLine(uint32_t now) {
 }
 
 void CodeReader::nextWord(uint32_t now) {
+  // The last word of a line stops at the line's end.
+  const float lineEnd = lineStart_ + kLineLength;
   x_ += (float)between(kWordStepMinPct, kWordStepMaxPct) / kPercent;
+  x_ = x_ > lineEnd ? lineEnd : x_;
   nextAt_ = now + between(kWordMinMs, kWordMaxMs);
 }
 

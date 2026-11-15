@@ -42,9 +42,13 @@ constexpr float kGlanceRangeYPx = 3.0f;
 // an error, abort or dead, reaching their most frequent after this long.
 constexpr uint32_t kFlowRampMs = 90000;
 
+// anim::randRangeMs includes its upper bound; the kawaii modules expect
+// RandRange's [lo, hi).
+constexpr kawaii::RandRange kawaiiRand = kawaii::upperExclusive<anim::randRangeMs>;
+
 uint8_t g_frame[kawaii::kFrameBytes];
 kawaii::Animator g_animator;
-kawaii::MoodDirector g_director(anim::randRangeMs);
+kawaii::MoodDirector g_director(kawaiiRand);
 bool g_directing = false;  // the director owns the mood (idle or a working mode)
 bool g_wasTyping = false;
 struct SpokenClip;
@@ -53,8 +57,8 @@ uint32_t g_calmSinceMs = 0;  // last error / abort / dead
 kawaii::BellCelebration g_bell;
 uint32_t g_ringStartedMs = 0;
 bool g_ringing = false;
-kawaii::Babbler g_babbler(anim::randRangeMs);
-kawaii::CodeReader g_reader(anim::randRangeMs);
+kawaii::Babbler g_babbler(kawaiiRand);
+kawaii::CodeReader g_reader(kawaiiRand);
 kawaii::Mood g_lastMood = kawaii::Mood::Count;
 uint32_t g_lastFrameMs = 0;
 bool g_armed = false;

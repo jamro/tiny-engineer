@@ -1,4 +1,5 @@
 #include <cmath>
+#include <initializer_list>
 #include <cstring>
 #include <unity.h>
 
@@ -803,6 +804,50 @@ void test_shiver_changes_speed_without_jumping() {
   }
 }
 
+// An inclusive generator that always returns its top, like a worst-case
+// anim::randRangeMs, and the RandRange it adapts to.
+uint32_t inclusiveTop(uint32_t lo, uint32_t hi) {
+  return hi < lo ? lo : hi;
+}
+uint32_t topOfRange(uint32_t lo, uint32_t hi) {
+  return upperExclusive<inclusiveTop>(lo, hi);
+}
+
+void test_upper_exclusive_never_returns_hi() {
+  TEST_ASSERT_EQUAL_UINT32(99, topOfRange(0, 100));
+  TEST_ASSERT_EQUAL_UINT32(1, topOfRange(0, 2));  // a coin flip stays a coin flip
+  TEST_ASSERT_EQUAL_UINT32(7, topOfRange(7, 8));
+  TEST_ASSERT_EQUAL_UINT32(5, topOfRange(5, 5));  // empty range: lo
+  TEST_ASSERT_EQUAL_UINT32(5, topOfRange(5, 3));
+}
+
+// Every module, fed the top of every range, stays inside its own bounds.
+void test_modules_stay_in_range_at_the_top_of_every_roll() {
+  MoodDirector director(topOfRange);
+  for (Activity a : {Activity::Idle, Activity::Typing, Activity::Reading, Activity::Thinking}) {
+    director.reset(0, a);
+    for (uint32_t now = 0; now < 120000u; now += 33) {
+      TEST_ASSERT_TRUE(director.update(now, 1.0f) < Mood::Count);
+    }
+  }
+
+  Babbler babbler(topOfRange);
+  babbler.reset(0);
+  for (uint32_t now = 0; now < 20000u; now += 33) {
+    const Voice v = babbler.babble(now);
+    TEST_ASSERT_TRUE(v.level >= 0.0f && v.level <= 1.0f);
+    TEST_ASSERT_TRUE(v.vowel < Vowel::Count);
+  }
+
+  CodeReader reader(topOfRange);
+  reader.reset(0);
+  for (uint32_t now = 0; now < 30000u; now += 33) {
+    const Gaze g = reader.update(now);
+    TEST_ASSERT_TRUE(g.x >= -0.6f && g.x <= 0.8f);
+    TEST_ASSERT_TRUE(g.y >= -0.4f && g.y <= 0.81f);
+  }
+}
+
 int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_render_rejects_small_buffer);
@@ -837,6 +882,8 @@ int main(int, char**) {
   RUN_TEST(test_bell_without_a_clip_still_dings);
   RUN_TEST(test_only_the_pupils_shake);
   RUN_TEST(test_stars_fly_out_of_the_eyes);
+  RUN_TEST(test_upper_exclusive_never_returns_hi);
+  RUN_TEST(test_modules_stay_in_range_at_the_top_of_every_roll);
   RUN_TEST(test_shiver_changes_speed_without_jumping);
   RUN_TEST(test_idle_is_mostly_smiles_with_accents);
   RUN_TEST(test_idle_survives_millis_wrap);
