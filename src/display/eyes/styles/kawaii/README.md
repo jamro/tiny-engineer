@@ -43,9 +43,9 @@ Every tuning value is a named constant at the top of the file that uses it:
 
 Audio clips run through the same `loop()` as the eyes. Each pass feeds one 512-sample WAV chunk (23 ms at 22 050 Hz), then draws a frame every 33 ms. `display.display()` alone holds the I²C bus for about 12 ms. If a pass takes longer than the chunk it delivered, the I2S buffer runs dry and the audio clips, which hits the largest faces first.
 
-The ESP32-C3 has no FPU, so every float operation is a library call. Keep a frame (ease, compose, render) to about **600 k instructions**: the heaviest frame while a clip plays is the bell's yell with its star burst at its busiest (about 550 k), then Excited at the welcome pose (about 420 k); heart eyes take about 1.2 M, but only in idle, with no clip playing.
+The ESP32-C3 has no FPU, so every float operation is a library call. Keep every frame (ease, compose, render) under about **600 k instructions**, since any face can be on screen while audio plays (an idle face during a `/play` stream with `pose=none`, for example). Measured on an emulated C3: the busiest frame is the bell's yell with its star burst at its peak (about 550 k); heart eyes are about 475 k and Excited at the welcome pose about 420 k.
 
-- Test geometry in float only at the edges of a row, then write whole runs (`runAround`, `LidCut::trim`).
+- Test geometry in float only at the edges of a row, then write whole runs (`runAround`, `LidCut::trim`); for shapes like the heart, start each row's edge search from the previous row's edges (`heartRow`).
 - Precompute per-row and per-column terms instead of recomputing them per pixel.
 - Center discs on whole pixels so their rows can be precomputed (`PixelDisc`); that also keeps a moving pupil the same shape.
 - Never draw a shape twice per frame.

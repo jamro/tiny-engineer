@@ -569,7 +569,7 @@ void drawCross(Canvas& c, const EyeShape& e, float ry) {
   }
 }
 
-constexpr int kMaxHeartCols = 64;  // wider than any eye the panel can show
+constexpr int kMaxHeartHalf = 32;  // half-width columns, more than any eye needs
 
 // Inside the unit heart (X² + Y² − 1)³ − X²Y³ ≤ 0, with X² precomputed.
 bool insideHeart(float X2, float Y) {
@@ -577,30 +577,75 @@ bool insideHeart(float X2, float Y) {
   return a * a * a - X2 * Y * Y * Y <= 0.0f;
 }
 
+// One half of a heart row: column offsets first..last from the center are
+// inside (empty when first > last). The heart is symmetric, and each half
+// row is a single run: open at the center, or split by the cleft up top.
+struct HeartRun {
+  int first;
+  int last;
+};
+
+// The row's run, found by nudging the previous row's edges with the exact
+// test: neighbouring rows' edges are a pixel or two apart, so this tests a
+// handful of columns instead of the whole row.
+HeartRun heartRow(const float* X2, int half, float Y, HeartRun guess) {
+  const auto in = [&](int k) { return k >= 0 && k <= half && insideHeart(X2[k], Y); };
+
+  int last = guess.last < 0 || guess.last > half ? half : guess.last;
+  if (in(last)) {
+    while (in(last + 1)) {
+      last++;
+    }
+  } else {
+    while (last >= 0 && !in(last)) {
+      last--;
+    }
+    if (last < 0) {
+      return {1, 0};  // nothing on this row
+    }
+  }
+
+  int first = guess.first < 0 || guess.first > last ? last : guess.first;
+  if (in(first)) {
+    while (in(first - 1)) {
+      first--;
+    }
+  } else {
+    while (first < last && !in(first)) {
+      first++;
+    }
+  }
+  return {first, last};
+}
+
 void drawHeart(Canvas& c, const EyeShape& e, float ry) {
   const float sx = e.rx * kHeartScale;
   const float sy = ry * kHeartScale;
   const int top = floorInt(e.cy - ry * kHeartScan);
   const int bottom = floorInt(e.cy + ry * kHeartScan);
-  const int left = floorInt(e.cx - e.rx * kHeartScan);
-  const int cols = floorInt(e.cx + e.rx * kHeartScan) - left + 1;
-  if (cols <= 0 || cols > kMaxHeartCols) {
+  // Centered on a pixel, so the two halves mirror exactly.
+  const int mid = floorInt(e.cx);
+  const int half = (int)ceilf(e.rx * kHeartScan);
+  if (half <= 0 || half >= kMaxHeartHalf) {
     return;
   }
 
-  float X2[kMaxHeartCols];
-  for (int k = 0; k < cols; k++) {
-    const float X = (center(left + k) - e.cx) / sx;
+  float X2[kMaxHeartHalf];
+  for (int k = 0; k <= half; k++) {
+    const float X = (float)k / sx;
     X2[k] = X * X;
   }
 
+  HeartRun run = {0, half};
   for (int y = top; y <= bottom; y++) {
     const float Y = (e.cy - center(y)) / sy + kHeartLift;
-    for (int k = 0; k < cols; k++) {
-      if (insideHeart(X2[k], Y)) {
-        c.plot(left + k, y);
-      }
+    const HeartRun row = heartRow(X2, half, Y, run);
+    if (row.first > row.last) {
+      continue;
     }
+    run = row;
+    c.run(mid + row.first, mid + row.last, y);
+    c.run(mid - row.last, mid - row.first, y);
   }
 
   const float hole = e.sparkle * kHeartHoleRadius * fminf(e.rx, ry);
