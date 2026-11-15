@@ -399,8 +399,9 @@ Do not copy any one reference literally.
 
 - `/` — full landing (hero + See it work → Build your own); copy in [`landing-page.md`](landing-page.md)
 - `/flash/` — USB web installer (ESP Web Tools)
-- `/customise/` — tile hub for screens editor + optional mods
+- `/customise/` — tile hub for screens editor, eye styles gallery + optional mods
 - `/screens/` — laptop screen insert generator; sizes from `presets.json`, written by `scripts/laptop_screens.py`
+- `/eyes/` — OLED eye style gallery (classic / kaomoji / dots / kawaii); canvas previews in `js/eyes-preview.js`
 - `/assembly/` — interactive 3D assembly viewer
 
 **Site header:** do not hand-edit nav links per page. Use [`js/site-header.js`](js/site-header.js) (`data-page` + `data-root`). Canonical link set documented in [`landing-page.md`](landing-page.md#nav-canonical).

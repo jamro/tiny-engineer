@@ -3,20 +3,20 @@
  * Mount: <header class="site-header" data-page="…" data-root="…"></header>
  * then <script src="…/js/site-header.js"></script> immediately after.
  *
- * data-page: home | build | shop | print | flash | assembly | setup | customise | screens
+ * data-page: home | build | shop | print | flash | assembly | setup | customise | screens | eyes
  * data-root: relative prefix to web/ root ("./" on home, "../" on nested pages)
  *
  * Top-nav: Build · Customise · GitHub.
  * Build-stage pages (shop…setup) are not top-nav links — use the stage timeline.
  * Top-nav Build → /build/, which redirects to /shop/.
- * Customise → /customise/ (tile hub). Screens editor also highlights Customise.
+ * Customise → /customise/ (tile hub). Screens + eyes gallery also highlight Customise.
  */
 (function () {
   const REPO = "https://github.com/jamro/tiny-engineer";
   const BUILD_PAGES = new Set([
     "build", "shop", "print", "flash", "assembly", "setup",
   ]);
-  const CUSTOMISE_PAGES = new Set(["customise", "screens"]);
+  const CUSTOMISE_PAGES = new Set(["customise", "screens", "eyes"]);
 
   const LINKS = [
     { id: "build", label: "Build", path: "build/" },

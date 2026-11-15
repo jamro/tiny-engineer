@@ -72,7 +72,7 @@ Hero may show Build + Watch demo + GitHub. Flash remains in the site nav (and op
 
 ### Nav (canonical)
 
-One source: [`web/js/site-header.js`](../web/js/site-header.js). Mounted on `/`, `/flash/`, `/screens/`, `/assembly/` via:
+One source: [`web/js/site-header.js`](../web/js/site-header.js). Mounted on `/`, `/flash/`, `/screens/`, `/eyes/`, `/assembly/` via:
 
 ```html
 <header class="site-header" data-page="…" data-root="…"></header>
@@ -83,8 +83,9 @@ Links (same set every page; `aria-current` from `data-page`):
 
 - Brand → `/`
 - Build → `/build/` (build-stage pages shop…setup highlight Build; stage timeline owns those steps)
-- Customise → `/customise/` tile hub (also current on `/screens/`)
+- Customise → `/customise/` tile hub (also current on `/screens/` and `/eyes/`)
   - Screens tile → `/screens/`
+  - Eye styles tile → `/eyes/`
   - Halloween tile → `mods/halloween/README.md` on GitHub
   - Bell button tile → `mods/bell_button/README.md` on GitHub
 - GitHub → repo root

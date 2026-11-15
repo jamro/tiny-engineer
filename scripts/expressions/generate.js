@@ -90,9 +90,18 @@ function outputs(assets) {
     assetBytes: assets.data.length + 480 + assets.offsets.length * 2
   };
   const root = path.resolve(sourceDirectory, '../..');
+  const designsSource = fs.readFileSync(path.join(sourceDirectory, 'designs.js'), 'utf8');
+  const webDesigns = [
+    '// SPDX-License-Identifier: MIT',
+    '// Synced from scripts/expressions/designs.js by generate.js. Do not edit by hand.',
+    designsSource.replace(/^\/\/ SPDX-License-Identifier: MIT\n/, '')
+      .replace(/^\/\/ Original 128x32 pixel drawings inspired by common kaomoji\.\n/, ''),
+    '',
+  ].join('\n');
   return new Map([
     [path.join(root, 'lib/TinyEngineerExpressions/src/expression_assets.h'), lines.join('\n')],
-    [path.join(sourceDirectory, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n']
+    [path.join(sourceDirectory, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n'],
+    [path.join(root, 'web/js/kaomoji-designs.js'), webDesigns],
   ]);
 }
 

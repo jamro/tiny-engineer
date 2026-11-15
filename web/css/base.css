@@ -203,7 +203,8 @@ main {
 
 .page-home .wrap,
 .page-customise .wrap,
-.page-screens .wrap {
+.page-screens .wrap,
+.page-eyes .wrap {
   width: min(100% - 2rem, 68rem);
 }
 
@@ -4345,6 +4346,113 @@ esp-web-install-button .button,
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.72rem;
+}
+
+/* Eye styles gallery (/eyes/) */
+.page-eyes main {
+  gap: 1.25rem;
+}
+
+.eyes-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .eyes-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.eyes-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: #151515;
+  transition:
+    border-color var(--dur) ease,
+    box-shadow var(--dur) ease,
+    transform var(--dur) var(--ease-mech);
+}
+
+.eyes-card:hover {
+  border-color: #55554c;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.eyes-oled {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.1rem 1rem;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 45%, #1a1a18 0%, #0a0a0a 72%),
+    #0a0a0a;
+  border-bottom: 1px solid var(--border);
+}
+
+.eyes-oled canvas {
+  display: block;
+  width: 256px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 128 / 32;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 2px #1e1e1c,
+    0 0 0 3px #2e2e2a,
+    0 6px 18px rgba(0, 0, 0, 0.5);
+  background: #080808;
+}
+
+.eyes-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem 1.1rem;
+}
+
+.eyes-card-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.eyes-card-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.eyes-card-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.eyes-footnote {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.eyes-footnote code {
+  font-size: 0.84em;
 }
 
 /* Same box as 3MF; secondary colors only. */
