@@ -44,8 +44,9 @@ void updateWelcomeEyes(uint32_t now) {
             (float)halfBlink
           : (float)(WELCOME_AUDIO_BLINK_END_MS - audioElapsed) /
             (float)halfBlink;
+        // blinkT runs 0 → 1 → 0 across the window: closed in the middle.
         const float open = anim::easeInOutCubic(
-          constrain(blinkT, 0.0f, 1.0f)
+          constrain(1.0f - blinkT, 0.0f, 1.0f)
         );
         leftHeight = (int16_t)(2.0f + 14.0f * open);
         rightHeight = leftHeight;

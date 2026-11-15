@@ -20,17 +20,22 @@ def upload_filesystem(source, target, env):
     # Build the argument vector ourselves instead of handing SCons a command
     # string: SCons splits on whitespace, so a $PROJECT_DIR containing a space
     # would arrive at PlatformIO as two separate arguments.
+    # Upload LittleFS to the same board the firmware just went to. The child
+    # PlatformIO run does not inherit --upload-port, and auto-detection picks
+    # the first serial port it finds when several devices are plugged in.
+    upload_port = env.subst("$UPLOAD_PORT")
+
     def run_pio(pio_target):
-        subprocess.run(
-            [
-                env.subst("$PYTHONEXE"),
-                "-m", "platformio", "run",
-                "-t", pio_target,
-                "-e", env.subst("$PIOENV"),
-                "-d", str(project_dir),
-            ],
-            check=True,
-        )
+        args = [
+            env.subst("$PYTHONEXE"),
+            "-m", "platformio", "run",
+            "-t", pio_target,
+            "-e", env.subst("$PIOENV"),
+            "-d", str(project_dir),
+        ]
+        if upload_port and pio_target == "uploadfs":
+            args += ["--upload-port", upload_port]
+        subprocess.run(args, check=True)
 
     try:
         if not fs_image.is_file():
