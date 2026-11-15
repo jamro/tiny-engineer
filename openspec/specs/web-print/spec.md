@@ -14,7 +14,7 @@ The `/print/` page MUST present an in-page printable-parts queue for the selecte
 - **THEN** the page shows the locked servo variant, a Print-first tester section, color-grouped part rows with progress controls, and download controls
 
 ### Requirement: Servo variant locked from Shop
-The print page MUST resolve the servo preset from the Shop browser storage key used by `/shop/` (`tiny-engineer.shop.servo`). Supported presets MUST be SG90, FS0307, and ES9051. When no saved choice exists, SG90 MUST be used. The print UI MUST NOT offer an in-page servo picker; it MUST show the active variant and a control that navigates to `/shop/` to change it. The print UI MUST NOT offer HD-1370A.
+The print page MUST resolve the servo preset from the Shop browser storage key used by `/shop/` (`tiny-engineer.shop.servo`). Supported presets MUST be SG90, FS0307, and ES9051. When no saved choice exists, SG90 MUST be used. The print UI MUST NOT offer an in-page servo picker; it MUST show the active variant and a control that navigates to the Shop plug-in modules section (`/shop/#shop-lane-next`) to change it. The print UI MUST NOT offer HD-1370A.
 
 #### Scenario: Variant from Shop
 - **WHEN** Shop storage has `fs0307` selected and the visitor opens `/print/`
@@ -26,7 +26,7 @@ The print page MUST resolve the servo preset from the Shop browser storage key u
 
 #### Scenario: Change requires Shop
 - **WHEN** the visitor wants a different servo preset
-- **THEN** the only in-page change path is a navigation control to `/shop/` (no radio/select on Print)
+- **THEN** the only in-page change path is a navigation control to `/shop/#shop-lane-next` (no radio/select on Print)
 
 ### Requirement: Part data from structured JSON
 The print queue and related print UI data MUST load from a same-origin `parts.json` (or equivalent structured file under `web/print/`). The page MUST NOT scrape `3d_models/README.md` at runtime to build the list.

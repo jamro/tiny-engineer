@@ -12,7 +12,7 @@
       "label": "Tower Pro SG90",
       "short": "SG90",
       "group": "recommended",
-      "tag": "Recommended",
+      "tag": "Standard",
       "size": "~13 \u00d7 15 \u00d7 12 cm",
       "summary": "Larger desk robot \u00b7 easiest to find in shops",
       "default": true,
@@ -53,8 +53,8 @@
   ],
   "jlcpcb": {
     "title": "Main circuit board (factory-assembled)",
-    "pathLabel": "Slowest step \u2014 weeks",
-    "disclaimer": "Reference boards from this design were built and checked. Your fab run is still its own order \u2014 review stock and part orientation before you pay. No partnership with JLCPCB.",
+    "pathLabel": "Beginner-friendly \u2014 clear steps",
+    "disclaimer": "Follow the steps below and upload the three files. At checkout, glance at stock and part orientation, then pay. No partnership with JLCPCB.",
     "fullGuideUrl": "https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/order-main-control-board.md",
     "orderUrl": "https://jlcpcb.com/",
     "image": "../media/shop/main-control-board.jpg?v=r1",
@@ -93,7 +93,7 @@
   "lanes": [
     {
       "id": "now",
-      "label": "2",
+      "label": "1",
       "title": "Board ordered",
       "lede": "Mark this when your board order is placed.",
       "items": [
@@ -101,19 +101,19 @@
           "id": "board-ordered",
           "label": "Main board ordered (both sides assembled)",
           "qty": 1,
-          "notes": "Order first \u2014 the factory usually needs weeks.",
+          "notes": "Factory-assembled board \u2014 mark when your order is placed.",
           "image": "../media/shop/main-control-board.jpg?v=r1",
           "checkOnly": true,
-          "blurb": "Order first \u2014 factory wait is often weeks.",
+          "blurb": "Factory-assembled board \u2014 mark when ordered.",
           "thumb": "../media/shop/thumbs/main-control-board.jpg?v=r1"
         }
       ]
     },
     {
       "id": "next",
-      "label": "3",
+      "label": "2",
       "title": "Plug-in modules",
-      "lede": "Parts that plug into the board. Buy links where we have a clear product page.",
+      "lede": "Parts that plug into the board. Standard build uses SG90 servos — switch to compact on the servo row if you want a smaller robot.",
       "items": [
         {
           "id": "esp32-c3-zero",
@@ -130,9 +130,9 @@
           "label": "Hobby micro servo",
           "qtyFrom": "servo",
           "url": null,
-          "notes": "Buy five of one model. Do not mix. No single store SKU.",
+          "notes": "Buy five of one model. Do not mix. Servo size sets the whole robot size.",
           "image": "../media/shop/sg90.jpg?v=r1",
-          "blurb": "Five identical motors \u2014 arms and body. Do not mix models.",
+          "blurb": "Five identical motors \u2014 arms and body. Do not mix models. Servo size sets robot size.",
           "thumb": "../media/shop/thumbs/sg90.jpg?v=r1"
         },
         {
@@ -159,7 +159,7 @@
     },
     {
       "id": "also",
-      "label": "4",
+      "label": "3",
       "title": "Fasteners and power",
       "lede": "Everyday bits \u2014 a mixed screw pack is fine.",
       "items": [

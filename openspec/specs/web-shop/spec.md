@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Helps builders complete the shop stage of the public GitHub Pages build flow: choose a servo preset, order the main control board through JLCPCB, and check off the default cart before print — without selling a kit.
+Helps builders complete the shop stage of the public GitHub Pages build flow: order the main control board through JLCPCB and check off the default cart (including servo model) before print — without selling a kit.
 
 ## Requirements
 
@@ -11,26 +11,28 @@ The `/shop/` page MUST present an in-page build cart for the default Tiny Engine
 
 #### Scenario: Open shop
 - **WHEN** a visitor opens `/shop/` on the published site
-- **THEN** the page shows servo selection, an order timeline, a JLCPCB board lane, and a checklist of default-cart items
+- **THEN** the page shows an order timeline, a JLCPCB board card first (with board-ordered check on that card), and checklist lanes for plug-in modules and fasteners
+- **AND** the page does not present a separate top-level “pick a servo” step before the board
+- **AND** the page does not show a second standalone “board ordered” checklist panel under the JLCPCB card
 
 ### Requirement: Servo preset selection
-The shop page MUST let the visitor select exactly one of Tower Pro SG90, Feetech FS0307, or EMAX ES9051. SG90 MUST be the default when no saved choice exists. The shop UI MUST NOT offer PowerHD HD-1370A as a selectable preset. Human-facing selection summary MUST name the chosen model, give a sense of robot size (approximate assembled dimensions and/or a plain size label such as larger/compact), and name the buy quantity, without requiring a repository path such as `parts/{servo_id}/` in the primary summary strip.
+The shop page MUST let the visitor select exactly one of Tower Pro SG90, Feetech FS0307, or EMAX ES9051 from the plug-in modules servo checklist row (not a separate shop step). SG90 MUST be the default when no saved choice exists. The shop UI MUST NOT offer PowerHD HD-1370A as a selectable preset. The servo row MUST name the chosen model, give a sense of robot size (approximate assembled dimensions and/or a plain size label such as standard/compact), and name the buy quantity, without requiring a repository path such as `parts/{servo_id}/` in the primary human-facing copy.
 
 #### Scenario: First visit
 - **WHEN** a visitor opens `/shop/` with no saved servo choice
-- **THEN** SG90 is selected and the cart reflects five SG90-class servos
+- **THEN** SG90 is selected on the plug-in modules servo row and the cart reflects five SG90-class servos
 
 #### Scenario: Compact preset
-- **WHEN** the visitor selects FS0307 or ES9051
-- **THEN** the servo checklist line shows quantity five for that model and the page indicates the matching print parts set for that servo without requiring a `parts/…` repository path in the primary human-facing summary
+- **WHEN** the visitor selects FS0307 or ES9051 on the servo row model control
+- **THEN** the servo checklist line shows quantity five for that model and indicates standard vs compact / robot size without requiring a `parts/…` repository path in the primary human-facing copy
 
 #### Scenario: Legacy preset hidden
-- **WHEN** a visitor views the servo picker
+- **WHEN** a visitor views the servo model control on the plug-in modules row
 - **THEN** HD-1370A is not listed as an option
 
-#### Scenario: Recommended path marked for beginners
-- **WHEN** a visitor views the servo picker with SG90 as the default or selected recommended path
-- **THEN** SG90 is visually marked as the starting / recommended choice for beginners
+#### Scenario: Standard is the default path
+- **WHEN** a visitor views the servo row with no saved choice or with SG90 saved
+- **THEN** SG90 remains the selected standard build option
 
 ### Requirement: Beginner-plain shop labels
 Primary shop titles, lane ledes, checklist item names shown as the main label, JLCPCB path badge, and fab download control labels MUST use plain language that states the job or outcome first. Vendor names, chip IDs, and fab file type names MAY appear as secondary text. The same-origin download targets MUST remain the published Gerber ZIP, `bom.csv`, and `positions.csv`.
@@ -48,10 +50,10 @@ Primary shop titles, lane ledes, checklist item names shown as the main label, J
 - **THEN** each row’s primary label or adjacent plain blurb makes the part’s job clear (for example brain module, face screen, speaker) without relying only on chip identifiers
 
 ### Requirement: Explain why five identical servos
-The shop servo step MUST tell visitors they need five identical units of one model and MUST NOT encourage mixing models or sizes.
+The plug-in modules servo row MUST tell visitors they need five identical units of one model and MUST NOT encourage mixing models or sizes.
 
 #### Scenario: Quantity rationale visible
-- **WHEN** a visitor views the servo picker or the servo checklist line
+- **WHEN** a visitor views the servo checklist line
 - **THEN** the page states that five identical servos are required and mixing models is not allowed
 
 ### Requirement: Chosen versus ordered checklist language
@@ -84,7 +86,7 @@ The USB supply and data-cable checklist item MUST offer either a recommended ext
 - **THEN** the USB supply and data-cable row exposes a Buy link or a clear tips action for choosing compatible power and cable
 
 ### Requirement: Servo preview images render
-Each selectable servo preset card MUST show a working image for that preset (real asset or placeholder). A missing or failed image MUST NOT leave a blank broken-image hole without a placeholder fallback.
+The plug-in modules servo row MUST show a working image for the selected preset (real asset or placeholder). A missing or failed image MUST NOT leave a blank broken-image hole without a placeholder fallback.
 
 #### Scenario: Compact presets show images
 - **WHEN** a visitor views FS0307 and ES9051 cards

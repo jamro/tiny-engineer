@@ -2999,6 +2999,20 @@ esp-web-install-button .button,
 }
 
 .shop-servo-lede {
+  margin: 0 0 0.75rem;
+  max-width: 42rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.shop-servo-lede strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.shop-servo-intro .shop-servo-lede {
   margin: 0;
   max-width: none;
   color: var(--text);
@@ -3078,51 +3092,8 @@ esp-web-install-button .button,
   }
 }
 
-.shop-servo-pick-label {
-  margin: 0 0 0.65rem;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.shop-servo-outcome {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.4rem 0.65rem;
-  line-height: 1.45;
-}
-
-.shop-servo-outcome-detail {
-  flex: 1 1 16rem;
-  min-width: 0;
-}
-
-.shop-servo-outcome-detail code {
-  white-space: nowrap;
-}
-
-.shop-servo-outcome-lead {
-  flex: 0 0 auto;
-  padding: 0.1rem 0.4rem;
-  border: 1px solid rgba(124, 255, 107, 0.35);
-  border-radius: var(--radius);
-  background: rgba(124, 255, 107, 0.1);
-  color: var(--accent);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.shop-servo-card-size {
-  display: block;
-  margin: 0.1rem 0 0.15rem;
-  color: var(--accent);
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
-  line-height: 1.3;
+.shop-step-status[hidden] {
+  display: none !important;
 }
 
 .shop-check-progress {
@@ -3157,154 +3128,28 @@ esp-web-install-button .button,
   color: var(--accent);
 }
 
-.shop-servo-picker {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  align-items: stretch;
-}
-
-@media (min-width: 720px) {
-  .shop-servo-picker {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    gap: 0.85rem;
-  }
-}
-
-.shop-path {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  min-width: 0;
-  height: 100%;
-  padding: 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.shop-path--big {
-  border-color: rgba(124, 255, 107, 0.28);
-  background: rgba(124, 255, 107, 0.04);
-}
-
 .shop-path-label {
   margin: 0;
-  padding: 0 0.05rem;
-  font-size: 0.72rem;
+  padding: 0;
+  font-size: 0.68rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
-}
-
-.shop-path--small .shop-path-label {
   color: var(--muted);
 }
 
-.shop-path--big > .shop-servo-tile {
-  flex: 1;
-}
-
-.shop-servo-compact-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.65rem;
-  flex: 1;
-}
-
-@media (min-width: 520px) {
-  .shop-servo-compact-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.shop-servo-tile {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 2px);
-  background: #151515;
-  transition:
-    border-color var(--dur) ease,
-    background var(--dur) ease,
-    box-shadow var(--dur) ease,
-    transform var(--dur) var(--ease-mech);
-}
-
-.shop-servo-tile:hover {
-  border-color: #55554c;
-  transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
-}
-
-.shop-servo-tile.is-selected {
-  border-color: var(--accent);
-  background:
-    linear-gradient(165deg, rgba(124, 255, 107, 0.14), transparent 50%),
-    #151515;
-  box-shadow:
-    0 0 0 1px rgba(124, 255, 107, 0.35),
-    0 12px 28px rgba(0, 0, 0, 0.28);
-}
-
-.shop-servo-card {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  flex: 1 1 auto;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  text-align: left;
-  cursor: pointer;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-}
-
-.shop-servo-card:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-.shop-servo-card-media {
-  position: relative;
-  display: block;
-  aspect-ratio: 5 / 4;
-  background: #0e0e0e;
-  border-bottom: 1px solid var(--border);
-  overflow: hidden;
-}
-
-.shop-servo-card-media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.shop-servo-card-check,
 .shop-card-check {
   position: absolute;
-  top: 0.45rem;
-  right: 0.45rem;
+  top: 0.3rem;
+  right: 0.3rem;
   display: grid;
   place-items: center;
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.15rem;
+  height: 1.15rem;
   border-radius: 999px;
   background: var(--accent);
   color: #102010;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 700;
   line-height: 1;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
@@ -3312,55 +3157,6 @@ esp-web-install-button .button,
 
 .shop-card-check[hidden] {
   display: none;
-}
-
-.shop-servo-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0;
-  margin-top: auto;
-  padding: 0.75rem 0.8rem 0.55rem;
-}
-
-.shop-servo-card-title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.45rem;
-}
-
-.shop-servo-card-name {
-  font-weight: 600;
-  font-size: 1rem;
-  line-height: 1.2;
-  letter-spacing: 0.01em;
-}
-
-.shop-servo-card-meta {
-  font-size: 0.78rem;
-  line-height: 1.35;
-  color: var(--muted);
-}
-
-.shop-servo-card-buy {
-  align-self: flex-start;
-  margin: 0 0.8rem 0.85rem;
-}
-
-.shop-servo-pill,
-.shop-servo-pill--accent {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.14rem 0.45rem;
-  border: 1px solid #5fd652;
-  border-radius: 999px;
-  font-size: 0.66rem;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.02em;
-  color: #102010;
-  background: var(--accent);
 }
 
 .shop-timeline-panel {
@@ -3401,7 +3197,7 @@ esp-web-install-button .button,
 
 @media (min-width: 900px) {
   .shop-order-timeline {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.4rem;
   }
 }
@@ -3540,13 +3336,61 @@ esp-web-install-button .button,
   }
 }
 
+.shop-jlcpcb-panel.is-done {
+  border-color: rgba(124, 255, 107, 0.4);
+  background:
+    linear-gradient(165deg, rgba(124, 255, 107, 0.08), transparent 48%),
+    var(--panel);
+}
+
+.shop-board-interest {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.85rem 0 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(124, 255, 107, 0.22);
+  border-radius: var(--radius);
+  background: rgba(124, 255, 107, 0.05);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.shop-board-interest-icon {
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.12rem;
+  color: var(--accent);
+}
+
+.shop-board-interest a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.shop-board-interest a:hover {
+  color: var(--text);
+}
+
 .shop-jlcpcb-media {
+  position: relative;
   margin: 0;
   overflow: hidden;
   border-radius: calc(var(--radius) + 2px);
   border: 1px solid var(--border);
   background:
     radial-gradient(110% 90% at 50% 20%, #242420 0%, #0d0d0d 68%);
+}
+
+.shop-jlcpcb-panel.is-done .shop-jlcpcb-media {
+  border-color: rgba(124, 255, 107, 0.35);
+}
+
+.shop-jlcpcb-panel.is-done .shop-jlcpcb-media img {
+  opacity: 0.78;
 }
 
 .shop-jlcpcb-media img {
@@ -3558,6 +3402,35 @@ esp-web-install-button .button,
   object-position: center;
   padding: 0.75rem;
   box-sizing: border-box;
+  transition: opacity var(--dur) ease;
+}
+
+.shop-jlcpcb-qty {
+  position: absolute;
+  z-index: 2;
+  right: 0.55rem;
+  bottom: 0.55rem;
+}
+
+.shop-jlcpcb-panel:not(.is-done) .shop-item-check-hit::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 1.5px solid rgba(242, 242, 237, 0.45);
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.55);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.shop-jlcpcb-media .shop-item-check-hit .shop-card-check {
+  position: static;
+  top: auto;
+  right: auto;
+  width: 1.55rem;
+  height: 1.55rem;
 }
 
 .shop-jlcpcb-body {
@@ -3567,11 +3440,22 @@ esp-web-install-button .button,
   min-width: 0;
 }
 
+.shop-jlcpcb-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
 .shop-section-title {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+}
+
+.shop-jlcpcb-panel.is-done .shop-section-title {
+  color: var(--accent);
 }
 
 .shop-jlcpcb-disclaimer {
@@ -4039,6 +3923,40 @@ esp-web-install-button .button,
   gap: 0.45rem;
   align-items: center;
   margin-top: 0.15rem;
+}
+
+.shop-servo-model {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin: 0 0 0 auto;
+}
+
+.shop-servo-model-label {
+  color: var(--muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shop-servo-model-select {
+  min-height: 1.7rem;
+  max-width: 100%;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: #121212;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.shop-servo-model-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .shop-item-tips-btn {

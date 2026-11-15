@@ -1,5 +1,6 @@
 /**
- * Shop stage cart: load cart.json, servo pick, JLCPCB lane, checklist + localStorage.
+ * Shop stage cart: load cart.json, JLCPCB lane, checklist + localStorage.
+ * Servo preset (SG90 default) lives on the plug-in modules servo row.
  * Mount: empty nodes with ids shop-* in web/shop/index.html, then this script.
  */
 import { read, write, loadChecked, saveChecked } from "./storage.js";
@@ -44,6 +45,17 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     return item.label;
   };
 
+  const servoBlurb = (item) => {
+    const s = servoById(servoId);
+    if (!s) return item.blurb || item.notes || "";
+    const size = s.size ? `Robot ${s.size}. ` : "";
+    const tag =
+      s.group === "recommended" || s.default
+        ? "Standard build. "
+        : "Compact build. ";
+    return `${tag}${size}Five identical — never mix.`;
+  };
+
   const bindImageFallback = (img, altText) => {
     img.addEventListener(
       "error",
@@ -56,201 +68,41 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     );
   };
 
-  const servoRadios = (root) =>
-    Array.from(root.querySelectorAll('[role="radio"]'));
-
-  const focusServoRadio = (root, id) => {
-    const btn = root.querySelector(`[role="radio"][data-servo="${CSS.escape(id)}"]`);
-    btn?.focus();
-  };
-
-  /** Select a servo preset; re-render and keep keyboard focus on the active radio. */
-  const selectServo = (id, { focus = true } = {}) => {
+  /** Select a servo preset and refresh lanes (print stage reads the same key). */
+  const selectServo = (id) => {
+    if (!servoById(id)) return;
     if (servoId !== id) {
       servoId = id;
       write(SERVO_KEY, servoId);
     }
-    render({ restoreServoFocus: focus });
+    render();
   };
 
-  const makeServoCard = (s) => {
-    const selected = s.id === servoId;
-    const tile = document.createElement("div");
-    tile.className = "shop-servo-tile" + (selected ? " is-selected" : "");
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "shop-servo-card";
-    btn.setAttribute("role", "radio");
-    btn.setAttribute("aria-checked", selected ? "true" : "false");
-    // Roving tabindex: one tab stop for the radiogroup (selected / checked).
-    btn.tabIndex = selected ? 0 : -1;
-    btn.dataset.servo = s.id;
-    if (s.size) {
-      btn.title = `${s.label} · robot ~${s.size.replace(/^~/, "")}`;
-    }
-
-    const media = document.createElement("span");
-    media.className = "shop-servo-card-media";
-    const img = document.createElement("img");
-    img.src = s.image;
-    img.alt = s.label || s.short || "Servo";
-    img.width = 800;
-    img.height = 640;
-    img.loading = "lazy";
-    img.decoding = "async";
-    bindImageFallback(img, s.label || s.short || "Servo");
-    media.append(img);
-
-    if (selected) {
-      const mark = document.createElement("span");
-      mark.className = "shop-servo-card-check";
-      mark.setAttribute("aria-hidden", "true");
-      mark.textContent = "✓";
-      media.append(mark);
-    }
-
-    const body = document.createElement("span");
-    body.className = "shop-servo-card-body";
-
-    const title = document.createElement("span");
-    title.className = "shop-servo-card-title";
-
-    const name = document.createElement("span");
-    name.className = "shop-servo-card-name";
-    name.textContent = s.label || s.short;
-    title.append(name);
-
-    if (s.group === "recommended") {
-      const tag = document.createElement("span");
-      tag.className = "shop-servo-pill shop-servo-pill--accent";
-      tag.textContent = "Start here";
-      title.append(tag);
-    }
-
-    const meta = document.createElement("span");
-    meta.className = "shop-servo-card-meta";
-    meta.textContent = s.summary || "";
-
-    body.append(title);
-    if (s.size) {
-      const size = document.createElement("span");
-      size.className = "shop-servo-card-size mono";
-      size.textContent = `Robot ${s.size}`;
-      body.append(size);
-    }
-    body.append(meta);
-    btn.append(media, body);
-    btn.addEventListener("click", () => {
-      selectServo(s.id, { focus: true });
+  /** Compact / standard switcher on the plug-in modules servo checklist row. */
+  const appendServoModelControl = (actions) => {
+    const wrap = document.createElement("label");
+    wrap.className = "shop-servo-model";
+    const caption = document.createElement("span");
+    caption.className = "shop-servo-model-label mono";
+    caption.textContent = "Model";
+    const select = document.createElement("select");
+    select.className = "shop-servo-model-select";
+    select.setAttribute("aria-label", "Servo model — sets whole robot size");
+    (cart.servos || []).forEach((s) => {
+      if (s.id === "hd1370a") return;
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      const kind =
+        s.group === "recommended" || s.default ? "standard" : "compact";
+      opt.textContent = `${s.short || s.label} (${kind})`;
+      if (s.id === servoId) opt.selected = true;
+      select.append(opt);
     });
-    btn.addEventListener("keydown", (ev) => {
-      const root = el("shop-servo-picker");
-      if (!root) return;
-      const radios = servoRadios(root);
-      const i = radios.indexOf(ev.currentTarget);
-      if (i < 0) return;
-      let next = -1;
-      if (ev.key === "ArrowRight" || ev.key === "ArrowDown") {
-        next = (i + 1) % radios.length;
-      } else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") {
-        next = (i - 1 + radios.length) % radios.length;
-      } else if (ev.key === "Home") {
-        next = 0;
-      } else if (ev.key === "End") {
-        next = radios.length - 1;
-      } else {
-        return;
-      }
-      ev.preventDefault();
-      const id = radios[next]?.dataset?.servo;
-      if (id) selectServo(id, { focus: true });
+    select.addEventListener("change", () => {
+      selectServo(select.value);
     });
-    tile.append(btn);
-
-    if (s.url) {
-      const buy = document.createElement("a");
-      buy.className = "shop-item-buy shop-servo-card-buy";
-      buy.href = s.url;
-      buy.target = "_blank";
-      buy.rel = "noopener noreferrer";
-      buy.append("Buy ×5");
-      appendExternalIcon(buy);
-      tile.append(buy);
-    }
-
-    return tile;
-  };
-
-  const renderServos = ({ restoreServoFocus = false } = {}) => {
-    const root = el("shop-servo-picker");
-    const status = el("shop-servo-status");
-    if (!root || !cart) return;
-
-    const hadFocus = root.contains(document.activeElement);
-
-    root.replaceChildren();
-
-    const recommended = cart.servos.filter((s) => s.group === "recommended");
-    const compact = cart.servos.filter((s) => s.group === "compact");
-    const other = cart.servos.filter(
-      (s) => s.group !== "recommended" && s.group !== "compact"
-    );
-
-    if (recommended.length) {
-      const path = document.createElement("div");
-      path.className = "shop-path shop-path--big";
-      const label = document.createElement("p");
-      label.className = "shop-path-label mono";
-      label.textContent = "Larger robot · ~13 × 15 × 12 cm";
-      path.append(label);
-      recommended.forEach((s) => path.append(makeServoCard(s)));
-      root.append(path);
-    }
-
-    if (compact.length) {
-      const path = document.createElement("div");
-      path.className = "shop-path shop-path--small";
-      const label = document.createElement("p");
-      label.className = "shop-path-label mono";
-      label.textContent = "Compact robot · ~11 × 13 × 10 cm — pick either";
-      path.append(label);
-
-      const grid = document.createElement("div");
-      grid.className = "shop-servo-compact-grid";
-      grid.setAttribute("role", "presentation");
-      compact.forEach((s) => grid.append(makeServoCard(s)));
-      path.append(grid);
-      root.append(path);
-    }
-
-    other.forEach((s) => root.append(makeServoCard(s)));
-
-    // If nothing is checked yet, keep one tab stop on the first radio.
-    const radios = servoRadios(root);
-    if (radios.length && !radios.some((r) => r.tabIndex === 0)) {
-      radios[0].tabIndex = 0;
-    }
-
-    if ((restoreServoFocus || hadFocus) && servoId) {
-      focusServoRadio(root, servoId);
-    }
-
-    const s = servoById(servoId);
-    if (status && s) {
-      const qty = s.qty ?? 5;
-      status.replaceChildren();
-      const lead = document.createElement("span");
-      lead.className = "shop-servo-outcome-lead";
-      lead.textContent = "Your build";
-      const detail = document.createElement("span");
-      detail.className = "shop-servo-outcome-detail";
-      detail.textContent =
-        `${s.label || s.short}` +
-        (s.size ? ` · robot ${s.size}` : "") +
-        ` · buy ×${qty} identical · later print the matching parts set`;
-      status.append(lead, detail);
-    }
+    wrap.append(caption, select);
+    actions.append(wrap);
   };
 
   const laneProgress = (lane) => {
@@ -293,7 +145,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     warn.textContent =
       "You can still continue — " +
       bits.join("; ") +
-      ". Printing can wait; the board often takes weeks.";
+      ". Order the board when you are ready; the steps above walk you through it.";
     warn.hidden = false;
   };
 
@@ -325,13 +177,6 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     root.replaceChildren();
     const { done: allDone, total: allTotal } = allCheckProgress();
     const steps = [
-      {
-        label: "1",
-        title: "Choose a servo",
-        meta: "✓ chosen",
-        complete: true,
-        href: "#shop-step-servo",
-      },
       ...cart.lanes.map((lane) => {
         const { done, total } = laneProgress(lane);
         return {
@@ -343,7 +188,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
         };
       }),
       {
-        label: "5",
+        label: "4",
         title: "Continue to print",
         meta: allTotal > 0 && allDone >= allTotal ? "✓ ready" : "…",
         complete: allTotal > 0 && allDone >= allTotal,
@@ -401,11 +246,18 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     appendSpriteIcon(node, "i-external");
   };
 
+  const boardLane = () => cart?.lanes?.find((l) => l.id === "now");
+  const boardItem = () => boardLane()?.items?.[0] || null;
+
   const renderJlcpcb = () => {
     const root = el("shop-jlcpcb");
+    const panel = el("shop-step-board");
     if (!root || !cart?.jlcpcb) return;
     const j = cart.jlcpcb;
+    const item = boardItem();
+    const isDone = item ? checked.has(item.id) : false;
     root.replaceChildren();
+    if (panel) panel.classList.toggle("is-done", isDone);
 
     const media = document.createElement("div");
     media.className = "shop-jlcpcb-media";
@@ -417,6 +269,50 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     bindImageFallback(img, "Main control board");
     media.append(img);
 
+    if (item) {
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.id = `shop-check-${item.id}`;
+      box.className = "shop-item-check";
+      box.checked = isDone;
+      box.setAttribute(
+        "aria-label",
+        `Mark ${itemLabel(item)} as ordered or owned`
+      );
+      box.title = "Mark as ordered or owned";
+
+      const mark = document.createElement("span");
+      mark.className = "shop-card-check";
+      mark.setAttribute("aria-hidden", "true");
+      mark.textContent = "✓";
+      mark.hidden = !isDone;
+
+      const syncDone = () => {
+        if (box.checked) checked.add(item.id);
+        else checked.delete(item.id);
+        saveChecked(checked, CHECKED_KEY);
+        mark.hidden = !box.checked;
+        if (panel) panel.classList.toggle("is-done", box.checked);
+        updateCheckProgress();
+      };
+      box.addEventListener("change", syncDone);
+
+      const checkHit = document.createElement("label");
+      checkHit.className = "shop-item-check-hit";
+      checkHit.htmlFor = box.id;
+      checkHit.title = "Mark as ordered or owned";
+      checkHit.append(box, mark);
+      media.append(checkHit);
+
+      const qty = document.createElement("span");
+      const n = itemQty(item);
+      qty.className = "shop-item-qty shop-jlcpcb-qty mono";
+      qty.title = `Quantity: ${n}`;
+      qty.setAttribute("aria-label", `Quantity ${n}`);
+      qty.textContent = `×${n}`;
+      media.append(qty);
+    }
+
     const body = document.createElement("div");
     body.className = "shop-jlcpcb-body";
 
@@ -427,10 +323,13 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
       body.append(path);
     }
 
+    const titleRow = document.createElement("div");
+    titleRow.className = "shop-jlcpcb-title-row";
     const title = document.createElement("h2");
     title.className = "shop-section-title";
     title.textContent = j.title;
-    body.append(title);
+    titleRow.append(title);
+    body.append(titleRow);
 
     if (j.disclaimer) {
       const disc = document.createElement("p");
@@ -552,7 +451,6 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     section.className = "panel shop-lane";
     section.id = `shop-lane-${lane.id}`;
     section.dataset.lane = lane.id;
-    if (lane.id === "now") section.classList.add("shop-lane--featured");
 
     const head = document.createElement("div");
     head.className = "shop-lane-head";
@@ -585,11 +483,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     lane.items.forEach((item) => {
       const li = document.createElement("li");
       const isDone = checked.has(item.id);
-      const featured = lane.id === "now";
-      li.className =
-        "shop-item" +
-        (isDone ? " is-done" : "") +
-        (featured ? " shop-item--featured" : "");
+      li.className = "shop-item" + (isDone ? " is-done" : "");
 
       const box = document.createElement("input");
       box.type = "checkbox";
@@ -665,12 +559,18 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
       itemHead.append(name, qty);
       body.append(itemHead);
 
-      const blurbText = item.blurb || item.notes || "";
+      const blurbText =
+        item.id === "servo" ? servoBlurb(item) : item.blurb || item.notes || "";
       if (blurbText) {
         const notes = document.createElement("p");
         notes.className = "shop-item-notes";
         notes.textContent = blurbText;
-        if (item.notes && item.blurb && item.notes !== item.blurb) {
+        if (
+          item.id !== "servo" &&
+          item.notes &&
+          item.blurb &&
+          item.notes !== item.blurb
+        ) {
           notes.title = item.notes;
         }
         body.append(notes);
@@ -687,9 +587,13 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
         buy.href = buyUrl;
         buy.target = "_blank";
         buy.rel = "noopener noreferrer";
-        buy.append("Buy");
+        buy.append(item.id === "servo" ? "Buy ×5" : "Buy");
         appendExternalIcon(buy);
         actions.append(buy);
+      }
+
+      if (item.id === "servo") {
+        appendServoModelControl(actions);
       }
 
       if (item.tips) {
@@ -730,7 +634,10 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     const root = el("shop-lanes");
     if (!root || !cart) return;
     root.replaceChildren();
-    cart.lanes.forEach((lane) => root.append(renderLane(lane)));
+    // Board lane lives inside #shop-step-board (JLCPCB card), not a second panel.
+    cart.lanes
+      .filter((lane) => lane.id !== "now")
+      .forEach((lane) => root.append(renderLane(lane)));
   };
 
   const renderAdvanced = () => {
@@ -739,17 +646,26 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     link.href = cart.advancedBreakoutsDoc;
   };
 
-  const render = ({ restoreServoFocus = false } = {}) => {
-    renderServos({ restoreServoFocus });
+  const render = () => {
     renderJlcpcb();
     renderLanes();
     renderAdvanced();
     updateCheckProgress();
   };
 
+  /** Deep links (#shop-lane-next) land after async cart render — browser hash scroll is too early. */
+  const scrollToHash = () => {
+    const id = (location.hash || "").replace(/^#/, "");
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target) return;
+    target.scrollIntoView({ behavior: "auto", block: "start" });
+  };
+
   const clearChecks = () => {
     checked = new Set();
     saveChecked(checked, CHECKED_KEY);
+    renderJlcpcb();
     renderLanes();
     updateCheckProgress();
   };
@@ -771,6 +687,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
       render();
       setStatus("", "ready");
       if (statusEl) statusEl.hidden = true;
+      requestAnimationFrame(scrollToHash);
     } catch (err) {
       console.error(err);
       setStatus("Could not load cart.json.", "error");
