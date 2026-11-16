@@ -39,7 +39,24 @@ test("runExt --help prints lcd1602 usage", async () => {
   try {
     await runExt(out, ["--help"], false);
     assert.ok(logs.some((l) => l.includes("lcd1602 text get")));
+    assert.ok(logs.some((l) => l.includes("lcd1602 color get")));
   } finally {
     console.log = original;
   }
+});
+
+test("runExt color set rejects missing channels locally", async () => {
+  /** @type {string[]} */
+  const errs = [];
+  const out = createOutput({
+    quiet: false,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: (m) => errs.push(String(m)),
+  });
+  process.exitCode = 0;
+  await runExt(out, ["lcd1602", "color", "set", "--r=10"], false);
+  assert.equal(process.exitCode, 1);
+  assert.ok(errs.some((e) => e.includes("color set needs")));
+  process.exitCode = 0;
 });

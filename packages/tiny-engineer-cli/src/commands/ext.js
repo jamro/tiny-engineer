@@ -56,6 +56,8 @@ Extensions (v1):
   lcd1602 text clear
   lcd1602 brightness get
   lcd1602 brightness set <0-100>
+  lcd1602 color get
+  lcd1602 color set --r=0-255 --g=0-255 --b=0-255
 
 Enable the module with: tiny-engineer settings set --lcd1602=true
 
@@ -208,6 +210,61 @@ async function runLcd1602(out, resource, action, rest, transportOpts) {
     return;
   }
 
-  out.error("lcd1602 resources: text | brightness");
+  if (resource === "color") {
+    if (action === "get") {
+      const result = await robotExt(
+        { id: "lcd1602", suffix: "color", method: "GET" },
+        transportOpts,
+      );
+      if (!result.ok) {
+        out.error(formatRobotError(result));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify(result.bodyJson ?? {}, null, 2));
+      process.exitCode = 0;
+      return;
+    }
+
+    if (action === "set") {
+      const flags = parseFlags(rest);
+      const r = flags.r !== undefined ? Number(flags.r) : NaN;
+      const g = flags.g !== undefined ? Number(flags.g) : NaN;
+      const b = flags.b !== undefined ? Number(flags.b) : NaN;
+      if (
+        !Number.isInteger(r) ||
+        !Number.isInteger(g) ||
+        !Number.isInteger(b) ||
+        r < 0 ||
+        r > 255 ||
+        g < 0 ||
+        g > 255 ||
+        b < 0 ||
+        b > 255
+      ) {
+        out.error("color set needs --r=0-255 --g=0-255 --b=0-255");
+        process.exitCode = 1;
+        return;
+      }
+      const result = await robotExt(
+        { id: "lcd1602", suffix: "color", method: "POST", body: { r, g, b } },
+        transportOpts,
+      );
+      if (!result.ok) {
+        out.error(formatRobotError(result));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify(result.bodyJson ?? {}, null, 2));
+      process.exitCode = 0;
+      return;
+    }
+
+    out.error("lcd1602 color actions: get | set");
+    process.exitCode = 1;
+    return;
+  }
+
+  out.error("lcd1602 resources: text | brightness | color");
   process.exitCode = 1;
 }

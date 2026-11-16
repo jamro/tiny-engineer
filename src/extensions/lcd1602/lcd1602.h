@@ -22,6 +22,12 @@ struct Lcd1602TextState {
   Lcd1602LineState line2;
 };
 
+struct Lcd1602Color {
+  uint8_t r = 255;
+  uint8_t g = 255;
+  uint8_t b = 255;
+};
+
 bool lcd1602Enabled();
 bool lcd1602HardwareOk();
 
@@ -30,11 +36,14 @@ void lcd1602Poll();
 
 const Lcd1602TextState& lcd1602TextState();
 uint8_t lcd1602Brightness();
+Lcd1602Color lcd1602Color();
 
 // Returns false when hardware is missing (caller should 503). Updates last on success.
 bool lcd1602SetText(const Lcd1602LineState* line1, const Lcd1602LineState* line2);
 bool lcd1602ClearText();
 bool lcd1602SetBrightness(uint8_t percent);
+// Sets base RGB and applies PWM scaled by brightness. Caller maps chip errors via lcd1602HwLedKind.
+bool lcd1602SetColor(uint8_t r, uint8_t g, uint8_t b);
 
 Lcd1602Align lcd1602ParseAlign(const char* align, bool* ok);
 const char* lcd1602AlignName(Lcd1602Align align);

@@ -18,7 +18,7 @@ constexpr uint8_t kAlignRight = 1;
 constexpr uint8_t kAlignCenter = 2;
 
 #pragma pack(push, 1)
-struct Lcd1602LastBlob {
+struct Lcd1602LastBlobV1 {
   char line1[kLcd1602LineMax + 1];
   char line2[kLcd1602LineMax + 1];
   uint8_t align1;
@@ -26,12 +26,26 @@ struct Lcd1602LastBlob {
   uint8_t brightness;
   uint8_t reserved;
 };
+
+struct Lcd1602LastBlob {
+  char line1[kLcd1602LineMax + 1];
+  char line2[kLcd1602LineMax + 1];
+  uint8_t align1;
+  uint8_t align2;
+  uint8_t brightness;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+};
 #pragma pack(pop)
+
+static_assert(sizeof(Lcd1602LastBlobV1) == sizeof(Lcd1602LastBlob) - 2, "v1 blob size");
 
 bool g_active = false;
 bool g_hwOk = false;
 Lcd1602TextState g_text{};
 uint8_t g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
+Lcd1602Color g_color{};
 size_t g_scrollIndex[2] = {0, 0};
 uint32_t g_nextScrollMs[2] = {0, 0};
 bool g_atWrapPause[2] = {false, false};
@@ -85,6 +99,25 @@ bool lineNeedsScroll(const Lcd1602LineState& line) {
   return strlen(line.text) > kLcd1602Cols;
 }
 
+uint8_t scaleChannel(uint8_t channel, uint8_t brightness) {
+  return static_cast<uint8_t>((static_cast<uint16_t>(channel) * brightness) / 100);
+}
+
+bool applyBacklightHw() {
+  const Lcd1602LedKind kind = lcd1602HwLedKind();
+  if (kind == Lcd1602LedKind::None) {
+    return false;
+  }
+  if (kind == Lcd1602LedKind::Sn3193) {
+    return lcd1602HwSetBrightness(g_brightness);
+  }
+  return lcd1602HwSetRgbPwm(
+    scaleChannel(g_color.r, g_brightness),
+    scaleChannel(g_color.g, g_brightness),
+    scaleChannel(g_color.b, g_brightness)
+  );
+}
+
 void persistLast() {
   Lcd1602LastBlob blob{};
   strlcpy(blob.line1, g_text.line1.text, sizeof(blob.line1));
@@ -92,6 +125,9 @@ void persistLast() {
   blob.align1 = alignToByte(g_text.line1.align);
   blob.align2 = alignToByte(g_text.line2.align);
   blob.brightness = g_brightness;
+  blob.r = g_color.r;
+  blob.g = g_color.g;
+  blob.b = g_color.b;
 
   if (!g_settingsPrefs.begin(kNs, false)) {
     serialLogPrintln("LCD1602: last NVS open failed");
@@ -107,7 +143,7 @@ void persistLast() {
   }
 }
 
-bool loadLast(Lcd1602TextState& text, uint8_t& brightness) {
+bool loadLast(Lcd1602TextState& text, uint8_t& brightness, Lcd1602Color& color) {
   if (!g_settingsPrefs.begin(kNs, true)) {
     return false;
   }
@@ -118,7 +154,7 @@ bool loadLast(Lcd1602TextState& text, uint8_t& brightness) {
     : 0;
   g_settingsPrefs.end();
 
-  if (got != sizeof(blob)) {
+  if (got != sizeof(Lcd1602LastBlob) && got != sizeof(Lcd1602LastBlobV1)) {
     return false;
   }
 
@@ -129,26 +165,36 @@ bool loadLast(Lcd1602TextState& text, uint8_t& brightness) {
   text.line1.align = alignFromByte(blob.align1);
   text.line2.align = alignFromByte(blob.align2);
   brightness = blob.brightness > 100 ? SETTINGS_DEFAULT_LCD1602_BRIGHTNESS : blob.brightness;
+
+  if (got == sizeof(Lcd1602LastBlob)) {
+    color.r = blob.r;
+    color.g = blob.g;
+    color.b = blob.b;
+  } else {
+    color = Lcd1602Color{};
+  }
   return true;
 }
 
-void applyBrightnessPolicy(bool fromLast, uint8_t lastBrightness) {
+void applyBrightnessPolicy(bool fromLast, uint8_t lastBrightness, const Lcd1602Color& lastColor) {
   if (fromLast) {
     g_brightness = lastBrightness;
+    g_color = lastColor;
     if (g_hwOk) {
-      lcd1602HwSetBrightness(g_brightness);
+      applyBacklightHw();
     }
     return;
   }
 
+  g_color = Lcd1602Color{};
   if (settingsLcd1602BacklightBoot()) {
     g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
     if (g_hwOk) {
-      lcd1602HwSetBrightness(g_brightness);
+      applyBacklightHw();
     }
   } else if (g_hwOk) {
     g_brightness = 0;
-    lcd1602HwSetBrightness(0);
+    applyBacklightHw();
   }
 }
 
@@ -156,10 +202,11 @@ void applyBootContent() {
   const char* mode = settingsLcd1602Boot();
   Lcd1602TextState next{};
   uint8_t lastBrightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
+  Lcd1602Color lastColor{};
   bool haveLast = false;
 
   if (strcmp(mode, "last") == 0) {
-    haveLast = loadLast(next, lastBrightness);
+    haveLast = loadLast(next, lastBrightness, lastColor);
   } else if (strcmp(mode, "config") == 0) {
     strlcpy(next.line1.text, settingsLcd1602Line1(), sizeof(next.line1.text));
     strlcpy(next.line2.text, settingsLcd1602Line2(), sizeof(next.line2.text));
@@ -174,7 +221,7 @@ void applyBootContent() {
     renderAll();
   }
 
-  applyBrightnessPolicy(haveLast && strcmp(mode, "last") == 0, lastBrightness);
+  applyBrightnessPolicy(haveLast && strcmp(mode, "last") == 0, lastBrightness, lastColor);
 }
 
 }  // namespace
@@ -246,6 +293,10 @@ uint8_t lcd1602Brightness() {
   return g_brightness;
 }
 
+Lcd1602Color lcd1602Color() {
+  return g_color;
+}
+
 bool lcd1602SetText(const Lcd1602LineState* line1, const Lcd1602LineState* line2) {
   if (!g_active) {
     return false;
@@ -291,11 +342,31 @@ bool lcd1602SetBrightness(uint8_t percent) {
     return false;
   }
 
-  if (!lcd1602HwSetBrightness(percent)) {
+  g_brightness = percent;
+  if (!applyBacklightHw()) {
     return false;
   }
 
-  g_brightness = percent;
+  persistLast();
+  return true;
+}
+
+bool lcd1602SetColor(uint8_t r, uint8_t g, uint8_t b) {
+  if (!g_active) {
+    return false;
+  }
+
+  if (lcd1602HwLedKind() != Lcd1602LedKind::Pca9633) {
+    return false;
+  }
+
+  g_color.r = r;
+  g_color.g = g;
+  g_color.b = b;
+  if (!applyBacklightHw()) {
+    return false;
+  }
+
   persistLast();
   return true;
 }

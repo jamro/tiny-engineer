@@ -34,9 +34,7 @@ constexpr uint8_t kRgbPwm1Reg = 0x03;
 constexpr uint8_t kRgbPwm2Reg = 0x04;
 constexpr uint8_t kRgbLedoutReg = 0x08;
 
-enum class LedChip : uint8_t { None, Sn3193, Pca9633 };
-
-LedChip g_ledChip = LedChip::None;
+Lcd1602LedKind g_ledChip = Lcd1602LedKind::None;
 
 void lcdWrite(uint8_t prefix, uint8_t value) {
   Wire.beginTransmission(LCD1602_ADDRESS);
@@ -71,14 +69,14 @@ bool pca9633Present() {
   return i2cDeviceConnected(LCD1602_RGB_ADDRESS);
 }
 
-LedChip detectLedChip() {
+Lcd1602LedKind detectLedChip() {
   if (sn3193Present()) {
-    return LedChip::Sn3193;
+    return Lcd1602LedKind::Sn3193;
   }
   if (pca9633Present()) {
-    return LedChip::Pca9633;
+    return Lcd1602LedKind::Pca9633;
   }
-  return LedChip::None;
+  return Lcd1602LedKind::None;
 }
 
 void initSn3193() {
@@ -108,23 +106,14 @@ bool setBrightnessSn3193(uint8_t percent) {
   return true;
 }
 
-bool setBrightnessPca9633(uint8_t percent) {
-  // White backlight: equal R/G/B channels (Waveshare PWM2=red, PWM1=green, PWM0=blue).
-  const uint8_t level = static_cast<uint8_t>((percent * 255) / 100);
-  pca9633Write(kRgbPwm0Reg, level);
-  pca9633Write(kRgbPwm1Reg, level);
-  pca9633Write(kRgbPwm2Reg, level);
-  return true;
-}
-
-LedChip ensureLedChip() {
-  if (g_ledChip != LedChip::None) {
+Lcd1602LedKind ensureLedChip() {
+  if (g_ledChip != Lcd1602LedKind::None) {
     return g_ledChip;
   }
   g_ledChip = detectLedChip();
-  if (g_ledChip == LedChip::Sn3193) {
+  if (g_ledChip == Lcd1602LedKind::Sn3193) {
     initSn3193();
-  } else if (g_ledChip == LedChip::Pca9633) {
+  } else if (g_ledChip == Lcd1602LedKind::Pca9633) {
     initPca9633();
   }
   return g_ledChip;
@@ -133,7 +122,7 @@ LedChip ensureLedChip() {
 }  // namespace
 
 void lcd1602HwResetLed() {
-  g_ledChip = LedChip::None;
+  g_ledChip = Lcd1602LedKind::None;
 }
 
 bool lcd1602HwPresent() {
@@ -141,10 +130,14 @@ bool lcd1602HwPresent() {
 }
 
 bool lcd1602HwLedPresent() {
-  if (g_ledChip != LedChip::None) {
+  if (g_ledChip != Lcd1602LedKind::None) {
     return true;
   }
   return sn3193Present() || pca9633Present();
+}
+
+Lcd1602LedKind lcd1602HwLedKind() {
+  return ensureLedChip();
 }
 
 bool lcd1602HwInit() {
@@ -189,13 +182,22 @@ bool lcd1602HwSetBrightness(uint8_t percent) {
     percent = 100;
   }
 
-  const LedChip chip = ensureLedChip();
-  if (chip == LedChip::None) {
+  const Lcd1602LedKind chip = ensureLedChip();
+  if (chip != Lcd1602LedKind::Sn3193) {
+    return false;
+  }
+  return setBrightnessSn3193(percent);
+}
+
+bool lcd1602HwSetRgbPwm(uint8_t r, uint8_t g, uint8_t b) {
+  const Lcd1602LedKind chip = ensureLedChip();
+  if (chip != Lcd1602LedKind::Pca9633) {
     return false;
   }
 
-  if (chip == LedChip::Sn3193) {
-    return setBrightnessSn3193(percent);
-  }
-  return setBrightnessPca9633(percent);
+  // Waveshare: PWM0=blue, PWM1=green, PWM2=red
+  pca9633Write(kRgbPwm0Reg, b);
+  pca9633Write(kRgbPwm1Reg, g);
+  pca9633Write(kRgbPwm2Reg, r);
+  return true;
 }

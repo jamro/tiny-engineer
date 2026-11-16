@@ -40,6 +40,8 @@ const ROUTES = [
   ["DELETE", "/extensions/lcd1602/text", "Clear both LCD 1602 lines"],
   ["GET", "/extensions/lcd1602/brightness", "LCD 1602 backlight brightness"],
   ["POST", "/extensions/lcd1602/brightness", "Set LCD 1602 backlight brightness"],
+  ["GET", "/extensions/lcd1602/color", "LCD 1602 RGB backlight color (PCA9633)"],
+  ["POST", "/extensions/lcd1602/color", "Set LCD 1602 RGB backlight color"],
 ] as const;
 
 export function ApiReference() {

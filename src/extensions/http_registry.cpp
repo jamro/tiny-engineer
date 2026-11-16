@@ -30,6 +30,8 @@ constexpr ExtHttpRoute kExtRoutes[] = {
   {"/extensions/lcd1602/text", HTTP_DELETE, Access::Configured, lcd1602On, handleLcd1602TextDelete},
   {"/extensions/lcd1602/brightness", HTTP_GET, Access::Configured, lcd1602On, handleLcd1602BrightnessGet},
   {"/extensions/lcd1602/brightness", HTTP_POST, Access::Configured, lcd1602On, handleLcd1602BrightnessPost},
+  {"/extensions/lcd1602/color", HTTP_GET, Access::Configured, lcd1602On, handleLcd1602ColorGet},
+  {"/extensions/lcd1602/color", HTTP_POST, Access::Configured, lcd1602On, handleLcd1602ColorPost},
 };
 
 bool parseMethod(const char* method, HTTPMethod& out) {
@@ -167,6 +169,15 @@ int extensionInvoke(
     }
     if (httpMethod == HTTP_POST) {
       return lcd1602ApiBrightnessPost(obj, out, err, errLen);
+    }
+  }
+
+  if (strcmp(path, "/extensions/lcd1602/color") == 0) {
+    if (httpMethod == HTTP_GET) {
+      return lcd1602ApiColorGet(out, err, errLen);
+    }
+    if (httpMethod == HTTP_POST) {
+      return lcd1602ApiColorPost(obj, out, err, errLen);
     }
   }
 

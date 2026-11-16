@@ -563,7 +563,7 @@ Save with `POST /settings` `{"oled_rotate_180":true}` (setup AP only). The saved
 
 ### LCD 1602 extension (`/extensions/lcd1602/…`)
 
-Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but neither backlight chip ACKs → brightness **503** `backlight not found`. On the RGB module (PCA9633), brightness sets equal white R/G/B channels (no color API). No outbound events.
+Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but neither backlight chip ACKs → brightness **503** `backlight not found`. On PCA9633, brightness scales the base RGB color (`PWM = channel × brightness / 100`); use `/color` for base R/G/B. Color on SN3193 → **400** `rgb not supported`. No outbound events.
 
 #### `GET` / `POST` / `DELETE /extensions/lcd1602/text`
 
@@ -588,7 +588,11 @@ curl -X POST "http://tiny-engineer.local/extensions/lcd1602/text" \
 
 #### `GET` / `POST /extensions/lcd1602/brightness`
 
-`GET` → `{"brightness":50}`. `POST` body `{"brightness":0..100}` (0 = backlight off). Neither SN3193 nor PCA9633 ACK → **503** `backlight not found`. Successful text/clear/brightness updates persist **last** state for `lcd1602_boot=last`.
+`GET` → `{"brightness":50}`. `POST` body `{"brightness":0..100}` (0 = backlight off). Neither SN3193 nor PCA9633 ACK → **503** `backlight not found`. On PCA9633, brightness scales the stored base color (default white `255,255,255`). Successful text/clear/brightness/color updates persist **last** state for `lcd1602_boot=last`.
+
+#### `GET` / `POST /extensions/lcd1602/color`
+
+PCA9633 RGB modules only. `GET` → `{"r":255,"g":255,"b":255}`. `POST` body `{"r":0..255,"g":0..255,"b":0..255}` sets the base color (PWM scaled by current brightness). SN3193 (or other non-RGB backlight) → **400** `rgb not supported`. No backlight chip → **503** `backlight not found`.
 
 ### `POST /servos/park`
 

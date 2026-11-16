@@ -7,3 +7,5 @@ void handleLcd1602TextPost(WebServer& server);
 void handleLcd1602TextDelete(WebServer& server);
 void handleLcd1602BrightnessGet(WebServer& server);
 void handleLcd1602BrightnessPost(WebServer& server);
+void handleLcd1602ColorGet(WebServer& server);
+void handleLcd1602ColorPost(WebServer& server);

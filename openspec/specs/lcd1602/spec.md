@@ -32,7 +32,7 @@ When `lcd1602` is false, the firmware MUST NOT probe, initialize, write, or read
 - **THEN** scroll ticks stop and further LCD I2C writes for this extension do not run
 
 ### Requirement: Fixed Waveshare I2C addresses
-When enabled, the extension MUST use LCD address **0x3E** (AiP31068L). Controllable backlight MUST auto-detect **0x6B** (SN3193, Blue/Gray/Green) or **0x60** (PCA9633, RGB module); those addresses MUST NOT be settings. Brightness on PCA9633 MUST map 0–100 to equal white R/G/B PWM channels. The extension MUST target the Waveshare LCD1602 I2C module family, not PCF8574 backpacks.
+When enabled, the extension MUST use LCD address **0x3E** (AiP31068L). Controllable backlight MUST auto-detect **0x6B** (SN3193, Blue/Gray/Green) or **0x60** (PCA9633, RGB module); those addresses MUST NOT be settings. On PCA9633, brightness MUST scale the base RGB color; the color API sets that base (default white 255,255,255). The extension MUST target the Waveshare LCD1602 I2C module family, not PCF8574 backpacks.
 
 #### Scenario: No address settings
 - **WHEN** a client posts an unknown field intended as an LCD I2C address
@@ -139,7 +139,7 @@ When a line’s `text` length is greater than 16, the firmware MUST ignore `alig
 - **THEN** both lines are empty and brightness is unchanged
 
 ### Requirement: Brightness API
-`GET /extensions/lcd1602/brightness` MUST return JSON `{"brightness": <0-100>}`. `POST /extensions/lcd1602/brightness` MUST accept `{"brightness": <0-100>}`, apply backlight (0 = off), persist last state, and answer **200** with the new value. Out-of-range or bad types MUST answer **400** without changing brightness.
+`GET /extensions/lcd1602/brightness` MUST return JSON `{"brightness": <0-100>}`. `POST /extensions/lcd1602/brightness` MUST accept `{"brightness": <0-100>}`, apply backlight (0 = off), persist last state, and answer **200** with the new value. On PCA9633, brightness MUST scale the stored base RGB color (`PWM = channel × brightness / 100`). Out-of-range or bad types MUST answer **400** without changing brightness.
 
 #### Scenario: Set brightness
 - **WHEN** the client posts `{"brightness": 50}` while the extension is on and LCD backlight is reachable
@@ -149,6 +149,21 @@ When a line’s `text` length is greater than 16, the firmware MUST ignore `alig
 - **WHEN** the client posts `{"brightness": 101}`
 - **THEN** the response is **400** and brightness is unchanged
 
+### Requirement: RGB color API
+`GET` / `POST /extensions/lcd1602/color` MUST be available when the detected backlight is PCA9633. `GET` MUST return `{"r","g","b"}` each 0–255. `POST` MUST accept those three fields, store them as the base color, apply PWM scaled by current brightness, persist last state, and answer **200**. When the backlight is SN3193, color MUST answer **400** `rgb not supported`. When no backlight chip ACKs, color MUST answer **503** `backlight not found`.
+
+#### Scenario: Set color on RGB module
+- **WHEN** the PCA9633 ACKs and the client posts `{"r":0,"g":128,"b":255}` while the extension is on
+- **THEN** the response is **200** with that color and the backlight uses those channels scaled by brightness
+
+#### Scenario: Color rejected on SN3193
+- **WHEN** the SN3193 ACKs and the client posts color
+- **THEN** the response is **400** with `rgb not supported`
+
+#### Scenario: Color without backlight
+- **WHEN** neither backlight chip ACKs and the client posts color
+- **THEN** the response is **503** with a backlight not-found style message
+
 ### Requirement: Missing LCD while enabled
 When `lcd1602` is true but the LCD does not ACK at `0x3E`, write/clear/brightness requests that need hardware MUST answer **503** with a not-found style message. `GET` text/brightness MAY return the last known logical state from RAM/NVS. The enabled setting MUST remain true.
 
@@ -157,11 +172,11 @@ When `lcd1602` is true but the LCD does not ACK at `0x3E`, write/clear/brightnes
 - **THEN** the response is **503** and `GET /settings` still reports `lcd1602` true
 
 ### Requirement: Last state persistence
-After every successful text update, clear, or brightness change, the firmware MUST store last state: both lines’ text and align, plus brightness. Factory reset MUST clear last state to empty lines, align left, and a defined default brightness (implementation default, documented).
+After every successful text update, clear, brightness, or color change, the firmware MUST store last state: both lines’ text and align, brightness, and base RGB color. Factory reset MUST clear last state to empty lines, align left, default brightness, and white color (255,255,255).
 
 #### Scenario: Boot last after power cycle
 - **WHEN** last state was saved, `lcd1602_boot` is `last`, and the device reboots with the extension on and LCD present
-- **THEN** the display restores that last text, align, and brightness
+- **THEN** the display restores that last text, align, brightness, and color
 
 ### Requirement: No outbound events
 The LCD 1602 extension MUST NOT publish outbound events on WebSocket or serial.
@@ -171,7 +186,7 @@ The LCD 1602 extension MUST NOT publish outbound events on WebSocket or serial.
 - **THEN** no new outbound event is emitted for that update
 
 ### Requirement: LCD APIs available over serial ext
-The LCD 1602 text and brightness behaviors defined for HTTP `/extensions/lcd1602/…` MUST also apply when the same operations are invoked through serial `ext` with `id` `lcd1602` and the matching `suffix`/`method`. Disabled-extension, validation, missing-LCD, and missing-backlight outcomes MUST match the HTTP API (including distinct not-found style messages for LCD vs backlight where HTTP already distinguishes them).
+The LCD 1602 text, brightness, and color behaviors defined for HTTP `/extensions/lcd1602/…` MUST also apply when the same operations are invoked through serial `ext` with `id` `lcd1602` and the matching `suffix`/`method`. Disabled-extension, validation, missing-LCD, missing-backlight, and rgb-not-supported outcomes MUST match the HTTP API (including distinct not-found style messages for LCD vs backlight where HTTP already distinguishes them).
 
 #### Scenario: Serial clear matches HTTP delete
 - **WHEN** the host clears both lines via serial `ext` DELETE `text` while the extension is on

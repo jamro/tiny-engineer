@@ -231,7 +231,8 @@ function ExtensionsForm({
                 ) : null}
                 <p className="hint">
                   Waveshare LCD1602 I2C on the Extension I2C port (J3): VCC=+3.3V, GND, SDA, SCL.
-                  Fixed LCD 0x3E; backlight auto 0x6B (SN3193) or 0x60 (PCA9633 RGB). No outbound events.
+                  Fixed LCD 0x3E; backlight auto 0x6B (SN3193) or 0x60 (PCA9633 RGB).
+                  RGB color via <code>/extensions/lcd1602/color</code> (PCA9633 only). No outbound events.
                 </p>
                 <p className="hint">
                   API: <code>/extensions/lcd1602/text</code>,{" "}

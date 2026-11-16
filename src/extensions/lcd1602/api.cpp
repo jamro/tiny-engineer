@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <cstring>
 
+#include "extensions/lcd1602/hw.h"
 #include "extensions/lcd1602/lcd1602.h"
 #include "settings/settings.h"
 
@@ -152,5 +153,77 @@ int lcd1602ApiBrightnessPost(JsonObjectConst body, JsonDocument& out, char* err,
   }
 
   out["brightness"] = lcd1602Brightness();
+  return 200;
+}
+
+namespace {
+
+int requireRgbBacklight(char* err, size_t errLen) {
+  const Lcd1602LedKind kind = lcd1602HwLedKind();
+  if (kind == Lcd1602LedKind::None) {
+    setErr(err, errLen, "backlight not found");
+    return 503;
+  }
+  if (kind != Lcd1602LedKind::Pca9633) {
+    setErr(err, errLen, "rgb not supported");
+    return 400;
+  }
+  return 200;
+}
+
+void fillColorJson(JsonDocument& out) {
+  const Lcd1602Color color = lcd1602Color();
+  out["r"] = color.r;
+  out["g"] = color.g;
+  out["b"] = color.b;
+}
+
+bool parseChannel(JsonObjectConst body, const char* key, uint8_t& out, char* err, size_t errLen) {
+  if (body[key].isUnbound() || !body[key].is<uint8_t>()) {
+    setErr(err, errLen, (String("invalid ") + key).c_str());
+    return false;
+  }
+  out = body[key].as<uint8_t>();
+  return true;
+}
+
+}  // namespace
+
+int lcd1602ApiColorGet(JsonDocument& out, char* err, size_t errLen) {
+  const int gate = requireRgbBacklight(err, errLen);
+  if (gate != 200) {
+    return gate;
+  }
+  fillColorJson(out);
+  return 200;
+}
+
+int lcd1602ApiColorPost(JsonObjectConst body, JsonDocument& out, char* err, size_t errLen) {
+  const int gate = requireRgbBacklight(err, errLen);
+  if (gate != 200) {
+    return gate;
+  }
+
+  uint8_t r = 0;
+  uint8_t g = 0;
+  uint8_t b = 0;
+  if (!parseChannel(body, "r", r, err, errLen) || !parseChannel(body, "g", g, err, errLen) ||
+      !parseChannel(body, "b", b, err, errLen)) {
+    return 400;
+  }
+
+  for (JsonPairConst field : body) {
+    if (field.key() != "r" && field.key() != "g" && field.key() != "b") {
+      setErr(err, errLen, (String("unknown field ") + field.key().c_str()).c_str());
+      return 400;
+    }
+  }
+
+  if (!lcd1602SetColor(r, g, b)) {
+    setErr(err, errLen, "backlight not found");
+    return 503;
+  }
+
+  fillColorJson(out);
   return 200;
 }

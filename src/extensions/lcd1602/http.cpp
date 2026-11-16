@@ -61,3 +61,32 @@ void handleLcd1602BrightnessPost(WebServer& server) {
   }
   sendJson(server, 200, out);
 }
+
+void handleLcd1602ColorGet(WebServer& server) {
+  JsonDocument out;
+  char err[96];
+  err[0] = '\0';
+  const int code = lcd1602ApiColorGet(out, err, sizeof(err));
+  if (code != 200) {
+    sendError(server, code, err[0] != '\0' ? err : "error");
+    return;
+  }
+  sendJson(server, 200, out);
+}
+
+void handleLcd1602ColorPost(WebServer& server) {
+  JsonDocument body;
+  if (!readJsonBody(server, body)) {
+    return;
+  }
+
+  JsonDocument out;
+  char err[96];
+  err[0] = '\0';
+  const int code = lcd1602ApiColorPost(body.as<JsonObjectConst>(), out, err, sizeof(err));
+  if (code != 200) {
+    sendError(server, code, err[0] != '\0' ? err : "error");
+    return;
+  }
+  sendJson(server, 200, out);
+}

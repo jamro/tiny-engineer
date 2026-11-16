@@ -54,7 +54,7 @@ Ops (JSON `op`): `ping`/`sync`, `servos_park`, `anim`, `settings.get`/`settings.
 
 `settings.get` / `settings.set` over serial include a **LCD slice** (`lcd1602`, `lcd1602_backlight_boot`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`) so USB-only hosts can enable the Waveshare module. Other HTTP settings fields (wifi list, actions, push_button, …) may still be missing on serial — full GET `/settings` parity is a follow-up.
 
-`ext` mirrors HTTP `/extensions/<id>/<suffix>`: `{ "op":"ext", "id":"lcd1602", "suffix":"text"|"brightness", "method":"GET"|"POST"|"DELETE", ...body }`. Same disabled/validation/hardware errors as HTTP. CLI: `tiny-engineer ext lcd1602 text|brightness …`.
+`ext` mirrors HTTP `/extensions/<id>/<suffix>`: `{ "op":"ext", "id":"lcd1602", "suffix":"text"|"brightness"|"color", "method":"GET"|"POST"|"DELETE", ...body }`. Same disabled/validation/hardware errors as HTTP. CLI: `tiny-engineer ext lcd1602 text|brightness|color …`.
 
 ## PlatformIO monitor
 
