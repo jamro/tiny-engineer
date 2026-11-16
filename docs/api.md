@@ -123,10 +123,8 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
   "oled": true,
   "i2c": {
     "ok": true,
-    "pca9685": true,
-    "faults": 0,
-    "recoveries": 0,
-    "last_fault_ms": 0
+    "pca9685": { "ok": true, "faults": 0, "recoveries": 0, "last_fault_ms": 0 },
+    "oled": { "ok": true, "faults": 0, "recoveries": 0, "last_fault_ms": 0 }
   }
 }
 ```
@@ -148,11 +146,12 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
 | `setup_ap_ssid` | Setup AP SSID when `provisioning` is true, else `""` |
 | `setup_ap_ip` | Setup AP IP when `provisioning` is true (usually `192.168.4.1`), else `""` |
 | `oled` | SSD1306 probed and initialized. Goes `false` while an I2C fault keeps the display unreachable |
-| `i2c.ok` | `false` while the I2C bus shared by the PCA9685 and the OLED is down. The firmware checks both every 500 ms and, on a fault, restarts the bus and sets the chips up again, retrying with a growing delay (1 s up to 30 s) |
-| `i2c.pca9685` | Servo driver reachable and still holding its setup (awake, output mode, prescale). Servo writes are skipped while `false` |
-| `i2c.faults` | I2C faults since boot |
-| `i2c.recoveries` | Faults the firmware recovered from since boot |
-| `i2c.last_fault_ms` | `uptime_ms` at the latest fault; `0` when there has been none |
+| `i2c.ok` | `false` while either chip on the shared I2C bus is in a fault. The firmware checks each every 500 ms and sets a faulted chip up again, retrying with a growing delay (1 s up to 30 s) |
+| `i2c.pca9685.ok` | Servo driver reachable and still holding its setup (awake, auto-increment, output mode, prescale). Servo writes are skipped while `false` |
+| `i2c.oled.ok` | Same value as `oled`. Stays `false`, with zero counts, on a robot that booted without a display |
+| `i2c.<chip>.faults` | Faults on that chip since boot. A bus fault that takes both chips down counts once on each |
+| `i2c.<chip>.recoveries` | Faults on that chip the firmware recovered from since boot |
+| `i2c.<chip>.last_fault_ms` | `uptime_ms` at that chip's latest fault; `0` when there has been none |
 
 ### `GET /settings`
 

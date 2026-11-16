@@ -25,15 +25,19 @@ constexpr uint16_t kServoPwmHz = 50;
 
 constexpr uint8_t kPcaMode1Reg = 0x00;
 constexpr uint8_t kPcaMode2Reg = 0x01;
-constexpr uint8_t kPcaMode1Sleep = 0x10;
+// Awake with register auto-increment on: setPWM writes four registers in one
+// transfer and needs it.
+constexpr uint8_t kPcaMode1Mask = MODE1_SLEEP | MODE1_AI;
+constexpr uint8_t kPcaMode1Servo = MODE1_AI;
 // Totem-pole outputs, not inverted: what a servo signal line needs. Any other
 // value leaves the servos without a usable pulse while every write still
 // succeeds.
-constexpr uint8_t kPcaMode2Servo = 0x04;
-
-// Prescale the PCA9685 reported after setup. A chip that lost power comes
-// back with its default, which is how a silent reset shows up.
-static uint8_t g_pwmPrescale = 0;
+constexpr uint8_t kPcaMode2Servo = MODE2_OUTDRV;
+// What setPWMFreq(kServoPwmHz) programs, by the Adafruit driver's own formula.
+// Computed, not read back: a readback after a lost write would bless the
+// wrong value. A chip that lost power comes back with a different default.
+constexpr uint8_t kPcaPrescaleServo =
+  static_cast<uint8_t>(FREQUENCY_OSCILLATOR / (kServoPwmHz * 4096.0) + 0.5 - 1);
 
 static bool g_allOutputsReleased = false;
 static bool g_parkHoldUntilReboot = false;
@@ -269,10 +273,8 @@ void writeChannel(uint8_t channel, uint16_t off) {
 bool readPcaRegister(uint8_t reg, uint8_t& value) {
   Wire.beginTransmission(PCA9685_ADDRESS);
   Wire.write(reg);
-
-  if (Wire.endTransmission(false) != 0) {
-    return false;
-  }
+  // Without a STOP nothing is sent yet; a failure shows up in requestFrom.
+  Wire.endTransmission(false);
 
   if (Wire.requestFrom(PCA9685_ADDRESS, static_cast<uint8_t>(1)) != 1) {
     return false;
@@ -295,7 +297,6 @@ void configureServoPwmDriver() {
   Wire.endTransmission();
 
   pwm.setPWMFreq(kServoPwmHz);
-  g_pwmPrescale = pwm.readPrescale();
 }
 
 }  // namespace
@@ -312,20 +313,23 @@ bool servoPwmDriverState(ServoPwmDriverState& state) {
 
   state.prescale = pwm.readPrescale();
 
-  return (state.mode1 & kPcaMode1Sleep) == 0 &&
+  return (state.mode1 & kPcaMode1Mask) == kPcaMode1Servo &&
          state.mode2 == kPcaMode2Servo &&
-         state.prescale == g_pwmPrescale;
+         state.prescale == kPcaPrescaleServo;
 }
 
-bool servoPwmDriverResponds() {
-  ServoPwmDriverState state;
-  return servoPwmDriverState(state);
-}
-
-void restartServoPwmDriver() {
+bool restartServoPwmDriver() {
   disableServoOutputs();
 
   configureServoPwmDriver();
+
+  // Outputs stay off unless the setup took: a wrong output mode or frequency
+  // must not reach the servos.
+  ServoPwmDriverState state;
+
+  if (!servoPwmDriverState(state)) {
+    return false;
+  }
 
   // The servos kept animating in software while the chip was unreachable;
   // put every channel where the firmware thinks it is.
@@ -335,6 +339,7 @@ void restartServoPwmDriver() {
 
   delay(10);
   enableServoOutputs();
+  return true;
 }
 
 void initServoPwmDriver() {

@@ -65,12 +65,12 @@ struct ServoPwmDriverState {
   uint8_t prescale;
 };
 
-// Reads the PCA9685's setup registers. True when it answers, is awake, and
-// still holds the output mode and prescale it was given.
+// Reads the PCA9685's setup registers. True when it answers, is awake with
+// auto-increment on, and holds the servo output mode and prescale.
 bool servoPwmDriverState(ServoPwmDriverState& state);
-bool servoPwmDriverResponds();
 // Sets the PCA9685 up again and rewrites every channel; keeps the current pose.
-void restartServoPwmDriver();
+// False, with the outputs left disabled, when the setup did not take.
+bool restartServoPwmDriver();
 void servoMoveAllSmoothTo(
   const float targets[SERVO_COUNT],
   float speedDegS = SERVO_BOOT_SPEED_DEG_S

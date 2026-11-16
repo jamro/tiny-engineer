@@ -147,8 +147,14 @@ HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisio
 | I2S OK but `POST /test/audio` is silent | Amp or speaker | MAX98357A **Vin**=USB 5V, GND, GP2/3/4 → BCLK/LRC/DIN, speaker on **SPK+ / SPK-** (not on the PNG, not GND) |
 | Servos silent / twitch / ESP32 resets during `POST /test/movement` | Power or SIG | **V+** is +5V, SIG on ch 0–4, **common GND**, supply current — see [power.md](power.md) |
 | RGB never goes green | GPIO10 LED path | Board is C3-Zero (LED on GPIO10). Do not expect an external NeoPixel |
+| `[i2c] pca9685 FAULT #N` and `[i2c] oled FAULT #N` together, then `[i2c] bus restarted` and `recovered` lines | Both chips stopped answering after boot; firmware restarted the bus | `sda=LOW` / `scl=LOW` on the `bus restarted` line means a line was held: supply dip or wiring. Check supply current — see [power.md](power.md) |
+| `[i2c] pca9685 FAULT #N … mode1=… mode2=… prescale=…` | PCA9685 answered but lost its setup (reset to defaults, or a corrupted write) | Recovers by itself without a bus restart. Repeats point at supply dips or I2C noise |
+| `[i2c] oled FAULT #N` alone | Only the OLED stopped answering | The servos are left alone. OLED **VCC**, GND, SDA, SCL, connector |
+| `[i2c] <chip> still down … retry in … ms` keeps repeating | Bus or chip not coming back | Wiring, PCA9685 / OLED **VCC**, then a full power cycle |
+| `[i2c] Wire.end failed` or `[i2c] Wire.begin failed` | The ESP32's I2C driver did not restart; both chips stay off until a later attempt succeeds | Report it with the serial log; a reset clears it |
+| `i2c.<chip>.faults` above `0` in `GET /health` | A fault happened since boot | `recoveries` equal to `faults` means all were recovered; `last_fault_ms` says when |
 
-OLED absence and Wi-Fi failure are **soft** fails. PCA9685 and I2S failures **halt** in `while (true)`.
+OLED absence and Wi-Fi failure are **soft** fails. PCA9685 and I2S failures **halt** in `while (true)`. I2C faults after boot do not halt: the firmware sets the faulted chip up again, restarting the bus when the PCA9685 stops answering ([interfaces.md](interfaces.md#i2c)).
 
 ## Power during the servo test
 

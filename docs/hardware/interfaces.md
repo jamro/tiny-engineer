@@ -11,12 +11,25 @@ Shared bus.
 | SDA | GPIO0 | GP0 → PCA9685 SDA, OLED SDA |
 | SCL | GPIO1 | GP1 → PCA9685 SCL, Waveshare OLED **SCL** |
 
-| Device | Address | Firmware behaviour if missing |
+| Device | Address | Firmware behaviour if missing at boot |
 | --- | --- | --- |
 | PCA9685 | **`0x40`** | Hard fail: hang, 1 red blink (see [blink codes](testing.md#boot-failure-blink-codes)) |
 | SSD1306 OLED | **`0x3C`** | Soft fail: tests continue without display |
 
-Bus start: `Wire.begin(I2C_SDA, I2C_SCL)` with no explicit frequency → Arduino-ESP32 default (typically **100 kHz**). Not set in this repo.
+That table is the boot check. After boot the firmware keeps watching both devices (`src/hardware/i2c_health.cpp`):
+
+- **Check:** every 500 ms the OLED must answer, and the PCA9685 must answer, be awake with auto-increment on, and still hold its output mode (`MODE2 = 0x04`) and prescale. Two failed checks in a row are a fault. Each chip is tracked separately, so one that stays down does not stop the checks on the other. A healthy check costs about 1.7 ms per 500 ms.
+- **While down:** writes to the faulted chip are skipped, so failed transfers do not stall audio and HTTP.
+- **PCA9685 recovery:** if the chip still answers, only its setup is redone. Otherwise restart `Wire` and clock out a device left holding SDA first. Then rewrite every servo channel, and set the OLED up again too, since both share a supply. Servos jump to where the firmware thinks they are. Outputs stay disabled if the setup does not read back correctly.
+- **OLED recovery:** set the panel up again. Never restarts the bus, so an OLED fault alone does not disturb the servos.
+- **Retry:** a failed attempt is retried after 1 s, doubling up to 30 s.
+- **Report:** `[i2c]` lines on the serial log (with SDA / SCL levels and, for a PCA9685 that answered, its registers) and the `i2c` object in [`GET /health`](../api.md#get-health).
+
+The OLED check is an address ACK only. A panel that loses its setup but still answers is not detected by itself; it is set up again whenever the PCA9685 recovers.
+
+The PCA9685 keeps its registers across an ESP32 reset; only its own power cycle clears them. That is why setup writes `MODE2` explicitly instead of trusting the power-on default.
+
+Bus start: the lines are cleared the same way, then `Wire.begin(I2C_SDA, I2C_SCL)` with no explicit frequency → Arduino-ESP32 default (typically **100 kHz**). Not set in this repo.
 
 PCA9685 **VCC** = **3V3**. OLED **VCC** = **3V3**. Pull-ups are on the main control board and on a typical OLED; the Adafruit PCA9685 breakout has its own. No extra pull-ups.
 

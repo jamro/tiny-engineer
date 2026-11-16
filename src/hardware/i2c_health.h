@@ -12,19 +12,24 @@ void initI2cBus();
 // Starts the checks. Call once the PCA9685 and the OLED are set up.
 void beginI2cHealth();
 
-// Probes the devices while the bus is up; restarts the bus and sets the
-// devices up again while it is down. Cheap enough for every tick.
+// Checks each chip while it is up and sets it up again while it is down.
+// Cheap enough for every tick.
 void updateI2cHealth(uint32_t now);
 
-// False while the PCA9685 cannot be reached: skip servo writes.
+// False while the PCA9685 cannot be used: skip servo writes.
 bool i2cServoDriverUp();
 
-struct I2cHealth {
+struct I2cDeviceHealth {
   bool ok;
-  bool servoDriver;
   uint32_t faults;
   uint32_t recoveries;
   uint32_t lastFaultMs;
+};
+
+struct I2cHealth {
+  bool ok;
+  I2cDeviceHealth servoDriver;
+  I2cDeviceHealth oled;
 };
 
 I2cHealth i2cHealth();

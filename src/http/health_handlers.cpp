@@ -10,6 +10,17 @@
 #include "network/wifi_connect.h"
 #include "settings/settings.h"
 
+namespace {
+
+void writeI2cDevice(JsonObject out, const I2cDeviceHealth& device) {
+  out["ok"] = device.ok;
+  out["faults"] = device.faults;
+  out["recoveries"] = device.recoveries;
+  out["last_fault_ms"] = device.lastFaultMs;
+}
+
+}  // namespace
+
 void handleAuth(WebServer& server) {
   JsonDocument body;
   body["ok"] = true;
@@ -56,9 +67,7 @@ void handleHealth(WebServer& server) {
   const I2cHealth bus = i2cHealth();
   JsonObject i2c = body["i2c"].to<JsonObject>();
   i2c["ok"] = bus.ok;
-  i2c["pca9685"] = bus.servoDriver;
-  i2c["faults"] = bus.faults;
-  i2c["recoveries"] = bus.recoveries;
-  i2c["last_fault_ms"] = bus.lastFaultMs;
+  writeI2cDevice(i2c["pca9685"].to<JsonObject>(), bus.servoDriver);
+  writeI2cDevice(i2c["oled"].to<JsonObject>(), bus.oled);
   sendJson(server, 200, body);
 }
