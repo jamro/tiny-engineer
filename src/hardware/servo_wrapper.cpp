@@ -293,6 +293,21 @@ bool readPcaRegisters(uint8_t reg, uint8_t* values, uint8_t count) {
   return true;
 }
 
+// Writes one channel and reads it back. Recovery and boot turn the outputs on
+// only after this: an acknowledged write can still land corrupted on a bus
+// that just glitched.
+bool writeChannelVerified(uint8_t channel, uint16_t off) {
+  if (pwm.setPWM(channel, 0, off) != 0) {
+    return false;
+  }
+
+  uint8_t got[4] = {};
+  const uint8_t want[4] = {0, 0, static_cast<uint8_t>(off & 0xFF), static_cast<uint8_t>(off >> 8)};
+
+  return readPcaRegisters(PCA9685_LED0_ON_L + 4 * channel, got, 4) &&
+         memcmp(got, want, sizeof(want)) == 0;
+}
+
 // Output mode and servo frequency, shared by boot and recovery. The chip must
 // be awake first: setPWMFreq() restores the sleep bit it finds.
 void writeServoSetup() {
@@ -308,16 +323,14 @@ void writeServoSetup() {
 }
 
 // Writes every channel from the firmware's state, then turns the outputs on.
-// False, with the outputs left off, when a write failed.
+// False, with the outputs left off, when a write failed or did not read back.
+// Stops at the first failure: on a dead bus each further write waits out its
+// timeout, and the next attempt rewrites every channel anyway.
 bool writeChannelsAndEnableOutputs() {
-  bool written = true;
-
   for (int i = 0; i < SERVO_COUNT; i++) {
-    written = g_servos[i].resyncOutput() && written;
-  }
-
-  if (!written) {
-    return false;
+    if (!g_servos[i].resyncOutput()) {
+      return false;
+    }
   }
 
   // Let each channel's first pulse go out before the servos see it.
@@ -575,12 +588,12 @@ bool ServoWrapper::resyncOutput() {
   // boot and while the chip still counts as down.
   if (released_) {
     lastPulse_ = UINT16_MAX;
-    return pwm.setPWM(SERVO_SPECS[index_].channel, 0, kPca9685FullOff) == 0;
+    return writeChannelVerified(SERVO_SPECS[index_].channel, kPca9685FullOff);
   }
 
   const uint16_t pulse = angleToPulse(angle_);
 
-  if (pwm.setPWM(SERVO_SPECS[index_].channel, 0, pulse) != 0) {
+  if (!writeChannelVerified(SERVO_SPECS[index_].channel, pulse)) {
     // Not cached: the next write for this servo must go out.
     lastPulse_ = UINT16_MAX;
     return false;

@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
-#include <cstring>
 
 #include "pins.h"
 #include "display/oled.h"
@@ -17,28 +16,71 @@ bool i2cDeviceConnected(uint8_t address) {
 namespace {
 
 constexpr size_t kOledFrameBytes = OLED_WIDTH * ((OLED_HEIGHT + 7) / 8);
+// Frame bytes per transfer, well inside Wire's buffer.
+constexpr size_t kOledFrameChunk = 32;
 
-// The frame on the panel before a restart. begin() clears the frame buffer,
-// and static screens are never drawn again, so a restart puts this back.
-uint8_t g_savedFrame[kOledFrameBytes];
-// Set from the first attempt of a restart until one succeeds: a failed
-// attempt's begin() has already cleared the buffer, so later attempts must not
-// save it again.
-bool g_frameSaved = false;
+// What begin() sends a 128x32 panel on its internal charge pump, minus the
+// final DISPLAYON. The driver ignores failed writes, and a panel that missed
+// part of this still answers its address, so this copy checks each transfer.
+constexpr uint8_t kOledSetup[] = {
+  SSD1306_DISPLAYOFF,
+  SSD1306_SETDISPLAYCLOCKDIV, 0x80,
+  SSD1306_SETMULTIPLEX, OLED_HEIGHT - 1,
+  SSD1306_SETDISPLAYOFFSET, 0x00,
+  SSD1306_SETSTARTLINE | 0x00,
+  SSD1306_CHARGEPUMP, 0x14,
+  SSD1306_MEMORYMODE, 0x00,
+  SSD1306_SEGREMAP | 0x01,
+  SSD1306_COMSCANDEC,
+  SSD1306_SETCOMPINS, 0x02,
+  SSD1306_SETCONTRAST, 0x8F,
+  SSD1306_SETPRECHARGE, 0xF1,
+  SSD1306_SETVCOMDETECT, 0x40,
+  SSD1306_DISPLAYALLON_RESUME,
+  SSD1306_NORMALDISPLAY,
+  SSD1306_DEACTIVATE_SCROLL
+};
+static_assert(OLED_WIDTH == 128 && OLED_HEIGHT == 32, "kOledSetup is for a 128x32 panel");
 
-// Sends the SSD1306 its full setup and turns the panel on. Safe to repeat: a
-// panel that lost power comes back dark until it gets this again. Clears the
-// frame buffer.
-bool configureOled() {
-  if (!display.begin(
-        SSD1306_SWITCHCAPVCC,
-        OLED_ADDRESS
-      )) {
+constexpr uint8_t kOledFrameWindow[] = {
+  SSD1306_PAGEADDR, 0x00, 0xFF,
+  SSD1306_COLUMNADDR, 0x00, OLED_WIDTH - 1
+};
+
+// One I2C transfer: a control byte (0x00 commands, 0x40 frame data), then
+// the bytes. True when the panel acknowledged all of it.
+bool sendOled(uint8_t control, const uint8_t* bytes, size_t count) {
+  Wire.beginTransmission(OLED_ADDRESS);
+  Wire.write(control);
+  Wire.write(bytes, count);
+  return Wire.endTransmission() == 0;
+}
+
+// Sends the panel its full setup and the frame buffer, then turns it on when
+// panelOn. Safe to repeat: a panel that lost power comes back dark until it
+// gets this again. The frame goes over while the panel is still off, so it
+// wakes showing it. Leaves the frame buffer and the rotation as they are.
+bool configureOled(bool panelOn) {
+  const uint8_t* frame = display.getBuffer();
+
+  if (frame == nullptr ||
+      !sendOled(0x00, kOledSetup, sizeof(kOledSetup)) ||
+      !sendOled(0x00, kOledFrameWindow, sizeof(kOledFrameWindow))) {
     return false;
   }
 
-  display.setRotation(settingsOledRotate180() ? 2 : 0);
-  return true;
+  for (size_t offset = 0; offset < kOledFrameBytes; offset += kOledFrameChunk) {
+    if (!sendOled(0x40, frame + offset, kOledFrameChunk)) {
+      return false;
+    }
+  }
+
+  if (!panelOn) {
+    return true;
+  }
+
+  const uint8_t on = SSD1306_DISPLAYON;
+  return sendOled(0x00, &on, 1);
 }
 
 }  // namespace
@@ -55,42 +97,25 @@ void initOled() {
 
   serialLogPrintln("OLED found");
 
-  if (!configureOled()) {
+  // begin() allocates and clears the frame buffer and sets the driver up;
+  // configureOled() then sends the setup again with each transfer checked.
+  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS) || !configureOled(true)) {
     serialLogPrintln("ERROR: OLED initialization failed");
     oledAvailable = false;
     return;
   }
 
-  display.display();
+  display.setRotation(settingsOledRotate180() ? 2 : 0);
   oledAvailable = true;
 
   serialLogPrintln("OLED initialized");
 }
 
+// Not begin(): it clears the frame buffer and ignores failed writes. The
+// rotation is left alone too, since the setup wizard may be previewing one it
+// has not saved. The frame buffer still holds the last frame, so a static
+// screen comes back too.
 bool restartOled(bool panelOn) {
-  uint8_t* buffer = display.getBuffer();
-
-  if (buffer != nullptr && !g_frameSaved) {
-    memcpy(g_savedFrame, buffer, kOledFrameBytes);
-    g_frameSaved = true;
-  }
-
-  oledAvailable = i2cDeviceConnected(OLED_ADDRESS) && configureOled();
-
-  if (!oledAvailable) {
-    return false;
-  }
-
-  // Dark first: the panel takes the frame while off, and wakes showing it.
-  if (!panelOn) {
-    display.ssd1306_command(SSD1306_DISPLAYOFF);
-  }
-
-  if (g_frameSaved) {
-    memcpy(display.getBuffer(), g_savedFrame, kOledFrameBytes);
-    g_frameSaved = false;
-  }
-
-  display.display();
-  return true;
+  oledAvailable = i2cDeviceConnected(OLED_ADDRESS) && configureOled(panelOn);
+  return oledAvailable;
 }

@@ -33,7 +33,7 @@ public:
   void ensureServoOutput();
   void releaseServoOutput();
   // Rewrites this channel from the firmware's state after a driver restart.
-  // False when the write failed.
+  // False when the write failed or did not read back.
   bool resyncOutput();
 
   friend void servoMoveAllSmoothTo(

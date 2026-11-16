@@ -57,19 +57,27 @@ bool g_oledExpected = false;
 // buffers a transfer leaks Wire's lock, and the next restart would wait on
 // that lock forever.
 bool g_wireUp = true;
+// Set when the PCA9685 is found without its setup; cleared once the OLED has
+// been set up again. Kept across failed attempts: a retry finds the PCA9685's
+// setup restored and would otherwise skip the panel.
+bool g_oledRestartPending = false;
 // Registers from the latest PCA9685 check, for the fault log line.
 ServoPwmDriverState g_servoDriverState = {};
 
-// A device interrupted mid-byte keeps SDA low until it has been clocked
+// A device interrupted mid-byte keeps driving SDA until it has been clocked
 // through the rest of that byte. Clock it out, send a STOP, and report where
 // the lines settled: a line still low means something is holding the bus.
+// All nine clocks, even once SDA reads high: in an interrupted read a high
+// SDA can be a 1 data bit, and the device would pull the line low again under
+// the STOP. Nine clocks always pass an acknowledge slot, where the released
+// SDA reads as a NACK and ends the read.
 BusLines clearBus() {
   pinMode(I2C_SDA, INPUT_PULLUP);
   pinMode(I2C_SCL, OUTPUT_OPEN_DRAIN);
   digitalWrite(I2C_SCL, HIGH);
   delayMicroseconds(kBusClearHalfPeriodUs);
 
-  for (uint8_t i = 0; i < kBusClearPulses && digitalRead(I2C_SDA) == LOW; i++) {
+  for (uint8_t i = 0; i < kBusClearPulses; i++) {
     digitalWrite(I2C_SCL, LOW);
     delayMicroseconds(kBusClearHalfPeriodUs);
     digitalWrite(I2C_SCL, HIGH);
@@ -162,15 +170,18 @@ bool restartBus() {
 
   const BusLines lines = clearBus();
   g_wireUp = Wire.begin(I2C_SDA, I2C_SCL);
+  const bool usable = g_wireUp && lines.sdaHigh && lines.sclHigh;
 
-  if (!g_wireUp) {
+  // A held line fails every transfer as surely as a dead Wire: stop the
+  // OLED's frames, and let its own checks recover it once the bus is back.
+  if (!usable) {
     stopOledWrites();
   }
 
   serialLogPrint(g_wireUp ? "[i2c] bus restarted" : "[i2c] Wire.begin failed");
   logLines(lines);
 
-  return g_wireUp && lines.sdaHigh && lines.sclHigh;
+  return usable;
 }
 
 // The restart puts the last frame back on the panel; a sleeping robot keeps
@@ -184,6 +195,8 @@ bool restartOledForSleepState() {
 // OLED counts as up clears oledAvailable, and the OLED's own checks then take
 // it down and recover it.
 void restartOledAfterPowerLoss() {
+  g_oledRestartPending = false;
+
   if (!g_oledExpected) {
     return;
   }
@@ -240,14 +253,21 @@ bool recoverServoDriver() {
   }
 
   if (servoPwmDriverState(g_servoDriverState)) {
-    return resyncServoPwmDriver();
+    if (!resyncServoPwmDriver()) {
+      return false;
+    }
+  } else {
+    g_oledRestartPending = true;
+
+    if (!restartServoPwmDriver()) {
+      return false;
+    }
   }
 
-  if (!restartServoPwmDriver()) {
-    return false;
+  if (g_oledRestartPending) {
+    restartOledAfterPowerLoss();
   }
 
-  restartOledAfterPowerLoss();
   return true;
 }
 

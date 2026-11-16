@@ -551,7 +551,7 @@ tiny-engineer park --transport serial
 { "ok": true, "park": "servos", "hold": true }
 ```
 
-Pose NVS write failure → **400** `{"ok":false,"error":"pose save failed"}` (PWM hold is still armed). Details: [hardware/servos.md](hardware/servos.md#flash-safe-park).
+Pose NVS write failure → **400** `{"ok":false,"error":"pose save failed"}` (PWM hold is still armed). Servo driver faulted (`i2c.pca9685.ok` false in [`GET /health`](#get-health)) → **503** `{"ok":false,"error":"servo driver down"}`: the joints did not move, so the pose is not saved and no PWM hold is armed. Details: [hardware/servos.md](hardware/servos.md#flash-safe-park).
 
 ### `POST /test/servo`
 

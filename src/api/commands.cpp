@@ -7,6 +7,7 @@
 #include "audio/audio.h"
 #include "display/oled.h"
 #include "extensions/push_button.h"
+#include "hardware/i2c_health.h"
 #include "hardware/pca9685_servos.h"
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"
@@ -122,6 +123,13 @@ ApiResult apiParkServos() {
   setAnimationImmediately(AnimationId::None);
   ensureAllServoOutputs();
   centerAllServos();
+
+  // A faulted servo driver skipped the move's writes: the joints never got to
+  // mid, so neither save that pose nor report a park.
+  if (!i2cServoDriverUp()) {
+    return {false, 503, "servo driver down"};
+  }
+
   const bool poseSaved = flushServoPoseToNvs();
   setServoParkHoldUntilReboot(true);
 
