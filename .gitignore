@@ -34,6 +34,9 @@ web/print/files/
 .pio
 .pio-home
 compile_commands.json
+# Written by the PlatformIO VS Code extension; machine-specific paths
+.vscode/
+.gitignore.optional
 
 # Prerequisites
 *.d
