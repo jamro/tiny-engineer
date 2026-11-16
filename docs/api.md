@@ -563,7 +563,7 @@ Save with `POST /settings` `{"oled_rotate_180":true}` (setup AP only). The saved
 
 ### LCD 1602 extension (`/extensions/lcd1602/…`)
 
-Waveshare LCD1602 I2C (AiP31068 @ `0x3E`, SN3193 backlight @ `0x6B`) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but the backlight chip (`0x6B`) does not ACK → brightness **503** `backlight not found`. No outbound events.
+Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but neither backlight chip ACKs → brightness **503** `backlight not found`. On the RGB module (PCA9633), brightness sets equal white R/G/B channels (no color API). No outbound events.
 
 #### `GET` / `POST` / `DELETE /extensions/lcd1602/text`
 
@@ -588,7 +588,7 @@ curl -X POST "http://tiny-engineer.local/extensions/lcd1602/text" \
 
 #### `GET` / `POST /extensions/lcd1602/brightness`
 
-`GET` → `{"brightness":50}`. `POST` body `{"brightness":0..100}` (0 = backlight off). SN3193 NACK → **503** `backlight not found`. Successful text/clear/brightness updates persist **last** state for `lcd1602_boot=last`.
+`GET` → `{"brightness":50}`. `POST` body `{"brightness":0..100}` (0 = backlight off). Neither SN3193 nor PCA9633 ACK → **503** `backlight not found`. Successful text/clear/brightness updates persist **last** state for `lcd1602_boot=last`.
 
 ### `POST /servos/park`
 

@@ -32,7 +32,7 @@ When `lcd1602` is false, the firmware MUST NOT probe, initialize, write, or read
 - **THEN** scroll ticks stop and further LCD I2C writes for this extension do not run
 
 ### Requirement: Fixed Waveshare I2C addresses
-When enabled, the extension MUST use LCD address **0x3E** (AiP31068L) and backlight address **0x6B** (SN3193). Those addresses MUST NOT be settings. The extension MUST target the Waveshare LCD1602 I2C module family, not PCF8574 backpacks.
+When enabled, the extension MUST use LCD address **0x3E** (AiP31068L). Controllable backlight MUST auto-detect **0x6B** (SN3193, Blue/Gray/Green) or **0x60** (PCA9633, RGB module); those addresses MUST NOT be settings. Brightness on PCA9633 MUST map 0–100 to equal white R/G/B PWM channels. The extension MUST target the Waveshare LCD1602 I2C module family, not PCF8574 backpacks.
 
 #### Scenario: No address settings
 - **WHEN** a client posts an unknown field intended as an LCD I2C address

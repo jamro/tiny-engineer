@@ -191,6 +191,7 @@ void lcd1602ApplyFromSettings() {
   if (!settingsLcd1602()) {
     g_active = false;
     g_hwOk = false;
+    lcd1602HwResetLed();
     serialLogPrintln("LCD1602 extension off");
     return;
   }
