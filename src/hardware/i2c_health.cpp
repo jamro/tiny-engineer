@@ -112,7 +112,8 @@ bool bringUp() {
 }
 
 void check(uint32_t now) {
-  const bool servoDriver = servoPwmDriverResponds();
+  ServoPwmDriverState pca;
+  const bool servoDriver = servoPwmDriverState(pca);
   const bool oled = !g_oledExpected || i2cDeviceConnected(OLED_ADDRESS);
 
   if (!g_tracker.noteCheck(servoDriver && oled, now)) {
@@ -130,6 +131,17 @@ void check(uint32_t now) {
   serialLogPrint(now);
   serialLogPrint(" ms:");
   logDevices(servoDriver, oled);
+
+  // It answered but lost its setup: the registers say what changed.
+  if (!servoDriver && pca.answered) {
+    serialLogPrint(" mode1=0x");
+    serialLogPrint(pca.mode1, HEX);
+    serialLogPrint(" mode2=0x");
+    serialLogPrint(pca.mode2, HEX);
+    serialLogPrint(" prescale=0x");
+    serialLogPrint(pca.prescale, HEX);
+  }
+
   serialLogPrintln();
 }
 

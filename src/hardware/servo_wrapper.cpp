@@ -1,11 +1,11 @@
 #include <Arduino.h>
+#include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <Preferences.h>
 #include <cmath>
 #include <cstring>
 
 #include "animation/util.h"
-#include "display/oled.h"
 #include "pins.h"
 #include "servos.h"
 #include "hardware/i2c_health.h"
@@ -22,6 +22,14 @@ constexpr const char* kPoseKey = "spose";
 constexpr uint32_t kPoseSaveDebounceMs = 500;
 
 constexpr uint16_t kServoPwmHz = 50;
+
+constexpr uint8_t kPcaMode1Reg = 0x00;
+constexpr uint8_t kPcaMode2Reg = 0x01;
+constexpr uint8_t kPcaMode1Sleep = 0x10;
+// Totem-pole outputs, not inverted: what a servo signal line needs. Any other
+// value leaves the servos without a usable pulse while every write still
+// succeeds.
+constexpr uint8_t kPcaMode2Servo = 0x04;
 
 // Prescale the PCA9685 reported after setup. A chip that lost power comes
 // back with its default, which is how a silent reset shows up.
@@ -258,19 +266,66 @@ void writeChannel(uint8_t channel, uint16_t off) {
   pwm.setPWM(channel, 0, off);
 }
 
+bool readPcaRegister(uint8_t reg, uint8_t& value) {
+  Wire.beginTransmission(PCA9685_ADDRESS);
+  Wire.write(reg);
+
+  if (Wire.endTransmission(false) != 0) {
+    return false;
+  }
+
+  if (Wire.requestFrom(PCA9685_ADDRESS, static_cast<uint8_t>(1)) != 1) {
+    return false;
+  }
+
+  value = static_cast<uint8_t>(Wire.read());
+  return true;
+}
+
+// Full PCA9685 setup, shared by boot and recovery.
+void configureServoPwmDriver() {
+  pwm.begin();
+
+  // The Adafruit driver never writes MODE2, so a value corrupted by a bus
+  // glitch would outlive every restart. The chip keeps its registers across
+  // an ESP32 reset: only its own power cycle clears them.
+  Wire.beginTransmission(PCA9685_ADDRESS);
+  Wire.write(kPcaMode2Reg);
+  Wire.write(kPcaMode2Servo);
+  Wire.endTransmission();
+
+  pwm.setPWMFreq(kServoPwmHz);
+  g_pwmPrescale = pwm.readPrescale();
+}
+
 }  // namespace
 
+bool servoPwmDriverState(ServoPwmDriverState& state) {
+  state = {};
+  state.answered =
+    readPcaRegister(kPcaMode1Reg, state.mode1) &&
+    readPcaRegister(kPcaMode2Reg, state.mode2);
+
+  if (!state.answered) {
+    return false;
+  }
+
+  state.prescale = pwm.readPrescale();
+
+  return (state.mode1 & kPcaMode1Sleep) == 0 &&
+         state.mode2 == kPcaMode2Servo &&
+         state.prescale == g_pwmPrescale;
+}
+
 bool servoPwmDriverResponds() {
-  return i2cDeviceConnected(PCA9685_ADDRESS) &&
-         pwm.readPrescale() == g_pwmPrescale;
+  ServoPwmDriverState state;
+  return servoPwmDriverState(state);
 }
 
 void restartServoPwmDriver() {
   disableServoOutputs();
 
-  pwm.begin();
-  pwm.setPWMFreq(kServoPwmHz);
-  g_pwmPrescale = pwm.readPrescale();
+  configureServoPwmDriver();
 
   // The servos kept animating in software while the chip was unreachable;
   // put every channel where the firmware thinks it is.
@@ -285,9 +340,7 @@ void restartServoPwmDriver() {
 void initServoPwmDriver() {
   disableServoOutputs();
 
-  pwm.begin();
-  pwm.setPWMFreq(kServoPwmHz);
-  g_pwmPrescale = pwm.readPrescale();
+  configureServoPwmDriver();
   delay(100);
 
   uint8_t pose[SERVO_COUNT];

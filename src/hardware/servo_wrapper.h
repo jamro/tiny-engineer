@@ -58,7 +58,16 @@ void initServoOutputPin();
 void disableServoOutputs();
 void enableServoOutputs();
 void initServoPwmDriver();
-// True when the PCA9685 answers and still holds the setup it was given.
+struct ServoPwmDriverState {
+  bool answered;
+  uint8_t mode1;
+  uint8_t mode2;
+  uint8_t prescale;
+};
+
+// Reads the PCA9685's setup registers. True when it answers, is awake, and
+// still holds the output mode and prescale it was given.
+bool servoPwmDriverState(ServoPwmDriverState& state);
 bool servoPwmDriverResponds();
 // Sets the PCA9685 up again and rewrites every channel; keeps the current pose.
 void restartServoPwmDriver();
