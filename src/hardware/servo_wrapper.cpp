@@ -5,8 +5,10 @@
 #include <cstring>
 
 #include "animation/util.h"
+#include "display/oled.h"
 #include "pins.h"
 #include "servos.h"
+#include "hardware/i2c_health.h"
 #include "hardware/servo_wrapper.h"
 #include "serial_log.h"
 #include "settings/settings.h"
@@ -18,6 +20,12 @@ constexpr uint16_t kPca9685FullOff = 4096;
 constexpr const char* kPoseNs = "te";
 constexpr const char* kPoseKey = "spose";
 constexpr uint32_t kPoseSaveDebounceMs = 500;
+
+constexpr uint16_t kServoPwmHz = 50;
+
+// Prescale the PCA9685 reported after setup. A chip that lost power comes
+// back with its default, which is how a silent reset shows up.
+static uint8_t g_pwmPrescale = 0;
 
 static bool g_allOutputsReleased = false;
 static bool g_parkHoldUntilReboot = false;
@@ -238,11 +246,48 @@ void setServoParkHoldUntilReboot(bool hold) {
   g_parkHoldUntilReboot = hold;
 }
 
+namespace {
+
+// Skipped while the PCA9685 is unreachable, so a dead bus does not stall the
+// loop. restartServoPwmDriver() rewrites every channel once it is back.
+void writeChannel(uint8_t channel, uint16_t off) {
+  if (!i2cServoDriverUp()) {
+    return;
+  }
+
+  pwm.setPWM(channel, 0, off);
+}
+
+}  // namespace
+
+bool servoPwmDriverResponds() {
+  return i2cDeviceConnected(PCA9685_ADDRESS) &&
+         pwm.readPrescale() == g_pwmPrescale;
+}
+
+void restartServoPwmDriver() {
+  disableServoOutputs();
+
+  pwm.begin();
+  pwm.setPWMFreq(kServoPwmHz);
+  g_pwmPrescale = pwm.readPrescale();
+
+  // The servos kept animating in software while the chip was unreachable;
+  // put every channel where the firmware thinks it is.
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    g_servos[i].resyncOutput();
+  }
+
+  delay(10);
+  enableServoOutputs();
+}
+
 void initServoPwmDriver() {
   disableServoOutputs();
 
   pwm.begin();
-  pwm.setPWMFreq(50);
+  pwm.setPWMFreq(kServoPwmHz);
+  g_pwmPrescale = pwm.readPrescale();
   delay(100);
 
   uint8_t pose[SERVO_COUNT];
@@ -403,11 +448,7 @@ void ServoWrapper::ensureServoOutput() {
   lastPulse_ = UINT16_MAX;
 
   const uint16_t pulse = angleToPulse(angle_);
-  pwm.setPWM(
-    SERVO_SPECS[index_].channel,
-    0,
-    pulse
-  );
+  writeChannel(SERVO_SPECS[index_].channel, pulse);
   lastPulse_ = pulse;
 
   serialLogPrint("[servo] pwm on ");
@@ -421,13 +462,22 @@ void ServoWrapper::releaseServoOutput() {
     return;
   }
 
-  pwm.setPWM(
-    SERVO_SPECS[index_].channel,
-    0,
-    kPca9685FullOff
-  );
+  writeChannel(SERVO_SPECS[index_].channel, kPca9685FullOff);
   lastPulse_ = UINT16_MAX;
   released_ = true;
+}
+
+void ServoWrapper::resyncOutput() {
+  // Written straight to the chip: this runs while it still counts as down.
+  if (released_) {
+    pwm.setPWM(SERVO_SPECS[index_].channel, 0, kPca9685FullOff);
+    lastPulse_ = UINT16_MAX;
+    return;
+  }
+
+  const uint16_t pulse = angleToPulse(angle_);
+  pwm.setPWM(SERVO_SPECS[index_].channel, 0, pulse);
+  lastPulse_ = pulse;
 }
 
 void ServoWrapper::writeAngle(float angle, bool log, bool electrical) {
@@ -446,11 +496,7 @@ void ServoWrapper::writeAngle(float angle, bool log, bool electrical) {
   }
 
   if (pulse != lastPulse_) {
-    pwm.setPWM(
-      SERVO_SPECS[index_].channel,
-      0,
-      pulse
-    );
+    writeChannel(SERVO_SPECS[index_].channel, pulse);
     lastPulse_ = pulse;
   }
 

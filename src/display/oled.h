@@ -34,6 +34,8 @@ void showTextThenIdle(const char* line1, const char* line2 = nullptr);
 void showIdleScreen();
 
 void initOled();
+// Sets the OLED up again after an I2C fault. Leaves a blank, lit panel.
+bool restartOled();
 void runOledTest();
 
 void showServoProgress(

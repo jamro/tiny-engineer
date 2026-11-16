@@ -6,6 +6,7 @@
 #include "firmware_version.h"
 #include "hardware/rgb.h"
 #include "hardware/chip_temp.h"
+#include "hardware/i2c_health.h"
 #include "display/oled.h"
 #include "audio/audio.h"
 #include "animation.h"
@@ -60,16 +61,15 @@ void setup() {
   serialLogPrintln("SDA = GP0");
   serialLogPrintln("SCL = GP1");
 
-  Wire.begin(
-    I2C_SDA,
-    I2C_SCL
-  );
+  initI2cBus();
 
   delay(100);
 
   initPca9685();
 
   initOled();
+
+  beginI2cHealth();
 
   const bool sleepServos = bootSleepInertiaUsesServos();
 

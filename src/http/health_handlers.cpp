@@ -4,6 +4,7 @@
 #include "display/oled.h"
 #include "firmware_version.h"
 #include "hardware/chip_temp.h"
+#include "hardware/i2c_health.h"
 #include "http/handlers.h"
 #include "http/response.h"
 #include "network/wifi_connect.h"
@@ -51,5 +52,13 @@ void handleHealth(WebServer& server) {
   body["setup_ap_ssid"] = provisioning ? wifiApSsid() : "";
   body["setup_ap_ip"] = provisioning ? wifiApIpText() : "";
   body["oled"] = oledAvailable;
+
+  const I2cHealth bus = i2cHealth();
+  JsonObject i2c = body["i2c"].to<JsonObject>();
+  i2c["ok"] = bus.ok;
+  i2c["pca9685"] = bus.servoDriver;
+  i2c["faults"] = bus.faults;
+  i2c["recoveries"] = bus.recoveries;
+  i2c["last_fault_ms"] = bus.lastFaultMs;
   sendJson(server, 200, body);
 }

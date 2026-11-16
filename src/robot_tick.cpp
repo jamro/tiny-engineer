@@ -5,6 +5,7 @@
 #include "animation.h"
 #include "audio/wav_stream.h"
 #include "display/oled.h"
+#include "hardware/i2c_health.h"
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
@@ -12,6 +13,7 @@
 
 void tickRobot() {
   const uint32_t now = millis();
+  updateI2cHealth(now);
   pollWifi();
   updateProvisioningOled(now);
   updateAnimation();
