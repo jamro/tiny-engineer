@@ -18,8 +18,9 @@ Shared bus.
 
 That table is the boot check. After boot the firmware keeps watching both devices (`src/hardware/i2c_health.cpp`):
 
-- **Check:** every 500 ms the OLED must answer, and the PCA9685 must answer, be awake with auto-increment on, and still hold its output mode (`MODE2 = 0x04`) and prescale. Two failed checks in a row are a fault. Each chip is tracked separately, so one that stays down does not stop the checks on the other. A healthy check costs about 1.7 ms per 500 ms.
-- **While down:** writes to the faulted chip are skipped, so failed transfers do not stall audio and HTTP.
+- **Check:** every 500 ms the OLED must answer, and the PCA9685 must answer, be awake on its internal clock with auto-increment on, and still hold its output mode (`MODE2 = 0x04`) and prescale. Two failed checks in a row are a fault. Each chip is tracked separately, so one that stays down does not stop the checks on the other. A healthy check costs about 1.7 ms per 500 ms.
+- **Failed servo write:** the first one stops servo writes at once, even inside a blocking move that never reaches the check, and the next two checks then fail.
+- **While down:** writes to the faulted chip are skipped, so failed transfers do not stall audio and HTTP. At a PCA9685 fault the servo outputs are switched off (OE), so a corrupted setup cannot keep driving them.
 - **PCA9685 recovery:** if the chip still answers, only its setup is redone. Otherwise restart `Wire` and clock out a device left holding SDA first. Then rewrite every servo channel, and set the OLED up again too, since both share a supply. Servos jump to where the firmware thinks they are. Outputs stay disabled if the setup does not read back correctly.
 - **OLED recovery:** set the panel up again. Never restarts the bus, so an OLED fault alone does not disturb the servos.
 - **Retry:** a failed attempt is retried after 1 s, doubling up to 30 s.

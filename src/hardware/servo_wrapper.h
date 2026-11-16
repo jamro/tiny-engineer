@@ -30,7 +30,8 @@ public:
   void ensureServoOutput();
   void releaseServoOutput();
   // Rewrites this channel from the firmware's state after a driver restart.
-  void resyncOutput();
+  // False when the write failed.
+  bool resyncOutput();
 
   friend void servoMoveAllSmoothTo(
     const float targets[SERVO_COUNT],

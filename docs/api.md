@@ -146,8 +146,8 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
 | `setup_ap_ssid` | Setup AP SSID when `provisioning` is true, else `""` |
 | `setup_ap_ip` | Setup AP IP when `provisioning` is true (usually `192.168.4.1`), else `""` |
 | `oled` | SSD1306 probed and initialized. Goes `false` while an I2C fault keeps the display unreachable |
-| `i2c.ok` | `false` while either chip on the shared I2C bus is in a fault. The firmware checks each every 500 ms and sets a faulted chip up again, retrying with a growing delay (1 s up to 30 s) |
-| `i2c.pca9685.ok` | Servo driver reachable and still holding its setup (awake, auto-increment, output mode, prescale). Servo writes are skipped while `false` |
+| `i2c.ok` | `false` while either chip on the shared I2C bus cannot be used. The firmware checks each every 500 ms and sets a faulted chip up again, retrying with a growing delay (1 s up to 30 s) |
+| `i2c.pca9685.ok` | Servo driver usable: reachable, holding its setup (awake, internal clock, auto-increment, output mode, prescale), and its last write succeeded. Goes `false` at the first failed servo write; servo writes and outputs stay off until the chip is set up again |
 | `i2c.oled.ok` | Same value as `oled`. Stays `false`, with zero counts, on a robot that booted without a display |
 | `i2c.<chip>.faults` | Faults on that chip since boot. A bus fault that takes both chips down counts once on each |
 | `i2c.<chip>.recoveries` | Faults on that chip the firmware recovered from since boot |

@@ -13,7 +13,7 @@
 
 void tickRobot() {
   const uint32_t now = millis();
-  updateI2cHealth(now);
+  updateI2cHealth();
   pollWifi();
   updateProvisioningOled(now);
   updateAnimation();

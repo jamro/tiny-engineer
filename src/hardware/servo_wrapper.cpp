@@ -25,9 +25,10 @@ constexpr uint16_t kServoPwmHz = 50;
 
 constexpr uint8_t kPcaMode1Reg = 0x00;
 constexpr uint8_t kPcaMode2Reg = 0x01;
-// Awake with register auto-increment on: setPWM writes four registers in one
-// transfer and needs it.
-constexpr uint8_t kPcaMode1Mask = MODE1_SLEEP | MODE1_AI;
+// Awake, on the internal clock, with register auto-increment on: setPWM
+// writes four registers in one transfer and needs it. EXTCLK is sticky (only a
+// power cycle clears it), so a corrupted one keeps the chip down, visibly.
+constexpr uint8_t kPcaMode1Mask = MODE1_SLEEP | MODE1_AI | MODE1_EXTCLK;
 constexpr uint8_t kPcaMode1Servo = MODE1_AI;
 // Totem-pole outputs, not inverted: what a servo signal line needs. Any other
 // value leaves the servos without a usable pulse while every write still
@@ -260,14 +261,18 @@ void setServoParkHoldUntilReboot(bool hold) {
 
 namespace {
 
-// Skipped while the PCA9685 is unreachable, so a dead bus does not stall the
-// loop. restartServoPwmDriver() rewrites every channel once it is back.
+// Skipped while the PCA9685 is unusable, so a dead bus does not stall the
+// loop. The first failed write stops the rest at once, even inside a blocking
+// move that never reaches the health check; restartServoPwmDriver() rewrites
+// every channel once the chip is back.
 void writeChannel(uint8_t channel, uint16_t off) {
   if (!i2cServoDriverUp()) {
     return;
   }
 
-  pwm.setPWM(channel, 0, off);
+  if (pwm.setPWM(channel, 0, off) != 0) {
+    i2cNoteServoWriteFailed();
+  }
 }
 
 bool readPcaRegister(uint8_t reg, uint8_t& value) {
@@ -284,10 +289,9 @@ bool readPcaRegister(uint8_t reg, uint8_t& value) {
   return true;
 }
 
-// Full PCA9685 setup, shared by boot and recovery.
-void configureServoPwmDriver() {
-  pwm.begin();
-
+// Output mode and servo frequency, shared by boot and recovery. The chip must
+// be awake first: setPWMFreq() restores the sleep bit it finds.
+void writeServoSetup() {
   // The Adafruit driver never writes MODE2, so a value corrupted by a bus
   // glitch would outlive every restart. The chip keeps its registers across
   // an ESP32 reset: only its own power cycle clears them.
@@ -321,7 +325,11 @@ bool servoPwmDriverState(ServoPwmDriverState& state) {
 bool restartServoPwmDriver() {
   disableServoOutputs();
 
-  configureServoPwmDriver();
+  // Not pwm.begin(): it programs 1 kHz before writeServoSetup() sets 50 Hz,
+  // and on a board with OE not wired the live servos would get those pulses.
+  // reset() wakes the chip, which is all begin() adds here.
+  pwm.reset();
+  writeServoSetup();
 
   // Outputs stay off unless the setup took: a wrong output mode or frequency
   // must not reach the servos.
@@ -333,8 +341,14 @@ bool restartServoPwmDriver() {
 
   // The servos kept animating in software while the chip was unreachable;
   // put every channel where the firmware thinks it is.
+  bool resynced = true;
+
   for (int i = 0; i < SERVO_COUNT; i++) {
-    g_servos[i].resyncOutput();
+    resynced = g_servos[i].resyncOutput() && resynced;
+  }
+
+  if (!resynced) {
+    return false;
   }
 
   delay(10);
@@ -345,7 +359,8 @@ bool restartServoPwmDriver() {
 void initServoPwmDriver() {
   disableServoOutputs();
 
-  configureServoPwmDriver();
+  pwm.begin();
+  writeServoSetup();
   delay(100);
 
   uint8_t pose[SERVO_COUNT];
@@ -525,17 +540,23 @@ void ServoWrapper::releaseServoOutput() {
   released_ = true;
 }
 
-void ServoWrapper::resyncOutput() {
+bool ServoWrapper::resyncOutput() {
   // Written straight to the chip: this runs while it still counts as down.
   if (released_) {
-    pwm.setPWM(SERVO_SPECS[index_].channel, 0, kPca9685FullOff);
     lastPulse_ = UINT16_MAX;
-    return;
+    return pwm.setPWM(SERVO_SPECS[index_].channel, 0, kPca9685FullOff) == 0;
   }
 
   const uint16_t pulse = angleToPulse(angle_);
-  pwm.setPWM(SERVO_SPECS[index_].channel, 0, pulse);
+
+  if (pwm.setPWM(SERVO_SPECS[index_].channel, 0, pulse) != 0) {
+    // Not cached: the next write for this servo must go out.
+    lastPulse_ = UINT16_MAX;
+    return false;
+  }
+
   lastPulse_ = pulse;
+  return true;
 }
 
 void ServoWrapper::writeAngle(float angle, bool log, bool electrical) {

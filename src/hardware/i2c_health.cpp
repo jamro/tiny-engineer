@@ -32,28 +32,27 @@ struct Device {
 };
 
 bool servoDriverHealthy();
-void stopServoWrites();
+void stopServoOutputs();
 bool recoverServoDriver();
-void logServoDriverRegisters();
+void logServoDriverDetail();
 bool oledHealthy();
 void stopOledWrites();
 bool recoverOled();
 
 Device g_servoDriver = {
-  "pca9685", servoDriverHealthy, stopServoWrites, recoverServoDriver, logServoDriverRegisters, {}
+  "pca9685", servoDriverHealthy, stopServoOutputs, recoverServoDriver, logServoDriverDetail, {}
 };
 Device g_oled = {"oled", oledHealthy, stopOledWrites, recoverOled, nullptr, {}};
 
 bool g_started = false;
 // The robot runs without an OLED; only watch one that was there at boot.
 bool g_oledExpected = false;
-bool g_servoDriverUp = true;
+// Set by a failed servo write; cleared once the chip has been set up again.
+bool g_servoWriteFailed = false;
 // False after a failed Wire restart. Wire must not be used then: without its
 // buffers a transfer leaks Wire's lock, and the next restart would wait on
 // that lock forever.
 bool g_wireUp = true;
-// False while the last bus restart found a line held low.
-bool g_linesFree = true;
 // Registers from the latest PCA9685 check, for the fault log line.
 ServoPwmDriverState g_servoDriverState = {};
 
@@ -138,8 +137,9 @@ void noteRecovery(Device& device, bool ok) {
 }
 
 // Restarts Wire with the lines freed. False when Wire did not come back or a
-// line is still held: every transfer would fail, so callers skip the probes
-// and their timeouts.
+// line is still held: every transfer would fail, so the caller skips the
+// probes and their timeouts. Only the PCA9685's recovery calls this, so servo
+// writes are already off.
 bool restartBus() {
   g_wireUp = false;
 
@@ -152,7 +152,6 @@ bool restartBus() {
   }
 
   const BusLines lines = clearBus();
-  g_linesFree = lines.sdaHigh && lines.sclHigh;
   g_wireUp = Wire.begin(I2C_SDA, I2C_SCL);
 
   if (!g_wireUp) {
@@ -162,18 +161,17 @@ bool restartBus() {
   serialLogPrint(g_wireUp ? "[i2c] bus restarted" : "[i2c] Wire.begin failed");
   logLines(lines);
 
-  return g_wireUp && g_linesFree;
+  return g_wireUp && lines.sdaHigh && lines.sclHigh;
 }
 
-// The restart leaves the panel lit; a sleeping robot keeps it dark. Awake,
-// the next eye frame or setup screen redraws it.
+// The restart leaves the panel lit and blank; a sleeping robot keeps it dark.
+// Awake, the next eye frame or setup screen redraws it.
 bool restartOledForSleepState() {
   if (!restartOled()) {
     return false;
   }
 
   if (isSleeping()) {
-    blankOled();
     sleepOled();
   }
 
@@ -181,7 +179,9 @@ bool restartOledForSleepState() {
 }
 
 // Both chips share a supply, so a PCA9685 that had to be set up again is
-// reason to set the panel up again too, even when it still answers.
+// reason to set the panel up again too, even when it still answers. A failure
+// here while the OLED counts as up clears oledAvailable, and the OLED's own
+// checks then take it down and recover it.
 void restartOledAfterBusRecovery() {
   if (!g_oledExpected) {
     return;
@@ -196,15 +196,28 @@ void restartOledAfterBusRecovery() {
 
 bool servoDriverHealthy() {
   g_servoDriverState = {};
-  return g_wireUp && servoPwmDriverState(g_servoDriverState);
+
+  if (!g_wireUp) {
+    return false;
+  }
+
+  // Read even after a failed write, so the fault line shows the registers.
+  const bool registersOk = servoPwmDriverState(g_servoDriverState);
+  return registersOk && !g_servoWriteFailed;
 }
 
-void stopServoWrites() {
-  g_servoDriverUp = false;
+// At a fault the outputs go off, so a corrupted setup cannot keep driving the
+// servos. Recovery turns them back on once the setup reads back correctly.
+void stopServoOutputs() {
+  disableServoOutputs();
 }
 
-// A PCA9685 that answered but lost its setup: the registers say what changed.
-void logServoDriverRegisters() {
+// Why the PCA9685 faulted: a failed write, and the registers it answered with.
+void logServoDriverDetail() {
+  if (g_servoWriteFailed) {
+    serialLogPrint(" write failed");
+  }
+
   if (!g_servoDriverState.answered) {
     return;
   }
@@ -231,24 +244,19 @@ bool recoverServoDriver() {
     reachable = restartBus() && servoDriverAnswers();
   }
 
-  if (!reachable) {
+  if (!reachable || !restartServoPwmDriver()) {
     return false;
   }
 
-  // An answer proves the lines are free, whatever the last restart saw.
-  g_linesFree = true;
-
-  g_servoDriverUp = restartServoPwmDriver();
-
-  if (g_servoDriverUp) {
-    restartOledAfterBusRecovery();
-  }
-
-  return g_servoDriverUp;
+  g_servoWriteFailed = false;
+  restartOledAfterBusRecovery();
+  return true;
 }
 
+// oledAvailable is part of the check: a restart that failed outside an OLED
+// fault cleared it, and only a fault and its recovery set it again.
 bool oledHealthy() {
-  return g_wireUp && i2cDeviceConnected(OLED_ADDRESS);
+  return g_wireUp && oledAvailable && i2cDeviceConnected(OLED_ADDRESS);
 }
 
 void stopOledWrites() {
@@ -258,10 +266,14 @@ void stopOledWrites() {
 // Never restarts the bus: an OLED fault alone must not disturb the servos.
 // A dead bus is left to the PCA9685's recovery.
 bool recoverOled() {
-  return g_wireUp && g_linesFree && restartOledForSleepState();
+  return g_wireUp && restartOledForSleepState();
 }
 
-void service(Device& device, uint32_t now) {
+void service(Device& device) {
+  // Read here, not once per tick: the other chip's recovery can take tens of
+  // milliseconds and stamp this tracker with a later time.
+  const uint32_t now = millis();
+
   switch (device.tracker.due(now)) {
     case I2cFaultAction::Check:
       if (device.tracker.noteCheck(device.healthy(), now)) {
@@ -298,6 +310,10 @@ void initI2cBus() {
   }
 
   g_wireUp = Wire.begin(I2C_SDA, I2C_SCL);
+
+  if (!g_wireUp) {
+    serialLogPrintln("[i2c] Wire.begin failed at boot");
+  }
 }
 
 void beginI2cHealth() {
@@ -305,26 +321,32 @@ void beginI2cHealth() {
   g_started = true;
 }
 
-void updateI2cHealth(uint32_t now) {
+void updateI2cHealth() {
   if (!g_started) {
     return;
   }
 
-  service(g_servoDriver, now);
+  service(g_servoDriver);
 
   if (g_oledExpected) {
-    service(g_oled, now);
+    service(g_oled);
   }
 }
 
 bool i2cServoDriverUp() {
-  return g_servoDriverUp;
+  return !g_servoDriver.tracker.down() && !g_servoWriteFailed;
+}
+
+void i2cNoteServoWriteFailed() {
+  g_servoWriteFailed = true;
 }
 
 I2cHealth i2cHealth() {
+  const bool servoDriverUp = i2cServoDriverUp();
+
   return {
-    !g_servoDriver.tracker.down() && !g_oled.tracker.down(),
-    deviceHealth(g_servoDriver, g_servoDriverUp),
+    servoDriverUp && (!g_oledExpected || oledAvailable),
+    deviceHealth(g_servoDriver, servoDriverUp),
     deviceHealth(g_oled, oledAvailable)
   };
 }
