@@ -262,30 +262,34 @@ void setServoParkHoldUntilReboot(bool hold) {
 namespace {
 
 // Skipped while the PCA9685 is unusable, so a dead bus does not stall the
-// loop. The first failed write stops the rest at once, even inside a blocking
-// move that never reaches the health check; restartServoPwmDriver() rewrites
-// every channel once the chip is back.
+// loop. The first failed write takes the chip down at once, with its outputs
+// off, even inside a blocking move that never reaches the health check; the
+// recovery rewrites every channel once the chip is back.
 void writeChannel(uint8_t channel, uint16_t off) {
   if (!i2cServoDriverUp()) {
     return;
   }
 
   if (pwm.setPWM(channel, 0, off) != 0) {
-    i2cNoteServoWriteFailed();
+    i2cNoteServoDriverFault("write failed");
   }
 }
 
-bool readPcaRegister(uint8_t reg, uint8_t& value) {
+// Reads `count` registers from `reg` in one transfer; relies on auto-increment.
+bool readPcaRegisters(uint8_t reg, uint8_t* values, uint8_t count) {
   Wire.beginTransmission(PCA9685_ADDRESS);
   Wire.write(reg);
   // Without a STOP nothing is sent yet; a failure shows up in requestFrom.
   Wire.endTransmission(false);
 
-  if (Wire.requestFrom(PCA9685_ADDRESS, static_cast<uint8_t>(1)) != 1) {
+  if (Wire.requestFrom(PCA9685_ADDRESS, count) != count) {
     return false;
   }
 
-  value = static_cast<uint8_t>(Wire.read());
+  for (uint8_t i = 0; i < count; i++) {
+    values[i] = static_cast<uint8_t>(Wire.read());
+  }
+
   return true;
 }
 
@@ -303,18 +307,48 @@ void writeServoSetup() {
   pwm.setPWMFreq(kServoPwmHz);
 }
 
+// Writes every channel from the firmware's state, then turns the outputs on.
+// False, with the outputs left off, when a write failed.
+bool writeChannelsAndEnableOutputs() {
+  bool written = true;
+
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    written = g_servos[i].resyncOutput() && written;
+  }
+
+  if (!written) {
+    return false;
+  }
+
+  // Let each channel's first pulse go out before the servos see it.
+  delay(10);
+  enableServoOutputs();
+  return true;
+}
+
+// The end of boot and of a restart. Outputs stay off unless the setup took:
+// a wrong output mode or frequency must not reach the servos.
+bool finishServoPwmDriverSetup() {
+  ServoPwmDriverState state;
+  return servoPwmDriverState(state) && writeChannelsAndEnableOutputs();
+}
+
 }  // namespace
 
 bool servoPwmDriverState(ServoPwmDriverState& state) {
   state = {};
-  state.answered =
-    readPcaRegister(kPcaMode1Reg, state.mode1) &&
-    readPcaRegister(kPcaMode2Reg, state.mode2);
+
+  // MODE1 and MODE2 are adjacent, so one read returns both. With
+  // auto-increment off the second byte repeats MODE1 and fails the MODE2 check.
+  uint8_t modes[2] = {};
+  state.answered = readPcaRegisters(kPcaMode1Reg, modes, 2);
 
   if (!state.answered) {
     return false;
   }
 
+  state.mode1 = modes[0];
+  state.mode2 = modes[1];
   state.prescale = pwm.readPrescale();
 
   return (state.mode1 & kPcaMode1Mask) == kPcaMode1Servo &&
@@ -331,29 +365,14 @@ bool restartServoPwmDriver() {
   pwm.reset();
   writeServoSetup();
 
-  // Outputs stay off unless the setup took: a wrong output mode or frequency
-  // must not reach the servos.
-  ServoPwmDriverState state;
-
-  if (!servoPwmDriverState(state)) {
-    return false;
-  }
-
   // The servos kept animating in software while the chip was unreachable;
-  // put every channel where the firmware thinks it is.
-  bool resynced = true;
+  // finishing puts every channel where the firmware thinks it is.
+  return finishServoPwmDriverSetup();
+}
 
-  for (int i = 0; i < SERVO_COUNT; i++) {
-    resynced = g_servos[i].resyncOutput() && resynced;
-  }
-
-  if (!resynced) {
-    return false;
-  }
-
-  delay(10);
-  enableServoOutputs();
-  return true;
+bool resyncServoPwmDriver() {
+  disableServoOutputs();
+  return writeChannelsAndEnableOutputs();
 }
 
 void initServoPwmDriver() {
@@ -373,15 +392,18 @@ void initServoPwmDriver() {
   }
 
   for (int i = 0; i < SERVO_COUNT; i++) {
-    g_servos[i].setPosition(static_cast<float>(pose[i]));
+    g_servos[i].restorePosition(static_cast<float>(pose[i]));
   }
 
   memcpy(g_lastSavedPose, pose, SERVO_COUNT);
   g_lastSavedPoseValid = true;
   g_poseDirty = false;
 
-  delay(10);
-  enableServoOutputs();
+  // Same path as a restart, so boot and recovery cannot drift apart. A setup
+  // that did not take leaves the outputs off and the recovery to the checks.
+  if (!finishServoPwmDriverSetup()) {
+    i2cNoteServoDriverFault("setup failed");
+  }
 }
 
 ServoWrapper& servoAt(int index) {
@@ -416,6 +438,14 @@ void ServoWrapper::setPosition(float angle) {
   writeAngle(angle, false, false);
   target_ = angle_;
   lastUpdateMs_ = 0;
+}
+
+void ServoWrapper::restorePosition(float angle) {
+  angle_ = clampServoAngle(index_, angle);
+  target_ = angle_;
+  lastUpdateMs_ = 0;
+  // Not written yet: the next write for this servo must go out.
+  lastPulse_ = UINT16_MAX;
 }
 
 void ServoWrapper::setNormTarget(float n, float speedDegS) {
@@ -541,7 +571,8 @@ void ServoWrapper::releaseServoOutput() {
 }
 
 bool ServoWrapper::resyncOutput() {
-  // Written straight to the chip: this runs while it still counts as down.
+  // Written straight to the chip, past writeChannel()'s check: this runs at
+  // boot and while the chip still counts as down.
   if (released_) {
     lastPulse_ = UINT16_MAX;
     return pwm.setPWM(SERVO_SPECS[index_].channel, 0, kPca9685FullOff) == 0;

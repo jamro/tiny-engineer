@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#include "audio/audio.h"
 #include "display/oled.h"
 #include "hardware/i2c_fault.h"
 #include "hardware/i2c_health.h"
@@ -13,6 +14,10 @@ namespace {
 
 constexpr uint8_t kBusClearPulses = 9;
 constexpr uint32_t kBusClearHalfPeriodUs = 5;
+// A recovery blocks for tens of milliseconds, which is an audible gap while a
+// clip plays. It waits for the speaker to go quiet, but not for longer than
+// this after the fault: a long clip must not keep the robot limp.
+constexpr uint32_t kRecoveryAudioWaitMaxMs = 5000;
 
 struct BusLines {
   bool sdaHigh;
@@ -32,7 +37,6 @@ struct Device {
 };
 
 bool servoDriverHealthy();
-void stopServoOutputs();
 bool recoverServoDriver();
 void logServoDriverDetail();
 bool oledHealthy();
@@ -40,15 +44,15 @@ void stopOledWrites();
 bool recoverOled();
 
 Device g_servoDriver = {
-  "pca9685", servoDriverHealthy, stopServoOutputs, recoverServoDriver, logServoDriverDetail, {}
+  // At a fault the outputs go off, so a corrupted setup cannot keep driving
+  // the servos. Recovery turns them back on once the setup reads back right.
+  "pca9685", servoDriverHealthy, disableServoOutputs, recoverServoDriver, logServoDriverDetail, {}
 };
 Device g_oled = {"oled", oledHealthy, stopOledWrites, recoverOled, nullptr, {}};
 
 bool g_started = false;
 // The robot runs without an OLED; only watch one that was there at boot.
 bool g_oledExpected = false;
-// Set by a failed servo write; cleared once the chip has been set up again.
-bool g_servoWriteFailed = false;
 // False after a failed Wire restart. Wire must not be used then: without its
 // buffers a transfer leaks Wire's lock, and the next restart would wait on
 // that lock forever.
@@ -97,7 +101,9 @@ void logLines(const BusLines& lines) {
   serialLogPrintln(lines.sclHigh ? "high" : "LOW");
 }
 
-void logFault(const Device& device, uint32_t now) {
+// `cause` names a fault found outside a check; a check's fault logs the
+// device's own detail instead.
+void logFault(const Device& device, uint32_t now, const char* cause = nullptr) {
   serialLogPrint("[i2c] ");
   serialLogPrint(device.name);
   serialLogPrint(" FAULT #");
@@ -106,7 +112,10 @@ void logFault(const Device& device, uint32_t now) {
   serialLogPrint(now);
   serialLogPrint(" ms");
 
-  if (device.logFaultDetail != nullptr) {
+  if (cause != nullptr) {
+    serialLogPrint(" ");
+    serialLogPrint(cause);
+  } else if (device.logFaultDetail != nullptr) {
     device.logFaultDetail();
   }
 
@@ -164,25 +173,17 @@ bool restartBus() {
   return g_wireUp && lines.sdaHigh && lines.sclHigh;
 }
 
-// The restart leaves the panel lit and blank; a sleeping robot keeps it dark.
-// Awake, the next eye frame or setup screen redraws it.
+// The restart puts the last frame back on the panel; a sleeping robot keeps
+// it dark.
 bool restartOledForSleepState() {
-  if (!restartOled()) {
-    return false;
-  }
-
-  if (isSleeping()) {
-    sleepOled();
-  }
-
-  return true;
+  return restartOled(!isSleeping());
 }
 
-// Both chips share a supply, so a PCA9685 that had to be set up again is
-// reason to set the panel up again too, even when it still answers. A failure
-// here while the OLED counts as up clears oledAvailable, and the OLED's own
-// checks then take it down and recover it.
-void restartOledAfterBusRecovery() {
+// Both chips share a supply, so a PCA9685 that lost its setup is reason to set
+// the panel up again too, even when it still answers. A failure here while the
+// OLED counts as up clears oledAvailable, and the OLED's own checks then take
+// it down and recover it.
+void restartOledAfterPowerLoss() {
   if (!g_oledExpected) {
     return;
   }
@@ -201,23 +202,11 @@ bool servoDriverHealthy() {
     return false;
   }
 
-  // Read even after a failed write, so the fault line shows the registers.
-  const bool registersOk = servoPwmDriverState(g_servoDriverState);
-  return registersOk && !g_servoWriteFailed;
+  return servoPwmDriverState(g_servoDriverState);
 }
 
-// At a fault the outputs go off, so a corrupted setup cannot keep driving the
-// servos. Recovery turns them back on once the setup reads back correctly.
-void stopServoOutputs() {
-  disableServoOutputs();
-}
-
-// Why the PCA9685 faulted: a failed write, and the registers it answered with.
+// Why a check faulted the PCA9685: the registers it answered with.
 void logServoDriverDetail() {
-  if (g_servoWriteFailed) {
-    serialLogPrint(" write failed");
-  }
-
   if (!g_servoDriverState.answered) {
     return;
   }
@@ -235,8 +224,10 @@ bool servoDriverAnswers() {
 }
 
 // The PCA9685 is the required chip, so its recovery is the one that restarts
-// the bus. A chip that still answers proves the bus works: then only its
-// setup is redone.
+// the bus. A chip that still answers proves the bus works. One that also kept
+// its setup only lost a write or a read: rewriting the channels is enough, and
+// the healthy OLED is left alone. A lost setup means the chip lost power or
+// was corrupted: it is set up from scratch, and so is the panel.
 bool recoverServoDriver() {
   bool reachable = servoDriverAnswers();
 
@@ -244,12 +235,19 @@ bool recoverServoDriver() {
     reachable = restartBus() && servoDriverAnswers();
   }
 
-  if (!reachable || !restartServoPwmDriver()) {
+  if (!reachable) {
     return false;
   }
 
-  g_servoWriteFailed = false;
-  restartOledAfterBusRecovery();
+  if (servoPwmDriverState(g_servoDriverState)) {
+    return resyncServoPwmDriver();
+  }
+
+  if (!restartServoPwmDriver()) {
+    return false;
+  }
+
+  restartOledAfterPowerLoss();
   return true;
 }
 
@@ -269,6 +267,18 @@ bool recoverOled() {
   return g_wireUp && restartOledForSleepState();
 }
 
+// The device is down: stop its writes, since each failed one blocks the loop
+// for its timeout.
+void enterFault(Device& device, uint32_t now, const char* cause = nullptr) {
+  device.stopWrites();
+  logFault(device, now, cause);
+}
+
+bool recoveryWaitsForAudio(const Device& device, uint32_t now) {
+  return speakerPlaying(now) &&
+         now - device.tracker.lastFaultMs() < kRecoveryAudioWaitMaxMs;
+}
+
 void service(Device& device) {
   // Read here, not once per tick: the other chip's recovery can take tens of
   // milliseconds and stamp this tracker with a later time.
@@ -277,13 +287,13 @@ void service(Device& device) {
   switch (device.tracker.due(now)) {
     case I2cFaultAction::Check:
       if (device.tracker.noteCheck(device.healthy(), now)) {
-        // Each failed write blocks the loop for its timeout.
-        device.stopWrites();
-        logFault(device, now);
+        enterFault(device, now);
       }
       break;
     case I2cFaultAction::Recover:
-      noteRecovery(device, device.recover());
+      if (!recoveryWaitsForAudio(device, now)) {
+        noteRecovery(device, device.recover());
+      }
       break;
     case I2cFaultAction::None:
       break;
@@ -334,11 +344,15 @@ void updateI2cHealth() {
 }
 
 bool i2cServoDriverUp() {
-  return !g_servoDriver.tracker.down() && !g_servoWriteFailed;
+  return !g_servoDriver.tracker.down();
 }
 
-void i2cNoteServoWriteFailed() {
-  g_servoWriteFailed = true;
+void i2cNoteServoDriverFault(const char* cause) {
+  const uint32_t now = millis();
+
+  if (g_servoDriver.tracker.noteFault(now)) {
+    enterFault(g_servoDriver, now, cause);
+  }
 }
 
 I2cHealth i2cHealth() {

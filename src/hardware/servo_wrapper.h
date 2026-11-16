@@ -19,6 +19,9 @@ public:
     float speedDegS = SERVO_MAX_SPEED_DEG_S
   );
   void setPosition(float angle);
+  // Sets the firmware's angle without writing the chip; boot writes every
+  // channel afterwards.
+  void restorePosition(float angle);
   void setNormTarget(
     float n,
     float speedDegS = SERVO_MAX_SPEED_DEG_S
@@ -72,6 +75,10 @@ bool servoPwmDriverState(ServoPwmDriverState& state);
 // Sets the PCA9685 up again and rewrites every channel; keeps the current pose.
 // False, with the outputs left disabled, when the setup did not take.
 bool restartServoPwmDriver();
+// Rewrites every channel and turns the outputs on, for a chip that kept its
+// setup (servoPwmDriverState() just passed). False, outputs off, when a write
+// failed.
+bool resyncServoPwmDriver();
 void servoMoveAllSmoothTo(
   const float targets[SERVO_COUNT],
   float speedDegS = SERVO_BOOT_SPEED_DEG_S

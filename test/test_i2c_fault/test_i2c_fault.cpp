@@ -112,6 +112,39 @@ void test_second_fault_starts_over() {
   expectAction(I2cFaultAction::Recover, tracker.due(now));
 }
 
+void test_a_fault_takes_the_bus_down_at_once() {
+  I2cFaultTracker tracker;
+  tracker.noteCheck(true, 1000);
+
+  TEST_ASSERT_TRUE(tracker.noteFault(1200));
+  TEST_ASSERT_TRUE(tracker.down());
+  TEST_ASSERT_EQUAL_UINT32(1, tracker.faults());
+  TEST_ASSERT_EQUAL_UINT32(1200, tracker.lastFaultMs());
+  expectAction(I2cFaultAction::Recover, tracker.due(1200));
+}
+
+void test_a_fault_while_down_is_not_counted_again() {
+  I2cFaultTracker tracker;
+  const uint32_t at = takeDown(tracker, 1000);
+  tracker.noteRecovery(false, at);
+
+  TEST_ASSERT_FALSE(tracker.noteFault(at + 10));
+  TEST_ASSERT_EQUAL_UINT32(1, tracker.faults());
+  TEST_ASSERT_EQUAL_UINT32(at, tracker.lastFaultMs());
+  // The backoff the failed attempt started still holds.
+  expectAction(I2cFaultAction::None, tracker.due(at + kI2cFirstRetryMs - 1));
+}
+
+void test_a_fault_before_the_first_check_still_recovers() {
+  I2cFaultTracker tracker;
+  TEST_ASSERT_TRUE(tracker.noteFault(50));
+  expectAction(I2cFaultAction::Recover, tracker.due(50));
+
+  tracker.noteRecovery(true, 60);
+  TEST_ASSERT_FALSE(tracker.down());
+  TEST_ASSERT_EQUAL_UINT32(1, tracker.recoveries());
+}
+
 void test_intervals_survive_millis_wrap() {
   I2cFaultTracker tracker;
   const uint32_t beforeWrap = UINT32_MAX - 100;
@@ -135,6 +168,9 @@ int main(int, char**) {
   RUN_TEST(test_failed_recovery_backs_off_to_the_cap);
   RUN_TEST(test_recovery_brings_the_bus_up_and_resumes_checks);
   RUN_TEST(test_second_fault_starts_over);
+  RUN_TEST(test_a_fault_takes_the_bus_down_at_once);
+  RUN_TEST(test_a_fault_while_down_is_not_counted_again);
+  RUN_TEST(test_a_fault_before_the_first_check_still_recovers);
   RUN_TEST(test_intervals_survive_millis_wrap);
   return UNITY_END();
 }

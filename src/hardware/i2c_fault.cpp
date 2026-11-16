@@ -26,6 +26,20 @@ bool I2cFaultTracker::noteCheck(bool ok, uint32_t now) {
     return false;
   }
 
+  takeDown(now);
+  return true;
+}
+
+bool I2cFaultTracker::noteFault(uint32_t now) {
+  if (down_) {
+    return false;
+  }
+
+  takeDown(now);
+  return true;
+}
+
+void I2cFaultTracker::takeDown(uint32_t now) {
   down_ = true;
   faults_++;
   lastFaultMs_ = now;
@@ -33,7 +47,6 @@ bool I2cFaultTracker::noteCheck(bool ok, uint32_t now) {
   // The first recovery attempt runs right away.
   retryDelayMs_ = 0;
   lastAttemptMs_ = now;
-  return true;
 }
 
 void I2cFaultTracker::noteRecovery(bool ok, uint32_t now) {

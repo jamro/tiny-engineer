@@ -21,6 +21,12 @@ namespace {
 
 bool audioStorageReady = false;
 
+// A gap this long between speaker writes means no clip is playing. Longer
+// than a /play body's usual network stall.
+constexpr uint32_t kSpeakerQuietMs = 250;
+bool g_speakerFed = false;
+uint32_t g_lastSpeakerWriteMs = 0;
+
 constexpr const char* kAudioPartition = "spiffs";
 
 void logAudioStorageContents() {
@@ -99,8 +105,15 @@ bool initAudioStorage() {
   return true;
 }
 
+bool speakerPlaying(uint32_t now) {
+  return g_speakerFed && now - g_lastSpeakerWriteMs < kSpeakerQuietMs;
+}
+
 void writeMonoToSpeaker(const int16_t* samples, size_t count) {
   constexpr size_t FRAMES = 256;
+
+  g_speakerFed = true;
+  g_lastSpeakerWriteMs = millis();
 
   int16_t buffer[FRAMES * 2];
 

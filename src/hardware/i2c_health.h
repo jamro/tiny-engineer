@@ -20,8 +20,10 @@ void updateI2cHealth();
 // False while the PCA9685 cannot be used: skip servo writes.
 bool i2cServoDriverUp();
 
-// A servo write failed. Servo writes stop until the chip has been set up again.
-void i2cNoteServoWriteFailed();
+// The PCA9685 failed outside a check, such as a failed write or a boot setup
+// that did not take. It goes down at once: its outputs go off and servo writes
+// stop until the recovery has set it up again. `cause` goes in the fault log.
+void i2cNoteServoDriverFault(const char* cause);
 
 struct I2cDeviceHealth {
   bool ok;

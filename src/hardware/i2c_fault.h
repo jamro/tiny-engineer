@@ -23,6 +23,10 @@ public:
   // Result of a health check while up. True when this check took the bus down.
   bool noteCheck(bool ok, uint32_t now);
 
+  // A failure that counts as a fault on its own, such as a failed write: the
+  // bus goes down at once. True when this took it down; false when it was down.
+  bool noteFault(uint32_t now);
+
   // Result of a recovery attempt while down. A failed attempt doubles the wait
   // before the next one, up to kI2cMaxRetryMs.
   void noteRecovery(bool ok, uint32_t now);
@@ -37,6 +41,8 @@ public:
   uint32_t retryDelayMs() const { return retryDelayMs_; }
 
 private:
+  void takeDown(uint32_t now);
+
   bool down_ = false;
   bool checked_ = false;
   uint8_t failures_ = 0;
