@@ -160,12 +160,61 @@ test("resolveCursorSessionCookie stops lookup when aborted mid-flight", async ()
   delete process.env.CURSOR_SESSION_TOKEN;
   try {
     const ac = new AbortController();
+    let secondStarted = 0;
+    /** @param {AbortSignal | undefined} signal */
+    const hangUntilAbort = (signal) =>
+      new Promise((resolve) => {
+        const done = () => resolve(null);
+        if (signal?.aborted) {
+          done();
+          return;
+        }
+        signal?.addEventListener("abort", done, { once: true });
+      });
+    /** @param {AbortSignal | undefined} _signal */
+    const second = async (_signal) => {
+      secondStarted += 1;
+      return "should-not-run";
+    };
+
     const started = Date.now();
-    const pending = resolveCursorSessionCookie({ signal: ac.signal });
+    const pending = resolveCursorSessionCookie({
+      signal: ac.signal,
+      sources: [hangUntilAbort, second],
+    });
     setTimeout(() => ac.abort(), 40);
     assert.equal(await pending, null);
-    // Must not wait out stacked per-source 2 s timeouts (~6 s).
-    assert.ok(Date.now() - started < 1500);
+    assert.equal(secondStarted, 0);
+    assert.ok(Date.now() - started < 500);
+  } finally {
+    if (prev === undefined) delete process.env.CURSOR_SESSION_TOKEN;
+    else process.env.CURSOR_SESSION_TOKEN = prev;
+  }
+});
+
+test("resolveCursorSessionCookie uses injected source when not aborted", async () => {
+  const prev = process.env.CURSOR_SESSION_TOKEN;
+  delete process.env.CURSOR_SESSION_TOKEN;
+  try {
+    const sessionPayload = Buffer.from(
+      JSON.stringify({ sub: "github|user_01ABC", type: "session" }),
+    ).toString("base64url");
+    const sessionJwt = `hdr.${sessionPayload}.sig`;
+    let calls = 0;
+    const cookie = await resolveCursorSessionCookie({
+      sources: [
+        async () => {
+          calls += 1;
+          return sessionJwt;
+        },
+        async () => {
+          calls += 1;
+          return "unused";
+        },
+      ],
+    });
+    assert.equal(cookie, "user_01ABC::" + sessionJwt);
+    assert.equal(calls, 1);
   } finally {
     if (prev === undefined) delete process.env.CURSOR_SESSION_TOKEN;
     else process.env.CURSOR_SESSION_TOKEN = prev;

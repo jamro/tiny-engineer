@@ -58,6 +58,8 @@ uint8_t g_fadeTo = 0;
 
 bool g_welcomeOverlay = false;
 bool g_welcomePendingApply = false;
+// Last-applied text at overlay start; keep queued g_text out of NVS until apply.
+Lcd1602TextState g_welcomeStash{};
 
 float easeInOut(float t) {
   return t * t * (3.0f - 2.0f * t);
@@ -148,11 +150,15 @@ bool applyBacklightHw() {
 }
 
 void persistLast() {
+  // Mid-overlay brightness/color must not write queued text before apply.
+  const Lcd1602TextState& text =
+    (g_welcomeOverlay && g_welcomePendingApply) ? g_welcomeStash : g_text;
+
   Lcd1602LastBlob blob{};
-  strlcpy(blob.line1, g_text.line1.text, sizeof(blob.line1));
-  strlcpy(blob.line2, g_text.line2.text, sizeof(blob.line2));
-  blob.align1 = alignToByte(g_text.line1.align);
-  blob.align2 = alignToByte(g_text.line2.align);
+  strlcpy(blob.line1, text.line1.text, sizeof(blob.line1));
+  strlcpy(blob.line2, text.line2.text, sizeof(blob.line2));
+  blob.align1 = alignToByte(text.line1.align);
+  blob.align2 = alignToByte(text.line2.align);
   blob.brightness = g_brightness;
   blob.r = g_color.r;
   blob.g = g_color.g;
@@ -290,7 +296,8 @@ void lcd1602FadeBrightnessTo(uint8_t targetPercent, uint32_t durationMs) {
   if (durationMs == 0 || targetPercent == g_brightness) {
     clearBrightnessFade();
     g_brightness = targetPercent;
-    if (g_hwOk) {
+    // Backlight chip, not LCD — brightness can recover while g_hwOk is still false.
+    if (lcd1602HwLedPresent()) {
       applyBacklightHw();
     }
     persistLast();
@@ -354,13 +361,25 @@ void lcd1602ApplyFromSettings(const SettingsPatch* changed) {
   }
 
   const bool wasActive = g_active;
-  const bool bootRelated = changed == nullptr || !wasActive ||
-    changed->lcd1602.has_value() || changed->lcd1602BacklightSleep.has_value() ||
-    changed->lcd1602Boot != nullptr || changed->lcd1602Line1 != nullptr ||
-    changed->lcd1602Line2 != nullptr;
+  // Enable / boot / lines / cold apply only — not welcome-hello or backlight-sleep.
+  const bool contentRelated = changed == nullptr || !wasActive ||
+    changed->lcd1602.has_value() || changed->lcd1602Boot != nullptr ||
+    changed->lcd1602Line1 != nullptr || changed->lcd1602Line2 != nullptr;
+  const bool backlightSleepRelated =
+    changed != nullptr && changed->lcd1602BacklightSleep.has_value();
 
   g_active = true;
-  if (!bootRelated) {
+
+  if (!contentRelated) {
+    // Keep runtime / queued text. Follow-sleep off + brightness 0 → light up.
+    if (backlightSleepRelated && !settingsLcd1602BacklightSleep() &&
+        g_brightness == 0) {
+      clearBrightnessFade();
+      g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
+      if (g_hwOk) {
+        applyBacklightHw();
+      }
+    }
     return;
   }
 
@@ -387,7 +406,8 @@ void lcd1602Poll() {
 
   const uint32_t now = millis();
 
-  if (g_fadeActive && g_hwOk) {
+  // Fade on backlight readiness, not LCD (g_hwOk). Brightness may recover first.
+  if (g_fadeActive && lcd1602HwLedPresent()) {
     const uint32_t elapsed = now - g_fadeStartMs;
     if (elapsed >= g_fadeDurationMs) {
       g_brightness = g_fadeTo;
@@ -462,6 +482,8 @@ bool lcd1602SetText(const Lcd1602LineState* line1, const Lcd1602LineState* line2
     if (!g_hwOk) {
       return false;
     }
+    // Init programs LED modes but not PWM; restore retained backlight.
+    applyBacklightHw();
   }
 
   if (line1 != nullptr) {
@@ -495,6 +517,7 @@ void lcd1602BeginWelcomeHello() {
 
   g_welcomeOverlay = true;
   g_welcomePendingApply = false;
+  g_welcomeStash = g_text;
   renderAll();
 }
 
@@ -537,7 +560,7 @@ bool lcd1602SetColor(uint8_t r, uint8_t g, uint8_t b) {
     return false;
   }
 
-  clearBrightnessFade();
+  // Do not cancel an in-flight sleep/wake fade; reapply base color at current brightness.
   const Lcd1602Color previous = g_color;
   g_color.r = r;
   g_color.g = g;

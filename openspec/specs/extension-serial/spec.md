@@ -25,7 +25,7 @@ For a registered extension route, serial `ext` MUST apply the same access class 
 - **THEN** the response is **503** and no LCD I2C traffic runs for that request
 
 #### Scenario: Wrong method
-- **WHEN** the host sends `ext` with method `PUT` on suffix `text` for `lcd1602`
+- **WHEN** the host sends `ext` with method `PUT` or `PATCH` on suffix `text` for `lcd1602`
 - **THEN** the response is **405**
 
 ### Requirement: Ext body and success semantics match HTTP handlers

@@ -38,13 +38,13 @@ See proposal.md — Why. LCD already applies boot content in `lcd1602ApplyFromSe
    Visible framebuffer during overlay is HELLO/HUMAN; `g_text` holds logical (stash, then pending merges). GET reads `g_text`. Render path draws overlay strings while `g_overlayActive`.
 
 4. **Text/clear during overlay**  
-   Validate as today; merge into `g_text` (logical); set `g_pendingApply=true`; return **200** with logical body; do not `persistLast` until overlay ends and apply runs. DELETE = both lines empty in logical state.
+   Validate as today; merge into `g_text` (logical); set `g_pendingApply=true`; return **200** with logical body; do not `persistLast` until overlay ends and apply runs. DELETE = both lines empty in logical state. Brightness/color still apply and may `persistLast` immediately, but must snapshot **stash** (last-applied) lines — never queued `g_text` — until the pending apply runs.
 
 5. **Boot order**  
    Unchanged: boot content then later Welcome. Overlay stashes whatever boot already set.
 
 6. **Flag false / extension off**  
-   No overlay. Mid-overlay disable: end overlay immediately (apply pending or restore) when settings turn extension or flag off. Flag-only off while the extension stays on must **not** re-run `applyBootContent()` (that would wipe logical `g_text`); end overlay + render is enough. Full boot reapply still runs for enable, boot/line changes, backlight-sleep policy, and boot/`changed == nullptr`.
+   No overlay. Mid-overlay disable: end overlay immediately (apply pending or restore) when settings turn extension or flag off. Flag-only off while the extension stays on must **not** re-run `applyBootContent()` (that would wipe logical `g_text`); end overlay + render is enough. Live `lcd1602_backlight_sleep` / `lcd1602_welcome_hello` changes must also keep runtime text (and any pending apply) intact — awake brightness force-on only if follow-sleep turns off and brightness is 0; ending the overlay then persists the accepted text, including when boot is `last`. Full boot reapply still runs for enable, boot/line changes, and boot/`changed == nullptr`.
 
 ## Risks / Trade-offs
 

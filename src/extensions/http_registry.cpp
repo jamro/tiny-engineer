@@ -54,6 +54,11 @@ bool parseMethod(const char* method, HTTPMethod& out) {
     out = HTTP_PUT;
     return true;
   }
+  // Recognized but unused on extension routes → 405 via pathKnown check below.
+  if (strcmp(method, "PATCH") == 0) {
+    out = HTTP_PATCH;
+    return true;
+  }
   return false;
 }
 

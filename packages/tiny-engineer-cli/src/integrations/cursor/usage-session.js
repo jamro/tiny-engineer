@@ -209,11 +209,15 @@ async function fromStateDb(signal) {
  * Resolve WorkOS session cookie value `id::jwt` for cursor.com dashboard APIs.
  * Returns null when no usable web session is found (never throws).
  *
- * @param {{ signal?: AbortSignal }} [opts]
+ * @param {{
+ *   signal?: AbortSignal,
+ *   sources?: Array<(signal?: AbortSignal) => Promise<string | null>>,
+ * }} [opts]
  * @returns {Promise<string | null>}
  */
 export async function resolveCursorSessionCookie(opts = {}) {
   const signal = opts.signal;
+  const sources = opts.sources ?? [fromMacosKeychain, fromStateDb];
   try {
     if (isAborted(signal)) return null;
 
@@ -223,7 +227,7 @@ export async function resolveCursorSessionCookie(opts = {}) {
       if (cookie) return cookie;
     }
 
-    for (const source of [fromMacosKeychain, fromStateDb]) {
+    for (const source of sources) {
       if (isAborted(signal)) return null;
       const token = await source(signal);
       if (!token) continue;
