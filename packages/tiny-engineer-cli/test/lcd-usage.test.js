@@ -9,6 +9,7 @@ import {
   cookieFromToken,
   jwtClaims,
   cookieIdFromClaims,
+  resolveCursorSessionCookie,
   selectUsableStateDbToken,
 } from "../src/integrations/cursor/usage-session.js";
 
@@ -112,13 +113,16 @@ test("maybeShowCursorUsageOnLcd swallows postLcd errors", async () => {
 
 test("maybeShowCursorUsageOnLcd respects overall timeout", async () => {
   let posted = 0;
+  /** @type {AbortSignal | undefined} */
+  let seenSignal;
   const started = Date.now();
   await maybeShowCursorUsageOnLcd(
     {},
     {
       env: { [AI_USAGE_LCD_KEY]: "1" },
-      resolveCookie: () =>
+      resolveCookie: (opts) =>
         new Promise((resolve) => {
+          seenSignal = opts?.signal;
           // Resolves after the overall cap so cancelled=true skips postLcd.
           setTimeout(() => resolve("id::token"), 80);
         }),
@@ -130,9 +134,42 @@ test("maybeShowCursorUsageOnLcd respects overall timeout", async () => {
     },
   );
   assert.ok(Date.now() - started < 200);
+  assert.equal(seenSignal?.aborted, true);
   // Let the late cookie resolve; cancel flag must still block LCD.
   await new Promise((r) => setTimeout(r, 100));
   assert.equal(posted, 0);
+});
+
+test("resolveCursorSessionCookie returns immediately when already aborted", async () => {
+  const prev = process.env.CURSOR_SESSION_TOKEN;
+  delete process.env.CURSOR_SESSION_TOKEN;
+  try {
+    const ac = new AbortController();
+    ac.abort();
+    const started = Date.now();
+    assert.equal(await resolveCursorSessionCookie({ signal: ac.signal }), null);
+    assert.ok(Date.now() - started < 100);
+  } finally {
+    if (prev === undefined) delete process.env.CURSOR_SESSION_TOKEN;
+    else process.env.CURSOR_SESSION_TOKEN = prev;
+  }
+});
+
+test("resolveCursorSessionCookie stops lookup when aborted mid-flight", async () => {
+  const prev = process.env.CURSOR_SESSION_TOKEN;
+  delete process.env.CURSOR_SESSION_TOKEN;
+  try {
+    const ac = new AbortController();
+    const started = Date.now();
+    const pending = resolveCursorSessionCookie({ signal: ac.signal });
+    setTimeout(() => ac.abort(), 40);
+    assert.equal(await pending, null);
+    // Must not wait out stacked per-source 2 s timeouts (~6 s).
+    assert.ok(Date.now() - started < 1500);
+  } finally {
+    if (prev === undefined) delete process.env.CURSOR_SESSION_TOKEN;
+    else process.env.CURSOR_SESSION_TOKEN = prev;
+  }
 });
 
 test("cookieFromToken builds id::jwt and skips api_key_token", () => {

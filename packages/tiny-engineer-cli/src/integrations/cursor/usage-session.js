@@ -56,13 +56,27 @@ export function cookieFromToken(token) {
 }
 
 /**
+ * @param {AbortSignal | undefined} signal
+ * @returns {boolean}
+ */
+function isAborted(signal) {
+  return signal != null && signal.aborted;
+}
+
+/**
  * @param {string} command
  * @param {string[]} args
  * @param {number} timeoutMs
+ * @param {AbortSignal} [signal]
  * @returns {Promise<string | null>}
  */
-function spawnStdout(command, args, timeoutMs) {
+function spawnStdout(command, args, timeoutMs, signal) {
   return new Promise((resolve) => {
+    if (isAborted(signal)) {
+      resolve(null);
+      return;
+    }
+
     /** @type {import("node:child_process").ChildProcessWithoutNullStreams} */
     let child;
     try {
@@ -72,41 +86,58 @@ function spawnStdout(command, args, timeoutMs) {
       return;
     }
 
+    let settled = false;
     let out = "";
+
+    /** @param {string | null} value */
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+      resolve(value);
+    };
+
+    const onAbort = () => {
+      child.kill("SIGKILL");
+      finish(null);
+    };
+
     const timer = setTimeout(() => {
       child.kill("SIGKILL");
-      resolve(null);
+      finish(null);
     }, timeoutMs);
+
+    signal?.addEventListener("abort", onAbort, { once: true });
 
     child.stdout.setEncoding("utf8");
     child.stdout.on("data", (chunk) => {
       out += chunk;
     });
     child.on("error", () => {
-      clearTimeout(timer);
-      resolve(null);
+      finish(null);
     });
     child.on("close", (code) => {
-      clearTimeout(timer);
       if (code !== 0) {
-        resolve(null);
+        finish(null);
         return;
       }
-      const trimmed = out.trim();
-      resolve(trimmed || null);
+      finish(out.trim() || null);
     });
   });
 }
 
 /**
+ * @param {AbortSignal} [signal]
  * @returns {Promise<string | null>}
  */
-async function fromMacosKeychain() {
+async function fromMacosKeychain(signal) {
   if (process.platform !== "darwin") return null;
   return spawnStdout(
     "security",
     ["find-generic-password", "-s", KEYCHAIN_SERVICE, "-w"],
     SOURCE_TIMEOUT_MS,
+    signal,
   );
 }
 
@@ -131,20 +162,23 @@ export function stateDbCandidates() {
 
 /**
  * @param {string} dbPath
+ * @param {AbortSignal} [signal]
  * @returns {Promise<string | null>}
  */
-async function tokenFromStateDb(dbPath) {
+async function tokenFromStateDb(dbPath, signal) {
   // Escape single quotes for sqlite string literal.
   const key = STATE_DB_KEY.replace(/'/g, "''");
   const sql = `SELECT value FROM ItemTable WHERE key = '${key}' LIMIT 1;`;
-  const out = await spawnStdout("sqlite3", ["-readonly", dbPath, sql], SOURCE_TIMEOUT_MS);
+  const out = await spawnStdout(
+    "sqlite3",
+    ["-readonly", dbPath, sql],
+    SOURCE_TIMEOUT_MS,
+    signal,
+  );
   if (!out) return null;
   return out.replace(/^"|"$/g, "").trim() || null;
 }
 
-/**
- * @returns {Promise<string | null>}
- */
 /**
  * First usable raw token from a candidate list (skips api_key / malformed).
  * @param {string[]} tokens
@@ -157,9 +191,14 @@ export function selectUsableStateDbToken(tokens) {
   return null;
 }
 
-async function fromStateDb() {
+/**
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<string | null>}
+ */
+async function fromStateDb(signal) {
   for (const path of stateDbCandidates()) {
-    const token = await tokenFromStateDb(path);
+    if (isAborted(signal)) return null;
+    const token = await tokenFromStateDb(path, signal);
     const usable = selectUsableStateDbToken(token ? [token] : []);
     if (usable) return usable;
   }
@@ -170,10 +209,14 @@ async function fromStateDb() {
  * Resolve WorkOS session cookie value `id::jwt` for cursor.com dashboard APIs.
  * Returns null when no usable web session is found (never throws).
  *
+ * @param {{ signal?: AbortSignal }} [opts]
  * @returns {Promise<string | null>}
  */
-export async function resolveCursorSessionCookie() {
+export async function resolveCursorSessionCookie(opts = {}) {
+  const signal = opts.signal;
   try {
+    if (isAborted(signal)) return null;
+
     const env = process.env.CURSOR_SESSION_TOKEN?.trim();
     if (env) {
       const cookie = cookieFromToken(env);
@@ -181,7 +224,8 @@ export async function resolveCursorSessionCookie() {
     }
 
     for (const source of [fromMacosKeychain, fromStateDb]) {
-      const token = await source();
+      if (isAborted(signal)) return null;
+      const token = await source(signal);
       if (!token) continue;
       const cookie = cookieFromToken(token);
       if (cookie) return cookie;

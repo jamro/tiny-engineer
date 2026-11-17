@@ -5,6 +5,7 @@
 #include "animation.h"
 #include "audio/wav_stream.h"
 #include "display/oled.h"
+#include "extensions/lcd1602/lcd1602.h"
 #include "hardware/i2c_health.h"
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"
@@ -26,4 +27,7 @@ void tickRobot() {
   updateSleep(millis());
   updateRgb(now);
   pollServoPoseSave();
+  // Also needed from PlaySession::onPcm / serial play — main loop is blocked
+  // for the whole streamed clip, so marquee + backlight fades stall otherwise.
+  lcd1602Poll();
 }

@@ -180,7 +180,6 @@ void setup() {
 void loop() {
   serialLinkPoll();
   pushButtonPoll();
-  lcd1602Poll();
   pollHttpServer();
   pollOta();
   tickRobot();

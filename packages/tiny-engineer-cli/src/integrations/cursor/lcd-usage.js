@@ -19,7 +19,7 @@ export const STEP_TIMEOUT_MS = 1500;
 
 /**
  * @typedef {{
- *   resolveCookie?: () => Promise<string | null>,
+ *   resolveCookie?: (opts?: { signal?: AbortSignal }) => Promise<string | null>,
  *   fetchLimits?: (cookie: string, opts?: { timeoutMs?: number }) => Promise<Record<string, unknown> | null>,
  *   postLcd?: (pct: number, transport: TransportOpts) => Promise<unknown>,
  *   overallTimeoutMs?: number,
@@ -68,16 +68,17 @@ export async function maybeShowCursorUsageOnLcd(transport = {}, deps = {}) {
     deps.postLcd ??
     ((pct, opts) => defaultPostLcd(pct, opts, stepTimeoutMs));
 
+  const ac = new AbortController();
   let cancelled = false;
   const run = (async () => {
-    const cookie = await resolveCookie();
-    if (cancelled || !cookie) return;
+    const cookie = await resolveCookie({ signal: ac.signal });
+    if (cancelled || ac.signal.aborted || !cookie) return;
 
     const limits = await fetchLimits(cookie, { timeoutMs: stepTimeoutMs });
-    if (cancelled || !limits) return;
+    if (cancelled || ac.signal.aborted || !limits) return;
 
     const pct = remainingBudgetPercent(limits);
-    if (cancelled || pct == null) return;
+    if (cancelled || ac.signal.aborted || pct == null) return;
 
     await postLcd(pct, transport);
   })();
@@ -94,6 +95,7 @@ export async function maybeShowCursorUsageOnLcd(transport = {}, deps = {}) {
     // fail-open
   } finally {
     cancelled = true;
+    ac.abort();
     if (overallTimer !== undefined) clearTimeout(overallTimer);
   }
 }
