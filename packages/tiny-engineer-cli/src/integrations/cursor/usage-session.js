@@ -16,7 +16,13 @@ export function jwtClaims(token) {
     if (parts.length < 2) return {};
     let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
     payload += "=".repeat((4 - (payload.length % 4)) % 4);
-    return JSON.parse(Buffer.from(payload, "base64").toString("utf8"));
+    const claims = JSON.parse(Buffer.from(payload, "base64").toString("utf8"));
+    // JSON.parse("null") / primitives must not throw later at claims.type —
+    // that would abort resolveCursorSessionCookie before Keychain/DB fallback.
+    if (claims === null || typeof claims !== "object" || Array.isArray(claims)) {
+      return {};
+    }
+    return /** @type {Record<string, unknown>} */ (claims);
   } catch {
     return {};
   }

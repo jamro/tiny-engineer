@@ -37,7 +37,8 @@ bool lcd1602HardwareOk();
 // Call before saveSettings — after save, current equals the patch.
 bool lcd1602PatchNeedsApply(const SettingsPatch& patch);
 
-void lcd1602ApplyFromSettings();
+// `changed` null = full apply (boot). With a patch, welcome_hello-only skips boot content.
+void lcd1602ApplyFromSettings(const SettingsPatch* changed = nullptr);
 void lcd1602Poll();
 // Smooth brightness change (sleep→0, wake→100). No-op if extension off. Duration 0 snaps.
 void lcd1602FadeBrightnessTo(uint8_t targetPercent, uint32_t durationMs);

@@ -174,7 +174,8 @@ export function ApiReference() {
             </td>
             <td>string</td>
             <td>
-              Configured boot lines when boot is <code>config</code> (max 64; immediate)
+              Configured boot lines when boot is <code>config</code> (max 64, no
+              C0 control bytes; immediate)
             </td>
           </tr>
           <tr>

@@ -36,7 +36,10 @@ See proposal.md — Why. Today `lcd1602_backlight_boot` only steers enable/boot 
    `lcd1602_boot=last` still restores stored brightness, except when `lcd1602_backlight_sleep` is false and that brightness is **0** — then force default brightness on (sleep may have persisted 0 into last; follow-sleep-off means the panel stays lit while awake).
 
 4. **Unknown old key**  
-   Do not accept or emit `lcd1602_backlight_boot`. Never returned on GET. If present in a `POST /settings` (or serial `settings.set`) body, `readPatch()` rejects the whole patch with **400** `unknown field lcd1602_backlight_boot` and saves nothing — same as any other unknown settings field. Clients must drop the old key before submitting a patch.
+   Do not accept or emit `lcd1602_backlight_boot`. Never returned on GET.  
+   - **HTTP** `POST /settings`: `readPatch()` rejects the whole body with **400** `unknown field lcd1602_backlight_boot` and saves nothing — same as any other unknown settings field.  
+   - **Serial** `settings.set`: only reads known keys and ignores unknowns. A body that also has known fields still saves those; a body with **only** the removed key (no known fields) → **400** `send at least one setting`.  
+   Clients must drop the old key before submitting a patch (especially over HTTP).
 
 5. **UI copy**  
    Label: **Follow sleep**. Bound to `lcd1602_backlight_sleep`.
@@ -47,13 +50,13 @@ See proposal.md — Why. Today `lcd1602_backlight_boot` only steers enable/boot 
 ## Risks / Trade-offs
 
 - [Devices with `ext_lcd_bl=false`] → Semantics flip: was “off until API”, becomes “boot on, no sleep dim”. Acceptable; matches product intent and default remains true.  
-- [External scripts still sending old key] → **400** `unknown field lcd1602_backlight_boot`; entire patch rejected (including sibling fields). Mitigate: API docs + BREAKING CHANGE footer; tell clients to remove the key; ApiReference update.  
+- [External scripts still sending old key] → HTTP: **400** `unknown field lcd1602_backlight_boot`, entire patch rejected (including sibling fields). Serial: old key ignored; known siblings still save; only-old-key body → **400** `send at least one setting`. Mitigate: API docs + BREAKING CHANGE footer; tell clients to remove the key; ApiReference update.  
 - [Wake always 100] → Overrides a manual dim set before sleep when follow sleep is on. Accepted (user decision).
 
 ## Migration Plan
 
 - Flash new firmware: NVS bool reused; no wipe.
-- Clients: use `lcd1602_backlight_sleep`; remove `lcd1602_backlight_boot` from POST bodies (unknown field → 400, nothing saved).
+- Clients: use `lcd1602_backlight_sleep`; remove `lcd1602_backlight_boot` from POST/serial bodies (HTTP: unknown field → 400, nothing saved; serial: key ignored, or 400 if it was the only field).
 - Rollback: old firmware again reads `ext_lcd_bl` as backlight-on-boot (false again means off until API).
 
 ## Open Questions

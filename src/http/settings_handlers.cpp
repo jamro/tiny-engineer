@@ -242,7 +242,7 @@ void handleSettingsPost(WebServer& server) {
   }
 
   if (lcdNeedsApply) {
-    lcd1602ApplyFromSettings();
+    lcd1602ApplyFromSettings(&patch);
   }
 
   if (patch.oledRotate180) {

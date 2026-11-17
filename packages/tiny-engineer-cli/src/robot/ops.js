@@ -4,7 +4,7 @@ import { robotFetch } from "./client.js";
 import { withTransport } from "./with-transport.js";
 
 /**
- * @typedef {{ transport?: string, url?: string, port?: string | null }} TransportOpts
+ * @typedef {{ transport?: string, url?: string, port?: string | null, timeoutMs?: number }} TransportOpts
  */
 
 /**
@@ -48,7 +48,10 @@ async function viaTransport(op, fields, opts, httpFn) {
   return withTransport(opts, {
     serial: async () => {
       try {
-        const body = await serialRequest(op, fields, { port: opts.port });
+        /** @type {{ port?: string | null, timeoutMs?: number }} */
+        const serialOpts = { port: opts.port };
+        if (opts.timeoutMs != null) serialOpts.timeoutMs = opts.timeoutMs;
+        const body = await serialRequest(op, fields, serialOpts);
         if (body.ok === false) {
           return {
             ok: false,

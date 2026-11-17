@@ -170,4 +170,7 @@ test("jwtClaims and cookieIdFromClaims parse sub", () => {
   const claims = jwtClaims(`x.${payload}.y`);
   assert.equal(cookieIdFromClaims(claims), "user_xyz");
   assert.deepEqual(jwtClaims("not-a-jwt"), {});
+  // payload "null" — must not throw; empty claims so env token can fall through
+  assert.deepEqual(jwtClaims("x.bnVsbA.y"), {});
+  assert.equal(cookieFromToken("x.bnVsbA.y"), null);
 });

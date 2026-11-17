@@ -44,7 +44,7 @@ See proposal.md — Why. LCD already applies boot content in `lcd1602ApplyFromSe
    Unchanged: boot content then later Welcome. Overlay stashes whatever boot already set.
 
 6. **Flag false / extension off**  
-   No overlay. Mid-overlay disable: end overlay immediately (apply pending or restore) when settings turn extension or flag off.
+   No overlay. Mid-overlay disable: end overlay immediately (apply pending or restore) when settings turn extension or flag off. Flag-only off while the extension stays on must **not** re-run `applyBootContent()` (that would wipe logical `g_text`); end overlay + render is enough. Full boot reapply still runs for enable, boot/line changes, backlight-sleep policy, and boot/`changed == nullptr`.
 
 ## Risks / Trade-offs
 

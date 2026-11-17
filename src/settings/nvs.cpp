@@ -152,7 +152,13 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
   };
   auto putText = [&](const char* key, const char* value, const char* old) {
     if (all || strcmp(value, old) != 0) {
-      ok &= g_settingsPrefs.putString(key, value) == strlen(value);
+      // putString("") returns 0 on both success and failure; remove reports clearly.
+      // Missing key loads as the in-memory default (empty for LCD lines / token).
+      if (value[0] == '\0') {
+        ok &= !g_settingsPrefs.isKey(key) || g_settingsPrefs.remove(key);
+      } else {
+        ok &= g_settingsPrefs.putString(key, value) == strlen(value);
+      }
     }
   };
 

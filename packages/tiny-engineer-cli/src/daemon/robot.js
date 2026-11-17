@@ -5,11 +5,14 @@ import { daemonPlay, daemonProbe, daemonRobotRequest } from "./client.js";
  * SerialRobotClient runs only inside that process.
  * @param {string} op
  * @param {Record<string, unknown>} [fields]
- * @param {{ port?: string | null }} [opts]
+ * @param {{ port?: string | null, timeoutMs?: number }} [opts]
  * @returns {Promise<Record<string, unknown>>}
  */
 export function serialRequest(op, fields = {}, opts = {}) {
-  return daemonRobotRequest(op, fields, { port: opts.port ?? null });
+  /** @type {{ port: string | null, timeoutMs?: number }} */
+  const rpcOpts = { port: opts.port ?? null };
+  if (opts.timeoutMs != null) rpcOpts.timeoutMs = opts.timeoutMs;
+  return daemonRobotRequest(op, fields, rpcOpts);
 }
 
 /**

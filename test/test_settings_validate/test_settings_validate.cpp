@@ -73,6 +73,7 @@ void test_lcd1602_boot_and_line() {
 
   TEST_ASSERT_TRUE(settingsValidateLcd1602Line(""));
   TEST_ASSERT_TRUE(settingsValidateLcd1602Line("HELLO"));
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Line("caf\xc3\xa9"));
   char longLine[66];
   memset(longLine, 'a', 64);
   longLine[64] = '\0';
@@ -81,6 +82,8 @@ void test_lcd1602_boot_and_line() {
   longLine[65] = '\0';
   TEST_ASSERT_FALSE(settingsValidateLcd1602Line(longLine));
   TEST_ASSERT_FALSE(settingsValidateLcd1602Line(nullptr));
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Line("line\nbreak"));
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Line("\x01"));
 
   SettingsPatch patch;
   patch.lcd1602Boot = "welcome";

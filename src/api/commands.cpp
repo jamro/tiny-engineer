@@ -70,7 +70,7 @@ ApiResult apiSaveSettings(const SettingsPatch& patch) {
     pushButtonApplyFromSettings();
   }
   if (lcdNeedsApply) {
-    lcd1602ApplyFromSettings();
+    lcd1602ApplyFromSettings(&patch);
   }
   return {true, 200, nullptr};
 }

@@ -158,7 +158,20 @@ bool settingsValidateLcd1602Line(const char* line) {
     return false;
   }
 
-  return strlen(line) <= SETTINGS_LCD1602_LINE_MAX_LEN;
+  const size_t len = strlen(line);
+  if (len > SETTINGS_LCD1602_LINE_MAX_LEN) {
+    return false;
+  }
+
+  // Reject C0 controls so serial settings.get JSON escaping stays in the
+  // 1024-byte sendJsonRes buffer (U+0001 → six escape bytes each).
+  for (size_t i = 0; i < len; i++) {
+    if (static_cast<unsigned char>(line[i]) < 0x20) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 bool settingsValidateRgbOrder(const char* rgbOrder) {

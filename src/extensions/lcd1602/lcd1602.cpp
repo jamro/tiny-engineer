@@ -337,11 +337,12 @@ bool lcd1602PatchNeedsApply(const SettingsPatch& patch) {
   return false;
 }
 
-void lcd1602ApplyFromSettings() {
+void lcd1602ApplyFromSettings(const SettingsPatch* changed) {
   if (!settingsLcd1602()) {
+    // Clear before endWelcome so restore/render cannot issue I2C while disabling.
+    g_hwOk = false;
     endWelcomeHelloInternal();
     g_active = false;
-    g_hwOk = false;
     clearBrightnessFade();
     lcd1602HwResetLed();
     serialLogPrintln("LCD1602 extension off");
@@ -352,7 +353,17 @@ void lcd1602ApplyFromSettings() {
     endWelcomeHelloInternal();
   }
 
+  const bool wasActive = g_active;
+  const bool bootRelated = changed == nullptr || !wasActive ||
+    changed->lcd1602.has_value() || changed->lcd1602BacklightSleep.has_value() ||
+    changed->lcd1602Boot != nullptr || changed->lcd1602Line1 != nullptr ||
+    changed->lcd1602Line2 != nullptr;
+
   g_active = true;
+  if (!bootRelated) {
+    return;
+  }
+
   g_hwOk = lcd1602HwInit();
 
   if (!g_hwOk) {
@@ -439,7 +450,10 @@ bool lcd1602SetText(const Lcd1602LineState* line1, const Lcd1602LineState* line2
     return false;
   }
 
-  if (!g_hwOk && !lcd1602HwPresent()) {
+  // Presence every update: g_hwOk alone would report success after unplug
+  // (HW writes ignore I2C status).
+  if (!lcd1602HwPresent()) {
+    g_hwOk = false;
     return false;
   }
 
@@ -503,8 +517,10 @@ bool lcd1602SetBrightness(uint8_t percent) {
   }
 
   clearBrightnessFade();
+  const uint8_t previous = g_brightness;
   g_brightness = percent;
   if (!applyBacklightHw()) {
+    g_brightness = previous;
     return false;
   }
 
@@ -522,10 +538,12 @@ bool lcd1602SetColor(uint8_t r, uint8_t g, uint8_t b) {
   }
 
   clearBrightnessFade();
+  const Lcd1602Color previous = g_color;
   g_color.r = r;
   g_color.g = g;
   g_color.b = b;
   if (!applyBacklightHw()) {
+    g_color = previous;
     return false;
   }
 
