@@ -421,16 +421,6 @@ nav a.active {
   padding-top: 0.15rem;
 }
 
-.ext-details > .toggle-row,
-.ext-details > .field-head,
-.ext-details > .choice-row,
-.ext-details > .hint,
-.ext-details > label,
-.ext-details > input,
-.ext-details > .ext-events {
-  margin-top: 0;
-}
-
 .choice-row {
   display: flex;
   flex-wrap: wrap;
@@ -1054,6 +1044,17 @@ footer {
   margin: 0;
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+/* After base rules so specificity order stays ascending (stylelint). */
+.ext-details > .toggle-row,
+.ext-details > .field-head,
+.ext-details > .choice-row,
+.ext-details > .hint,
+.ext-details > label,
+.ext-details > input,
+.ext-details > .ext-events {
+  margin-top: 0;
 }
 
 .btn-danger {
