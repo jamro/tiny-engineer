@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "audio/audio.h"
 #include "display/oled.h"
 #include "hardware/i2c_fault.h"
 #include "hardware/i2c_health.h"
@@ -14,10 +13,18 @@ namespace {
 
 constexpr uint8_t kBusClearPulses = 9;
 constexpr uint32_t kBusClearHalfPeriodUs = 5;
-// A recovery blocks for tens of milliseconds, which is an audible gap while a
-// clip plays. It waits for the speaker to go quiet, but not for longer than
-// this after the fault: a long clip must not keep the robot limp.
-constexpr uint32_t kRecoveryAudioWaitMaxMs = 5000;
+// Wire's default is 50 ms. Every transfer here finishes in a few: the
+// largest, a 128-byte OLED frame chunk, takes about 3 ms at 400 kHz and 12 ms
+// at 100 kHz. On a dead bus each transfer waits this long, and a tick does at
+// most one device's work, about one timeout. The speaker's DMA buffer holds
+// about 65 ms (6 x 240 frames at 22,050 Hz), so a tick never starves it.
+constexpr uint16_t kI2cTransferTimeoutMs = 20;
+
+enum class RecoveryResult : uint8_t {
+  InProgress,  // a step ran; call again next tick
+  Succeeded,
+  Failed
+};
 
 struct BusLines {
   bool sdaHigh;
@@ -30,18 +37,19 @@ struct Device {
   const char* name;
   bool (*healthy)();
   void (*stopWrites)();
-  bool (*recover)();
+  // One step of a recovery, bounded by about one transfer timeout.
+  RecoveryResult (*recover)(uint32_t now);
   // Extra text for the fault log line; null when there is none.
   void (*logFaultDetail)();
   I2cFaultTracker tracker;
 };
 
 bool servoDriverHealthy();
-bool recoverServoDriver();
+RecoveryResult recoverServoDriver(uint32_t now);
 void logServoDriverDetail();
 bool oledHealthy();
 void stopOledWrites();
-bool recoverOled();
+RecoveryResult recoverOled(uint32_t now);
 
 Device g_servoDriver = {
   // At a fault the outputs go off, so a corrupted setup cannot keep driving
@@ -61,6 +69,20 @@ bool g_wireUp = true;
 // been set up again. Kept across failed attempts: a retry finds the PCA9685's
 // setup restored and would otherwise skip the panel.
 bool g_oledRestartPending = false;
+// Where the PCA9685's recovery is. It runs one step per tick, each a short
+// burst of transfers, so a recovery never holds the loop for long.
+enum class ServoRecoveryStep : uint8_t {
+  Probe,        // does the chip answer?
+  RestartBus,   // it did not: restart Wire, then ask again
+  CheckSetup,   // does it still hold its setup?
+  SetUp,        // it did not: set it up again
+  ChannelsOff,  // every channel off, outputs off
+  Settle,       // wait for the off values to take effect
+  ChannelsOn,   // outputs on, then every channel written
+  Oled          // set the panel up again after a power loss
+};
+ServoRecoveryStep g_servoStep = ServoRecoveryStep::Probe;
+uint32_t g_channelsOffMs = 0;
 // Registers from the latest PCA9685 check, for the fault log line.
 ServoPwmDriverState g_servoDriverState = {};
 
@@ -236,39 +258,75 @@ bool servoDriverAnswers() {
   return g_wireUp && i2cDeviceConnected(PCA9685_ADDRESS);
 }
 
+RecoveryResult endServoRecovery(RecoveryResult result) {
+  g_servoStep = ServoRecoveryStep::Probe;
+  return result;
+}
+
+RecoveryResult nextServoStep(ServoRecoveryStep step) {
+  g_servoStep = step;
+  return RecoveryResult::InProgress;
+}
+
 // The PCA9685 is the required chip, so its recovery is the one that restarts
 // the bus. A chip that still answers proves the bus works. One that also kept
 // its setup only lost a write or a read: rewriting the channels is enough, and
 // the healthy OLED is left alone. A lost setup means the chip lost power or
 // was corrupted: it is set up from scratch, and so is the panel.
-bool recoverServoDriver() {
-  bool reachable = servoDriverAnswers();
+RecoveryResult recoverServoDriver(uint32_t now) {
+  switch (g_servoStep) {
+    case ServoRecoveryStep::Probe:
+      return nextServoStep(
+        servoDriverAnswers() ? ServoRecoveryStep::CheckSetup : ServoRecoveryStep::RestartBus
+      );
 
-  if (!reachable) {
-    reachable = restartBus() && servoDriverAnswers();
+    case ServoRecoveryStep::RestartBus:
+      if (!restartBus() || !servoDriverAnswers()) {
+        return endServoRecovery(RecoveryResult::Failed);
+      }
+      return nextServoStep(ServoRecoveryStep::CheckSetup);
+
+    case ServoRecoveryStep::CheckSetup:
+      if (servoPwmDriverState(g_servoDriverState)) {
+        return nextServoStep(ServoRecoveryStep::ChannelsOff);
+      }
+      g_oledRestartPending = true;
+      return nextServoStep(ServoRecoveryStep::SetUp);
+
+    case ServoRecoveryStep::SetUp:
+      if (!setUpServoPwmDriver()) {
+        return endServoRecovery(RecoveryResult::Failed);
+      }
+      return nextServoStep(ServoRecoveryStep::ChannelsOff);
+
+    case ServoRecoveryStep::ChannelsOff:
+      if (!writeServoChannelsOff()) {
+        return endServoRecovery(RecoveryResult::Failed);
+      }
+      g_channelsOffMs = now;
+      return nextServoStep(ServoRecoveryStep::Settle);
+
+    case ServoRecoveryStep::Settle:
+      if (now - g_channelsOffMs < kServoOutputSettleMs) {
+        return RecoveryResult::InProgress;
+      }
+      return nextServoStep(ServoRecoveryStep::ChannelsOn);
+
+    case ServoRecoveryStep::ChannelsOn:
+      if (!enableServoOutputsWithChannels()) {
+        return endServoRecovery(RecoveryResult::Failed);
+      }
+      if (!g_oledRestartPending) {
+        return endServoRecovery(RecoveryResult::Succeeded);
+      }
+      return nextServoStep(ServoRecoveryStep::Oled);
+
+    case ServoRecoveryStep::Oled:
+      restartOledAfterPowerLoss();
+      return endServoRecovery(RecoveryResult::Succeeded);
   }
 
-  if (!reachable) {
-    return false;
-  }
-
-  if (servoPwmDriverState(g_servoDriverState)) {
-    if (!resyncServoPwmDriver()) {
-      return false;
-    }
-  } else {
-    g_oledRestartPending = true;
-
-    if (!restartServoPwmDriver()) {
-      return false;
-    }
-  }
-
-  if (g_oledRestartPending) {
-    restartOledAfterPowerLoss();
-  }
-
-  return true;
+  return endServoRecovery(RecoveryResult::Failed);
 }
 
 // oledAvailable is part of the check: a restart that failed outside an OLED
@@ -283,8 +341,10 @@ void stopOledWrites() {
 
 // Never restarts the bus: an OLED fault alone must not disturb the servos.
 // A dead bus is left to the PCA9685's recovery.
-bool recoverOled() {
-  return g_wireUp && restartOledForSleepState();
+RecoveryResult recoverOled(uint32_t) {
+  return g_wireUp && restartOledForSleepState()
+    ? RecoveryResult::Succeeded
+    : RecoveryResult::Failed;
 }
 
 // The device is down: stop its writes, since each failed one blocks the loop
@@ -294,14 +354,10 @@ void enterFault(Device& device, uint32_t now, const char* cause = nullptr) {
   logFault(device, now, cause);
 }
 
-bool recoveryWaitsForAudio(const Device& device, uint32_t now) {
-  return speakerPlaying(now) &&
-         now - device.tracker.lastFaultMs() < kRecoveryAudioWaitMaxMs;
-}
-
-void service(Device& device) {
-  // Read here, not once per tick: the other chip's recovery can take tens of
-  // milliseconds and stamp this tracker with a later time.
+// True when it did bus work: a check, or a step of a recovery.
+bool service(Device& device) {
+  // Read here, not once per tick: the other chip's work can stamp this
+  // tracker with a later time.
   const uint32_t now = millis();
 
   switch (device.tracker.due(now)) {
@@ -309,15 +365,21 @@ void service(Device& device) {
       if (device.tracker.noteCheck(device.healthy(), now)) {
         enterFault(device, now);
       }
-      break;
-    case I2cFaultAction::Recover:
-      if (!recoveryWaitsForAudio(device, now)) {
-        noteRecovery(device, device.recover());
+      return true;
+    case I2cFaultAction::Recover: {
+      // A recovery in progress keeps its tracker due until it ends.
+      const RecoveryResult result = device.recover(now);
+
+      if (result != RecoveryResult::InProgress) {
+        noteRecovery(device, result == RecoveryResult::Succeeded);
       }
-      break;
+      return true;
+    }
     case I2cFaultAction::None:
-      break;
+      return false;
   }
+
+  return false;
 }
 
 I2cDeviceHealth deviceHealth(const Device& device, bool up) {
@@ -339,6 +401,8 @@ void initI2cBus() {
     logLines(lines);
   }
 
+  // Kept across Wire restarts: it is a member, set once.
+  Wire.setTimeOut(kI2cTransferTimeoutMs);
   g_wireUp = Wire.begin(I2C_SDA, I2C_SCL);
 
   if (!g_wireUp) {
@@ -356,9 +420,9 @@ void updateI2cHealth() {
     return;
   }
 
-  service(g_servoDriver);
-
-  if (g_oledExpected) {
+  // At most one chip's work per tick, so a tick costs about one transfer
+  // timeout at worst. The OLED's turn comes a tick later.
+  if (!service(g_servoDriver) && g_oledExpected) {
     service(g_oled);
   }
 }

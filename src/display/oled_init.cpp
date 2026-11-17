@@ -18,6 +18,11 @@ namespace {
 constexpr size_t kOledFrameBytes = OLED_WIDTH * ((OLED_HEIGHT + 7) / 8);
 // Frame bytes per transfer, well inside Wire's buffer.
 constexpr size_t kOledFrameChunk = 32;
+// The driver runs its own transfers at 400 kHz and drops back to 100 kHz for
+// the PCA9685 (its clkDuring / clkAfter defaults). The checked transfers here
+// do the same, or a frame would take four times as long.
+constexpr uint32_t kOledClockHz = 400000;
+constexpr uint32_t kBusClockHz = 100000;
 
 // What begin() sends a 128x32 panel on its internal charge pump, minus the
 // final DISPLAYON. The driver ignores failed writes, and a panel that missed
@@ -56,11 +61,7 @@ bool sendOled(uint8_t control, const uint8_t* bytes, size_t count) {
   return Wire.endTransmission() == 0;
 }
 
-// Sends the panel its full setup and the frame buffer, then turns it on when
-// panelOn. Safe to repeat: a panel that lost power comes back dark until it
-// gets this again. The frame goes over while the panel is still off, so it
-// wakes showing it. Leaves the frame buffer and the rotation as they are.
-bool configureOled(bool panelOn) {
+bool sendOledSetupAndFrame(bool panelOn) {
   const uint8_t* frame = display.getBuffer();
 
   if (frame == nullptr ||
@@ -81,6 +82,17 @@ bool configureOled(bool panelOn) {
 
   const uint8_t on = SSD1306_DISPLAYON;
   return sendOled(0x00, &on, 1);
+}
+
+// Sends the panel its full setup and the frame buffer, then turns it on when
+// panelOn. Safe to repeat: a panel that lost power comes back dark until it
+// gets this again. The frame goes over while the panel is still off, so it
+// wakes showing it. Leaves the frame buffer and the rotation as they are.
+bool configureOled(bool panelOn) {
+  Wire.setClock(kOledClockHz);
+  const bool ok = sendOledSetupAndFrame(panelOn);
+  Wire.setClock(kBusClockHz);
+  return ok;
 }
 
 }  // namespace

@@ -293,9 +293,8 @@ bool readPcaRegisters(uint8_t reg, uint8_t* values, uint8_t count) {
   return true;
 }
 
-// Writes one channel and reads it back. Recovery and boot turn the outputs on
-// only after this: an acknowledged write can still land corrupted on a bus
-// that just glitched.
+// Writes one channel and reads it back: an acknowledged write can still land
+// corrupted on a bus that just glitched.
 bool writeChannelVerified(uint8_t channel, uint16_t off) {
   if (pwm.setPWM(channel, 0, off) != 0) {
     return false;
@@ -322,28 +321,17 @@ void writeServoSetup() {
   pwm.setPWMFreq(kServoPwmHz);
 }
 
-// Writes every channel from the firmware's state, then turns the outputs on.
-// False, with the outputs left off, when a write failed or did not read back.
-// Stops at the first failure: on a dead bus each further write waits out its
-// timeout, and the next attempt rewrites every channel anyway.
-bool writeChannelsAndEnableOutputs() {
-  for (int i = 0; i < SERVO_COUNT; i++) {
-    if (!g_servos[i].resyncOutput()) {
-      return false;
-    }
-  }
-
-  // Let each channel's first pulse go out before the servos see it.
-  delay(10);
-  enableServoOutputs();
-  return true;
-}
-
-// The end of boot and of a restart. Outputs stay off unless the setup took:
-// a wrong output mode or frequency must not reach the servos.
+// The end of boot: the recovery's sequence in one go. Outputs stay off unless
+// the setup took: a wrong output mode or frequency must not reach the servos.
 bool finishServoPwmDriverSetup() {
   ServoPwmDriverState state;
-  return servoPwmDriverState(state) && writeChannelsAndEnableOutputs();
+
+  if (!servoPwmDriverState(state) || !writeServoChannelsOff()) {
+    return false;
+  }
+
+  delay(kServoOutputSettleMs);
+  return enableServoOutputsWithChannels();
 }
 
 }  // namespace
@@ -369,7 +357,7 @@ bool servoPwmDriverState(ServoPwmDriverState& state) {
          state.prescale == kPcaPrescaleServo;
 }
 
-bool restartServoPwmDriver() {
+bool setUpServoPwmDriver() {
   disableServoOutputs();
 
   // Not pwm.begin(): it programs 1 kHz before writeServoSetup() sets 50 Hz,
@@ -378,14 +366,42 @@ bool restartServoPwmDriver() {
   pwm.reset();
   writeServoSetup();
 
-  // The servos kept animating in software while the chip was unreachable;
-  // finishing puts every channel where the firmware thinks it is.
-  return finishServoPwmDriverSetup();
+  ServoPwmDriverState state;
+  return servoPwmDriverState(state);
 }
 
-bool resyncServoPwmDriver() {
+// Turning OE on is not synchronised to the PWM period: done while a channel is
+// mid-pulse it would cut that pulse short, and the servo would read a wrong
+// angle. Channel writes are: the PCA9685 applies new values at the end of a
+// LOW cycle (datasheet 7.3.3). So the outputs come on with every channel off,
+// and the channels are written after, each starting on a whole pulse.
+bool writeServoChannelsOff() {
   disableServoOutputs();
-  return writeChannelsAndEnableOutputs();
+
+  // Stops at the first failure: on a dead bus each further write waits out
+  // its timeout, and the next attempt writes every channel anyway.
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    if (!writeChannelVerified(SERVO_SPECS[i].channel, kPca9685FullOff)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool enableServoOutputsWithChannels() {
+  enableServoOutputs();
+
+  // The servos kept animating in software while the chip was unreachable;
+  // this puts every channel where the firmware thinks it is.
+  for (int i = 0; i < SERVO_COUNT; i++) {
+    if (!g_servos[i].resyncOutput()) {
+      disableServoOutputs();
+      return false;
+    }
+  }
+
+  return true;
 }
 
 void initServoPwmDriver() {
