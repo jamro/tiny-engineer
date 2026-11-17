@@ -16,19 +16,22 @@ function parseExtArgs(argv) {
 
 /**
  * @param {string[]} tokens
- * @returns {Record<string, string>}
+ * @returns {{ flags: Record<string, string>, error?: string }}
  */
 function parseFlags(tokens) {
   /** @type {Record<string, string>} */
   const flags = {};
   for (const token of tokens) {
-    if (!token.startsWith("--") || !token.includes("=")) {
+    if (!token.startsWith("--")) {
       continue;
+    }
+    if (!token.includes("=")) {
+      return { flags: {}, error: `malformed option ${token} (expected --key=value)` };
     }
     const eq = token.indexOf("=");
     flags[token.slice(2, eq)] = token.slice(eq + 1);
   }
-  return flags;
+  return { flags };
 }
 
 /**
@@ -131,7 +134,13 @@ async function runLcd1602(out, resource, action, rest, transportOpts) {
     }
 
     if (action === "set") {
-      const flags = parseFlags(rest);
+      const parsed = parseFlags(rest);
+      if (parsed.error) {
+        out.error(parsed.error);
+        process.exitCode = 1;
+        return;
+      }
+      const flags = parsed.flags;
       /** @type {Record<string, unknown>} */
       const body = {};
       if (flags.line1 !== undefined) {
@@ -185,7 +194,8 @@ async function runLcd1602(out, resource, action, rest, transportOpts) {
 
     if (action === "set") {
       const valueToken = rest.find((t) => !t.startsWith("--"));
-      const n = valueToken !== undefined ? Number(valueToken) : NaN;
+      const trimmed = valueToken !== undefined ? valueToken.trim() : "";
+      const n = trimmed !== "" ? Number(trimmed) : NaN;
       if (!Number.isInteger(n) || n < 0 || n > 100) {
         out.error("brightness set needs an integer 0–100");
         process.exitCode = 1;
@@ -227,10 +237,22 @@ async function runLcd1602(out, resource, action, rest, transportOpts) {
     }
 
     if (action === "set") {
-      const flags = parseFlags(rest);
-      const r = flags.r !== undefined ? Number(flags.r) : NaN;
-      const g = flags.g !== undefined ? Number(flags.g) : NaN;
-      const b = flags.b !== undefined ? Number(flags.b) : NaN;
+      const parsed = parseFlags(rest);
+      if (parsed.error) {
+        out.error(parsed.error);
+        process.exitCode = 1;
+        return;
+      }
+      const flags = parsed.flags;
+      /** @param {string | undefined} raw */
+      const channel = (raw) => {
+        if (raw === undefined) return NaN;
+        const trimmed = raw.trim();
+        return trimmed !== "" ? Number(trimmed) : NaN;
+      };
+      const r = channel(flags.r);
+      const g = channel(flags.g);
+      const b = channel(flags.b);
       if (
         !Number.isInteger(r) ||
         !Number.isInteger(g) ||

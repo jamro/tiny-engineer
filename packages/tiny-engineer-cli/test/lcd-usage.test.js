@@ -5,7 +5,12 @@ import {
   AI_USAGE_LCD_KEY,
   maybeShowCursorUsageOnLcd,
 } from "../src/integrations/cursor/lcd-usage.js";
-import { cookieFromToken, jwtClaims, cookieIdFromClaims } from "../src/integrations/cursor/usage-session.js";
+import {
+  cookieFromToken,
+  jwtClaims,
+  cookieIdFromClaims,
+  selectUsableStateDbToken,
+} from "../src/integrations/cursor/usage-session.js";
 
 test("maybeShowCursorUsageOnLcd skips when unset (opt-in default off)", async () => {
   let posted = 0;
@@ -144,6 +149,20 @@ test("cookieFromToken builds id::jwt and skips api_key_token", () => {
   assert.equal(cookieFromToken(`hdr.${apiPayload}.sig`), null);
 
   assert.equal(cookieFromToken("already::full"), "already::full");
+});
+
+test("selectUsableStateDbToken skips api_key then keeps session", () => {
+  const sessionPayload = Buffer.from(
+    JSON.stringify({ sub: "github|user_01ABC", type: "session" }),
+  ).toString("base64url");
+  const sessionJwt = `hdr.${sessionPayload}.sig`;
+  const apiPayload = Buffer.from(
+    JSON.stringify({ sub: "github|user_01ABC", type: "api_key_token" }),
+  ).toString("base64url");
+  const apiJwt = `hdr.${apiPayload}.sig`;
+
+  assert.equal(selectUsableStateDbToken([apiJwt, sessionJwt]), sessionJwt);
+  assert.equal(selectUsableStateDbToken([apiJwt]), null);
 });
 
 test("jwtClaims and cookieIdFromClaims parse sub", () => {

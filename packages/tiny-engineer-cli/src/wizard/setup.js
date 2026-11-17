@@ -406,6 +406,9 @@ export async function runSetup(
     plans.push(integration.planInstall(ctx));
   }
 
+  /** @type {boolean | undefined} */
+  const aiUsageLcdPreview = args.aiUsageLcd;
+
   if (args.dryRun) {
     out.ok("dry-run — no files written");
     out.info("Project hooks:");
@@ -424,6 +427,9 @@ export async function runSetup(
     }
     if (transport === "serial" && port) {
       out.info(`  TINY_ENGINEER_PORT=${port}`);
+    }
+    if (aiUsageLcdPreview !== undefined) {
+      out.info(`  ${AI_USAGE_LCD_KEY}=${aiUsageLcdPreview ? "1" : "0"}`);
     }
     process.exitCode = 0;
     return;

@@ -101,6 +101,36 @@ test("runSetup --dry-run does not write files", async () => {
   }
 });
 
+test("runSetup --dry-run --ai-usage-lcd previews key without writing", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
+  /** @type {string[]} */
+  const infos = [];
+  const out = createOutput({
+    quiet: false,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: (m) => infos.push(String(m)),
+  });
+  try {
+    await runSetup(out, ["cursor", "--yes", "--dry-run", "--ai-usage-lcd"], {
+      projectRoot: dir,
+    });
+    assert.equal(process.exitCode, 0);
+    assert.ok(infos.some((l) => l.includes(`${AI_USAGE_LCD_KEY}=1`)));
+    assert.equal(readEnvKey(join(cfg, "env"), AI_USAGE_LCD_KEY), null);
+    assert.equal(existsSync(join(cfg, "env")), false);
+  } finally {
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
 test("runSetup --yes writes cursor hooks and user env not project .env", async () => {
   const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
   const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));

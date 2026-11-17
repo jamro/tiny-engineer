@@ -139,10 +139,23 @@ async function tokenFromStateDb(dbPath) {
 /**
  * @returns {Promise<string | null>}
  */
+/**
+ * First usable raw token from a candidate list (skips api_key / malformed).
+ * @param {string[]} tokens
+ * @returns {string | null}
+ */
+export function selectUsableStateDbToken(tokens) {
+  for (const token of tokens) {
+    if (token && cookieFromToken(token)) return token;
+  }
+  return null;
+}
+
 async function fromStateDb() {
   for (const path of stateDbCandidates()) {
     const token = await tokenFromStateDb(path);
-    if (token) return token;
+    const usable = selectUsableStateDbToken(token ? [token] : []);
+    if (usable) return usable;
   }
   return null;
 }

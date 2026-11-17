@@ -13,9 +13,10 @@ import { confirm } from "../wizard/prompt.js";
 
 /**
  * @param {string[]} argv
+ * @param {{ passthroughUnknown?: boolean }} [options]
  * @returns {ReturnType<typeof parseCommonArgs> & { yes?: boolean, sub?: string, restPos?: string[] }}
  */
-function parseParityArgs(argv) {
+function parseParityArgs(argv, options = {}) {
   let yes = false;
   /** @type {string[]} */
   const filtered = [];
@@ -26,7 +27,9 @@ function parseParityArgs(argv) {
     }
     filtered.push(arg);
   }
-  const common = parseCommonArgs(filtered, { passthroughUnknown: true });
+  const common = parseCommonArgs(filtered, {
+    passthroughUnknown: options.passthroughUnknown === true,
+  });
   return { ...common, yes, restPos: common.rest };
 }
 
@@ -36,7 +39,7 @@ function parseParityArgs(argv) {
  * @param {boolean} quietGlobal
  */
 export async function runSettings(out, argv, quietGlobal) {
-  const opts = parseParityArgs(argv);
+  const opts = parseParityArgs(argv, { passthroughUnknown: true });
   const quiet = quietGlobal || opts.quiet;
   const localOut = quiet === out.quiet ? out : out;
 

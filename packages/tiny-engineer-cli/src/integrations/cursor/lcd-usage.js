@@ -10,14 +10,6 @@ export const OVERALL_TIMEOUT_MS = 2000;
 export const STEP_TIMEOUT_MS = 1500;
 
 /**
- * @param {number} ms
- * @returns {Promise<void>}
- */
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
  * @typedef {{
  *   url?: string,
  *   transport?: string,
@@ -90,11 +82,18 @@ export async function maybeShowCursorUsageOnLcd(transport = {}, deps = {}) {
     await postLcd(pct, transport);
   })();
 
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let overallTimer;
+  const overallDeadline = new Promise((resolve) => {
+    overallTimer = setTimeout(resolve, overallTimeoutMs);
+  });
+
   try {
-    await Promise.race([run.catch(() => {}), sleep(overallTimeoutMs)]);
+    await Promise.race([run.catch(() => {}), overallDeadline]);
   } catch {
     // fail-open
   } finally {
     cancelled = true;
+    if (overallTimer !== undefined) clearTimeout(overallTimer);
   }
 }

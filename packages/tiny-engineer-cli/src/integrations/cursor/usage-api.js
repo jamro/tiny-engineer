@@ -1,3 +1,5 @@
+import { remainingBudgetPercent } from "./usage-remaining.js";
+
 const BASE = "https://cursor.com";
 const DEFAULT_TIMEOUT_MS = 1500;
 
@@ -60,7 +62,7 @@ export async function fetchCursorLimits(cookieValue, opts = {}) {
     timeoutMs: opts.timeoutMs,
     fetchImpl: opts.fetchImpl,
   });
-  if (primary) return primary;
+  if (primary && remainingBudgetPercent(primary) != null) return primary;
 
   return cursorRequest(cookieValue, "/api/usage-summary", {
     method: "GET",
