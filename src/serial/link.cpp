@@ -234,7 +234,7 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
     body["welcome"] = settingsWelcomeEnabled();
     body["serial_log"] = settingsSerialLogEnabled();
     body["lcd1602"] = settingsLcd1602();
-    body["lcd1602_backlight_boot"] = settingsLcd1602BacklightBoot();
+    body["lcd1602_backlight_sleep"] = settingsLcd1602BacklightSleep();
     body["lcd1602_boot"] = settingsLcd1602Boot();
     body["lcd1602_line1"] = settingsLcd1602Line1();
     body["lcd1602_line2"] = settingsLcd1602Line2();
@@ -319,12 +319,12 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
       patch.lcd1602 = req["lcd1602"].as<bool>();
       any = true;
     }
-    if (!req["lcd1602_backlight_boot"].isUnbound()) {
-      if (!req["lcd1602_backlight_boot"].is<bool>()) {
-        sendJsonRes(id, 400, "invalid lcd1602_backlight_boot", body);
+    if (!req["lcd1602_backlight_sleep"].isUnbound()) {
+      if (!req["lcd1602_backlight_sleep"].is<bool>()) {
+        sendJsonRes(id, 400, "invalid lcd1602_backlight_sleep", body);
         return;
       }
-      patch.lcd1602BacklightBoot = req["lcd1602_backlight_boot"].as<bool>();
+      patch.lcd1602BacklightSleep = req["lcd1602_backlight_sleep"].as<bool>();
       any = true;
     }
     if (!req["lcd1602_boot"].isUnbound()) {

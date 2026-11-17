@@ -50,7 +50,7 @@ export async function runSettings(out, argv, quietGlobal) {
 
   settings get
   settings set --key=value ...   (volume, welcome, serial_log, link_mode, eyes_style, hostname,
-                                  lcd1602, lcd1602_backlight_boot, lcd1602_boot, lcd1602_line1, lcd1602_line2)
+                                  lcd1602, lcd1602_backlight_sleep, lcd1602_boot, lcd1602_line1, lcd1602_line2)
 
 Options:
   --transport <http|serial>  --url <base>  --port <path>

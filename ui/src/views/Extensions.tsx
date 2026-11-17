@@ -28,7 +28,7 @@ function draftFrom(settings: Settings) {
     pushButton: settings.push_button,
     pushButtonPin: settings.push_button_pin,
     lcd1602: settings.lcd1602,
-    lcd1602BacklightBoot: settings.lcd1602_backlight_boot,
+    lcd1602BacklightSleep: settings.lcd1602_backlight_sleep,
     lcd1602Boot: settings.lcd1602_boot,
     lcd1602Line1: settings.lcd1602_line1,
     lcd1602Line2: settings.lcd1602_line2,
@@ -70,7 +70,7 @@ function ExtensionsForm({
           push_button: draft.pushButton,
           push_button_pin: draft.pushButtonPin,
           lcd1602: draft.lcd1602,
-          lcd1602_backlight_boot: draft.lcd1602BacklightBoot,
+          lcd1602_backlight_sleep: draft.lcd1602BacklightSleep,
           lcd1602_boot: draft.lcd1602Boot,
           lcd1602_line1: draft.lcd1602Line1,
           lcd1602_line2: draft.lcd1602Line2,
@@ -180,12 +180,12 @@ function ExtensionsForm({
                   <input
                     type="checkbox"
                     id="ext-lcd1602-bl"
-                    checked={draft.lcd1602BacklightBoot}
+                    checked={draft.lcd1602BacklightSleep}
                     onChange={(event) =>
-                      set({ lcd1602BacklightBoot: event.currentTarget.checked })
+                      set({ lcd1602BacklightSleep: event.currentTarget.checked })
                     }
                   />
-                  <label htmlFor="ext-lcd1602-bl">Backlight on boot</label>
+                  <label htmlFor="ext-lcd1602-bl">Follow sleep</label>
                 </div>
                 <div className="field-head">
                   <span>Boot content</span>

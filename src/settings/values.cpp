@@ -45,7 +45,7 @@ SettingsValues SettingsValues::defaults() {
     sizeof(values.pushButtonSoundLongClick)
   );
   values.lcd1602 = SETTINGS_DEFAULT_LCD1602;
-  values.lcd1602BacklightBoot = SETTINGS_DEFAULT_LCD1602_BACKLIGHT_BOOT;
+  values.lcd1602BacklightSleep = SETTINGS_DEFAULT_LCD1602_BACKLIGHT_SLEEP;
   strlcpy(values.lcd1602Boot, SETTINGS_DEFAULT_LCD1602_BOOT, sizeof(values.lcd1602Boot));
   values.lcd1602Line1[0] = '\0';
   values.lcd1602Line2[0] = '\0';
@@ -73,7 +73,7 @@ void SettingsValues::apply(const SettingsPatch& patch) {
   pushButton = patch.pushButton.value_or(pushButton);
   pushButtonPin = patch.pushButtonPin.value_or(pushButtonPin);
   lcd1602 = patch.lcd1602.value_or(lcd1602);
-  lcd1602BacklightBoot = patch.lcd1602BacklightBoot.value_or(lcd1602BacklightBoot);
+  lcd1602BacklightSleep = patch.lcd1602BacklightSleep.value_or(lcd1602BacklightSleep);
   continuousTimeoutMin = patch.continuousTimeoutMin.value_or(continuousTimeoutMin);
   servoRanges = patch.servoRanges.value_or(servoRanges);
   oledRotate180 = patch.oledRotate180.value_or(oledRotate180);

@@ -15,7 +15,7 @@ const DEFAULT_SETTINGS: Settings = {
   push_button: false,
   push_button_pin: 20,
   lcd1602: false,
-  lcd1602_backlight_boot: true,
+  lcd1602_backlight_sleep: true,
   lcd1602_boot: "none",
   lcd1602_line1: "",
   lcd1602_line2: "",

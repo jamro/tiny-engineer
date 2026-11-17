@@ -110,7 +110,7 @@ While the device is unprovisioned or in setup AP provisioning, the serial API MU
 - **THEN** the device performs park and does not reject solely for provisioning state
 
 ### Requirement: Serial settings include LCD 1602 fields
-`settings.get` over serial MUST include the `lcd1602`, `lcd1602_backlight_boot`, `lcd1602_boot`, `lcd1602_line1`, and `lcd1602_line2` fields with the same types and defaults as `GET /settings`. `settings.set` MUST accept those keys with the same validation and immediate-apply behavior as `POST /settings`. Other settings fields not already returned or accepted by serial MAY remain deferred (full GET `/settings` parity is not claimed by this change alone).
+`settings.get` over serial MUST include the `lcd1602`, `lcd1602_backlight_sleep`, `lcd1602_boot`, `lcd1602_line1`, and `lcd1602_line2` fields with the same types and defaults as `GET /settings`. `settings.set` MUST accept those keys with the same validation and immediate-apply behavior as `POST /settings`. Other settings fields not already returned or accepted by serial MAY remain deferred (full GET `/settings` parity is not claimed by this change alone).
 
 #### Scenario: Enable LCD over serial
 - **WHEN** the host sends `settings.set` with `{"lcd1602": true}` after provisioning
@@ -119,6 +119,10 @@ While the device is unprovisioned or in setup AP provisioning, the serial API MU
 #### Scenario: Invalid boot mode rejected
 - **WHEN** the host sends `settings.set` with `{"lcd1602_boot": "welcome"}`
 - **THEN** the device answers **400** and does not save the value
+
+#### Scenario: Follow sleep field over serial
+- **WHEN** the host sends `settings.set` with `{"lcd1602_backlight_sleep": false}` after provisioning
+- **THEN** a later `settings.get` reports `lcd1602_backlight_sleep` false and does not include `lcd1602_backlight_boot`
 
 ### Requirement: Ext op is part of the serial control surface
 The serial protocol MUST document and implement `op` **`ext`** for extension APIs as specified by the `extension-serial` capability. Day-to-day control over serial MUST include `ext` for registered extensions (LCD 1602 in this change).

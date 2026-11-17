@@ -30,7 +30,17 @@ void commandSleepHead(float n) {
 }
 
 void fadeLcdWake() {
+  if (!settingsLcd1602BacklightSleep()) {
+    return;
+  }
   lcd1602FadeBrightnessTo(100, anim::SLEEP_NOD_OFF_MS);
+}
+
+void fadeLcdSleep() {
+  if (!settingsLcd1602BacklightSleep()) {
+    return;
+  }
+  lcd1602FadeBrightnessTo(0, anim::SLEEP_NOD_OFF_MS);
 }
 
 void wakeFromSleep(uint32_t now) {
@@ -42,7 +52,7 @@ void wakeFromSleep(uint32_t now) {
 
 void beginSleepClosing(uint32_t now) {
   requestSleepEyeClose(now);
-  lcd1602FadeBrightnessTo(0, anim::SLEEP_NOD_OFF_MS);
+  fadeLcdSleep();
   g_state = SleepState::Closing;
 }
 

@@ -146,10 +146,10 @@ export function ApiReference() {
           </tr>
           <tr>
             <td>
-              <code>lcd1602_backlight_boot</code>
+              <code>lcd1602_backlight_sleep</code>
             </td>
             <td>boolean</td>
-            <td>Turn backlight on at enable/boot (default true; immediate)</td>
+            <td>Dim backlight on sleep / light on wake (default true; immediate)</td>
           </tr>
           <tr>
             <td>

@@ -194,20 +194,19 @@ void applyBrightnessPolicy(bool fromLast, uint8_t lastBrightness, const Lcd1602C
   if (fromLast) {
     g_brightness = lastBrightness;
     g_color = lastColor;
-    if (g_hwOk) {
-      applyBacklightHw();
-    }
-    return;
+  } else {
+    g_color = Lcd1602Color{};
+    g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
   }
 
-  g_color = Lcd1602Color{};
-  if (settingsLcd1602BacklightBoot()) {
+  // Follow-sleep off means the panel stays lit while awake. Sleep may have
+  // persisted brightness 0 into "last"; do not leave the backlight off on
+  // enable/boot.
+  if (!settingsLcd1602BacklightSleep() && g_brightness == 0) {
     g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
-    if (g_hwOk) {
-      applyBacklightHw();
-    }
-  } else if (g_hwOk) {
-    g_brightness = 0;
+  }
+
+  if (g_hwOk) {
     applyBacklightHw();
   }
 }
@@ -293,6 +292,8 @@ void lcd1602ApplyFromSettings() {
     serialLogPrintln("LCD1602 initialized");
   }
 
+  // Drop any in-flight sleep/wake fade so boot policy is not overwritten.
+  clearBrightnessFade();
   applyBootContent();
 }
 

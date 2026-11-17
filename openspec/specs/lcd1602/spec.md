@@ -38,16 +38,39 @@ When enabled, the extension MUST use LCD address **0x3E** (AiP31068L). Controlla
 - **WHEN** a client posts an unknown field intended as an LCD I2C address
 - **THEN** `POST /settings` rejects it as an unknown or invalid field and does not save it
 
-### Requirement: Backlight on boot setting
-The setting `lcd1602_backlight_boot` MUST be a boolean on `GET`/`POST /settings`, default **true** when unset, including after factory reset. It MUST persist when `lcd1602` is false. When the extension enables or boots with the extension on: if true, the firmware MUST turn the backlight on (default brightness unless last/config supplies another); if false, the backlight MUST stay off until a successful brightness API call.
+### Requirement: Follow sleep backlight setting
+The setting `lcd1602_backlight_sleep` MUST be a boolean on `GET`/`POST /settings`, default **true** when unset, including after factory reset. It MUST persist when `lcd1602` is false. On enable/boot with the extension on, when boot content is not restoring brightness from `last`, the firmware MUST turn the backlight on (default brightness). When the setting is false, enable/boot MUST still turn the backlight on even if `last` brightness is 0.
 
 #### Scenario: Default true
-- **WHEN** the device has no stored `lcd1602_backlight_boot`
-- **THEN** `GET /settings` reports `lcd1602_backlight_boot` true
+- **WHEN** the device has no stored `lcd1602_backlight_sleep`
+- **THEN** `GET /settings` reports `lcd1602_backlight_sleep` true
 
-#### Scenario: Wait for API
-- **WHEN** `lcd1602` is true, `lcd1602_backlight_boot` is false, and boot content does not require a brightness from last
-- **THEN** the backlight remains off until `POST /extensions/lcd1602/brightness` succeeds
+#### Scenario: Boot on when follow sleep off
+- **WHEN** `lcd1602` is true, `lcd1602_backlight_sleep` is false, and boot content does not restore brightness from `last`
+- **THEN** the backlight turns on at enable/boot
+
+#### Scenario: Boot on when follow sleep off and last brightness is zero
+- **WHEN** `lcd1602` is true, `lcd1602_backlight_sleep` is false, `lcd1602_boot` is `last`, and stored last brightness is 0
+- **THEN** the backlight turns on at enable/boot (does not stay at 0)
+
+#### Scenario: Old key not restored
+- **WHEN** the client posts `{"lcd1602_backlight_boot": true}`
+- **THEN** `GET /settings` does not include `lcd1602_backlight_boot`
+
+### Requirement: Sleep and wake backlight fades
+When the extension is on and `lcd1602_backlight_sleep` is true, entering sleep (`sleep` anim or idle `sleep_timeout`) MUST fade backlight to **0**, and wakeup / wake-from-sleep MUST fade backlight to **100**, over the same nod-off duration used for sleep motion. When `lcd1602_backlight_sleep` is false, sleep and wake MUST NOT change backlight. Manual brightness API MUST still apply regardless of the flag.
+
+#### Scenario: Follow sleep dims on sleep
+- **WHEN** `lcd1602` is true, `lcd1602_backlight_sleep` is true, and the device enters sleep
+- **THEN** the backlight fades to 0
+
+#### Scenario: Follow sleep lights on wake
+- **WHEN** `lcd1602` is true, `lcd1602_backlight_sleep` is true, and the device wakes or plays `wakeup`
+- **THEN** the backlight fades to 100
+
+#### Scenario: Follow sleep off leaves backlight
+- **WHEN** `lcd1602` is true, `lcd1602_backlight_sleep` is false, and the device sleeps then wakes
+- **THEN** backlight brightness is unchanged by those transitions
 
 ### Requirement: Boot content mode
 The setting `lcd1602_boot` MUST be a string on `GET`/`POST /settings` allowing only `none`, `last`, and `config`, default **`none`** when unset, including after factory reset. Invalid values MUST be rejected without saving. The value MUST persist when `lcd1602` is false. On enable/boot with the extension on, the firmware MUST apply that mode.
@@ -92,7 +115,7 @@ The Extensions page MUST include an **LCD 1602** section for `lcd1602` and relat
 
 #### Scenario: Details shown when on
 - **WHEN** the draft LCD toggle is on
-- **THEN** the section shows backlight-on-boot, boot-content mode, Waveshare I2C Extension-port wiring, and (when mode is `config`) the two line fields
+- **THEN** the section shows a **Follow sleep** backlight toggle bound to `lcd1602_backlight_sleep`, boot-content mode, Waveshare I2C Extension-port wiring, and (when mode is `config`) the two line fields
 
 #### Scenario: Config omits LCD
 - **WHEN** the user opens the Config page
