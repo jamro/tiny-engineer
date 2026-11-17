@@ -216,10 +216,11 @@ void handleSettingsPost(WebServer& server) {
     return;
   }
 
-  // Compare before save — saveSettings updates the in-memory token.
+  // Compare before save — saveSettings updates the in-memory values.
   const bool tokenRotated = patch.accessToken != nullptr &&
                             patch.accessToken[0] != '\0' &&
                             strcmp(patch.accessToken, settingsAccessToken()) != 0;
+  const bool lcdNeedsApply = lcd1602PatchNeedsApply(patch);
 
   char pinConflict[96];
   if (settingsWouldPinConflict(patch, pinConflict, sizeof(pinConflict))) {
@@ -240,12 +241,7 @@ void handleSettingsPost(WebServer& server) {
     pushButtonApplyFromSettings();
   }
 
-  if (patch.lcd1602.has_value() ||
-      patch.lcd1602BacklightSleep.has_value() ||
-      patch.lcd1602WelcomeHello.has_value() ||
-      patch.lcd1602Boot != nullptr ||
-      patch.lcd1602Line1 != nullptr ||
-      patch.lcd1602Line2 != nullptr) {
+  if (lcdNeedsApply) {
     lcd1602ApplyFromSettings();
   }
 

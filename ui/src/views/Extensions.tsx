@@ -36,26 +36,66 @@ function draftFrom(settings: Settings) {
   };
 }
 
+type ExtensionsDraft = ReturnType<typeof draftFrom>;
+
+// POST /settings is partial — omit unchanged fields so LCD apply does not wipe live text
+// when the user only toggles the push button (or any non-LCD field).
+function extensionsPatch(draft: ExtensionsDraft, settings: Settings): Record<string, unknown> {
+  const patch: Record<string, unknown> = {};
+
+  if (draft.pushButton !== settings.push_button) {
+    patch.push_button = draft.pushButton;
+  }
+
+  if (draft.pushButtonPin !== settings.push_button_pin) {
+    patch.push_button_pin = draft.pushButtonPin;
+  }
+
+  if (draft.lcd1602 !== settings.lcd1602) {
+    patch.lcd1602 = draft.lcd1602;
+  }
+
+  if (draft.lcd1602BacklightSleep !== settings.lcd1602_backlight_sleep) {
+    patch.lcd1602_backlight_sleep = draft.lcd1602BacklightSleep;
+  }
+
+  if (draft.lcd1602WelcomeHello !== settings.lcd1602_welcome_hello) {
+    patch.lcd1602_welcome_hello = draft.lcd1602WelcomeHello;
+  }
+
+  if (draft.lcd1602Boot !== settings.lcd1602_boot) {
+    patch.lcd1602_boot = draft.lcd1602Boot;
+  }
+
+  if (draft.lcd1602Line1 !== settings.lcd1602_line1) {
+    patch.lcd1602_line1 = draft.lcd1602Line1;
+  }
+
+  if (draft.lcd1602Line2 !== settings.lcd1602_line2) {
+    patch.lcd1602_line2 = draft.lcd1602Line2;
+  }
+
+  return patch;
+}
+
 export function Extensions() {
   const { settings, applySettings } = useRobot();
-  const { perform } = useStatus();
 
   if (!settings) {
     return null;
   }
 
-  return <ExtensionsForm settings={settings} applySettings={applySettings} perform={perform} />;
+  return <ExtensionsForm settings={settings} applySettings={applySettings} />;
 }
 
 function ExtensionsForm({
   settings,
   applySettings,
-  perform,
 }: {
   settings: Settings;
   applySettings: (settings: Settings) => void;
-  perform: ReturnType<typeof useStatus>["perform"];
 }) {
+  const { perform, setStatus } = useStatus();
   const [draft, setDraft] = useResettableState(settings, draftFrom);
   const set = (fields: Partial<typeof draft>) =>
     setDraft((previous) => ({ ...previous, ...fields }));
@@ -63,20 +103,19 @@ function ExtensionsForm({
   async function save(event: TargetedSubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const json = extensionsPatch(draft, settings);
+
+    if (Object.keys(json).length === 0) {
+      setStatus("Extensions saved.", "ok");
+
+      return;
+    }
+
     await perform<Settings>({
       path: "/settings",
       request: {
         method: "POST",
-        json: {
-          push_button: draft.pushButton,
-          push_button_pin: draft.pushButtonPin,
-          lcd1602: draft.lcd1602,
-          lcd1602_backlight_sleep: draft.lcd1602BacklightSleep,
-          lcd1602_welcome_hello: draft.lcd1602WelcomeHello,
-          lcd1602_boot: draft.lcd1602Boot,
-          lcd1602_line1: draft.lcd1602Line1,
-          lcd1602_line2: draft.lcd1602Line2,
-        },
+        json,
       },
       pending: "Saving…",
       failure: "Save failed",

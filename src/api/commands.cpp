@@ -61,18 +61,15 @@ ApiResult apiSaveSettings(const SettingsPatch& patch) {
   if (settingsWouldPinConflict(patch, pinConflict, sizeof(pinConflict))) {
     return {false, 400, pinConflict};
   }
+  // Compare before save — saveSettings updates in-memory values.
+  const bool lcdNeedsApply = lcd1602PatchNeedsApply(patch);
   if (!saveSettings(patch)) {
     return {false, 500, "save failed"};
   }
   if (patch.pushButton.has_value() || patch.pushButtonPin.has_value()) {
     pushButtonApplyFromSettings();
   }
-  if (patch.lcd1602.has_value() ||
-      patch.lcd1602BacklightSleep.has_value() ||
-      patch.lcd1602WelcomeHello.has_value() ||
-      patch.lcd1602Boot != nullptr ||
-      patch.lcd1602Line1 != nullptr ||
-      patch.lcd1602Line2 != nullptr) {
+  if (lcdNeedsApply) {
     lcd1602ApplyFromSettings();
   }
   return {true, 200, nullptr};

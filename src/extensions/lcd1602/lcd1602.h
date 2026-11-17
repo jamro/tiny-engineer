@@ -28,8 +28,14 @@ struct Lcd1602Color {
   uint8_t b = 255;
 };
 
+struct SettingsPatch;
+
 bool lcd1602Enabled();
 bool lcd1602HardwareOk();
+
+// True when the patch sets an LCD field to a value different from current settings.
+// Call before saveSettings — after save, current equals the patch.
+bool lcd1602PatchNeedsApply(const SettingsPatch& patch);
 
 void lcd1602ApplyFromSettings();
 void lcd1602Poll();

@@ -304,6 +304,39 @@ void lcd1602FadeBrightnessTo(uint8_t targetPercent, uint32_t durationMs) {
   g_fadeActive = true;
 }
 
+bool lcd1602PatchNeedsApply(const SettingsPatch& patch) {
+  if (patch.lcd1602.has_value() && *patch.lcd1602 != settingsLcd1602()) {
+    return true;
+  }
+
+  if (patch.lcd1602BacklightSleep.has_value() &&
+      *patch.lcd1602BacklightSleep != settingsLcd1602BacklightSleep()) {
+    return true;
+  }
+
+  if (patch.lcd1602WelcomeHello.has_value() &&
+      *patch.lcd1602WelcomeHello != settingsLcd1602WelcomeHello()) {
+    return true;
+  }
+
+  if (patch.lcd1602Boot != nullptr &&
+      strcmp(patch.lcd1602Boot, settingsLcd1602Boot()) != 0) {
+    return true;
+  }
+
+  if (patch.lcd1602Line1 != nullptr &&
+      strcmp(patch.lcd1602Line1, settingsLcd1602Line1()) != 0) {
+    return true;
+  }
+
+  if (patch.lcd1602Line2 != nullptr &&
+      strcmp(patch.lcd1602Line2, settingsLcd1602Line2()) != 0) {
+    return true;
+  }
+
+  return false;
+}
+
 void lcd1602ApplyFromSettings() {
   if (!settingsLcd1602()) {
     endWelcomeHelloInternal();
