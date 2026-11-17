@@ -8,7 +8,7 @@ See proposal.md — Why. Today `lcd1602_backlight_boot` only steers enable/boot 
 
 **Goals:**
 
-- One boolean meaning: gate sleep/wake backlight fades; boot/enable still turns backlight on when not restoring from `last`.
+- One boolean meaning: gate sleep/wake backlight fades; boot/enable still turns backlight on when not restoring from `last` (and when follow sleep is off, even if restored `last` brightness is 0).
 - Rename the public JSON field; keep NVS storage cell.
 - Spec, UI, HTTP, serial, and docs stay in sync (settings checklist + API sync).
 
@@ -31,12 +31,12 @@ See proposal.md — Why. Today `lcd1602_backlight_boot` only steers enable/boot 
    Wrap `lcd1602FadeBrightnessTo(0|100, …)` call sites in `sleep.cpp` with `settingsLcd1602BacklightSleep()` (and keep existing `g_active` guard inside the fade helper).  
    *Alt:* gate inside `lcd1602FadeBrightnessTo` — rejected; that helper is also usable for future non-sleep fades and should stay a dumb fade.
 
-3. **Boot policy always on (non-last)**  
-   Replace the old if/else in `applyBrightnessPolicy`: when not applying `last` brightness, always set default brightness on (both flag true and false). Flag only affects sleep/wake.  
-   `lcd1602_boot=last` still restores stored brightness (unchanged).
+3. **Boot policy always on (non-last), plus last-zero override when follow sleep off**  
+   Replace the old if/else in `applyBrightnessPolicy`: when not applying `last` brightness, always set default brightness on (both flag true and false). Flag only gates sleep/wake fades.  
+   `lcd1602_boot=last` still restores stored brightness, except when `lcd1602_backlight_sleep` is false and that brightness is **0** — then force default brightness on (sleep may have persisted 0 into last; follow-sleep-off means the panel stays lit while awake).
 
 4. **Unknown old key**  
-   Do not accept or emit `lcd1602_backlight_boot`. Same as other dropped settings: ignored if present in a multi-key POST body; never returned on GET.
+   Do not accept or emit `lcd1602_backlight_boot`. Never returned on GET. If present in a `POST /settings` (or serial `settings.set`) body, `readPatch()` rejects the whole patch with **400** `unknown field lcd1602_backlight_boot` and saves nothing — same as any other unknown settings field. Clients must drop the old key before submitting a patch.
 
 5. **UI copy**  
    Label: **Follow sleep**. Bound to `lcd1602_backlight_sleep`.
@@ -47,13 +47,13 @@ See proposal.md — Why. Today `lcd1602_backlight_boot` only steers enable/boot 
 ## Risks / Trade-offs
 
 - [Devices with `ext_lcd_bl=false`] → Semantics flip: was “off until API”, becomes “boot on, no sleep dim”. Acceptable; matches product intent and default remains true.  
-- [External scripts using old key] → Silent no-op on that field. Mitigate: API docs + BREAKING CHANGE footer; ApiReference update.  
+- [External scripts still sending old key] → **400** `unknown field lcd1602_backlight_boot`; entire patch rejected (including sibling fields). Mitigate: API docs + BREAKING CHANGE footer; tell clients to remove the key; ApiReference update.  
 - [Wake always 100] → Overrides a manual dim set before sleep when follow sleep is on. Accepted (user decision).
 
 ## Migration Plan
 
 - Flash new firmware: NVS bool reused; no wipe.
-- Clients: swap setting name in POST/GET.
+- Clients: use `lcd1602_backlight_sleep`; remove `lcd1602_backlight_boot` from POST bodies (unknown field → 400, nothing saved).
 - Rollback: old firmware again reads `ext_lcd_bl` as backlight-on-boot (false again means off until API).
 
 ## Open Questions

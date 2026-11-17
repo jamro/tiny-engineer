@@ -228,6 +228,9 @@ curl -X POST "http://tiny-engineer.local/settings" \
   -d '{"volume":40,"welcome":false,"eyes_style":"kaomoji"}'
 curl -X POST "http://tiny-engineer.local/settings" \
   -H "Content-Type: application/json" \
+  -d '{"lcd1602":true,"lcd1602_boot":"config","lcd1602_line1":"HELLO","lcd1602_line2":"HUMAN"}'
+curl -X POST "http://tiny-engineer.local/settings" \
+  -H "Content-Type: application/json" \
   -d '{"access_token":""}'
 curl -X POST "http://192.168.4.1/settings" \
   -H "Content-Type: application/json" \
@@ -568,11 +571,11 @@ Save with `POST /settings` `{"oled_rotate_180":true}` (setup AP only). The saved
 
 ### LCD 1602 extension (`/extensions/lcd1602/…`)
 
-Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but neither backlight chip ACKs → brightness **503** `backlight not found`. On PCA9633, brightness scales the base RGB color (`PWM = channel × brightness / 100`); use `/color` for base R/G/B. Color on SN3193 → **400** `rgb not supported`. When `lcd1602_backlight_sleep` is true, entering sleep (`sleep` anim or idle `sleep_timeout`) fades backlight to **0** over ~2 s; wakeup / wake-from-sleep fades to **100** over ~2 s (persists last state). When false, sleep/wake do not change backlight. When `lcd1602_welcome_hello` is true, every `welcome` animation overlays centered **HELLO** / **HUMAN**; text/clear during that overlay queues until welcome ends; `GET` text returns logical content (pending or pre-overlay), not HELLO. No outbound events.
+Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text **POST**/`DELETE` **503** `lcd not found` (settings stay enabled); **GET** text still returns the cached logical state with **200**. When the LCD is up but neither backlight chip ACKs → brightness **POST** **503** `backlight not found`; **GET** brightness still returns the cached value with **200**. On PCA9633, brightness scales the base RGB color (`PWM = channel × brightness / 100`); use `/color` for base R/G/B. Color on SN3193 → **400** `rgb not supported`. When `lcd1602_backlight_sleep` is true, entering sleep (`sleep` anim or idle `sleep_timeout`) fades backlight to **0** over ~2 s; wakeup / wake-from-sleep fades to **100** over ~2 s (persists last state). When false, sleep/wake do not change backlight. When `lcd1602_welcome_hello` is true, every `welcome` animation overlays centered **HELLO** / **HUMAN**; text/clear during that overlay queues until welcome ends; `GET` text returns logical content (pending or pre-overlay), not HELLO. No outbound events.
 
 #### `GET` / `POST` / `DELETE /extensions/lcd1602/text`
 
-`GET` returns the full logical lines (not only the 16-column viewport):
+`GET` returns the full logical lines (not only the 16-column viewport), including when the LCD does not ACK (**200** cached state). `POST` / `DELETE` without an ACK → **503** `lcd not found`.
 
 ```json
 {
@@ -593,7 +596,7 @@ curl -X POST "http://tiny-engineer.local/extensions/lcd1602/text" \
 
 #### `GET` / `POST /extensions/lcd1602/brightness`
 
-`GET` → `{"brightness":50}`. `POST` body `{"brightness":0..100}` (0 = backlight off). Neither SN3193 nor PCA9633 ACK → **503** `backlight not found`. On PCA9633, brightness scales the stored base color (default white `255,255,255`). Successful text/clear/brightness/color updates persist **last** state for `lcd1602_boot=last`.
+`GET` → `{"brightness":50}` (cached logical value; **200** even when no backlight chip ACKs). `POST` body `{"brightness":0..100}` (0 = backlight off). Neither SN3193 nor PCA9633 ACK on **POST** → **503** `backlight not found`. On PCA9633, brightness scales the stored base color (default white `255,255,255`). Successful text/clear/brightness/color updates persist **last** state for `lcd1602_boot=last`.
 
 #### `GET` / `POST /extensions/lcd1602/color`
 

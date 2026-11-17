@@ -31,7 +31,7 @@ CLI knows a small map of ids → resources (v1: only `lcd1602`). Unknown id → 
 Example UX:
 ```
 tiny-engineer ext lcd1602 text get
-tiny-engineer ext lcd1602 text set --line1 HELLO --align center
+tiny-engineer ext lcd1602 text set --line1=HELLO --align=center
 tiny-engineer ext lcd1602 text clear
 tiny-engineer ext lcd1602 brightness get|set <n>
 ```

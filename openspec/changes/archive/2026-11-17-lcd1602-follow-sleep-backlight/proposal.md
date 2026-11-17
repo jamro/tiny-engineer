@@ -9,7 +9,7 @@ The LCD1602 Extensions toggle is labeled **Backlight on boot**, but firmware alr
 - Replace `lcd1602_backlight_boot` with **`lcd1602_backlight_sleep`** (default **true**).
 - UI label becomes **Follow sleep**.
 - **When true:** backlight on at enable/boot (unless boot content `last` supplies brightness); sleep fades to **0**; wake / wake-from-sleep fades to **100**.
-- **When false:** backlight on at enable/boot (unless `last`); sleep and wake **do not** change backlight.
+- **When false:** backlight on at enable/boot (unless `last` supplies a non-zero brightness); if `last` brightness is **0**, still turn on. Sleep and wake **do not** change backlight.
 - **BREAKING:** HTTP and serial settings drop `lcd1602_backlight_boot`; clients must use `lcd1602_backlight_sleep`. NVS key `ext_lcd_bl` is reused (stored bool kept).
 - Remove the old “false → off until brightness API” policy.
 - Document sleep/wake backlight gating in the lcd1602 capability (today only mentioned in API prose).
