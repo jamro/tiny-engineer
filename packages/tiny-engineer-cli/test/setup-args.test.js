@@ -15,6 +15,7 @@ import { join } from "node:path";
 import { createOutput } from "../src/util/output.js";
 import { createStyle } from "../src/util/style.js";
 import { mergeEnvKey, mergeEnvUrl, readEnvKey } from "../src/wizard/merge.js";
+import { AI_USAGE_LCD_KEY } from "../src/integrations/cursor/lcd-usage.js";
 import { parseSetupArgs, runSetup, warnProjectOverrides } from "../src/wizard/setup.js";
 
 test("parseSetupArgs --yes without ide fails at run time; parser ok", () => {
@@ -41,6 +42,12 @@ test("parseSetupArgs reads flags without force", () => {
   assert.equal(args.url, "http://x");
   assert.equal(args.transport, "serial");
   assert.equal(args.port, "/dev/ttyUSB0");
+  assert.equal(args.aiUsageLcd, undefined);
+});
+
+test("parseSetupArgs reads --ai-usage-lcd and --no-ai-usage-lcd", () => {
+  assert.equal(parseSetupArgs(["--ai-usage-lcd"]).aiUsageLcd, true);
+  assert.equal(parseSetupArgs(["--no-ai-usage-lcd"]).aiUsageLcd, false);
 });
 
 test("parseSetupArgs rejects removed force flags", () => {
@@ -479,6 +486,135 @@ test("setup leaves existing project .env byte-identical", async () => {
     assert.equal(process.exitCode, 0);
     assert.equal(readFileSync(projectEnv, "utf8"), before);
     assert.equal(readEnvKey(join(cfg, "env"), "TINY_ENGINEER_URL"), "http://user.test");
+  } finally {
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("runSetup --yes alone leaves AI usage LCD key unset", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
+  mkdirSync(join(dir, ".cursor"));
+  const out = createOutput({
+    quiet: true,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: () => {},
+  });
+  try {
+    await runSetup(out, ["cursor", "--yes", "--url", "http://robot.test"], {
+      projectRoot: dir,
+    });
+    assert.equal(process.exitCode, 0);
+    assert.equal(readEnvKey(join(cfg, "env"), AI_USAGE_LCD_KEY), null);
+  } finally {
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("runSetup --yes --ai-usage-lcd writes 1", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
+  mkdirSync(join(dir, ".cursor"));
+  const out = createOutput({
+    quiet: true,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: () => {},
+  });
+  try {
+    await runSetup(out, ["cursor", "--yes", "--url", "http://robot.test", "--ai-usage-lcd"], {
+      projectRoot: dir,
+    });
+    assert.equal(process.exitCode, 0);
+    assert.equal(readEnvKey(join(cfg, "env"), AI_USAGE_LCD_KEY), "1");
+  } finally {
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("runSetup --yes --no-ai-usage-lcd writes 0", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
+  mkdirSync(join(dir, ".cursor"));
+  const out = createOutput({
+    quiet: true,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: () => {},
+  });
+  try {
+    await runSetup(out, ["cursor", "--yes", "--url", "http://robot.test", "--no-ai-usage-lcd"], {
+      projectRoot: dir,
+    });
+    assert.equal(process.exitCode, 0);
+    assert.equal(readEnvKey(join(cfg, "env"), AI_USAGE_LCD_KEY), "0");
+  } finally {
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("interactive setup AI usage confirm writes 1 or 0", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
+  mkdirSync(join(dir, ".cursor"));
+  const out = createOutput({
+    quiet: true,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: () => {},
+  });
+  try {
+    await runSetup(out, ["cursor", "--url", "http://robot.test"], {
+      projectRoot: dir,
+      ask: async (q, def = "") => {
+        if (String(q).includes("Access token")) return "";
+        return def || "http";
+      },
+      confirm: async (q) => {
+        if (String(q).includes("AI budget")) return true;
+        return true;
+      },
+    });
+    assert.equal(readEnvKey(join(cfg, "env"), AI_USAGE_LCD_KEY), "1");
+
+    await runSetup(out, ["cursor", "--url", "http://robot.test"], {
+      projectRoot: dir,
+      ask: async (q, def = "") => {
+        if (String(q).includes("Access token")) return "";
+        return def || "http";
+      },
+      confirm: async (q) => {
+        if (String(q).includes("AI budget")) return false;
+        if (String(q).includes("Replace user config")) return true;
+        return true;
+      },
+    });
+    assert.equal(readEnvKey(join(cfg, "env"), AI_USAGE_LCD_KEY), "0");
   } finally {
     if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
     else process.env.TINY_ENGINEER_CONFIG_DIR = prev;

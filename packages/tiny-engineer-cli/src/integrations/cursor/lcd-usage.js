@@ -3,6 +3,9 @@ import { fetchCursorLimits } from "./usage-api.js";
 import { remainingBudgetPercent } from "./usage-remaining.js";
 import { resolveCursorSessionCookie } from "./usage-session.js";
 
+/** Opt-in: only `"1"` enables LCD AI budget updates after Cursor `ring`. */
+export const AI_USAGE_LCD_KEY = "TINY_ENGINEER_AI_USAGE_LCD";
+
 export const OVERALL_TIMEOUT_MS = 2000;
 export const STEP_TIMEOUT_MS = 1500;
 
@@ -63,7 +66,7 @@ async function defaultPostLcd(pct, transport, timeoutMs) {
  */
 export async function maybeShowCursorUsageOnLcd(transport = {}, deps = {}) {
   const env = deps.env ?? process.env;
-  if (env.TINY_ENGINEER_AI_USAGE_LCD === "0") return;
+  if (env[AI_USAGE_LCD_KEY] !== "1") return;
 
   const overallTimeoutMs = deps.overallTimeoutMs ?? OVERALL_TIMEOUT_MS;
   const stepTimeoutMs = deps.stepTimeoutMs ?? STEP_TIMEOUT_MS;

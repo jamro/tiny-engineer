@@ -1,15 +1,34 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { maybeShowCursorUsageOnLcd } from "../src/integrations/cursor/lcd-usage.js";
+import {
+  AI_USAGE_LCD_KEY,
+  maybeShowCursorUsageOnLcd,
+} from "../src/integrations/cursor/lcd-usage.js";
 import { cookieFromToken, jwtClaims, cookieIdFromClaims } from "../src/integrations/cursor/usage-session.js";
 
-test("maybeShowCursorUsageOnLcd skips when kill switch is 0", async () => {
+test("maybeShowCursorUsageOnLcd skips when unset (opt-in default off)", async () => {
   let posted = 0;
   await maybeShowCursorUsageOnLcd(
     {},
     {
-      env: { TINY_ENGINEER_AI_USAGE_LCD: "0" },
+      env: {},
+      resolveCookie: async () => "id::jwt",
+      fetchLimits: async () => ({ planUsage: { autoPercentUsed: 10 } }),
+      postLcd: async () => {
+        posted += 1;
+      },
+    },
+  );
+  assert.equal(posted, 0);
+});
+
+test("maybeShowCursorUsageOnLcd skips when set to 0", async () => {
+  let posted = 0;
+  await maybeShowCursorUsageOnLcd(
+    {},
+    {
+      env: { [AI_USAGE_LCD_KEY]: "0" },
       resolveCookie: async () => "id::jwt",
       fetchLimits: async () => ({ planUsage: { autoPercentUsed: 10 } }),
       postLcd: async () => {
@@ -25,7 +44,7 @@ test("maybeShowCursorUsageOnLcd skips LCD when no cookie", async () => {
   await maybeShowCursorUsageOnLcd(
     {},
     {
-      env: {},
+      env: { [AI_USAGE_LCD_KEY]: "1" },
       resolveCookie: async () => null,
       fetchLimits: async () => ({ planUsage: { autoPercentUsed: 10 } }),
       postLcd: async () => {
@@ -41,7 +60,7 @@ test("maybeShowCursorUsageOnLcd skips LCD when remaining is null", async () => {
   await maybeShowCursorUsageOnLcd(
     {},
     {
-      env: {},
+      env: { [AI_USAGE_LCD_KEY]: "1" },
       resolveCookie: async () => "id::token",
       fetchLimits: async () => ({ planUsage: {} }),
       postLcd: async () => {
@@ -52,13 +71,13 @@ test("maybeShowCursorUsageOnLcd skips LCD when remaining is null", async () => {
   assert.equal(posted, 0);
 });
 
-test("maybeShowCursorUsageOnLcd posts remaining percent", async () => {
+test("maybeShowCursorUsageOnLcd posts remaining percent when enabled", async () => {
   /** @type {{ pct: number, transport: object } | null} */
   let seen = null;
   await maybeShowCursorUsageOnLcd(
     { url: "http://robot.local" },
     {
-      env: {},
+      env: { [AI_USAGE_LCD_KEY]: "1" },
       resolveCookie: async () => "id::token",
       fetchLimits: async () => ({
         planUsage: { autoPercentUsed: 40, apiPercentUsed: 25 },
@@ -75,7 +94,7 @@ test("maybeShowCursorUsageOnLcd swallows postLcd errors", async () => {
   await maybeShowCursorUsageOnLcd(
     {},
     {
-      env: {},
+      env: { [AI_USAGE_LCD_KEY]: "1" },
       resolveCookie: async () => "id::token",
       fetchLimits: async () => ({ planUsage: { autoPercentUsed: 5 } }),
       postLcd: async () => {
@@ -92,7 +111,7 @@ test("maybeShowCursorUsageOnLcd respects overall timeout", async () => {
   await maybeShowCursorUsageOnLcd(
     {},
     {
-      env: {},
+      env: { [AI_USAGE_LCD_KEY]: "1" },
       resolveCookie: () =>
         new Promise((resolve) => {
           // Resolves after the overall cap so cancelled=true skips postLcd.
