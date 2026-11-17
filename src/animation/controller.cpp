@@ -9,6 +9,7 @@
 #include "animation/util.h"
 #include "audio/audio.h"
 #include "display/eyes.h"
+#include "extensions/lcd1602/lcd1602.h"
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
@@ -47,13 +48,15 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
     return;
   }
 
+  const AnimationId previous = g_animation;
+
   // Only tear down a stream owned by the previous anim. Orphan Action/button
   // SFX must survive transitions into Sleep/Wakeup/typing/etc.
-  if (animationDrivesWavStream(g_animation) && g_animation != id) {
+  if (animationDrivesWavStream(previous) && previous != id) {
     stopAllWavPlayback();
   }
 
-  const ModeEntry* fromEntry = modeByAnimId(g_animation);
+  const ModeEntry* fromEntry = modeByAnimId(previous);
   const ModeEntry* entry = modeByAnimId(id);
 
   serialLogPrint("[anim] transition ");
@@ -62,7 +65,7 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
   serialLogPrintln(entry->name);
   anim::logServoSnapshot("pre-transition");
 
-  if (g_animation == AnimationId::None && id != AnimationId::None) {
+  if (previous == AnimationId::None && id != AnimationId::None) {
     ensureAllServoOutputs();
   }
 
@@ -74,6 +77,10 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
     prepareSleepWakePose();
   }
 
+  if (previous == AnimationId::Welcome && id != AnimationId::Welcome) {
+    lcd1602EndWelcomeHello();
+  }
+
   g_animation = id;
   g_animationStartedMs = nowMs;
   g_continuousStartedMs = nowMs;
@@ -83,6 +90,10 @@ void applyAnimation(AnimationId id, uint32_t nowMs) {
 
   if (entry->startAnim != nullptr) {
     entry->startAnim(g_animationStartedMs);
+  }
+
+  if (id == AnimationId::Welcome) {
+    lcd1602BeginWelcomeHello();
   }
 
   setRgbForAnimation(id, nowMs);

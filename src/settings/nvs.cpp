@@ -85,6 +85,10 @@ void SettingsValues::load() {
     lcd1602BacklightSleep = g_settingsPrefs.getBool(kKeyLcd1602Bl, lcd1602BacklightSleep);
   }
 
+  if (g_settingsPrefs.isKey(kKeyLcd1602Hi)) {
+    lcd1602WelcomeHello = g_settingsPrefs.getBool(kKeyLcd1602Hi, lcd1602WelcomeHello);
+  }
+
   loadText(lcd1602Boot, kKeyLcd1602Boot, settingsValidateLcd1602Boot);
   loadText(lcd1602Line1, kKeyLcd1602L1, settingsValidateLcd1602Line);
   loadText(lcd1602Line2, kKeyLcd1602L2, settingsValidateLcd1602Line);
@@ -161,6 +165,7 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
   putUInt(kKeyPushButtonPin, values.pushButtonPin, before.pushButtonPin);
   putBool(kKeyLcd1602, values.lcd1602, before.lcd1602);
   putBool(kKeyLcd1602Bl, values.lcd1602BacklightSleep, before.lcd1602BacklightSleep);
+  putBool(kKeyLcd1602Hi, values.lcd1602WelcomeHello, before.lcd1602WelcomeHello);
   putText(kKeyLcd1602Boot, values.lcd1602Boot, before.lcd1602Boot);
   putText(kKeyLcd1602L1, values.lcd1602Line1, before.lcd1602Line1);
   putText(kKeyLcd1602L2, values.lcd1602Line2, before.lcd1602Line2);

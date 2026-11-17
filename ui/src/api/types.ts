@@ -40,6 +40,7 @@ export interface Settings {
   push_button_pin: number;
   lcd1602: boolean;
   lcd1602_backlight_sleep: boolean;
+  lcd1602_welcome_hello: boolean;
   lcd1602_boot: "none" | "last" | "config";
   lcd1602_line1: string;
   lcd1602_line2: string;

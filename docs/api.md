@@ -173,6 +173,7 @@ curl http://tiny-engineer.local/settings
   "push_button_pin": 20,
   "lcd1602": false,
   "lcd1602_backlight_sleep": true,
+  "lcd1602_welcome_hello": false,
   "lcd1602_boot": "none",
   "lcd1602_line1": "",
   "lcd1602_line2": "",
@@ -201,6 +202,7 @@ curl http://tiny-engineer.local/settings
 | `push_button_pin` | GPIO on the Extension port for the push-button: **6**, **7**, **20**, or **21** (default **20**). Persists when `push_button` is off. Applies **immediately** when the extension is on |
 | `lcd1602` | Waveshare LCD1602 I2C extension (default **false**). When on, serves `/extensions/lcd1602/…`. Applies **immediately**. Emits no events |
 | `lcd1602_backlight_sleep` | Follow sleep: dim backlight on sleep and light to **100** on wake (default **true**). When false, enable/boot turns backlight on (including when `last` brightness is 0) and sleep/wake leave brightness alone. Persists when off. Applies **immediately** |
+| `lcd1602_welcome_hello` | Show centered **HELLO** / **HUMAN** on the LCD during every `welcome` animation (default **false**). Text/clear during the overlay queues (last-wins); `GET` returns logical stash/pending, not HELLO. Persists when off. Applies **immediately** |
 | `lcd1602_boot` | Boot content: `none`, `last`, or `config` (default **`none`**). Persists when off. Applies **immediately** |
 | `lcd1602_line1` / `lcd1602_line2` | Configured boot lines when `lcd1602_boot` is `config` (max **64** chars each, default empty). Persists when off. Applies **immediately** |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking` / `waiting`) may run before the firmware switches to `attention` then idle (default **5**) |
@@ -218,7 +220,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `lcd1602`, `lcd1602_backlight_sleep`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). On-device Actions are set with [`PUT /settings/actions`](#put-settingsactions). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `lcd1602`, `lcd1602_backlight_sleep`, `lcd1602_welcome_hello`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). On-device Actions are set with [`PUT /settings/actions`](#put-settingsactions). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings" \
@@ -244,6 +246,7 @@ curl -X POST "http://192.168.4.1/settings" \
   "push_button_pin": 20,
   "lcd1602": false,
   "lcd1602_backlight_sleep": true,
+  "lcd1602_welcome_hello": false,
   "lcd1602_boot": "none",
   "lcd1602_line1": "",
   "lcd1602_line2": "",
@@ -273,6 +276,7 @@ curl -X POST "http://192.168.4.1/settings" \
 | `push_button_pin` | integer | Extension-port GPIO **6**, **7**, **20**, or **21** (default **20**); persists when off |
 | `lcd1602` | boolean | Waveshare LCD1602 extension (default **false**) |
 | `lcd1602_backlight_sleep` | boolean | Dim on sleep / light on wake (default **true**) |
+| `lcd1602_welcome_hello` | boolean | HELLO/HUMAN on welcome (default **false**) |
 | `lcd1602_boot` | string | `none` / `last` / `config` (default **`none`**) |
 | `lcd1602_line1` / `lcd1602_line2` | string | Boot lines for `config` (max **64**) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
@@ -372,6 +376,7 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "push_button_pin": 20,
   "lcd1602": false,
   "lcd1602_backlight_sleep": true,
+  "lcd1602_welcome_hello": false,
   "lcd1602_boot": "none",
   "lcd1602_line1": "",
   "lcd1602_line2": "",
@@ -563,7 +568,7 @@ Save with `POST /settings` `{"oled_rotate_180":true}` (setup AP only). The saved
 
 ### LCD 1602 extension (`/extensions/lcd1602/…`)
 
-Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but neither backlight chip ACKs → brightness **503** `backlight not found`. On PCA9633, brightness scales the base RGB color (`PWM = channel × brightness / 100`); use `/color` for base R/G/B. Color on SN3193 → **400** `rgb not supported`. When `lcd1602_backlight_sleep` is true, entering sleep (`sleep` anim or idle `sleep_timeout`) fades backlight to **0** over ~2 s; wakeup / wake-from-sleep fades to **100** over ~2 s (persists last state). When false, sleep/wake do not change backlight. No outbound events.
+Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but neither backlight chip ACKs → brightness **503** `backlight not found`. On PCA9633, brightness scales the base RGB color (`PWM = channel × brightness / 100`); use `/color` for base R/G/B. Color on SN3193 → **400** `rgb not supported`. When `lcd1602_backlight_sleep` is true, entering sleep (`sleep` anim or idle `sleep_timeout`) fades backlight to **0** over ~2 s; wakeup / wake-from-sleep fades to **100** over ~2 s (persists last state). When false, sleep/wake do not change backlight. When `lcd1602_welcome_hello` is true, every `welcome` animation overlays centered **HELLO** / **HUMAN**; text/clear during that overlay queues until welcome ends; `GET` text returns logical content (pending or pre-overlay), not HELLO. No outbound events.
 
 #### `GET` / `POST` / `DELETE /extensions/lcd1602/text`
 

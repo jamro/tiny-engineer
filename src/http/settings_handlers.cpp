@@ -81,6 +81,7 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("push_button_pin", patch.pushButtonPin);
   read("lcd1602", patch.lcd1602);
   read("lcd1602_backlight_sleep", patch.lcd1602BacklightSleep);
+  read("lcd1602_welcome_hello", patch.lcd1602WelcomeHello);
   read("lcd1602_boot", patch.lcd1602Boot);
   read("lcd1602_line1", patch.lcd1602Line1);
   read("lcd1602_line2", patch.lcd1602Line2);
@@ -134,6 +135,7 @@ JsonDocument settingsJson() {
   doc["push_button_pin"] = settingsPushButtonPin();
   doc["lcd1602"] = settingsLcd1602();
   doc["lcd1602_backlight_sleep"] = settingsLcd1602BacklightSleep();
+  doc["lcd1602_welcome_hello"] = settingsLcd1602WelcomeHello();
   doc["lcd1602_boot"] = settingsLcd1602Boot();
   doc["lcd1602_line1"] = settingsLcd1602Line1();
   doc["lcd1602_line2"] = settingsLcd1602Line2();
@@ -240,6 +242,7 @@ void handleSettingsPost(WebServer& server) {
 
   if (patch.lcd1602.has_value() ||
       patch.lcd1602BacklightSleep.has_value() ||
+      patch.lcd1602WelcomeHello.has_value() ||
       patch.lcd1602Boot != nullptr ||
       patch.lcd1602Line1 != nullptr ||
       patch.lcd1602Line2 != nullptr) {

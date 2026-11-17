@@ -25,6 +25,7 @@ struct SettingsValues {
   char pushButtonSoundLongClick[SETTINGS_PUSH_BUTTON_SOUND_MAX_LEN + 1];
   bool lcd1602;
   bool lcd1602BacklightSleep;
+  bool lcd1602WelcomeHello;
   char lcd1602Boot[SETTINGS_LCD1602_BOOT_MAX_LEN + 1];
   char lcd1602Line1[SETTINGS_LCD1602_LINE_MAX_LEN + 1];
   char lcd1602Line2[SETTINGS_LCD1602_LINE_MAX_LEN + 1];

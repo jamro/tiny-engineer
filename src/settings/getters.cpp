@@ -47,6 +47,10 @@ bool settingsLcd1602BacklightSleep() {
   return g_settings.lcd1602BacklightSleep;
 }
 
+bool settingsLcd1602WelcomeHello() {
+  return g_settings.lcd1602WelcomeHello;
+}
+
 const char* settingsLcd1602Boot() {
   return g_settings.lcd1602Boot;
 }

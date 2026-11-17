@@ -69,6 +69,7 @@ ApiResult apiSaveSettings(const SettingsPatch& patch) {
   }
   if (patch.lcd1602.has_value() ||
       patch.lcd1602BacklightSleep.has_value() ||
+      patch.lcd1602WelcomeHello.has_value() ||
       patch.lcd1602Boot != nullptr ||
       patch.lcd1602Line1 != nullptr ||
       patch.lcd1602Line2 != nullptr) {

@@ -56,6 +56,9 @@ uint32_t g_fadeDurationMs = 0;
 uint8_t g_fadeFrom = 0;
 uint8_t g_fadeTo = 0;
 
+bool g_welcomeOverlay = false;
+bool g_welcomePendingApply = false;
+
 float easeInOut(float t) {
   return t * t * (3.0f - 2.0f * t);
 }
@@ -87,14 +90,26 @@ uint8_t alignToByte(Lcd1602Align align) {
   }
 }
 
+void fillWelcomeOverlayLine(uint8_t row, Lcd1602LineState& out) {
+  out = Lcd1602LineState{};
+  out.align = Lcd1602Align::Center;
+  strlcpy(out.text, row == 0 ? "HELLO" : "HUMAN", sizeof(out.text));
+}
+
 void renderLine(uint8_t row) {
   if (!g_hwOk) {
     return;
   }
 
   char cols[kLcd1602Cols + 1];
-  const Lcd1602LineState& line = row == 0 ? g_text.line1 : g_text.line2;
-  lcd1602FormatViewport(line, g_scrollIndex[row], cols);
+  if (g_welcomeOverlay) {
+    Lcd1602LineState overlay{};
+    fillWelcomeOverlayLine(row, overlay);
+    lcd1602FormatViewport(overlay, 0, cols);
+  } else {
+    const Lcd1602LineState& line = row == 0 ? g_text.line1 : g_text.line2;
+    lcd1602FormatViewport(line, g_scrollIndex[row], cols);
+  }
   lcd1602HwShowLine(row, cols);
 }
 
@@ -237,6 +252,22 @@ void applyBootContent() {
   applyBrightnessPolicy(haveLast && strcmp(mode, "last") == 0, lastBrightness, lastColor);
 }
 
+void endWelcomeHelloInternal() {
+  if (!g_welcomeOverlay) {
+    return;
+  }
+
+  g_welcomeOverlay = false;
+  if (g_welcomePendingApply) {
+    g_welcomePendingApply = false;
+    persistLast();
+  }
+
+  resetScroll(0);
+  resetScroll(1);
+  renderAll();
+}
+
 }  // namespace
 
 bool lcd1602Enabled() {
@@ -275,12 +306,17 @@ void lcd1602FadeBrightnessTo(uint8_t targetPercent, uint32_t durationMs) {
 
 void lcd1602ApplyFromSettings() {
   if (!settingsLcd1602()) {
+    endWelcomeHelloInternal();
     g_active = false;
     g_hwOk = false;
     clearBrightnessFade();
     lcd1602HwResetLed();
     serialLogPrintln("LCD1602 extension off");
     return;
+  }
+
+  if (g_welcomeOverlay && !settingsLcd1602WelcomeHello()) {
+    endWelcomeHelloInternal();
   }
 
   g_active = true;
@@ -295,6 +331,9 @@ void lcd1602ApplyFromSettings() {
   // Drop any in-flight sleep/wake fade so boot policy is not overwritten.
   clearBrightnessFade();
   applyBootContent();
+  if (g_welcomeOverlay) {
+    renderAll();
+  }
 }
 
 void lcd1602Poll() {
@@ -322,7 +361,7 @@ void lcd1602Poll() {
     }
   }
 
-  if (!g_hwOk) {
+  if (!g_hwOk || g_welcomeOverlay) {
     return;
   }
 
@@ -388,9 +427,32 @@ bool lcd1602SetText(const Lcd1602LineState* line1, const Lcd1602LineState* line2
     resetScroll(1);
   }
 
+  if (g_welcomeOverlay) {
+    g_welcomePendingApply = true;
+    return true;
+  }
+
   renderAll();
   persistLast();
   return true;
+}
+
+void lcd1602BeginWelcomeHello() {
+  if (!g_active || !settingsLcd1602WelcomeHello()) {
+    return;
+  }
+
+  if (g_welcomeOverlay) {
+    return;
+  }
+
+  g_welcomeOverlay = true;
+  g_welcomePendingApply = false;
+  renderAll();
+}
+
+void lcd1602EndWelcomeHello() {
+  endWelcomeHelloInternal();
 }
 
 bool lcd1602ClearText() {

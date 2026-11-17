@@ -235,6 +235,7 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
     body["serial_log"] = settingsSerialLogEnabled();
     body["lcd1602"] = settingsLcd1602();
     body["lcd1602_backlight_sleep"] = settingsLcd1602BacklightSleep();
+    body["lcd1602_welcome_hello"] = settingsLcd1602WelcomeHello();
     body["lcd1602_boot"] = settingsLcd1602Boot();
     body["lcd1602_line1"] = settingsLcd1602Line1();
     body["lcd1602_line2"] = settingsLcd1602Line2();
@@ -325,6 +326,14 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
         return;
       }
       patch.lcd1602BacklightSleep = req["lcd1602_backlight_sleep"].as<bool>();
+      any = true;
+    }
+    if (!req["lcd1602_welcome_hello"].isUnbound()) {
+      if (!req["lcd1602_welcome_hello"].is<bool>()) {
+        sendJsonRes(id, 400, "invalid lcd1602_welcome_hello", body);
+        return;
+      }
+      patch.lcd1602WelcomeHello = req["lcd1602_welcome_hello"].as<bool>();
       any = true;
     }
     if (!req["lcd1602_boot"].isUnbound()) {

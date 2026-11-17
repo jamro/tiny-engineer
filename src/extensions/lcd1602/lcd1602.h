@@ -36,6 +36,10 @@ void lcd1602Poll();
 // Smooth brightness change (sleep→0, wake→100). No-op if extension off. Duration 0 snaps.
 void lcd1602FadeBrightnessTo(uint8_t targetPercent, uint32_t durationMs);
 
+// Opt-in HELLO/HUMAN overlay for every Welcome animation. No-op if off/disabled.
+void lcd1602BeginWelcomeHello();
+void lcd1602EndWelcomeHello();
+
 const Lcd1602TextState& lcd1602TextState();
 uint8_t lcd1602Brightness();
 Lcd1602Color lcd1602Color();

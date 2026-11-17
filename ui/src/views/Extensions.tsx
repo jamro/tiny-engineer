@@ -29,6 +29,7 @@ function draftFrom(settings: Settings) {
     pushButtonPin: settings.push_button_pin,
     lcd1602: settings.lcd1602,
     lcd1602BacklightSleep: settings.lcd1602_backlight_sleep,
+    lcd1602WelcomeHello: settings.lcd1602_welcome_hello,
     lcd1602Boot: settings.lcd1602_boot,
     lcd1602Line1: settings.lcd1602_line1,
     lcd1602Line2: settings.lcd1602_line2,
@@ -71,6 +72,7 @@ function ExtensionsForm({
           push_button_pin: draft.pushButtonPin,
           lcd1602: draft.lcd1602,
           lcd1602_backlight_sleep: draft.lcd1602BacklightSleep,
+          lcd1602_welcome_hello: draft.lcd1602WelcomeHello,
           lcd1602_boot: draft.lcd1602Boot,
           lcd1602_line1: draft.lcd1602Line1,
           lcd1602_line2: draft.lcd1602Line2,
@@ -95,17 +97,17 @@ function ExtensionsForm({
       <form onSubmit={save}>
         <ConfigSection title="Push button" apply="now">
           <div className="form-group">
-            <div className="toggle-row">
+            <div className="toggle-row toggle-row-enable">
               <input
                 type="checkbox"
                 id="ext-push-button"
                 checked={draft.pushButton}
                 onChange={(event) => set({ pushButton: event.currentTarget.checked })}
               />
-              <label htmlFor="ext-push-button">Enable push button</label>
+              <label htmlFor="ext-push-button">Enable extension</label>
             </div>
             {draft.pushButton ? (
-              <>
+              <div className="ext-details">
                 <div className="field-head">
                   <span>Pin</span>
                 </div>
@@ -158,24 +160,24 @@ function ExtensionsForm({
                   Out: <code>ws://&lt;host&gt;:81/events</code> and serial <code>Evt</code>. No
                   extra HTTP endpoints for the button itself.
                 </p>
-              </>
+              </div>
             ) : null}
           </div>
         </ConfigSection>
 
         <ConfigSection title="LCD 1602" apply="now">
           <div className="form-group">
-            <div className="toggle-row">
+            <div className="toggle-row toggle-row-enable">
               <input
                 type="checkbox"
                 id="ext-lcd1602"
                 checked={draft.lcd1602}
                 onChange={(event) => set({ lcd1602: event.currentTarget.checked })}
               />
-              <label htmlFor="ext-lcd1602">Enable LCD 1602</label>
+              <label htmlFor="ext-lcd1602">Enable extension</label>
             </div>
             {draft.lcd1602 ? (
-              <>
+              <div className="ext-details">
                 <div className="toggle-row">
                   <input
                     type="checkbox"
@@ -186,6 +188,17 @@ function ExtensionsForm({
                     }
                   />
                   <label htmlFor="ext-lcd1602-bl">Follow sleep</label>
+                </div>
+                <div className="toggle-row">
+                  <input
+                    type="checkbox"
+                    id="ext-lcd1602-hello"
+                    checked={draft.lcd1602WelcomeHello}
+                    onChange={(event) =>
+                      set({ lcd1602WelcomeHello: event.currentTarget.checked })
+                    }
+                  />
+                  <label htmlFor="ext-lcd1602-hello">Hello on welcome</label>
                 </div>
                 <div className="field-head">
                   <span>Boot content</span>
@@ -238,7 +251,7 @@ function ExtensionsForm({
                   API: <code>/extensions/lcd1602/text</code>,{" "}
                   <code>/extensions/lcd1602/brightness</code>.
                 </p>
-              </>
+              </div>
             ) : null}
           </div>
           <Button type="submit" variant="primary">

@@ -153,6 +153,13 @@ export function ApiReference() {
           </tr>
           <tr>
             <td>
+              <code>lcd1602_welcome_hello</code>
+            </td>
+            <td>boolean</td>
+            <td>HELLO/HUMAN overlay during welcome (default false; immediate)</td>
+          </tr>
+          <tr>
+            <td>
               <code>lcd1602_boot</code>
             </td>
             <td>string</td>

@@ -31,6 +31,7 @@ constexpr const char* kKeyOledRot = "oled_rot";
 constexpr const char* kKeyLinkMode = "link_mode";
 constexpr const char* kKeyLcd1602 = "ext_lcd";
 constexpr const char* kKeyLcd1602Bl = "ext_lcd_bl";
+constexpr const char* kKeyLcd1602Hi = "ext_lcd_hi";
 constexpr const char* kKeyLcd1602Boot = "ext_lcd_boot";
 constexpr const char* kKeyLcd1602L1 = "ext_lcd_l1";
 constexpr const char* kKeyLcd1602L2 = "ext_lcd_l2";
