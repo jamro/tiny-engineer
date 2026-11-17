@@ -15,6 +15,11 @@ bool i2cDeviceConnected(uint8_t address) {
 
 namespace {
 
+// The panel answered at boot and the driver has its frame buffer, whether or
+// not the setup then went through. Separate from oledAvailable, which is
+// whether it can be drawn on right now.
+bool g_oledDetected = false;
+
 constexpr size_t kOledFrameBytes = OLED_WIDTH * ((OLED_HEIGHT + 7) / 8);
 // Frame bytes per transfer, well inside Wire's buffer.
 constexpr size_t kOledFrameChunk = 32;
@@ -111,13 +116,23 @@ void initOled() {
 
   // begin() allocates and clears the frame buffer and sets the driver up;
   // configureOled() then sends the setup again with each transfer checked.
-  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS) || !configureOled(true)) {
+  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS)) {
     serialLogPrintln("ERROR: OLED initialization failed");
     oledAvailable = false;
     return;
   }
 
+  g_oledDetected = true;
   display.setRotation(settingsOledRotate180() ? 2 : 0);
+
+  // A setup that did not go through leaves the panel detected but not
+  // available: the I2C checks then fault it and retry the setup.
+  if (!configureOled(true)) {
+    serialLogPrintln("ERROR: OLED setup failed; retrying after boot");
+    oledAvailable = false;
+    return;
+  }
+
   oledAvailable = true;
 
   serialLogPrintln("OLED initialized");
@@ -127,6 +142,10 @@ void initOled() {
 // rotation is left alone too, since the setup wizard may be previewing one it
 // has not saved. The frame buffer still holds the last frame, so a static
 // screen comes back too.
+bool oledDetectedAtBoot() {
+  return g_oledDetected;
+}
+
 bool restartOled(bool panelOn) {
   oledAvailable = i2cDeviceConnected(OLED_ADDRESS) && configureOled(panelOn);
   return oledAvailable;

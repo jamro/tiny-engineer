@@ -59,7 +59,8 @@ Device g_servoDriver = {
 Device g_oled = {"oled", oledHealthy, stopOledWrites, recoverOled, nullptr, {}};
 
 bool g_started = false;
-// The robot runs without an OLED; only watch one that was there at boot.
+// The robot runs without an OLED; only watch one that was there at boot,
+// including one whose setup failed there, so that setup gets retried.
 bool g_oledExpected = false;
 // False after a failed Wire restart. Wire must not be used then: without its
 // buffers a transfer leaks Wire's lock, and the next restart would wait on
@@ -411,7 +412,7 @@ void initI2cBus() {
 }
 
 void beginI2cHealth() {
-  g_oledExpected = oledAvailable;
+  g_oledExpected = oledDetectedAtBoot();
   g_started = true;
 }
 
