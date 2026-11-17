@@ -5,6 +5,7 @@
 #include "display/eyes.h"
 #include "display/eyes/core/internal.h"
 #include "display/oled.h"
+#include "extensions/lcd1602/lcd1602.h"
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
 #include "pins.h"
@@ -28,14 +29,20 @@ void commandSleepHead(float n) {
   servoAt(SERVO_HEAD).setNormTarget(n, SERVO_BOOT_SPEED_DEG_S);
 }
 
+void fadeLcdWake() {
+  lcd1602FadeBrightnessTo(100, anim::SLEEP_NOD_OFF_MS);
+}
+
 void wakeFromSleep(uint32_t now) {
   wakeOled();
   startEyesForWake(now);
+  fadeLcdWake();
   g_state = SleepState::Opening;
 }
 
 void beginSleepClosing(uint32_t now) {
   requestSleepEyeClose(now);
+  lcd1602FadeBrightnessTo(0, anim::SLEEP_NOD_OFF_MS);
   g_state = SleepState::Closing;
 }
 
@@ -85,6 +92,7 @@ void onAnimationApplied(AnimationId id, uint32_t now) {
       eyes::setEyesRunning(true);
     }
 
+    fadeLcdWake();
     g_state = SleepState::Awake;
     return;
   }
@@ -95,6 +103,7 @@ void onAnimationApplied(AnimationId id, uint32_t now) {
       break;
     case SleepState::Closing:
       requestSleepEyeOpen(now);
+      fadeLcdWake();
       g_state = SleepState::Opening;
       break;
     default:

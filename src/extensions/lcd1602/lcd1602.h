@@ -33,6 +33,8 @@ bool lcd1602HardwareOk();
 
 void lcd1602ApplyFromSettings();
 void lcd1602Poll();
+// Smooth brightness change (sleep→0, wake→100). No-op if extension off. Duration 0 snaps.
+void lcd1602FadeBrightnessTo(uint8_t targetPercent, uint32_t durationMs);
 
 const Lcd1602TextState& lcd1602TextState();
 uint8_t lcd1602Brightness();

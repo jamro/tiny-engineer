@@ -50,6 +50,20 @@ size_t g_scrollIndex[2] = {0, 0};
 uint32_t g_nextScrollMs[2] = {0, 0};
 bool g_atWrapPause[2] = {false, false};
 
+bool g_fadeActive = false;
+uint32_t g_fadeStartMs = 0;
+uint32_t g_fadeDurationMs = 0;
+uint8_t g_fadeFrom = 0;
+uint8_t g_fadeTo = 0;
+
+float easeInOut(float t) {
+  return t * t * (3.0f - 2.0f * t);
+}
+
+void clearBrightnessFade() {
+  g_fadeActive = false;
+}
+
 Lcd1602Align alignFromByte(uint8_t value) {
   switch (value) {
     case kAlignRight:
@@ -234,10 +248,37 @@ bool lcd1602HardwareOk() {
   return g_hwOk;
 }
 
+void lcd1602FadeBrightnessTo(uint8_t targetPercent, uint32_t durationMs) {
+  if (!g_active) {
+    return;
+  }
+
+  if (targetPercent > 100) {
+    targetPercent = 100;
+  }
+
+  if (durationMs == 0 || targetPercent == g_brightness) {
+    clearBrightnessFade();
+    g_brightness = targetPercent;
+    if (g_hwOk) {
+      applyBacklightHw();
+    }
+    persistLast();
+    return;
+  }
+
+  g_fadeFrom = g_brightness;
+  g_fadeTo = targetPercent;
+  g_fadeStartMs = millis();
+  g_fadeDurationMs = durationMs;
+  g_fadeActive = true;
+}
+
 void lcd1602ApplyFromSettings() {
   if (!settingsLcd1602()) {
     g_active = false;
     g_hwOk = false;
+    clearBrightnessFade();
     lcd1602HwResetLed();
     serialLogPrintln("LCD1602 extension off");
     return;
@@ -256,11 +297,34 @@ void lcd1602ApplyFromSettings() {
 }
 
 void lcd1602Poll() {
-  if (!g_active || !g_hwOk) {
+  if (!g_active) {
     return;
   }
 
   const uint32_t now = millis();
+
+  if (g_fadeActive && g_hwOk) {
+    const uint32_t elapsed = now - g_fadeStartMs;
+    if (elapsed >= g_fadeDurationMs) {
+      g_brightness = g_fadeTo;
+      clearBrightnessFade();
+      applyBacklightHw();
+      persistLast();
+    } else {
+      const float t = easeInOut(
+        static_cast<float>(elapsed) / static_cast<float>(g_fadeDurationMs)
+      );
+      const float from = static_cast<float>(g_fadeFrom);
+      const float to = static_cast<float>(g_fadeTo);
+      g_brightness = static_cast<uint8_t>(from + (to - from) * t + 0.5f);
+      applyBacklightHw();
+    }
+  }
+
+  if (!g_hwOk) {
+    return;
+  }
+
   for (uint8_t row = 0; row < 2; row++) {
     const Lcd1602LineState& line = row == 0 ? g_text.line1 : g_text.line2;
     if (!lineNeedsScroll(line)) {
@@ -342,6 +406,7 @@ bool lcd1602SetBrightness(uint8_t percent) {
     return false;
   }
 
+  clearBrightnessFade();
   g_brightness = percent;
   if (!applyBacklightHw()) {
     return false;
@@ -360,6 +425,7 @@ bool lcd1602SetColor(uint8_t r, uint8_t g, uint8_t b) {
     return false;
   }
 
+  clearBrightnessFade();
   g_color.r = r;
   g_color.g = g;
   g_color.b = b;

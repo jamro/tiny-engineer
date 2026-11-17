@@ -563,7 +563,7 @@ Save with `POST /settings` `{"oled_rotate_180":true}` (setup AP only). The saved
 
 ### LCD 1602 extension (`/extensions/lcd1602/…`)
 
-Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but neither backlight chip ACKs → brightness **503** `backlight not found`. On PCA9633, brightness scales the base RGB color (`PWM = channel × brightness / 100`); use `/color` for base R/G/B. Color on SN3193 → **400** `rgb not supported`. No outbound events.
+Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text/clear **503** `lcd not found` (settings stay enabled). When the LCD is up but neither backlight chip ACKs → brightness **503** `backlight not found`. On PCA9633, brightness scales the base RGB color (`PWM = channel × brightness / 100`); use `/color` for base R/G/B. Color on SN3193 → **400** `rgb not supported`. Entering sleep (`sleep` anim or idle `sleep_timeout`) fades backlight to **0** over ~2 s; wakeup / wake-from-sleep fades to **100** over ~2 s (persists last state). No outbound events.
 
 #### `GET` / `POST` / `DELETE /extensions/lcd1602/text`
 
