@@ -79,8 +79,8 @@ enum class ServoRecoveryStep : uint8_t {
   SetUp,        // it did not: set it up again
   ChannelsOff,  // every channel off, outputs off
   Settle,       // wait for the off values to take effect
-  ChannelsOn,   // outputs on, then every channel written
-  Oled          // set the panel up again after a power loss
+  Oled,         // set the panel up again after a power loss
+  ChannelsOn    // outputs on, then every channel written; ends the recovery
 };
 ServoRecoveryStep g_servoStep = ServoRecoveryStep::Probe;
 uint32_t g_channelsOffMs = 0;
@@ -304,26 +304,29 @@ RecoveryResult recoverServoDriver(uint32_t now) {
       if (!writeServoChannelsOff()) {
         return endServoRecovery(RecoveryResult::Failed);
       }
-      g_channelsOffMs = now;
+      // After the writes, not `now`: they must not eat into the settle time.
+      g_channelsOffMs = millis();
       return nextServoStep(ServoRecoveryStep::Settle);
 
     case ServoRecoveryStep::Settle:
       if (now - g_channelsOffMs < kServoOutputSettleMs) {
         return RecoveryResult::InProgress;
       }
+      return nextServoStep(
+        g_oledRestartPending ? ServoRecoveryStep::Oled : ServoRecoveryStep::ChannelsOn
+      );
+
+    case ServoRecoveryStep::Oled:
+      restartOledAfterPowerLoss();
       return nextServoStep(ServoRecoveryStep::ChannelsOn);
 
+    // Last, so the channels written here are the latest the firmware asked
+    // for: the chip counts as up again in the same pass. A step after it
+    // would leave a pass where servo writes are still skipped but cached.
     case ServoRecoveryStep::ChannelsOn:
       if (!enableServoOutputsWithChannels()) {
         return endServoRecovery(RecoveryResult::Failed);
       }
-      if (!g_oledRestartPending) {
-        return endServoRecovery(RecoveryResult::Succeeded);
-      }
-      return nextServoStep(ServoRecoveryStep::Oled);
-
-    case ServoRecoveryStep::Oled:
-      restartOledAfterPowerLoss();
       return endServoRecovery(RecoveryResult::Succeeded);
   }
 

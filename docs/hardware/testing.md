@@ -157,7 +157,7 @@ HTTP runs on STA when connected, or on setup AP at `192.168.4.1` during provisio
 | `[i2c] Wire.end failed` or `[i2c] Wire.begin failed` | The ESP32's I2C driver did not restart; both chips stay off until a later attempt succeeds | Report it with the serial log; a reset clears it |
 | `i2c.<chip>.faults` above `0` in `GET /health` | A fault happened since boot | `recoveries` equal to `faults` means all were recovered; `last_fault_ms` says when |
 
-OLED absence and Wi-Fi failure are **soft** fails. PCA9685 and I2S failures **halt** in `while (true)`. I2C faults after boot do not halt: the firmware sets the faulted chip up again, restarting the bus when the PCA9685 stops answering ([interfaces.md](interfaces.md#i2c)).
+OLED absence and Wi-Fi failure are **soft** fails. A PCA9685 that does not answer at boot, and an I2S failure, **halt** in `while (true)`. A PCA9685 that answers but whose setup does not read back is a fault instead (`setup failed`): boot continues with the servo outputs off, and the checks set it up again. I2C faults after boot do not halt: the firmware sets the faulted chip up again, restarting the bus when the PCA9685 stops answering ([interfaces.md](interfaces.md#i2c)).
 
 ## Power during the servo test
 

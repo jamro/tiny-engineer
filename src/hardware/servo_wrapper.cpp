@@ -308,17 +308,23 @@ bool writeChannelVerified(uint8_t channel, uint16_t off) {
 }
 
 // Output mode and servo frequency, shared by boot and recovery. The chip must
-// be awake first: setPWMFreq() restores the sleep bit it finds.
-void writeServoSetup() {
+// be awake first: setPWMFreq() restores the sleep bit it finds. False when the
+// MODE2 write failed: the frequency is then skipped, since on a dead bus each
+// of its transfers would wait out a timeout too.
+bool writeServoSetup() {
   // The Adafruit driver never writes MODE2, so a value corrupted by a bus
   // glitch would outlive every restart. The chip keeps its registers across
   // an ESP32 reset: only its own power cycle clears them.
   Wire.beginTransmission(PCA9685_ADDRESS);
   Wire.write(kPcaMode2Reg);
   Wire.write(kPcaMode2Servo);
-  Wire.endTransmission();
+
+  if (Wire.endTransmission() != 0) {
+    return false;
+  }
 
   pwm.setPWMFreq(kServoPwmHz);
+  return true;
 }
 
 // The end of boot: the recovery's sequence in one go. Outputs stay off unless
@@ -364,7 +370,10 @@ bool setUpServoPwmDriver() {
   // and on a board with OE not wired the live servos would get those pulses.
   // reset() wakes the chip, which is all begin() adds here.
   pwm.reset();
-  writeServoSetup();
+
+  if (!writeServoSetup()) {
+    return false;
+  }
 
   ServoPwmDriverState state;
   return servoPwmDriverState(state);
@@ -408,7 +417,7 @@ void initServoPwmDriver() {
   disableServoOutputs();
 
   pwm.begin();
-  writeServoSetup();
+  const bool setupWritten = writeServoSetup();
   delay(100);
 
   uint8_t pose[SERVO_COUNT];
@@ -430,7 +439,7 @@ void initServoPwmDriver() {
 
   // Same path as a restart, so boot and recovery cannot drift apart. A setup
   // that did not take leaves the outputs off and the recovery to the checks.
-  if (!finishServoPwmDriverSetup()) {
+  if (!setupWritten || !finishServoPwmDriverSetup()) {
     i2cNoteServoDriverFault("setup failed");
   }
 }

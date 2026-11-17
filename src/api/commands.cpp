@@ -120,12 +120,18 @@ ApiResult apiMoveServo(int index, float angle) {
 }
 
 ApiResult apiParkServos() {
+  // A faulted servo driver would skip the move's writes, while the move still
+  // marks the centred pose for saving. Refuse before anything changes.
+  if (!i2cServoDriverUp()) {
+    return {false, 503, "servo driver down"};
+  }
+
   setAnimationImmediately(AnimationId::None);
   ensureAllServoOutputs();
   centerAllServos();
 
-  // A faulted servo driver skipped the move's writes: the joints never got to
-  // mid, so neither save that pose nor report a park.
+  // The driver faulted during the move: the joints never got to mid, so
+  // neither save that pose nor report a park.
   if (!i2cServoDriverUp()) {
     return {false, 503, "servo driver down"};
   }
