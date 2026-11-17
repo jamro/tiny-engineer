@@ -180,11 +180,12 @@ export async function robotPark(opts = {}) {
  *   method: string,
  *   body?: Record<string, unknown>,
  * }} call
- * @param {TransportOpts} [opts]
+ * @param {TransportOpts & { timeoutMs?: number }} [opts]
  */
 export async function robotExt(call, opts = {}) {
   const { id, suffix, method, body = {} } = call;
   const path = `/extensions/${id}/${suffix}`;
+  const timeoutMs = opts.timeoutMs ?? 10_000;
   return viaTransport(
     "ext",
     { id, suffix, method, ...body },
@@ -194,7 +195,7 @@ export async function robotExt(call, opts = {}) {
       /** @type {RequestInit} */
       const init = {
         method: upper,
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(timeoutMs),
       };
       if (upper === "POST") {
         init.headers = { "Content-Type": "application/json" };

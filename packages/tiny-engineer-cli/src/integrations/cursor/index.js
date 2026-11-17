@@ -7,6 +7,7 @@ import {
   planInstall,
   planUninstall,
 } from "./install.js";
+import { maybeShowCursorUsageOnLcd } from "./lcd-usage.js";
 import { animationForEvent } from "./map.js";
 
 /**
@@ -74,6 +75,19 @@ export const cursor = {
     const raw = input.meta?.raw;
     if (!raw || typeof raw !== "object") return [];
     return formatFileModifications(/** @type {Record<string, unknown>} */ (raw), style);
+  },
+
+  /**
+   * After a completed turn (`ring`), optionally refresh LCD1602 with remaining AI budget.
+   * @param {import("../types.js").AfterAnimContext} ctx
+   */
+  async afterAnim(ctx) {
+    if (ctx.anim !== "ring") return;
+    await maybeShowCursorUsageOnLcd({
+      url: ctx.url,
+      transport: ctx.transport,
+      port: ctx.port,
+    });
   },
 
   // Cursor has no stdout contract; stay silent.

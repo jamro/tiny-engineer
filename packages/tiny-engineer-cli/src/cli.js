@@ -160,6 +160,14 @@ async function runHook(out, argv, quietGlobal) {
     await robotSetAnim(anim, { url: opts.url, transport: opts.transport, port: opts.port });
   }
 
+  await integration.afterAnim?.({
+    anim,
+    input,
+    url: opts.url,
+    transport: opts.transport,
+    port: opts.port,
+  });
+
   const fileLines = integration.describeFiles?.(input, localOut.style) ?? [];
   for (const line of fileLines) {
     localOut.info(line);
