@@ -86,7 +86,7 @@ Failure table and expected boot sequence: [testing.md](../hardware/testing.md).
 
 Once on Wi-Fi, the robot exposes **integration-test-style endpoints**:
 
-- `/health` — alive, CPU temp
+- `/health` — alive, CPU temp, I2C fault and recovery counts
 - `/test/servo` — single joint
 - Web UI — hardware tests without memorizing curl
 

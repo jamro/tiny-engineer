@@ -120,7 +120,12 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
   "provisioning": false,
   "setup_ap_ssid": "",
   "setup_ap_ip": "",
-  "oled": true
+  "oled": true,
+  "i2c": {
+    "ok": true,
+    "pca9685": { "ok": true, "faults": 0, "recoveries": 0, "last_fault_ms": 0 },
+    "oled": { "ok": true, "faults": 0, "recoveries": 0, "last_fault_ms": 0 }
+  }
 }
 ```
 
@@ -140,7 +145,13 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://tiny-engineer.local/health
 | `provisioning` | `true` when setup AP mode is active |
 | `setup_ap_ssid` | Setup AP SSID when `provisioning` is true, else `""` |
 | `setup_ap_ip` | Setup AP IP when `provisioning` is true (usually `192.168.4.1`), else `""` |
-| `oled` | SSD1306 probed and initialized |
+| `oled` | SSD1306 probed and initialized. Goes `false` while an I2C fault keeps the display unreachable |
+| `i2c.ok` | `false` while either chip on the shared I2C bus cannot be used. The firmware checks each every 500 ms and sets a faulted chip up again, retrying with a growing delay (1 s up to 30 s) |
+| `i2c.pca9685.ok` | Servo driver usable: reachable, holding its setup (awake, internal clock, auto-increment, output mode, prescale), and its last write succeeded. Goes `false` at the first failed servo write; servo writes and outputs stay off until the chip is set up again |
+| `i2c.oled.ok` | Same value as `oled`. Stays `false`, with zero counts, on a robot that booted without a display |
+| `i2c.<chip>.faults` | Faults on that chip since boot. A bus fault that takes both chips down counts once on each |
+| `i2c.<chip>.recoveries` | Faults on that chip the firmware recovered from since boot |
+| `i2c.<chip>.last_fault_ms` | `uptime_ms` at that chip's latest fault; `0` when there has been none |
 
 ### `GET /settings`
 
@@ -540,7 +551,7 @@ tiny-engineer park --transport serial
 { "ok": true, "park": "servos", "hold": true }
 ```
 
-Pose NVS write failure → **400** `{"ok":false,"error":"pose save failed"}` (PWM hold is still armed). Details: [hardware/servos.md](hardware/servos.md#flash-safe-park).
+Pose NVS write failure → **400** `{"ok":false,"error":"pose save failed"}` (PWM hold is still armed). Servo driver faulted (`i2c.pca9685.ok` false in [`GET /health`](#get-health)) → **503** `{"ok":false,"error":"servo driver down"}`: the joints did not move, so the pose is not saved and no PWM hold is armed. Details: [hardware/servos.md](hardware/servos.md#flash-safe-park).
 
 ### `POST /test/servo`
 
