@@ -173,7 +173,9 @@ export function ApiReference() {
               <code>lcd1602_line1</code> / <code>lcd1602_line2</code>
             </td>
             <td>string</td>
-            <td>Configured boot lines when boot is <code>config</code> (max 64; immediate)</td>
+            <td>
+              Configured boot lines when boot is <code>config</code> (max 64; immediate)
+            </td>
           </tr>
           <tr>
             <td>
