@@ -92,14 +92,14 @@ The setting `lcd1602_boot` MUST be a string on `GET`/`POST /settings` allowing o
 - **THEN** the device answers **400**, nothing is saved
 
 ### Requirement: Boot config line strings
-The settings `lcd1602_line1` and `lcd1602_line2` MUST be strings on `GET`/`POST /settings`, default empty when unset, including after factory reset. Each MUST accept at most **64** characters; longer values MUST be rejected without saving. They MUST persist when `lcd1602` is false and apply when `lcd1602_boot` is `config`.
+The settings `lcd1602_line1` and `lcd1602_line2` MUST be strings on `GET`/`POST /settings`, default empty when unset, including after factory reset. Each MUST accept at most **64** bytes (`strlen`); longer values MUST be rejected without saving. They MUST persist when `lcd1602` is false and apply when `lcd1602_boot` is `config`.
 
 #### Scenario: Persist while off
 - **WHEN** `lcd1602` is false and the client posts config lines
 - **THEN** the values are saved and `GET /settings` returns them
 
 #### Scenario: Too long rejected
-- **WHEN** the client posts a line longer than 64 characters
+- **WHEN** the client posts a line longer than 64 bytes
 - **THEN** the device answers **400** and nothing is saved
 
 ### Requirement: Extensions page owns LCD 1602 controls
@@ -162,6 +162,10 @@ While the welcome-hello overlay is active, successful `POST`/`DELETE` text (HTTP
 - **WHEN** the overlay is active and the client deletes text
 - **THEN** HELLO/HUMAN stay visible until welcome ends, then both lines are empty
 
+#### Scenario: Disable mid-overlay drops queue
+- **WHEN** the overlay is active with queued text and the client sets `lcd1602` false
+- **THEN** last-state NVS is unchanged by that queue (boot `last` after re-enable does not restore the unapplied text)
+
 ### Requirement: GET text is logical during welcome hello
 While the welcome-hello overlay is active, `GET /extensions/lcd1602/text` (and serial `ext` GET text) MUST return the logical text: the queued result if a text/clear was accepted during the overlay, otherwise the pre-overlay stash. It MUST NOT return HELLO/HUMAN as the logical lines.
 
@@ -174,7 +178,7 @@ While the welcome-hello overlay is active, `GET /extensions/lcd1602/text` (and s
 - **THEN** the body matches the queued logical lines, not HELLO/HUMAN
 
 ### Requirement: Text API partial update
-`POST /extensions/lcd1602/text` MUST accept JSON where omitted `line1`/`line2` leave that line unchanged, present line objects carry required `text` (0–64 chars) and optional `align` (default `left`), empty `text` clears the line, bad input is **400**, and success updates display when present, persists last state, and returns **200** with full text state.
+`POST /extensions/lcd1602/text` MUST accept JSON where omitted `line1`/`line2` leave that line unchanged, present line objects carry required `text` (0–64 bytes) and optional `align` (default `left`), empty `text` clears the line, bad input is **400**, and success updates display when present, persists last state, and returns **200** with full text state.
 
 #### Scenario: Update one line
 - **WHEN** only `line1` is posted with `{"text":"HI"}`

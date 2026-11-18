@@ -258,7 +258,9 @@ void applyBootContent() {
   applyBrightnessPolicy(haveLast && strcmp(mode, "last") == 0, lastBrightness, lastColor);
 }
 
-void endWelcomeHelloInternal() {
+// applyQueued: normal welcome end / flag-off — persist pending text after apply.
+// false: extension disable — discard queue so NVS keeps last-applied only.
+void endWelcomeHelloInternal(bool applyQueued) {
   if (!g_welcomeOverlay) {
     return;
   }
@@ -266,7 +268,11 @@ void endWelcomeHelloInternal() {
   g_welcomeOverlay = false;
   if (g_welcomePendingApply) {
     g_welcomePendingApply = false;
-    persistLast();
+    if (applyQueued) {
+      persistLast();
+    } else {
+      g_text = g_welcomeStash;
+    }
   }
 
   resetScroll(0);
@@ -347,8 +353,9 @@ bool lcd1602PatchNeedsApply(const SettingsPatch& patch) {
 void lcd1602ApplyFromSettings(const SettingsPatch* changed) {
   if (!settingsLcd1602()) {
     // Clear before endWelcome so restore/render cannot issue I2C while disabling.
+    // Discard queued overlay text (do not persist) — never applied to the panel.
     g_hwOk = false;
-    endWelcomeHelloInternal();
+    endWelcomeHelloInternal(false);
     g_active = false;
     clearBrightnessFade();
     lcd1602HwResetLed();
@@ -357,7 +364,7 @@ void lcd1602ApplyFromSettings(const SettingsPatch* changed) {
   }
 
   if (g_welcomeOverlay && !settingsLcd1602WelcomeHello()) {
-    endWelcomeHelloInternal();
+    endWelcomeHelloInternal(true);
   }
 
   const bool wasActive = g_active;
@@ -524,7 +531,7 @@ void lcd1602BeginWelcomeHello() {
 }
 
 void lcd1602EndWelcomeHello() {
-  endWelcomeHelloInternal();
+  endWelcomeHelloInternal(true);
 }
 
 bool lcd1602ClearText() {

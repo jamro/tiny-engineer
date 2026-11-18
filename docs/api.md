@@ -204,7 +204,7 @@ curl http://tiny-engineer.local/settings
 | `lcd1602_backlight_sleep` | Follow sleep: dim backlight on sleep and light to **100** on wake (default **true**). When false, enable/boot turns backlight on (including when `last` brightness is 0) and sleep/wake leave brightness alone. Persists when off. Applies **immediately** |
 | `lcd1602_welcome_hello` | Show centered **HELLO** / **HUMAN** on the LCD during every `welcome` animation (default **false**). Text/clear during the overlay queues (last-wins); `GET` returns logical stash/pending, not HELLO. Persists when off. Applies **immediately** |
 | `lcd1602_boot` | Boot content: `none`, `last`, or `config` (default **`none`**). Persists when off. Applies **immediately** |
-| `lcd1602_line1` / `lcd1602_line2` | Configured boot lines when `lcd1602_boot` is `config` (max **64** chars each, no C0 control bytes, default empty). Persists when off. Applies **immediately** |
+| `lcd1602_line1` / `lcd1602_line2` | Configured boot lines when `lcd1602_boot` is `config` (max **64** bytes each, no C0 control bytes, default empty). Persists when off. Applies **immediately** |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking` / `waiting`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), `dots` (12×12 circles), or `kawaii` (round eyes with big moving pupils, a talking mouth, and blush). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes); kawaii moods are under [Kawaii eyes](#kawaii-eyes) |
@@ -281,7 +281,7 @@ curl -X POST "http://192.168.4.1/settings" \
 | `lcd1602_backlight_sleep` | boolean | Dim on sleep / light on wake (default **true**) |
 | `lcd1602_welcome_hello` | boolean | HELLO/HUMAN on welcome (default **false**) |
 | `lcd1602_boot` | string | `none` / `last` / `config` (default **`none`**) |
-| `lcd1602_line1` / `lcd1602_line2` | string | Boot lines for `config` (max **64**, no C0 control bytes) |
+| `lcd1602_line1` / `lcd1602_line2` | string | Boot lines for `config` (max **64** bytes, no C0 control bytes) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, `dots`, or `kawaii` |
@@ -584,7 +584,7 @@ Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B`
 }
 ```
 
-`POST` accepts a partial JSON body. Omitted `line1` / `line2` leave that line unchanged. Each present line object needs `text` (0–64 chars; empty clears the line) and optional `align` (`left` / `right` / `center`, default **`left`**). Lines longer than 16 characters ignore align and marquee LTR.
+`POST` accepts a partial JSON body. Omitted `line1` / `line2` leave that line unchanged. Each present line object needs `text` (0–64 bytes; empty clears the line; no C0 control bytes `0x00`–`0x1F`) and optional `align` (`left` / `right` / `center`, default **`left`**). Lines longer than 16 characters ignore align and marquee LTR.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/extensions/lcd1602/text" \
@@ -592,15 +592,63 @@ curl -X POST "http://tiny-engineer.local/extensions/lcd1602/text" \
   -d '{"line1":{"text":"HELLO","align":"center"}}'
 ```
 
+Wrong fields return **400** and do not change the display:
+
+| `error` | When |
+| --- | --- |
+| `invalid text` | `text` missing, not a string, longer than 64 bytes, or contains a C0 control byte (e.g. `\n`) |
+| `invalid align` | `align` present but not `left` / `right` / `center` |
+| `invalid line` | `line1` / `line2` present but not a JSON object |
+| `send at least one line` | Body has neither `line1` nor `line2` |
+| `unknown field …` | Any key other than `line1` / `line2` |
+
 `DELETE` clears both lines and leaves brightness unchanged.
 
 #### `GET` / `POST /extensions/lcd1602/brightness`
 
-`GET` → `{"brightness":50}` (cached logical value; **200** even when no backlight chip ACKs). `POST` body `{"brightness":0..100}` (0 = backlight off). Neither SN3193 nor PCA9633 ACK on **POST** → **503** `backlight not found`. On PCA9633, brightness scales the stored base color (default white `255,255,255`). Successful text/clear/brightness/color updates persist **last** state for `lcd1602_boot=last`.
+`GET` → `{"brightness":50}` (cached logical value; **200** even when no backlight chip ACKs). `POST` body `{"brightness":0..100}` (0 = backlight off). On PCA9633, brightness scales the stored base color (default white `255,255,255`). Successful text/clear/brightness/color updates persist **last** state for `lcd1602_boot=last`.
+
+```bash
+curl -X POST "http://tiny-engineer.local/extensions/lcd1602/brightness" \
+  -H "Content-Type: application/json" \
+  -d '{"brightness":50}'
+```
+
+```json
+{ "brightness": 50 }
+```
+
+Wrong fields return **400**:
+
+| `error` | When |
+| --- | --- |
+| `invalid brightness` | `brightness` missing, not an integer, or outside `0`–`100` |
+| `unknown field …` | Any key other than `brightness` |
+
+Neither SN3193 nor PCA9633 ACK on **POST** → **503** `backlight not found`.
 
 #### `GET` / `POST /extensions/lcd1602/color`
 
-PCA9633 RGB modules only. `GET` → `{"r":255,"g":255,"b":255}`. `POST` body `{"r":0..255,"g":0..255,"b":0..255}` sets the base color (PWM scaled by current brightness). SN3193 (or other non-RGB backlight) → **400** `rgb not supported`. No backlight chip → **503** `backlight not found`.
+PCA9633 RGB modules only. `GET` → `{"r":255,"g":255,"b":255}`. `POST` body `{"r":0..255,"g":0..255,"b":0..255}` sets the base color (PWM scaled by current brightness).
+
+```bash
+curl -X POST "http://tiny-engineer.local/extensions/lcd1602/color" \
+  -H "Content-Type: application/json" \
+  -d '{"r":255,"g":128,"b":0}'
+```
+
+```json
+{ "r": 255, "g": 128, "b": 0 }
+```
+
+Wrong fields or unsupported hardware return **400** / **503**:
+
+| `error` | Status | When |
+| --- | --- | --- |
+| `invalid r` / `invalid g` / `invalid b` | **400** | Channel missing or not an integer `0`–`255` |
+| `unknown field …` | **400** | Any key other than `r` / `g` / `b` |
+| `rgb not supported` | **400** | Backlight is SN3193 (or other non-RGB chip) |
+| `backlight not found` | **503** | No backlight chip ACK |
 
 ### `POST /servos/park`
 
