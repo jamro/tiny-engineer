@@ -84,6 +84,10 @@ void test_lcd1602_boot_and_line() {
   TEST_ASSERT_FALSE(settingsValidateLcd1602Line(nullptr));
   TEST_ASSERT_FALSE(settingsValidateLcd1602Line("line\nbreak"));
   TEST_ASSERT_FALSE(settingsValidateLcd1602Line("\x01"));
+  // Decoded JSON length must reject embedded NUL (strlen would truncate to "A").
+  const char withNul[] = {'A', '\0', 'B'};
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Line(withNul, sizeof(withNul)));
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Line(withNul, 1));
 
   SettingsPatch patch;
   patch.lcd1602Boot = "welcome";

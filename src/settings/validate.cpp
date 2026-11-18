@@ -153,18 +153,18 @@ bool settingsValidateLcd1602Boot(const char* boot) {
          strcmp(boot, "config") == 0;
 }
 
-bool settingsValidateLcd1602Line(const char* line) {
+bool settingsValidateLcd1602Line(const char* line, size_t len) {
   if (line == nullptr) {
     return false;
   }
 
-  const size_t len = strlen(line);
   if (len > SETTINGS_LCD1602_LINE_MAX_LEN) {
     return false;
   }
 
-  // Reject C0 controls so serial settings.get JSON escaping stays in the
-  // 1024-byte sendJsonRes buffer (U+0001 → six escape bytes each).
+  // Reject C0 controls (including embedded NUL) so serial settings.get JSON
+  // escaping stays in the 1024-byte sendJsonRes buffer (U+0001 → six escape
+  // bytes each) and JSON \u0000 cannot truncate past strlen.
   for (size_t i = 0; i < len; i++) {
     if (static_cast<unsigned char>(line[i]) < 0x20) {
       return false;
@@ -172,6 +172,14 @@ bool settingsValidateLcd1602Line(const char* line) {
   }
 
   return true;
+}
+
+bool settingsValidateLcd1602Line(const char* line) {
+  if (line == nullptr) {
+    return false;
+  }
+
+  return settingsValidateLcd1602Line(line, strlen(line));
 }
 
 bool settingsValidateRgbOrder(const char* rgbOrder) {

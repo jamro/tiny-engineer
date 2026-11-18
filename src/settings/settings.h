@@ -147,6 +147,8 @@ bool settingsValidateRgbOrder(const char* rgbOrder);
 bool settingsValidatePushButtonPin(uint8_t pin);
 bool settingsValidatePushButtonSound(const char* sound);
 bool settingsValidateLcd1602Boot(const char* boot);
+bool settingsValidateLcd1602Line(const char* line, size_t len);
+// C-string convenience; equivalent to settingsValidateLcd1602Line(line, strlen(line)).
 bool settingsValidateLcd1602Line(const char* line);
 
 // True when applying the patch would leave two enabled extensions on the same GPIO.

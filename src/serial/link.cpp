@@ -345,19 +345,29 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
       any = true;
     }
     if (!req["lcd1602_line1"].isUnbound()) {
-      if (!req["lcd1602_line1"].is<const char*>()) {
+      if (!req["lcd1602_line1"].is<JsonString>()) {
         sendJsonRes(id, 400, "invalid lcd1602_line1", body);
         return;
       }
-      patch.lcd1602Line1 = req["lcd1602_line1"].as<const char*>();
+      const JsonString line1 = req["lcd1602_line1"].as<JsonString>();
+      if (line1.isNull() || !settingsValidateLcd1602Line(line1.c_str(), line1.size())) {
+        sendJsonRes(id, 400, "invalid lcd1602_line1", body);
+        return;
+      }
+      patch.lcd1602Line1 = line1.c_str();
       any = true;
     }
     if (!req["lcd1602_line2"].isUnbound()) {
-      if (!req["lcd1602_line2"].is<const char*>()) {
+      if (!req["lcd1602_line2"].is<JsonString>()) {
         sendJsonRes(id, 400, "invalid lcd1602_line2", body);
         return;
       }
-      patch.lcd1602Line2 = req["lcd1602_line2"].as<const char*>();
+      const JsonString line2 = req["lcd1602_line2"].as<JsonString>();
+      if (line2.isNull() || !settingsValidateLcd1602Line(line2.c_str(), line2.size())) {
+        sendJsonRes(id, 400, "invalid lcd1602_line2", body);
+        return;
+      }
+      patch.lcd1602Line2 = line2.c_str();
       any = true;
     }
 

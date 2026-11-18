@@ -26,13 +26,14 @@ bool parseLineObject(JsonVariantConst value, Lcd1602LineState& out, const char*&
   }
 
   JsonObjectConst obj = value.as<JsonObjectConst>();
-  if (obj["text"].isUnbound() || !obj["text"].is<const char*>()) {
+  if (obj["text"].isUnbound() || !obj["text"].is<JsonString>()) {
     errorField = "text";
     return false;
   }
 
-  const char* text = obj["text"].as<const char*>();
-  if (text == nullptr || !settingsValidateLcd1602Line(text)) {
+  // Use decoded size — as<const char*>() + strlen would truncate at \u0000.
+  const JsonString text = obj["text"].as<JsonString>();
+  if (text.isNull() || !settingsValidateLcd1602Line(text.c_str(), text.size())) {
     errorField = "text";
     return false;
   }
@@ -51,7 +52,7 @@ bool parseLineObject(JsonVariantConst value, Lcd1602LineState& out, const char*&
     }
   }
 
-  strlcpy(out.text, text, sizeof(out.text));
+  strlcpy(out.text, text.c_str(), sizeof(out.text));
   out.align = align;
   return true;
 }

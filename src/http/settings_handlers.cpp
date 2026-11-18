@@ -36,6 +36,21 @@ bool readField(JsonVariantConst value, const char*& out) {
   return out != nullptr;
 }
 
+// LCD lines: validate decoded JSON length so embedded \u0000 cannot truncate.
+bool readLcd1602LineField(JsonVariantConst value, const char*& out) {
+  if (!value.is<JsonString>()) {
+    return false;
+  }
+
+  const JsonString text = value.as<JsonString>();
+  if (text.isNull() || !settingsValidateLcd1602Line(text.c_str(), text.size())) {
+    return false;
+  }
+
+  out = text.c_str();
+  return true;
+}
+
 bool readField(JsonVariantConst list, uint8_t (&out)[SETTINGS_SERVO_COUNT]) {
   if (!list.is<JsonArrayConst>() || list.size() != SETTINGS_SERVO_COUNT) {
     return false;
@@ -83,8 +98,19 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("lcd1602_backlight_sleep", patch.lcd1602BacklightSleep);
   read("lcd1602_welcome_hello", patch.lcd1602WelcomeHello);
   read("lcd1602_boot", patch.lcd1602Boot);
-  read("lcd1602_line1", patch.lcd1602Line1);
-  read("lcd1602_line2", patch.lcd1602Line2);
+
+  if (!body["lcd1602_line1"].isUnbound()) {
+    known[knownCount++] = "lcd1602_line1";
+    if (wrong == nullptr && !readLcd1602LineField(body["lcd1602_line1"], patch.lcd1602Line1)) {
+      wrong = "lcd1602_line1";
+    }
+  }
+  if (!body["lcd1602_line2"].isUnbound()) {
+    known[knownCount++] = "lcd1602_line2";
+    if (wrong == nullptr && !readLcd1602LineField(body["lcd1602_line2"], patch.lcd1602Line2)) {
+      wrong = "lcd1602_line2";
+    }
+  }
   read("continuous_timeout", patch.continuousTimeoutMin);
   read("loading", patch.loading);
   read("eyes_style", patch.eyesStyle);
