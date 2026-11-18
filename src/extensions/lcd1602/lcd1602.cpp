@@ -371,13 +371,15 @@ void lcd1602ApplyFromSettings(const SettingsPatch* changed) {
   g_active = true;
 
   if (!contentRelated) {
-    // Keep runtime / queued text. Follow-sleep off + brightness 0 → light up.
-    if (backlightSleepRelated && !settingsLcd1602BacklightSleep() &&
-        g_brightness == 0) {
+    // Keep runtime / queued text. Stop in-flight sleep/wake fade when
+    // follow-sleep turns off so poll cannot finish it to 0 (wake then skips).
+    if (backlightSleepRelated && !settingsLcd1602BacklightSleep()) {
       clearBrightnessFade();
-      g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
-      if (g_hwOk) {
-        applyBacklightHw();
+      if (g_brightness == 0) {
+        g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
+        if (g_hwOk) {
+          applyBacklightHw();
+        }
       }
     }
     return;
