@@ -47,14 +47,15 @@ Event map:
   PreCompact                                       → thinking
   PermissionRequest                                → attention
   PermissionDenied                                 → abort
-  Notification                                     → attention
+  Notification + idle_prompt                       → waiting
+  other Notification                               → attention
   Stop                                             → ring
   StopFailure                                      → error
 
 Play mode:
   Streams a 16-bit mono PCM WAV (at the robot's sample rate) to POST /play and
   runs one animation while it plays: talking (default), typing, reading,
-  thinking or none. The robot then returns to the loop it was in.
+  thinking, waiting or none. The robot then returns to the loop it was in.
   Prints the robot's JSON reply when the clip ends; exits 1 on any error.
 
 Examples:

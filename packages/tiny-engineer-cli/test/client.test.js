@@ -38,6 +38,7 @@ test("validateAnimName accepts firmware names", () => {
   assert.equal(validateAnimName("ring"), null);
   assert.equal(validateAnimName("typing"), null);
   assert.ok(ANIM_NAMES.has("sleep"));
+  assert.ok(ANIM_NAMES.has("waiting"));
 });
 
 test("validateAnimName rejects unknown names", () => {
@@ -50,6 +51,7 @@ test("validatePlayAnimName accepts play path names", () => {
   assert.equal(validatePlayAnimName("talking"), null);
   assert.equal(validatePlayAnimName("none"), null);
   assert.ok(PLAY_ANIM_NAMES.has("thinking"));
+  assert.ok(PLAY_ANIM_NAMES.has("waiting"));
 });
 
 test("validatePlayAnimName rejects ring", () => {

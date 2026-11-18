@@ -29,7 +29,7 @@ const EVENT_ANIM = new Map([
 
 /**
  * Map a Claude Code hook payload to an animation name, or null to skip.
- * @param {{ hook_event_name?: string, tool_name?: string, source?: string, reason?: string }} event
+ * @param {{ hook_event_name?: string, tool_name?: string, source?: string, reason?: string, notification_type?: string }} event
  * @returns {string | null}
  */
 export function animationForEvent(event) {
@@ -54,6 +54,13 @@ export function animationForEvent(event) {
   // the robot drop the wakeup, so skip it.
   if (name === "SessionEnd") {
     return event.reason === "clear" || event.reason === "resume" ? null : "sleep";
+  }
+
+  // Claude finished about a minute ago and the user has not typed: wait
+  // quietly. The firmware's continuous_timeout turns it into attention later.
+  // Every other notification asks for action and keeps attention.
+  if (name === "Notification" && event.notification_type === "idle_prompt") {
+    return "waiting";
   }
 
   return EVENT_ANIM.get(name) ?? null;
