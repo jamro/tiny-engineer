@@ -5,6 +5,7 @@ export const ANIM_NAMES = new Set([
   "reading",
   "thinking",
   "talking",
+  "waiting",
   "ring",
   "welcome",
   "attention",
@@ -21,6 +22,7 @@ export const PLAY_ANIM_NAMES = new Set([
   "typing",
   "reading",
   "thinking",
+  "waiting",
   "none",
 ]);
 

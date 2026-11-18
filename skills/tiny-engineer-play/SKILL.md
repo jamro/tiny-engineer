@@ -33,6 +33,6 @@ It reads `TINY_ENGINEER_URL` (default `http://tiny-engineer.local`) and `TINY_EN
 | Reply | Fix |
 | --- | --- |
 | `415 expected 16-bit mono PCM at N Hz` | Re-run the `ffmpeg` step with `-ar N` |
-| `400 name must be ...` | Use `talking`, `typing`, `reading`, `thinking` or `none` |
+| `400 name must be ...` | Use `talking`, `typing`, `reading`, `thinking`, `waiting` or `none` |
 | `401 unauthorized` | Set `TINY_ENGINEER_TOKEN` to the robot's `access_token` |
 | `robot unreachable` | Check `TINY_ENGINEER_URL`; the robot must be on the same network |

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Usage: play <clip.wav> [talking|typing|reading|thinking|none]
+# Usage: play <clip.wav> [talking|typing|reading|thinking|waiting|none]
 # Streams the clip to the robot's POST /play and prints its JSON reply; exits 1 on any error.
 set -u
 

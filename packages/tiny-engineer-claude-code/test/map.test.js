@@ -48,6 +48,20 @@ test("lifecycle events map to their poses", () => {
     }),
     "attention"
   );
+  assert.equal(
+    animationForEvent({
+      hook_event_name: "Notification",
+      notification_type: "idle_prompt",
+    }),
+    "waiting"
+  );
+  for (const notification_type of ["elicitation_dialog", "auth_success", undefined]) {
+    assert.equal(
+      animationForEvent({ hook_event_name: "Notification", notification_type }),
+      "attention",
+      String(notification_type)
+    );
+  }
   assert.equal(animationForEvent({ hook_event_name: "Stop" }), "ring");
   assert.equal(animationForEvent({ hook_event_name: "StopFailure" }), "error");
 });

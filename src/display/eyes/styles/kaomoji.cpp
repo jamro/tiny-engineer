@@ -32,6 +32,7 @@ expressions::Expression expressionFor(
 
   switch (mode) {
     case EyeMode::Idle:
+    case EyeMode::Waiting:
       return expressions::Expression::Idle;
     case EyeMode::Typing:
     case EyeMode::Thinking:

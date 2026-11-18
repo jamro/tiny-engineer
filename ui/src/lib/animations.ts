@@ -5,6 +5,7 @@ export const ANIMATIONS = [
   ["reading", "Reading", "Continuous"],
   ["thinking", "Thinking", "Continuous"],
   ["talking", "Talking", "Continuous"],
+  ["waiting", "Waiting", "Continuous"],
   ["ring", "Bell", "One-shot"],
   ["welcome", "Welcome", "One-shot"],
   ["wakeup", "Wakeup", "Sleep inertia"],

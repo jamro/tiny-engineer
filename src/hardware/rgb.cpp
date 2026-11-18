@@ -110,6 +110,7 @@ void resolveAnimationTarget(AnimationId id, uint8_t& r, uint8_t& g, uint8_t& b) 
     case AnimationId::Reading:
     case AnimationId::Thinking:
     case AnimationId::Talking:
+    case AnimationId::Waiting:
     case AnimationId::Welcome:
     case AnimationId::Ring:
     case AnimationId::Wakeup:

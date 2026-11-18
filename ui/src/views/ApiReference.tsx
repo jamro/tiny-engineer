@@ -277,6 +277,12 @@ export function ApiReference() {
           </tr>
           <tr>
             <td>
+              <code>waiting</code>
+            </td>
+            <td>Turned to the left, taps the desk with the left hand, looks around</td>
+          </tr>
+          <tr>
+            <td>
               <code>ring</code>
             </td>
             <td>One-shot bell gesture</td>
@@ -360,6 +366,12 @@ export function ApiReference() {
               <code>thinking</code>
             </td>
             <td>Thinking gesture</td>
+          </tr>
+          <tr>
+            <td>
+              <code>waiting</code>
+            </td>
+            <td>Waiting gesture</td>
           </tr>
           <tr>
             <td>

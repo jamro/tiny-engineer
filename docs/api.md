@@ -194,7 +194,7 @@ curl http://tiny-engineer.local/settings
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
 | `push_button` | Extension-port push-button reader (default **false**). When on, publishes immediate `button.down` / `button.up` plus `button.click` / `button.double_click` / `button.long_click` (see [Outbound events](#outbound-events)). Applies **immediately**. Local reactions use [Actions](#get-settingsactions) |
 | `push_button_pin` | GPIO on the Extension port for the push-button: **6**, **7**, **20**, or **21** (default **20**). Persists when `push_button` is off. Applies **immediately** when the extension is on |
-| `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
+| `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking` / `waiting`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), `dots` (12×12 circles), or `kawaii` (round eyes with big moving pupils, a talking mouth, and blush). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes); kawaii moods are under [Kawaii eyes](#kawaii-eyes) |
 | `access_token_set` | `true` when a non-empty access token is stored (secret itself is never returned) |
@@ -593,7 +593,7 @@ curl http://tiny-engineer.local/anim
 
 | Field | Meaning |
 | --- | --- |
-| `animation` | `none`, `typing`, `reading`, `thinking`, `talking`, `ring`, `welcome`, `attention`, `error`, `abort`, `dead`, `wakeup`, or `sleep` |
+| `animation` | `none`, `typing`, `reading`, `thinking`, `talking`, `waiting`, `ring`, `welcome`, `attention`, `error`, `abort`, `dead`, `wakeup`, or `sleep` |
 
 ### `POST /anim`
 
@@ -601,7 +601,7 @@ Request an animation switch. Each animation runs at least **1s**; if the current
 
 | Param | Type | Values |
 | --- | --- | --- |
-| `name` | string | `none`, `typing`, `reading`, `thinking`, `talking`, `ring`, `welcome`, `attention`, `error`, `abort`, `dead`, `wakeup`, `sleep` |
+| `name` | string | `none`, `typing`, `reading`, `thinking`, `talking`, `waiting`, `ring`, `welcome`, `attention`, `error`, `abort`, `dead`, `wakeup`, `sleep` |
 
 ```bash
 curl -X POST "http://tiny-engineer.local/anim?name=typing"
@@ -634,6 +634,7 @@ Durations and quoted lines below are the stock clips in [`assets/`](../assets/).
 | `reading` | **Continuous.** Hands/body park as in `none`. Head nods on same lowest 10° band as typing, but slower. Neck sweeps ±10° around mid; right (angle down) slower than left (angle up). Occasional right-hand down-arrow bursts (1–3 presses, same 15° band as typing). Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
 | `thinking` | **Continuous.** Hands/body park as in `none`. Head (pitch) and neck (yaw) ease from the current pose into thinking poses (up + slight left/right). Move → pause → optional micro-adjust (sometimes chained) → pause; nearby pose drift with occasional larger shifts after ~2.2 s, more often over time. Axes stagger start/duration; no periodic sway. Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
 | `talking` | **Continuous.** Speaking fidget with no sound of its own. Also the default pose for [`POST /play`](#post-play). Via `/anim`, the head faces the user just above mid with soft random nods, slow neck drift, occasional small torso shifts, and occasional right-hand lifts. During `/play` with pose `talking`, motion follows speech energy from the PCM stream (no extra metadata): emphasis triggers nods, silence settles the pose, phrase starts may raise the hand or shift the torso (not both). **Classic eyes:** a little taller than idle; glances away when ambient or quiet, gaze locked on the listener while speech energy is high. Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
+| `waiting` | **Continuous.** Impatient wait with no sound. The torso turns to the robot's left (body `+0.8`), the right hand parks at rest, and the left hand taps the desk in groups of three (each tap lifts 0.18–0.28 of its range, groups every 2.5–8 s at random). Every 3–7 s the head eases (1.4–2.3 s) to one of four wide corners, never the same one twice: down at the tapping hand (most often), up-left, up-right, or down-right. **Classic eyes:** glance to the same corner about 180 ms before the head gets there (±5 px sideways, 3 px up / 2 px down), a little wider looking up and a little lower looking down. The Claude Code hooks use it when Claude has waited about a minute for the user (`Notification` with `idle_prompt`). Runs until replaced, or until `continuous_timeout` triggers `attention`. Same-name re-`POST` refreshes that timeout without restarting motion. |
 | `ring` | **One-shot** service-bell gesture; does not loop. Wind-up (body `min`, neck mid, head mid+10°, both hands `max`) → fast right-hand strike to `min+5°` with head to `min` → plays `bell.wav` once on strike (LittleFS; same `uploadfs` requirement as `/test/audio/bell`) → slower bounce to `min+20°` → return to `none` pose and stop. After completion, `GET /anim` reports `none`. |
 | `welcome` | **One-shot** hello gesture synced to `welcome.wav` (~2.7 s). Right hand raises during "Hello, human.", holds through the pause, wiggles during "What are we building today?", then lowers. Head nods to mid+10° and returns. Plays automatically after successful Wi-Fi connect at boot; also via API. Requires `welcome.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). After completion, `GET /anim` reports `none`. |
 | `attention` | Friendly input-request gesture synced to `attention.wav` (~3.0 s, "pst... human.... you might want to take a look"). Moves into a calm prompt pose first (centered body/neck, head slightly up, right hand raised partway), waits until all servos stop, then plays audio with light neck/head/hand motion during playback (whisper hold → lean toward user → glance/point on "take a look"). **Classic eyes:** phased blink/look cues during audio. After audio ends (or if audio fails to start), holds a gentle waiting loop for **1 minute** (soft head/neck drifts plus occasional slight right-hand waves), then returns to `none`. Requires `attention.wav` on LittleFS (same `uploadfs` flow as `bell.wav`). |
@@ -649,7 +650,7 @@ When `eyes_style=kaomoji`, the OLED shows looping faces from the expression libr
 
 | Animation / phase | Face |
 | --- | --- |
-| `none` (idle) | Idle |
+| `none` (idle), `waiting` | Idle |
 | `typing`, `thinking` | Thinking |
 | `reading`, `attention` | Curious |
 | `ring` | Surprise |
@@ -688,6 +689,7 @@ While `welcome`, `attention`, `error`, `abort`, or `dead` plays its stock clip, 
 | `abort` | Panic: `> <` eyes, wavy mouth; says "Fine. I didn't want to finish it anyway." |
 | `wakeup` | Sleepy: heavy lids, yawn |
 | `talking` | The mouth talks in syllables, shaped as `ah` (tall), `ee` (wide), or `o` (round). With `/play` audio it opens with the speech loudness and changes shape on each syllable onset. Without audio it babbles in short phrases with pauses |
+| `waiting` | The idle smile (`ω`). The pupils follow the classic eyes to each corner the head looks at |
 | `sleep` / sleep-close | Lids close, small `ω` |
 | `dead` | Sad (lids tilted down at the outer corners, frown), then `x x` eyes during the X hold. Says "Insufficient resources... shutting doooowwwnnn" |
 
@@ -696,15 +698,15 @@ Wrong params return **400**:
 | `error` | When |
 | --- | --- |
 | `missing name` | Query param `name` absent |
-| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, `talking`, `ring`, `welcome`, `attention`, `error`, `abort`, `dead`, `wakeup`, or `sleep` |
+| `unknown animation` | `name` not `none`, `typing`, `reading`, `thinking`, `talking`, `waiting`, `ring`, `welcome`, `attention`, `error`, `abort`, `dead`, `wakeup`, or `sleep` |
 
 ### `POST /play`
 
-Streams a WAV to the speaker while one animation runs, then returns to the continuous animation (`typing`, `reading`, `thinking`, `talking`) that was running before the request, otherwise to `none`. The body is played as it arrives, so clips of any length need no storage on the robot. The response comes when the clip ends.
+Streams a WAV to the speaker while one animation runs, then returns to the continuous animation (`typing`, `reading`, `thinking`, `talking`, `waiting`) that was running before the request, otherwise to `none`. The body is played as it arrives, so clips of any length need no storage on the robot. The response comes when the clip ends.
 
 | Part | Value |
 | --- | --- |
-| Path | `/play` runs `talking`; `/play/{name}` runs `talking`, `typing`, `reading`, `thinking`, or `none`. Animations with their own sound are rejected so two clips never overlap |
+| Path | `/play` runs `talking`; `/play/{name}` runs `talking`, `typing`, `reading`, `thinking`, `waiting`, or `none`. Animations with their own sound are rejected so two clips never overlap |
 | Body | WAV, 16-bit mono PCM at 22050 Hz (the firmware `SAMPLE_RATE`). `Content-Length` is required. Chunks other than `fmt ` and `data` are skipped |
 | `Authorization` | `Bearer <token>` when `access_token` is set |
 
@@ -725,7 +727,7 @@ Errors arrive before any audio plays:
 
 | Status | `error` | When |
 | --- | --- | --- |
-| `400` | `name must be talking, typing, reading, thinking or none` | `{name}` is unknown or has its own sound |
+| `400` | `name must be talking, typing, reading, thinking, waiting or none` | `{name}` is unknown or has its own sound |
 | `415` | `expected 16-bit mono PCM at 22050 Hz` | WAV format or sample rate differs |
 | `415` | `not a WAV file`, `no audio data` | Body is not a RIFF/WAVE file, or has no `data` chunk |
 
@@ -759,7 +761,7 @@ Onboard WS2812 on **GPIO10** (`RGB_LED_PIN`). Byte order is the saved `rgb_order
 
 | Animation | LED color |
 | --- | --- |
-| `typing`, `reading`, `thinking`, `talking`, `welcome`, `ring`, `wakeup` | White (full intensity) |
+| `typing`, `reading`, `thinking`, `talking`, `waiting`, `welcome`, `ring`, `wakeup` | White (full intensity) |
 | `attention`, `error`, `dead` | Red pulse: 500 ms 10%→100%, 500 ms hold 100%, 500 ms 100%→10%, repeat |
 | `abort` | Red (full intensity, solid) |
 | `none`, `sleep` | Off |
