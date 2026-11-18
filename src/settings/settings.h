@@ -16,6 +16,13 @@ constexpr bool SETTINGS_DEFAULT_PUSH_BUTTON = false;
 constexpr uint8_t SETTINGS_DEFAULT_PUSH_BUTTON_PIN = 20;
 constexpr const char* SETTINGS_DEFAULT_PUSH_BUTTON_SOUND = "none";
 constexpr size_t SETTINGS_PUSH_BUTTON_SOUND_MAX_LEN = 8;
+constexpr bool SETTINGS_DEFAULT_LCD1602 = false;
+constexpr bool SETTINGS_DEFAULT_LCD1602_BACKLIGHT_SLEEP = true;
+constexpr bool SETTINGS_DEFAULT_LCD1602_WELCOME_HELLO = false;
+constexpr const char* SETTINGS_DEFAULT_LCD1602_BOOT = "none";
+constexpr size_t SETTINGS_LCD1602_BOOT_MAX_LEN = 8;
+constexpr size_t SETTINGS_LCD1602_LINE_MAX_LEN = 64;
+constexpr uint8_t SETTINGS_DEFAULT_LCD1602_BRIGHTNESS = 50;
 constexpr uint32_t SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN = 5;
 constexpr const char* SETTINGS_DEFAULT_LOADING = "progress";
 constexpr const char* SETTINGS_DEFAULT_EYES_STYLE = "classic";
@@ -59,6 +66,12 @@ struct SettingsPatch {
   std::optional<bool> serialLog;
   std::optional<bool> pushButton;
   std::optional<uint8_t> pushButtonPin;
+  std::optional<bool> lcd1602;
+  std::optional<bool> lcd1602BacklightSleep;
+  std::optional<bool> lcd1602WelcomeHello;
+  const char* lcd1602Boot = nullptr;
+  const char* lcd1602Line1 = nullptr;
+  const char* lcd1602Line2 = nullptr;
   std::optional<uint32_t> continuousTimeoutMin;
   const char* loading = nullptr;
   const char* eyesStyle = nullptr;
@@ -86,6 +99,12 @@ bool settingsWelcomeEnabled();
 bool settingsSerialLogEnabled();
 bool settingsPushButton();
 uint8_t settingsPushButtonPin();
+bool settingsLcd1602();
+bool settingsLcd1602BacklightSleep();
+bool settingsLcd1602WelcomeHello();
+const char* settingsLcd1602Boot();
+const char* settingsLcd1602Line1();
+const char* settingsLcd1602Line2();
 uint32_t settingsContinuousTimeoutMin();
 const char* settingsLoading();
 const char* settingsEyesStyle();
@@ -127,6 +146,10 @@ bool settingsValidateWifiPassword(const char* wifiPassword);
 bool settingsValidateRgbOrder(const char* rgbOrder);
 bool settingsValidatePushButtonPin(uint8_t pin);
 bool settingsValidatePushButtonSound(const char* sound);
+bool settingsValidateLcd1602Boot(const char* boot);
+bool settingsValidateLcd1602Line(const char* line, size_t len);
+// C-string convenience; equivalent to settingsValidateLcd1602Line(line, strlen(line)).
+bool settingsValidateLcd1602Line(const char* line);
 
 // True when applying the patch would leave two enabled extensions on the same GPIO.
 // Writes a plain conflict message when message/messageLen are set. Does not write NVS.

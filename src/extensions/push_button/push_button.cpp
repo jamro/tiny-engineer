@@ -1,4 +1,4 @@
-#include "extensions/push_button.h"
+#include "extensions/push_button/push_button.h"
 
 #include <Arduino.h>
 #include <cstdio>
@@ -6,7 +6,7 @@
 
 #include "events/hub.h"
 #include "extensions/pin_claims_settings.h"
-#include "extensions/push_button_logic.h"
+#include "extensions/push_button/logic.h"
 #include "serial_log.h"
 #include "settings/settings.h"
 #include "settings/values.h"

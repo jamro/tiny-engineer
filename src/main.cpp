@@ -16,7 +16,8 @@
 #include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
 #include "network/ota.h"
-#include "extensions/push_button.h"
+#include "extensions/lcd1602/lcd1602.h"
+#include "extensions/push_button/push_button.h"
 #include "http/server.h"
 #include "settings/settings.h"
 #include "serial/link.h"
@@ -68,6 +69,7 @@ void setup() {
   initPca9685();
 
   initOled();
+  lcd1602ApplyFromSettings();
 
   beginI2cHealth();
 

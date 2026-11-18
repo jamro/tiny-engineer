@@ -63,6 +63,40 @@ void test_push_button_sound_legacy_validate() {
   TEST_ASSERT_FALSE(settingsValidatePushButtonSound(nullptr));
 }
 
+void test_lcd1602_boot_and_line() {
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Boot("none"));
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Boot("last"));
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Boot("config"));
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Boot("welcome"));
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Boot(""));
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Boot(nullptr));
+
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Line(""));
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Line("HELLO"));
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Line("caf\xc3\xa9"));
+  char longLine[66];
+  memset(longLine, 'a', 64);
+  longLine[64] = '\0';
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Line(longLine));
+  longLine[64] = 'x';
+  longLine[65] = '\0';
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Line(longLine));
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Line(nullptr));
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Line("line\nbreak"));
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Line("\x01"));
+  // Decoded JSON length must reject embedded NUL (strlen would truncate to "A").
+  const char withNul[] = {'A', '\0', 'B'};
+  TEST_ASSERT_FALSE(settingsValidateLcd1602Line(withNul, sizeof(withNul)));
+  TEST_ASSERT_TRUE(settingsValidateLcd1602Line(withNul, 1));
+
+  SettingsPatch patch;
+  patch.lcd1602Boot = "welcome";
+  TEST_ASSERT_EQUAL_STRING("lcd1602_boot", patch.invalidField());
+  patch.lcd1602Boot = "none";
+  patch.lcd1602Line1 = longLine;
+  TEST_ASSERT_EQUAL_STRING("lcd1602_line1", patch.invalidField());
+}
+
 void test_loading() {
   TEST_ASSERT_TRUE(settingsValidateLoading("progress"));
   TEST_ASSERT_TRUE(settingsValidateLoading("sleep_inertia"));
@@ -230,6 +264,7 @@ int main() {
   RUN_TEST(test_volume);
   RUN_TEST(test_push_button_pin);
   RUN_TEST(test_push_button_sound_legacy_validate);
+  RUN_TEST(test_lcd1602_boot_and_line);
   RUN_TEST(test_loading);
   RUN_TEST(test_eyes_style);
   RUN_TEST(test_access_token);

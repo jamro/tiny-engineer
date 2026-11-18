@@ -32,6 +32,9 @@ export function stripGlobalFlags(argv) {
  * Parse shared flags from argv. Flags may appear before or after positionals
  * (e.g. `hook cursor -q`). Non-flag tokens go to `rest` in order.
  * @param {string[]} argv
+ * @param {{ passthroughUnknown?: boolean }} [options]
+ *   When `passthroughUnknown` is true, unrecognized `-…` tokens stay in `rest`
+ *   (for commands that parse their own `--key=value` flags, e.g. settings/ext).
  * @returns {{
  *   help: boolean,
  *   quiet: boolean,
@@ -42,7 +45,8 @@ export function stripGlobalFlags(argv) {
  *   error?: string,
  * }}
  */
-export function parseCommonArgs(argv) {
+export function parseCommonArgs(argv, options = {}) {
+  const passthroughUnknown = options.passthroughUnknown === true;
   let help = false;
   let quiet = false;
   /** @type {string | undefined} */
@@ -102,6 +106,10 @@ export function parseCommonArgs(argv) {
       continue;
     }
     if (arg.startsWith("-")) {
+      if (passthroughUnknown) {
+        rest.push(arg);
+        continue;
+      }
       return { help, quiet, url, transport, port, rest, error: `Unknown argument: ${arg}` };
     }
     rest.push(arg);

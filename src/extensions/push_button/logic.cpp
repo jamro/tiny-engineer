@@ -1,4 +1,4 @@
-#include "extensions/push_button_logic.h"
+#include "extensions/push_button/logic.h"
 
 namespace {
 

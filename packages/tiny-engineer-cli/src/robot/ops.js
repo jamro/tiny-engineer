@@ -4,7 +4,7 @@ import { robotFetch } from "./client.js";
 import { withTransport } from "./with-transport.js";
 
 /**
- * @typedef {{ transport?: string, url?: string, port?: string | null }} TransportOpts
+ * @typedef {{ transport?: string, url?: string, port?: string | null, timeoutMs?: number }} TransportOpts
  */
 
 /**
@@ -48,7 +48,10 @@ async function viaTransport(op, fields, opts, httpFn) {
   return withTransport(opts, {
     serial: async () => {
       try {
-        const body = await serialRequest(op, fields, { port: opts.port });
+        /** @type {{ port?: string | null, timeoutMs?: number }} */
+        const serialOpts = { port: opts.port };
+        if (opts.timeoutMs != null) serialOpts.timeoutMs = opts.timeoutMs;
+        const body = await serialRequest(op, fields, serialOpts);
         if (body.ok === false) {
           return {
             ok: false,
@@ -170,4 +173,39 @@ export async function robotPark(opts = {}) {
     );
     return fromHttpResponse(res);
   });
+}
+
+/**
+ * Extension API over HTTP path or serial `ext` op.
+ * @param {{
+ *   id: string,
+ *   suffix: string,
+ *   method: string,
+ *   body?: Record<string, unknown>,
+ * }} call
+ * @param {TransportOpts & { timeoutMs?: number }} [opts]
+ */
+export async function robotExt(call, opts = {}) {
+  const { id, suffix, method, body = {} } = call;
+  const path = `/extensions/${id}/${suffix}`;
+  const timeoutMs = opts.timeoutMs ?? 10_000;
+  return viaTransport(
+    "ext",
+    { id, suffix, method, ...body },
+    opts,
+    async () => {
+      const upper = method.toUpperCase();
+      /** @type {RequestInit} */
+      const init = {
+        method: upper,
+        signal: AbortSignal.timeout(timeoutMs),
+      };
+      if (upper === "POST") {
+        init.headers = { "Content-Type": "application/json" };
+        init.body = JSON.stringify(body);
+      }
+      const res = await robotFetch(opts.url ?? getBaseUrl(), path, init, httpToken(opts));
+      return fromHttpResponse(res);
+    },
+  );
 }

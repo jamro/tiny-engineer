@@ -112,7 +112,10 @@ curl -X POST "http://tiny-engineer.local/test/servo" -H "Content-Type: applicati
 | `GET` | `/health` | Health JSON — full field list in [api.md](../api.md#get-health) |
 | `GET` / `POST` | `/anim` | Current animation / start one (`name`, optional `interrupt`) — full params in [api.md](../api.md#post-anim) |
 | `POST` | `/play` | Stream a WAV while `talking` (or `/play/{name}`) runs; answers when the clip ends — full params in [api.md](../api.md#post-play) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `lcd1602`, `lcd1602_backlight_sleep`, `lcd1602_welcome_hello`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
+| `GET` / `POST` / `DELETE` | `/extensions/lcd1602/text` | LCD 1602 text (extension off → 503) |
+| `GET` / `POST` | `/extensions/lcd1602/brightness` | LCD 1602 backlight 0–100 |
+| `GET` / `POST` | `/extensions/lcd1602/color` | LCD 1602 RGB base color (PCA9633 only) |
 | `GET` / `PUT` | `/settings/actions` | On-device Actions list (event patterns → sound / anim) |
 | `POST` | `/actions/test` | Simulate an event type for Actions (no outbound publish) |
 | `POST` | `/settings` | Update NVS settings from a JSON object; the reply carries `reboot_required`, true once `hostname`, `loading` or the WiFi networks differ from what the robot booted with. `servo_mins` / `servo_maxs` (integer arrays), `rgb_order` and `oled_rotate_180` (boolean) are setup-AP-only |

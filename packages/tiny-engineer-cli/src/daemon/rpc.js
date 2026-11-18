@@ -5,7 +5,7 @@ import { delay } from "./proc.js";
 /**
  * @param {string} op
  * @param {Record<string, unknown>} fields
- * @param {{ port?: string | null, configDir?: string }} [opts]
+ * @param {{ port?: string | null, configDir?: string, timeoutMs?: number }} [opts]
  */
 export async function daemonRobotRequest(op, fields = {}, opts = {}) {
   const conn = await ensureDaemon({ configDir: opts.configDir, port: opts.port ?? null });
@@ -13,7 +13,7 @@ export async function daemonRobotRequest(op, fields = {}, opts = {}) {
     const res = await conn.peer.request(
       "robot.request",
       { op, fields, port: opts.port ?? null },
-      15_000,
+      opts.timeoutMs ?? 15_000,
     );
     if (typeof res.error === "string") throw new Error(res.error);
     return /** @type {Record<string, unknown>} */ (res.result && /** @type {{ body?: Record<string, unknown> }} */ (res.result).body) ?? {};

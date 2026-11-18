@@ -13,9 +13,10 @@ import { confirm } from "../wizard/prompt.js";
 
 /**
  * @param {string[]} argv
+ * @param {{ passthroughUnknown?: boolean }} [options]
  * @returns {ReturnType<typeof parseCommonArgs> & { yes?: boolean, sub?: string, restPos?: string[] }}
  */
-function parseParityArgs(argv) {
+function parseParityArgs(argv, options = {}) {
   let yes = false;
   /** @type {string[]} */
   const filtered = [];
@@ -26,7 +27,9 @@ function parseParityArgs(argv) {
     }
     filtered.push(arg);
   }
-  const common = parseCommonArgs(filtered);
+  const common = parseCommonArgs(filtered, {
+    passthroughUnknown: options.passthroughUnknown === true,
+  });
   return { ...common, yes, restPos: common.rest };
 }
 
@@ -36,7 +39,7 @@ function parseParityArgs(argv) {
  * @param {boolean} quietGlobal
  */
 export async function runSettings(out, argv, quietGlobal) {
-  const opts = parseParityArgs(argv);
+  const opts = parseParityArgs(argv, { passthroughUnknown: true });
   const quiet = quietGlobal || opts.quiet;
   const localOut = quiet === out.quiet ? out : out;
 
@@ -49,7 +52,8 @@ export async function runSettings(out, argv, quietGlobal) {
     console.log(`Usage: tiny-engineer settings [get|set] [options]
 
   settings get
-  settings set --key=value ...   (volume, welcome, serial_log, link_mode, eyes_style, hostname)
+  settings set --key=value ...   (volume, welcome, serial_log, link_mode, eyes_style, hostname,
+                                  lcd1602, lcd1602_backlight_sleep, lcd1602_welcome_hello, lcd1602_boot, lcd1602_line1, lcd1602_line2)
 
 Options:
   --transport <http|serial>  --url <base>  --port <path>

@@ -14,6 +14,15 @@
  */
 
 /**
+ * @typedef {object} AfterAnimContext
+ * @property {string | null} anim
+ * @property {HookInput} [input]
+ * @property {string} [url]
+ * @property {string} [transport]
+ * @property {string | null} [port]
+ */
+
+/**
  * @typedef {object} InstallContext
  * @property {string} projectRoot
  * @property {string} cliCommand Base command ending with `hook <ide>` (no event suffix)
@@ -49,6 +58,7 @@
  * @property {(argv: string[], stdinText: string) => HookInput | null} parseHook
  * @property {(input: HookInput) => string | null} mapToAnim
  * @property {(input: HookInput, style: import("../util/style.js").Style) => string[]} [describeFiles]
+ * @property {(ctx: AfterAnimContext) => void | Promise<void>} [afterAnim]
  * @property {(ctx: HookRespondContext) => void} [respond]
  * @property {(projectRoot: string) => boolean} [detect]
  * @property {() => string} [configRelativePath]

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import type { TargetedSubmitEvent } from "preact";
 import { api } from "../api/client";
 import type { ActionDo, ActionRow, ActionsReply } from "../api/types";
@@ -48,6 +48,8 @@ function summaryFor(row: ActionRow): string {
 export function Actions() {
   const { perform, setStatus } = useStatus();
   const [rows, setRows] = useState<ActionRow[]>([]);
+  const [rowKeys, setRowKeys] = useState<number[]>([]);
+  const nextRowKeyRef = useRef(0);
   const [savedRows, setSavedRows] = useState<ActionRow[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -55,6 +57,10 @@ export function Actions() {
   const [simulateType, setSimulateType] = useState("button.click");
 
   const dirty = JSON.stringify(rows) !== JSON.stringify(savedRows);
+
+  function allocateKeys(count: number): number[] {
+    return Array.from({ length: count }, () => nextRowKeyRef.current++);
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -75,6 +81,7 @@ export function Actions() {
         const next = reply.data.actions.map(normalizeRow);
 
         setRows(next);
+        setRowKeys(allocateKeys(next.length));
         setSavedRows(next);
         setLoadError(null);
         setLoaded(true);
@@ -121,6 +128,9 @@ export function Actions() {
         const next = saved.actions.map(normalizeRow);
 
         setRows(next);
+        setRowKeys((previous) =>
+          previous.length === next.length ? previous : allocateKeys(next.length),
+        );
         setSavedRows(next);
       },
     });
@@ -223,7 +233,7 @@ export function Actions() {
                     : `Simulate ${row.on}`;
 
                 return (
-                  <div key={index} className="actions-table-row" role="row">
+                  <div key={rowKeys[index]} className="actions-table-row" role="row">
                     <label className="actions-cell" role="cell">
                       <span className="actions-mobile-label">Event</span>
                       <input
@@ -299,9 +309,10 @@ export function Actions() {
                         className="actions-icon-btn"
                         title="Remove rule"
                         aria-label={`Remove rule ${index + 1}`}
-                        onClick={() =>
-                          setRows((previous) => previous.filter((_, i) => i !== index))
-                        }
+                        onClick={() => {
+                          setRows((previous) => previous.filter((_, i) => i !== index));
+                          setRowKeys((previous) => previous.filter((_, i) => i !== index));
+                        }}
                       >
                         ×
                       </Button>
@@ -321,12 +332,13 @@ export function Actions() {
                   type="button"
                   className="actions-chip"
                   disabled={rows.length >= MAX_ACTIONS}
-                  onClick={() =>
+                  onClick={() => {
                     setRows((previous) => [
                       ...previous,
                       normalizeRow({ on: preset.value, do: "sound", sound: "click" }),
-                    ])
-                  }
+                    ]);
+                    setRowKeys((previous) => [...previous, nextRowKeyRef.current++]);
+                  }}
                 >
                   {preset.label}
                 </button>
@@ -340,7 +352,10 @@ export function Actions() {
               variant="secondary"
               className="actions-toolbar-btn"
               disabled={rows.length >= MAX_ACTIONS}
-              onClick={() => setRows((previous) => [...previous, emptyRow()])}
+              onClick={() => {
+                setRows((previous) => [...previous, emptyRow()]);
+                setRowKeys((previous) => [...previous, nextRowKeyRef.current++]);
+              }}
             >
               Add rule
             </Button>

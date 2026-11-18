@@ -3,6 +3,7 @@ import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { DEFAULT_URL, loadDotEnv } from "./config/env.js";
+import { runExt } from "./commands/ext.js";
 import {
   runHealth,
   runPark,
@@ -50,6 +51,7 @@ Commands:
   anim <name>             Set animation pose
   play <clip.wav> [opts]  Stream WAV play (HTTP or serial credits)
   settings [get|set]      Read or write settings
+  ext <id> …              Extension APIs (lcd1602 text/brightness)
   test <name>             Run hardware test (audio|bell|screen|movement|led)
   servo <index> <angle>   Move one servo (degrees)
   park                    Center servos and hold PWM (flash-safe)
@@ -103,6 +105,8 @@ Examples:
   tiny-engineer doctor
   tiny-engineer anim ring
   tiny-engineer settings get --transport serial
+  tiny-engineer settings set --lcd1602=true
+  tiny-engineer ext lcd1602 text set --line1=HELLO --align=center
   tiny-engineer reset --yes
   echo '{"hook_event_name":"stop"}' | tiny-engineer hook cursor
 `);
@@ -155,6 +159,14 @@ async function runHook(out, argv, quietGlobal) {
     // Fail-open: ignore result so an offline robot never stalls the agent.
     await robotSetAnim(anim, { url: opts.url, transport: opts.transport, port: opts.port });
   }
+
+  await integration.afterAnim?.({
+    anim,
+    input,
+    url: opts.url,
+    transport: opts.transport,
+    port: opts.port,
+  });
 
   const fileLines = integration.describeFiles?.(input, localOut.style) ?? [];
   for (const line of fileLines) {
@@ -312,6 +324,9 @@ export async function run(argv) {
       return;
     case "settings":
       await runSettings(out, rest, global.quiet);
+      return;
+    case "ext":
+      await runExt(out, rest, global.quiet);
       return;
     case "test":
       await runTest(out, rest, global.quiet);

@@ -6,8 +6,10 @@
 #include "animation.h"
 #include "audio/audio.h"
 #include "display/oled.h"
-#include "extensions/push_button.h"
+#include "extensions/lcd1602/lcd1602.h"
+#include "extensions/push_button/push_button.h"
 #include "hardware/i2c_health.h"
+
 #include "hardware/pca9685_servos.h"
 #include "hardware/rgb.h"
 #include "hardware/servo_wrapper.h"
@@ -59,11 +61,16 @@ ApiResult apiSaveSettings(const SettingsPatch& patch) {
   if (settingsWouldPinConflict(patch, pinConflict, sizeof(pinConflict))) {
     return {false, 400, pinConflict};
   }
+  // Compare before save — saveSettings updates in-memory values.
+  const bool lcdNeedsApply = lcd1602PatchNeedsApply(patch);
   if (!saveSettings(patch)) {
     return {false, 500, "save failed"};
   }
   if (patch.pushButton.has_value() || patch.pushButtonPin.has_value()) {
     pushButtonApplyFromSettings();
+  }
+  if (lcdNeedsApply) {
+    lcd1602ApplyFromSettings(&patch);
   }
   return {true, 200, nullptr};
 }

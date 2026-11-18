@@ -36,7 +36,7 @@ void startHttpServer() {
   server.collectHeaders(kCollectHeaders, 2);
 
   cors.setOrigin("*")
-    .setMethods("GET, POST, PUT, OPTIONS")
+    .setMethods("GET, POST, PUT, DELETE, OPTIONS")
     .setHeaders("Authorization, Content-Type")
     .setAllowCredentials(false);
   server.addMiddleware(&cors);

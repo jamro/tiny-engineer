@@ -7,7 +7,7 @@
 #include "audio/audio.h"
 #include "audio/audio_motion.h"
 #include "audio/wav_parser.h"
-#include "extensions/push_button.h"
+#include "extensions/push_button/push_button.h"
 #include "http/access.h"
 #include "http/handlers.h"
 #include "http/response.h"

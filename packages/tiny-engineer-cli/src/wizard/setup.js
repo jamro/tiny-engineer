@@ -12,6 +12,7 @@ import {
   resolveTransport,
 } from "../config/env.js";
 import { userEnvPath } from "../config/paths.js";
+import { AI_USAGE_LCD_KEY } from "../integrations/cursor/lcd-usage.js";
 import { all as allIntegrations, get as getIntegration } from "../integrations/registry.js";
 import { hookCommandFor } from "./cliPath.js";
 import { mergeEnvKey, readEnvKey, readJsonFile, writeJsonFile } from "./merge.js";
@@ -32,6 +33,7 @@ const DEFAULT_TIMEOUT = 30;
  *   port?: string,
  *   token?: string,
  *   command?: string,
+ *   aiUsageLcd?: boolean,
  *   ides: string[],
  *   error?: string,
  * }}
@@ -51,6 +53,8 @@ export function parseSetupArgs(argv) {
   let token;
   /** @type {string | undefined} */
   let command;
+  /** @type {boolean | undefined} */
+  let aiUsageLcd;
   /** @type {string[]} */
   const ides = [];
 
@@ -70,6 +74,14 @@ export function parseSetupArgs(argv) {
     }
     if (arg === "--dry-run") {
       dryRun = true;
+      continue;
+    }
+    if (arg === "--ai-usage-lcd") {
+      aiUsageLcd = true;
+      continue;
+    }
+    if (arg === "--no-ai-usage-lcd") {
+      aiUsageLcd = false;
       continue;
     }
     if (arg === "--force-url" || arg === "--force-transport") {
@@ -148,7 +160,7 @@ export function parseSetupArgs(argv) {
     ides.push(arg);
   }
 
-  return { help, yes, all, dryRun, url, transport, port, token, command, ides };
+  return { help, yes, all, dryRun, url, transport, port, token, command, aiUsageLcd, ides };
 }
 
 /**
@@ -394,6 +406,9 @@ export async function runSetup(
     plans.push(integration.planInstall(ctx));
   }
 
+  /** @type {boolean | undefined} */
+  const aiUsageLcdPreview = args.aiUsageLcd;
+
   if (args.dryRun) {
     out.ok("dry-run — no files written");
     out.info("Project hooks:");
@@ -412,6 +427,9 @@ export async function runSetup(
     }
     if (transport === "serial" && port) {
       out.info(`  TINY_ENGINEER_PORT=${port}`);
+    }
+    if (aiUsageLcdPreview !== undefined) {
+      out.info(`  ${AI_USAGE_LCD_KEY}=${aiUsageLcdPreview ? "1" : "0"}`);
     }
     process.exitCode = 0;
     return;
@@ -486,6 +504,25 @@ export async function runSetup(
     });
   }
 
+  /** @type {boolean | undefined} */
+  let aiUsageLcd = args.aiUsageLcd;
+  if (aiUsageLcd === undefined && !args.yes) {
+    aiUsageLcd = await confirmFn(
+      "Show remaining Cursor AI budget on LCD1602 after completed turns?",
+      false,
+    );
+  }
+  if (aiUsageLcd !== undefined) {
+    await persistUserEnvKey(out, {
+      key: AI_USAGE_LCD_KEY,
+      value: aiUsageLcd ? "1" : "0",
+      yes: args.yes,
+      dryRun: false,
+      label: AI_USAGE_LCD_KEY,
+      confirmFn,
+    });
+  }
+
   out.ok("setup complete — run: tiny-engineer doctor");
   process.exitCode = 0;
 }
@@ -494,7 +531,8 @@ function printSetupHelp() {
   console.log(`Usage: tiny-engineer setup [ide...] [options]
 
 Merge Tiny Engineer hook commands into the current project (project-local).
-Connection prefs (transport, URL, port, token) go to user config (global).
+Connection prefs (transport, URL, port, token, optional LCD AI budget) go to user config (global).
+Cursor LCD AI budget updates are opt-in (TINY_ENGINEER_AI_USAGE_LCD=1).
 
 Options:
   --all                   Install all integrations (cursor, claude-code, antigravity)
@@ -505,6 +543,8 @@ Options:
   --url <base>            Robot URL when transport is http (user config)
   --port <path>           Optional serial port when transport is serial (user config)
   --token <value>         Optional HTTP access token (user config; omit to skip)
+  --ai-usage-lcd          Enable LCD AI budget after Cursor ring (user config)
+  --no-ai-usage-lcd       Disable LCD AI budget (user config)
   --command <prefix>      Override CLI launcher (default: npx -y tiny-engineer)
   -h, --help              Show this help
 
@@ -513,6 +553,7 @@ Examples:
   npx -y tiny-engineer setup cursor --yes
   npx -y tiny-engineer setup --all --yes --url http://192.168.1.10
   npx -y tiny-engineer setup cursor --yes --transport serial
+  npx -y tiny-engineer setup cursor --yes --ai-usage-lcd
   tiny-engineer setup --dry-run
   tiny-engineer setup cursor --yes --command 'node packages/tiny-engineer-cli/bin/tiny-engineer.js'
 `);

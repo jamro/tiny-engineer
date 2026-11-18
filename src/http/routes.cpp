@@ -2,6 +2,7 @@
 
 #include <uri/UriBraces.h>
 
+#include "extensions/http_registry.h"
 #include "http/access.h"
 #include "http/handlers.h"
 #include "http/response.h"
@@ -57,7 +58,7 @@ bool isKnownPath(const String& uri) {
     }
   }
 
-  return uri == "/play" || uri.startsWith("/play/");
+  return uri == "/play" || uri.startsWith("/play/") || extensionHttpPathKnown(uri);
 }
 
 void redirectToSetup(WebServer& server) {
@@ -117,6 +118,8 @@ void registerHttpRoutes(WebServer& server) {
   };
   onPlay(Uri("/play"));
   onPlay(UriBraces("/play/{}"));
+
+  registerExtensionHttpRoutes(server);
 
   server.onNotFound([&server]() { handleNotFound(server); });
 }

@@ -6,7 +6,7 @@ Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `htt
 
 Outbound events (device → host) use a separate WebSocket on **port 81** at path `/events` while this HTTP server is running, and the same JSON on USB serial as `Evt` frames. See [Outbound events](#outbound-events).
 
-Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). Replies are `Content-Type: application/json`. Routes that take parameters (except `POST /anim` and `/play`) read a JSON object body sent with `Content-Type: application/json`; query parameters or form fields on those routes → **400** `send a JSON body with Content-Type: application/json`, and a body that is not a JSON object → **400** `body must be a JSON object`. CORS: requests with an `Origin` header get `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization, Content-Type` and `Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS`; a preflight `OPTIONS` gets **200**.
+Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). Replies are `Content-Type: application/json`. Routes that take parameters (except `POST /anim` and `/play`) read a JSON object body sent with `Content-Type: application/json`; query parameters or form fields on those routes → **400** `send a JSON body with Content-Type: application/json`, and a body that is not a JSON object → **400** `body must be a JSON object`. CORS: requests with an `Origin` header get `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization, Content-Type` and `Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS`; a preflight `OPTIONS` gets **200**.
 
 When the robot is not yet provisioned (no connection mode chosen), control APIs (`/anim`, `/test/*`, `/play`) return **503** `{"ok":false,"error":"not provisioned"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/servos/park`) stay available on the setup AP. Connection mode is `wifi` or `usb` (`link_mode` in settings/auth/health). USB-only mode disables Wi‑Fi station and the HTTP API after reboot; control then uses the USB serial protocol ([serial.md](serial.md)).
 
@@ -171,6 +171,12 @@ curl http://tiny-engineer.local/settings
   "serial_log": false,
   "push_button": false,
   "push_button_pin": 20,
+  "lcd1602": false,
+  "lcd1602_backlight_sleep": true,
+  "lcd1602_welcome_hello": false,
+  "lcd1602_boot": "none",
+  "lcd1602_line1": "",
+  "lcd1602_line2": "",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -194,6 +200,11 @@ curl http://tiny-engineer.local/settings
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
 | `push_button` | Extension-port push-button reader (default **false**). When on, publishes immediate `button.down` / `button.up` plus `button.click` / `button.double_click` / `button.long_click` (see [Outbound events](#outbound-events)). Applies **immediately**. Local reactions use [Actions](#get-settingsactions) |
 | `push_button_pin` | GPIO on the Extension port for the push-button: **6**, **7**, **20**, or **21** (default **20**). Persists when `push_button` is off. Applies **immediately** when the extension is on |
+| `lcd1602` | Waveshare LCD1602 I2C extension (default **false**). When on, serves `/extensions/lcd1602/…`. Applies **immediately**. Emits no events |
+| `lcd1602_backlight_sleep` | Follow sleep: dim backlight on sleep and light to **100** on wake (default **true**). When false, enable/boot turns backlight on (including when `last` brightness is 0) and sleep/wake leave brightness alone. Persists when off. Applies **immediately** |
+| `lcd1602_welcome_hello` | Show centered **HELLO** / **HUMAN** on the LCD during every `welcome` animation (default **false**). Text/clear during the overlay queues (last-wins); `GET` returns logical stash/pending, not HELLO. Persists when off. Applies **immediately** |
+| `lcd1602_boot` | Boot content: `none`, `last`, or `config` (default **`none`**). Persists when off. Applies **immediately** |
+| `lcd1602_line1` / `lcd1602_line2` | Configured boot lines when `lcd1602_boot` is `config` (max **64** bytes each, no C0 control bytes, default empty). Persists when off. Applies **immediately** |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking` / `waiting`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), `dots` (12×12 circles), or `kawaii` (round eyes with big moving pupils, a talking mouth, and blush). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes); kawaii moods are under [Kawaii eyes](#kawaii-eyes) |
@@ -209,12 +220,15 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). On-device Actions are set with [`PUT /settings/actions`](#put-settingsactions). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `lcd1602`, `lcd1602_backlight_sleep`, `lcd1602_welcome_hello`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). On-device Actions are set with [`PUT /settings/actions`](#put-settingsactions). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings" \
   -H "Content-Type: application/json" \
   -d '{"volume":40,"welcome":false,"eyes_style":"kaomoji"}'
+curl -X POST "http://tiny-engineer.local/settings" \
+  -H "Content-Type: application/json" \
+  -d '{"lcd1602":true,"lcd1602_boot":"config","lcd1602_line1":"HELLO","lcd1602_line2":"HUMAN"}'
 curl -X POST "http://tiny-engineer.local/settings" \
   -H "Content-Type: application/json" \
   -d '{"access_token":""}'
@@ -233,6 +247,12 @@ curl -X POST "http://192.168.4.1/settings" \
   "serial_log": false,
   "push_button": false,
   "push_button_pin": 20,
+  "lcd1602": false,
+  "lcd1602_backlight_sleep": true,
+  "lcd1602_welcome_hello": false,
+  "lcd1602_boot": "none",
+  "lcd1602_line1": "",
+  "lcd1602_line2": "",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -257,6 +277,11 @@ curl -X POST "http://192.168.4.1/settings" \
 | `serial_log` | boolean | USB serial debug logging |
 | `push_button` | boolean | Extension-port push-button (default **false**) |
 | `push_button_pin` | integer | Extension-port GPIO **6**, **7**, **20**, or **21** (default **20**); persists when off |
+| `lcd1602` | boolean | Waveshare LCD1602 extension (default **false**) |
+| `lcd1602_backlight_sleep` | boolean | Dim on sleep / light on wake (default **true**) |
+| `lcd1602_welcome_hello` | boolean | HELLO/HUMAN on welcome (default **false**) |
+| `lcd1602_boot` | string | `none` / `last` / `config` (default **`none`**) |
+| `lcd1602_line1` / `lcd1602_line2` | string | Boot lines for `config` (max **64** bytes, no C0 control bytes) |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, `dots`, or `kawaii` |
@@ -352,6 +377,12 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "serial_log": false,
   "push_button": false,
   "push_button_pin": 20,
+  "lcd1602": false,
+  "lcd1602_backlight_sleep": true,
+  "lcd1602_welcome_hello": false,
+  "lcd1602_boot": "none",
+  "lcd1602_line1": "",
+  "lcd1602_line2": "",
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -537,6 +568,87 @@ Wrong fields return **400**:
 | `invalid rotate_180` | `rotate_180` present but not a boolean |
 
 Save with `POST /settings` `{"oled_rotate_180":true}` (setup AP only). The saved value applies immediately and on the next boot.
+
+### LCD 1602 extension (`/extensions/lcd1602/…`)
+
+Waveshare LCD1602 I2C (AiP31068 @ `0x3E`; controllable backlight SN3193 @ `0x6B` or PCA9633 @ `0x60`, auto-detected) on the Extension I2C port. Off until `lcd1602` is true. Same access class as `POST /anim` (`Configured`). When the extension is off → **503** `extension disabled`. When on but the LCD (`0x3E`) does not ACK → text **POST**/`DELETE` **503** `lcd not found` (settings stay enabled); **GET** text still returns the cached logical state with **200**. When the LCD is up but neither backlight chip ACKs → brightness **POST** **503** `backlight not found`; **GET** brightness still returns the cached value with **200**. On PCA9633, brightness scales the base RGB color (`PWM = channel × brightness / 100`); use `/color` for base R/G/B. Color on SN3193 → **400** `rgb not supported`. When `lcd1602_backlight_sleep` is true, entering sleep (`sleep` anim or idle `sleep_timeout`) fades backlight to **0** over ~2 s; wakeup / wake-from-sleep fades to **100** over ~2 s (persists last state). When false, sleep/wake do not change backlight. When `lcd1602_welcome_hello` is true, every `welcome` animation overlays centered **HELLO** / **HUMAN**; text/clear during that overlay queues until welcome ends; `GET` text returns logical content (pending or pre-overlay), not HELLO. No outbound events.
+
+#### `GET` / `POST` / `DELETE /extensions/lcd1602/text`
+
+`GET` returns the full logical lines (not only the 16-column viewport), including when the LCD does not ACK (**200** cached state). `POST` / `DELETE` without an ACK → **503** `lcd not found`.
+
+```json
+{
+  "line1": { "text": "HELLO", "align": "left" },
+  "line2": { "text": "", "align": "left" }
+}
+```
+
+`POST` accepts a partial JSON body. Omitted `line1` / `line2` leave that line unchanged. Each present line object needs `text` (0–64 bytes; empty clears the line; no C0 control bytes `0x00`–`0x1F`) and optional `align` (`left` / `right` / `center`, default **`left`**). Lines longer than 16 characters ignore align and marquee LTR.
+
+```bash
+curl -X POST "http://tiny-engineer.local/extensions/lcd1602/text" \
+  -H "Content-Type: application/json" \
+  -d '{"line1":{"text":"HELLO","align":"center"}}'
+```
+
+Wrong fields return **400** and do not change the display:
+
+| `error` | When |
+| --- | --- |
+| `invalid text` | `text` missing, not a string, longer than 64 bytes, or contains a C0 control byte (e.g. `\n`) |
+| `invalid align` | `align` present but not `left` / `right` / `center` |
+| `invalid line` | `line1` / `line2` present but not a JSON object |
+| `send at least one line` | Body has neither `line1` nor `line2` |
+| `unknown field …` | Any key other than `line1` / `line2` |
+
+`DELETE` clears both lines and leaves brightness unchanged.
+
+#### `GET` / `POST /extensions/lcd1602/brightness`
+
+`GET` → `{"brightness":50}` (cached logical value; **200** even when no backlight chip ACKs). `POST` body `{"brightness":0..100}` (0 = backlight off). On PCA9633, brightness scales the stored base color (default white `255,255,255`). Successful text/clear/brightness/color updates persist **last** state for `lcd1602_boot=last`.
+
+```bash
+curl -X POST "http://tiny-engineer.local/extensions/lcd1602/brightness" \
+  -H "Content-Type: application/json" \
+  -d '{"brightness":50}'
+```
+
+```json
+{ "brightness": 50 }
+```
+
+Wrong fields return **400**:
+
+| `error` | When |
+| --- | --- |
+| `invalid brightness` | `brightness` missing, not an integer, or outside `0`–`100` |
+| `unknown field …` | Any key other than `brightness` |
+
+Neither SN3193 nor PCA9633 ACK on **POST** → **503** `backlight not found`.
+
+#### `GET` / `POST /extensions/lcd1602/color`
+
+PCA9633 RGB modules only. `GET` → `{"r":255,"g":255,"b":255}`. `POST` body `{"r":0..255,"g":0..255,"b":0..255}` sets the base color (PWM scaled by current brightness).
+
+```bash
+curl -X POST "http://tiny-engineer.local/extensions/lcd1602/color" \
+  -H "Content-Type: application/json" \
+  -d '{"r":255,"g":128,"b":0}'
+```
+
+```json
+{ "r": 255, "g": 128, "b": 0 }
+```
+
+Wrong fields or unsupported hardware return **400** / **503**:
+
+| `error` | Status | When |
+| --- | --- | --- |
+| `invalid r` / `invalid g` / `invalid b` | **400** | Channel missing or not an integer `0`–`255` |
+| `unknown field …` | **400** | Any key other than `r` / `g` / `b` |
+| `rgb not supported` | **400** | Backlight is SN3193 (or other non-RGB chip) |
+| `backlight not found` | **503** | No backlight chip ACK |
 
 ### `POST /servos/park`
 
