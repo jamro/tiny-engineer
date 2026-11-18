@@ -33,7 +33,7 @@ public:
     }
     if (!parseAnimationName(name, animation_) ||
         (animation_ != AnimationId::None && !animationIsContinuous(animation_))) {
-      error = "name must be talking, typing, reading, thinking or none";
+      error = "name must be talking, typing, reading, thinking, waiting or none";
       release_();
       return false;
     }

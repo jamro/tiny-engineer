@@ -146,7 +146,7 @@ export function ConfigForm({ settings }: { settings: Settings }) {
             value={draft.continuousTimeout}
             onInput={(event) => set({ continuousTimeout: event.currentTarget.value })}
           />
-          <p className="hint">Max time for typing / reading / thinking / talking</p>
+          <p className="hint">Max time for typing / reading / thinking / talking / waiting</p>
         </div>
       </ConfigSection>
       <ConfigSection title="Audio" apply="now">

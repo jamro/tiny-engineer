@@ -48,7 +48,7 @@ public:
     // Continuous animations and none play no sound of their own, so they cannot talk over the clip.
     if (!parseAnimationName(name, animation_) ||
         (animation_ != AnimationId::None && !animationIsContinuous(animation_))) {
-      refusal_ = Refusal{400, "name must be talking, typing, reading, thinking or none"};
+      refusal_ = Refusal{400, "name must be talking, typing, reading, thinking, waiting or none"};
       releaseBusy_();
       return;
     }

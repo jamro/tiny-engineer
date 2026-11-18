@@ -15,6 +15,7 @@
 #include "animation/thinking.h"
 #include "animation/typing.h"
 #include "animation/util.h"
+#include "animation/waiting.h"
 #include "animation/wakeup.h"
 #include "animation/welcome.h"
 #include "display/eyes/modes/abort.h"
@@ -27,6 +28,7 @@
 #include "display/eyes/modes/talking.h"
 #include "display/eyes/modes/thinking.h"
 #include "display/eyes/modes/typing.h"
+#include "display/eyes/modes/waiting.h"
 #include "display/eyes/modes/wakeup.h"
 #include "display/eyes/modes/welcome.h"
 #include "hardware/servo_wrapper.h"
@@ -274,6 +276,17 @@ constexpr ModeEntry kModes[] = {
     updateTalking,
     startTalkingEyes,
     updateTalkingEyes,
+  },
+  {
+    AnimationId::Waiting,
+    EyeMode::Waiting,
+    "waiting",
+    true,
+    -1,
+    startWaiting,
+    updateWaiting,
+    startWaitingEyes,
+    updateWaitingEyes,
   },
 };
 

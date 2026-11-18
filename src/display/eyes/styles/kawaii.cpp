@@ -89,6 +89,8 @@ kawaii::Mood modeMood(EyeMode mode) {
       return deadShowingX() ? kawaii::Mood::Dizzy : kawaii::Mood::Sad;
     case EyeMode::Talking:
       return kawaii::Mood::Talking;
+    case EyeMode::Waiting:
+      return kawaii::Mood::Content;  // calm; the pupils follow the head's corners
   }
 
   return kawaii::Mood::Content;

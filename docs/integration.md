@@ -150,6 +150,7 @@ curl -X POST "http://tiny-engineer.local/anim?name=typing"
 | `welcome` | Session start / greeting |
 | `wakeup` | Sleep-inertia wake (eyes/head) |
 | `sleep` | Force sleep (eye close + OLED off) |
+| `waiting` | Turn finished and the user has not answered for a while (quiet, before `attention`) |
 | `attention` | Needs user input |
 | `error` / `abort` | Failure / cancel |
 | `dead` | Out of power (`dead.wav`, then X X hold) |
