@@ -42,6 +42,13 @@
 - [x] 7.4 Make talking turn neck and body to the face pose at 40°/s and the head with the typing head snap, and hold neck drift, body sway, reactive head settle and emphasis nod until all three arrive (also on resume after a cancelled transition); verify `pio run -e supermini` passes
 - [x] 7.5 On the real robot: confirm 7.1–7.4 (user test)
 
+## 8. Review feedback (PR #116, CodeRabbit)
+
+- [x] 8.1 Move all three face joints to the shown pose before any value can be saved: on open in the wizard step, before the first nudge on `/servo` (shared `FacePoseControls`); verify new cases in `ui/test/servo.test.tsx` and `ui/test/wizard.test.tsx`
+- [x] 8.2 Send no manual move when stopping the talking preview fails; verify a new case in `ui/test/servo.test.tsx`
+- [x] 8.3 Reset the controls to the default pose after a successful Clear; verify a new case in `ui/test/servo.test.tsx`, plus `npm run lint --prefix ui` and `npm test --prefix ui`
+- [x] 8.4 On the real robot: wizard step opens at the shown pose, first nudge on `/servo` syncs all joints, Clear resets the controls (user test)
+
 ## Workflow follow-up
 
 - After the robot test passes, rebase the branch onto `main` in a separate worktree (`git rebase --onto main custom_setup feat/face-me`), run `pio run`, push to `fork` and open the PR to `jamro/tiny-engineer` after user approval.

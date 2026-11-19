@@ -158,6 +158,54 @@ describe("face me section", () => {
     expect(await screen.findByText("Not set (default pose)")).toBeTruthy();
   });
 
+  it("moves all three joints to the shown pose before the first nudge", async () => {
+    const robot = fakeRobot();
+    const { click } = renderApp("/servo");
+
+    await click(/^Neck/);
+    await click("−1°");
+
+    await waitFor(() => expect(robot.sent("POST", "/test/servo")).toHaveLength(4));
+    const moves = robot.sent("POST", "/test/servo").map((request) => request.json);
+
+    expect(moves.slice(0, 3).map((json) => (json as { index: number }).index)).toEqual([0, 1, 4]);
+    expect(moves[3]).toEqual({ index: 1, angle: 89 });
+
+    await click("−1°");
+
+    // Synced once: the next nudge moves only the picked joint.
+    await waitFor(() => expect(robot.sent("POST", "/test/servo")).toHaveLength(5));
+    expect(robot.lastPost("/test/servo")?.json).toEqual({ index: 1, angle: 88 });
+  });
+
+  it("sends no move when stopping the preview fails", async () => {
+    const robot = fakeRobot();
+    const { click } = renderApp("/servo");
+
+    await click("Preview talking");
+    await waitFor(() => expect(robot.lastPost("/anim")?.params).toEqual({ name: "talking" }));
+
+    robot.failing.add("/anim");
+    await click("+1°");
+
+    await waitFor(() => expect(robot.lastPost("/anim")?.params).toEqual({ name: "none" }));
+    expect(robot.sent("POST", "/test/servo")).toHaveLength(0);
+    expect(faceAngle()).toBe("91");
+  });
+
+  it("resets the controls to the default pose after Clear", async () => {
+    fakeRobot({ settings: { face_pose: [0.2, -0.5, 0.25] } });
+
+    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
+    const { click } = renderApp("/servo");
+
+    expect(await screen.findByRole("button", { name: "Neck 85°" })).toBeTruthy();
+    await click("Clear");
+
+    expect(await screen.findByRole("button", { name: "Neck 90°" })).toBeTruthy();
+    expect(faceAngle()).toBe("91");
+  });
+
   it("previews talking and stops it", async () => {
     const robot = fakeRobot();
     const { click } = renderApp("/servo");

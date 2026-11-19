@@ -441,6 +441,22 @@ describe("setup wizard", () => {
     ).toBe(false);
   });
 
+  it("moves the face joints to the shown pose when the Face me step opens", async () => {
+    const { robot } = await skipToFace({
+      servo_mins: [70, 40, 45, 35, 60],
+      servo_maxs: [110, 130, 135, 125, 120],
+    });
+
+    // Default pose: head 1/7 of 20° above mid 90 = 93, neck mid 85, body mid 90.
+    await waitFor(() =>
+      expect(robot.sent("POST", "/setup/servo").map((request) => request.json)).toEqual([
+        { index: 0, angle: 93 },
+        { index: 1, angle: 85 },
+        { index: 4, angle: 90 },
+      ]),
+    );
+  });
+
   it("moves face joints with the setup move and saves the pose", async () => {
     const { robot, click } = await skipToFace({
       servo_mins: [70, 40, 45, 35, 60],

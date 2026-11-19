@@ -12,6 +12,8 @@ export function FacePoseSection({ settings, ranges }: { settings: Settings; rang
   const { perform } = useStatus();
   const [pose, setPose] = useState(() => savedFacePose(settings));
   const [previewing, setPreviewing] = useState(false);
+  // A new key remounts the controls, so the next nudge syncs all joints again.
+  const [controlsKey, setControlsKey] = useState(0);
   const isSet = settings.face_pose.length > 0;
 
   async function playAnimation(name: string) {
@@ -26,8 +28,12 @@ export function FacePoseSection({ settings, ranges }: { settings: Settings; rang
   }
 
   async function move(index: number, angle: number) {
-    // A running preview would fight the manual move.
-    if (previewing && (await playAnimation("none"))) {
+    // A running preview would fight the manual move: no move while it runs.
+    if (previewing) {
+      if (!(await playAnimation("none"))) {
+        return false;
+      }
+
       setPreviewing(false);
     }
 
@@ -48,7 +54,14 @@ export function FacePoseSection({ settings, ranges }: { settings: Settings; rang
       pending: "Saving face pose…",
       failure: "Save failed",
       done,
-      onSuccess: applySettings,
+      onSuccess: (next) => {
+        applySettings(next);
+        setPose(savedFacePose(next));
+
+        if (facePose.length === 0) {
+          setControlsKey((key) => key + 1);
+        }
+      },
     });
   }
 
@@ -73,7 +86,13 @@ export function FacePoseSection({ settings, ranges }: { settings: Settings; rang
         for head, neck and body, then save. The talking animation then faces you. Status:{" "}
         <strong id="face-pose-status">{isSet ? "Set" : "Not set (default pose)"}</strong>
       </p>
-      <FacePoseControls pose={pose} ranges={ranges} onPose={setPose} onMove={move} />
+      <FacePoseControls
+        key={controlsKey}
+        pose={pose}
+        ranges={ranges}
+        onPose={setPose}
+        onMove={move}
+      />
       {isSet && (
         <p className="hint">
           The pose follows the saved servo limits. Check it again after a servo calibration.

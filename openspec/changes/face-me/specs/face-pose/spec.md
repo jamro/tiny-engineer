@@ -101,6 +101,15 @@ After provisioning, the Servo control page of the web UI MUST provide a Face me 
 - **AND** the bar marker moves to the new angle between the saved min and max
 - **AND** the stored value is the matching −1..1 pose unit
 
+#### Scenario: First nudge moves all joints to the shown pose
+- **WHEN** the user makes the first nudge on the Servo control page
+- **THEN** the robot first moves head, neck and body to the angles the controls show, and then makes the nudge
+- **AND** later nudges move only the picked joint
+
+#### Scenario: No manual move while a preview cannot stop
+- **WHEN** a talking preview runs, the user nudges a joint, and the request to stop the preview fails
+- **THEN** the UI sends no servo move and keeps the shown pose
+
 #### Scenario: Save
 - **WHEN** the user chooses Save
 - **THEN** the UI sends the three current values as `face_pose` via `POST /settings`
@@ -108,6 +117,7 @@ After provisioning, the Servo control page of the web UI MUST provide a Face me 
 #### Scenario: Clear
 - **WHEN** the user chooses Clear and confirms
 - **THEN** the UI sends `"face_pose": []` and the section shows that no face pose is set
+- **AND** after a successful clear the controls show the default pose, so a later Save does not store the cleared pose again
 
 #### Scenario: Preview
 - **WHEN** the user chooses Preview
@@ -132,6 +142,10 @@ The setup AP wizard MUST show a Face me step directly after the servos step. The
 #### Scenario: Save and continue
 - **WHEN** the user moves the joints and chooses Save and continue
 - **THEN** the UI sends the three current values as `face_pose` via `POST /settings` and advances
+
+#### Scenario: Step opens at the shown pose
+- **WHEN** the Face me step opens
+- **THEN** the robot moves head, neck and body to the angles the controls show, with the setup servo move endpoint
 
 #### Scenario: Wizard moves use the setup move
 - **WHEN** the user nudges a joint on the Face me step

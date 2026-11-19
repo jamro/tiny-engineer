@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { clamp } from "../lib/math";
 import { degToNorm, FACE_JOINTS, normToDeg, type Range } from "../servos";
 import { Button } from "./Button";
@@ -10,29 +10,65 @@ const wholeDegrees = (n: number, range: Range) => Math.round(normToDeg(n, range)
 
 // Pick a joint, then nudge it in whole degrees like the guided calibration. The
 // bar spans the joint's saved min..max. The pose stays in -1..1 units; every nudge
-// moves the robot at once, inside the saved range.
+// moves the robot at once, inside the saved range. Before the first nudge (or on
+// mount with moveOnMount) all three joints go to the shown pose, so Save never
+// stores an angle the robot did not reach.
 export function FacePoseControls({
   pose,
   ranges,
   onPose,
   onMove,
+  moveOnMount = false,
 }: {
   pose: readonly number[];
   ranges: readonly Range[];
   onPose: (pose: number[]) => void;
   onMove: (index: number, angle: number) => Promise<boolean>;
+  moveOnMount?: boolean;
 }) {
   const [slot, setSlot] = useState(0);
+  const syncRef = useRef<Promise<boolean> | null>(null);
   const { index, name, low, high } = FACE_JOINTS[slot];
   const range = ranges[index];
   const [min, max] = range;
   const angle = wholeDegrees(pose[slot], range);
   const percent = (degrees: number) => `${((degrees - min) / Math.max(1, max - min)) * 100}%`;
 
+  async function moveAll() {
+    for (const [each, joint] of FACE_JOINTS.entries()) {
+      if (!(await onMove(joint.index, wholeDegrees(pose[each], ranges[joint.index])))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // One shared sync; a failed one is tried again on the next nudge.
+  async function sync() {
+    syncRef.current ??= moveAll();
+
+    if (await syncRef.current) {
+      return true;
+    }
+
+    syncRef.current = null;
+
+    return false;
+  }
+
+  useEffect(() => {
+    if (moveOnMount) {
+      void sync();
+    }
+    // Mount only: later pose changes come from nudges, which move the robot.
+    // eslint-disable-next-line react-hooks/exhaustive-deps, @eslint-react/exhaustive-deps
+  }, []);
+
   async function nudge(delta: number) {
     const target = clamp(angle + delta, min, max);
 
-    if (target === angle) {
+    if (target === angle || !(await sync())) {
       return;
     }
 
