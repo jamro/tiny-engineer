@@ -21,6 +21,9 @@ export function FacePoseSection({
   const { perform } = useStatus();
   const [pose, setPose] = useState(() => savedFacePose(settings));
   const [previewing, setPreviewing] = useState(false);
+  // Preview start / stop moves the joints (stop parks neck and body), so each
+  // one makes the next nudge sync all joints again, like a form move.
+  const [previewChanges, setPreviewChanges] = useState(0);
   // A new key remounts the controls, so the next nudge syncs all joints again.
   const [controlsKey, setControlsKey] = useState(0);
   const isSet = settings.face_pose.length > 0;
@@ -92,6 +95,7 @@ export function FacePoseSection({
   async function togglePreview() {
     if (await playAnimation(previewing ? "none" : "talking")) {
       setPreviewing(!previewing);
+      setPreviewChanges((count) => count + 1);
     }
   }
 
@@ -105,7 +109,7 @@ export function FacePoseSection({
       <FacePoseControls
         key={controlsKey}
         pose={pose}
-        resync={manualMoves}
+        resync={manualMoves + previewChanges}
         ranges={ranges}
         onPose={setPose}
         onMove={move}

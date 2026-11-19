@@ -50,6 +50,8 @@
 - [x] 8.4 On the real robot: wizard step opens at the shown pose, first nudge on `/servo` syncs all joints, Clear resets the controls (user test)
 - [x] 8.5 Second review: Save on `/servo` and Save and continue in the wizard move all three joints to the shown pose first and save only when all moves succeed; a move from the Servo control form makes the next nudge sync again; verify new cases (save without a nudge, failed move before save, resync after a form move) in `ui/test/servo.test.tsx` and `ui/test/wizard.test.tsx`, plus `npm run lint --prefix ui` and `npm test --prefix ui`
 - [x] 8.6 On the real robot: Save without a nudge moves the robot to the shown pose; a form move then a nudge syncs all joints (user test)
+- [x] 8.7 Third review: a preview start or stop makes the next nudge sync all joints again; verify a new case in `ui/test/servo.test.tsx`, plus `npm run lint --prefix ui` and `npm test --prefix ui`
+- [x] 8.8 On the real robot: preview, stop, then nudge syncs all joints (user test)
 
 ## Workflow follow-up
 

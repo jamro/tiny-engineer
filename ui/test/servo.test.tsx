@@ -256,6 +256,26 @@ describe("face me section", () => {
     expect(robot.lastPost("/test/servo")?.json).toEqual({ index: 1, angle: 88 });
   });
 
+  it("syncs all joints again after a preview start and stop", async () => {
+    const robot = fakeRobot();
+    const { click } = renderApp("/servo");
+
+    await click(/^Neck/);
+    await click("−1°");
+    await waitFor(() => expect(robot.sent("POST", "/test/servo")).toHaveLength(4));
+
+    await click("Preview talking");
+    await waitFor(() => expect(robot.lastPost("/anim")?.params).toEqual({ name: "talking" }));
+    await click("Stop preview");
+    await waitFor(() => expect(robot.lastPost("/anim")?.params).toEqual({ name: "none" }));
+
+    await click("−1°");
+
+    // Stopping the preview parks neck and body: the nudge first sends all joints again.
+    await waitFor(() => expect(robot.sent("POST", "/test/servo")).toHaveLength(8));
+    expect(robot.lastPost("/test/servo")?.json).toEqual({ index: 1, angle: 88 });
+  });
+
   it("previews talking and stops it", async () => {
     const robot = fakeRobot();
     const { click } = renderApp("/servo");

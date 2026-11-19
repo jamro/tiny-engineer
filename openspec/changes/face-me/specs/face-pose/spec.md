@@ -120,7 +120,7 @@ After provisioning, the Servo control page of the web UI MUST provide a Face me 
 - **THEN** the UI sends no `face_pose`
 
 #### Scenario: Another control moved a joint
-- **WHEN** the Servo control form moves a joint after the face controls synced
+- **WHEN** the Servo control form moves a joint, or the talking preview starts or stops, after the face controls synced
 - **THEN** the next nudge first moves head, neck and body to the shown pose again
 
 #### Scenario: Clear
