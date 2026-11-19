@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstring>
 #include <unity.h>
 
@@ -174,6 +175,40 @@ void test_servo_ranges() {
   TEST_ASSERT_FALSE(over.valid());
 }
 
+void test_face_pose() {
+  const FacePose unset{};
+  const FacePose valid = {true, {0.2f, -0.4f, 0.1f}};
+  const FacePose edges = {true, {-1.0f, 1.0f, 0.0f}};
+  const FacePose over = {true, {0.0f, 1.01f, 0.0f}};
+  const FacePose under = {true, {-1.5f, 0.0f, 0.0f}};
+  const FacePose notNumber = {true, {0.0f, 0.0f, NAN}};
+  // Values are ignored while the pose is not set.
+  const FacePose clearedWithJunk = {false, {5.0f, NAN, -9.0f}};
+
+  TEST_ASSERT_TRUE(unset.valid());
+  TEST_ASSERT_TRUE(valid.valid());
+  TEST_ASSERT_TRUE(edges.valid());
+  TEST_ASSERT_FALSE(over.valid());
+  TEST_ASSERT_FALSE(under.valid());
+  TEST_ASSERT_FALSE(notNumber.valid());
+  TEST_ASSERT_TRUE(clearedWithJunk.valid());
+}
+
+void test_face_pose_patch() {
+  SettingsPatch patch;
+
+  patch.facePose = FacePose{true, {0.15f, -0.3f, 0.1f}};
+  TEST_ASSERT_NULL(patch.invalidField());
+  // Face me is a desk setting, not a setup-only calibration.
+  TEST_ASSERT_NULL(patch.setupOnlyStep());
+
+  patch.facePose = FacePose{};
+  TEST_ASSERT_NULL(patch.invalidField());
+
+  patch.facePose = FacePose{true, {0.0f, 2.0f, 0.0f}};
+  TEST_ASSERT_EQUAL_STRING("face_pose", patch.invalidField());
+}
+
 void test_patch_names_the_first_invalid_field() {
   SettingsPatch patch;
 
@@ -271,6 +306,8 @@ int main() {
   RUN_TEST(test_wifi_ssid);
   RUN_TEST(test_wifi_password);
   RUN_TEST(test_servo_ranges);
+  RUN_TEST(test_face_pose);
+  RUN_TEST(test_face_pose_patch);
   RUN_TEST(test_patch_names_the_first_invalid_field);
   RUN_TEST(test_patch_names_its_setup_only_step);
   RUN_TEST(test_rgb_order);

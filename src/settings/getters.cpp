@@ -126,3 +126,7 @@ const char* settingsRgbOrder() {
 bool settingsOledRotate180() {
   return g_settings.oledRotate180;
 }
+
+const FacePose& settingsFacePose() {
+  return g_settings.facePose;
+}

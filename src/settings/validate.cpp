@@ -1,5 +1,6 @@
 #include "settings/settings.h"
 
+#include <cmath>
 #include <cstring>
 
 #include "display/eyes/styles/eye_style.h"
@@ -253,6 +254,10 @@ const char* SettingsPatch::invalidField() const {
     return "rgb_order";
   }
 
+  if (facePose && !facePose->valid()) {
+    return "face_pose";
+  }
+
   return nullptr;
 }
 
@@ -291,4 +296,18 @@ const char* SettingsPatch::setupOnlyStep() const {
   }
 
   return nullptr;
+}
+
+bool FacePose::valid() const {
+  if (!set) {
+    return true;
+  }
+
+  for (const float value : values) {
+    if (!std::isfinite(value) || value < -1.0f || value > 1.0f) {
+      return false;
+    }
+  }
+
+  return true;
 }

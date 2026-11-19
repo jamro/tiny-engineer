@@ -25,31 +25,46 @@ uint32_t g_bodyNextMs = 0;
 uint32_t g_nodCooldownUntilMs = 0;
 uint32_t g_lastPhraseId = 0;
 bool g_wasStreamActive = false;
+// Read once per start, so saving a new face pose never jumps a running animation.
+anim::FacePose g_face = {anim::TALKING_HEAD_MID, anim::TALKING_NECK_MID, anim::TALKING_BODY_MID};
+// True until head, neck and body reach the face pose; drift, sway and the settle
+// step would slow that turn.
+bool g_arriving = false;
+
+bool arriving() {
+  if (g_arriving && !servoAt(SERVO_HEAD).isMoving() && !servoAt(SERVO_NECK).isMoving() &&
+      !servoAt(SERVO_BODY).isMoving()) {
+    g_arriving = false;
+  }
+
+  return g_arriving;
+}
 
 void commandAmbientHeadBeat() {
   g_headUp = !g_headUp;
   const float target = g_headUp
-    ? anim::TALKING_HEAD_MID + anim::TALKING_HEAD_NOD_AMBIENT * (0.35f + 0.65f * randUnit())
-    : anim::TALKING_HEAD_MID;
+    ? servoSaturateNorm(g_face.head + anim::TALKING_HEAD_NOD_AMBIENT * (0.35f + 0.65f * randUnit()))
+    : g_face.head;
   const float speed = g_headUp ? 40.0f + 25.0f * randUnit() : 18.0f + 12.0f * randUnit();
   servoAt(SERVO_HEAD).setNormTarget(target, speed);
 }
 
 void commandNeckDrift() {
-  const float target = anim::TALKING_NECK_SWAY * (2.0f * randUnit() - 1.0f);
+  const float target =
+    servoSaturateNorm(g_face.neck + anim::TALKING_NECK_SWAY * (2.0f * randUnit() - 1.0f));
   servoAt(SERVO_NECK).setNormTarget(target, 8.0f + 8.0f * randUnit());
 }
 
 void commandBodyDrift() {
   // Bias opposite the current neck so the face stays roughly aimed at the user.
-  const float neckNorm = servoDegToNorm(SERVO_NECK, servoAt(SERVO_NECK).angle());
+  const float neckNorm = servoDegToNorm(SERVO_NECK, servoAt(SERVO_NECK).angle()) - g_face.neck;
   float unit = 2.0f * randUnit() - 1.0f;
   if (neckNorm > 0.05f && unit > 0.0f) {
     unit = -unit;
   } else if (neckNorm < -0.05f && unit < 0.0f) {
     unit = -unit;
   }
-  const float target = anim::TALKING_BODY_SWAY * unit;
+  const float target = servoSaturateNorm(g_face.body + anim::TALKING_BODY_SWAY * unit);
   servoAt(SERVO_BODY).setNormTarget(target, 10.0f + 4.0f * randUnit());
 }
 
@@ -64,41 +79,44 @@ void commandAmbientGesture() {
 
 void settleReactivePose() {
   g_headUp = false;
-  if (!servoAt(SERVO_HEAD).isMoving() ||
-      fabsf(servoDegToNorm(SERVO_HEAD, servoAt(SERVO_HEAD).angle()) - anim::TALKING_HEAD_MID) > 0.05f) {
-    servoAt(SERVO_HEAD).setNormTarget(anim::TALKING_HEAD_MID, 22.0f);
+  if (!g_arriving &&
+      (!servoAt(SERVO_HEAD).isMoving() ||
+       fabsf(servoDegToNorm(SERVO_HEAD, servoAt(SERVO_HEAD).angle()) - g_face.head) > 0.05f)) {
+    servoAt(SERVO_HEAD).setNormTarget(g_face.head, 22.0f);
   }
   if (g_gestureRaised) {
     g_gestureRaised = false;
     servoAt(SERVO_HAND_RIGHT).setNormTarget(anim::TYPING_RIGHT_LOW, 45.0f);
   }
-  if (!servoAt(SERVO_BODY).isMoving() ||
-      fabsf(servoDegToNorm(SERVO_BODY, servoAt(SERVO_BODY).angle())) > 0.03f) {
-    servoAt(SERVO_BODY).setNormTarget(0.0f, 12.0f);
+  if (!g_arriving &&
+      (!servoAt(SERVO_BODY).isMoving() ||
+       fabsf(servoDegToNorm(SERVO_BODY, servoAt(SERVO_BODY).angle()) - g_face.body) > 0.03f)) {
+    servoAt(SERVO_BODY).setNormTarget(g_face.body, 12.0f);
   }
 }
 
 void commandEmphasisNod(float emphasis) {
   g_headUp = true;
   const float amount = 0.45f + 0.55f * emphasis;
-  const float target =
-    anim::TALKING_HEAD_MID + anim::TALKING_HEAD_NOD * amount;
+  const float target = servoSaturateNorm(g_face.head + anim::TALKING_HEAD_NOD * amount);
   const float speed = 50.0f + 40.0f * emphasis;
   servoAt(SERVO_HEAD).setNormTarget(target, speed);
 }
 
 void updateAmbientTalking(uint32_t now) {
+  const bool turning = arriving();
+
   if (!servoAt(SERVO_HEAD).isMoving() && now >= g_headPauseUntilMs) {
     commandAmbientHeadBeat();
     g_headPauseUntilMs = now + (g_headUp ? randRangeMs(80, 180) : randRangeMs(280, 850));
   }
 
-  if (now >= g_neckNextMs) {
+  if (!turning && now >= g_neckNextMs) {
     commandNeckDrift();
     g_neckNextMs = now + randRangeMs(1100, 2600);
   }
 
-  if (now >= g_bodyNextMs && !servoAt(SERVO_BODY).isMoving()) {
+  if (!turning && now >= g_bodyNextMs && !servoAt(SERVO_BODY).isMoving()) {
     commandBodyDrift();
     g_bodyNextMs = now + randRangeMs(3000, 8000);
   }
@@ -110,7 +128,9 @@ void updateAmbientTalking(uint32_t now) {
 }
 
 void updateReactiveTalking(uint32_t now, const AudioMotionSnapshot& snap) {
-  if (now >= g_neckNextMs) {
+  const bool turning = arriving();
+
+  if (!turning && now >= g_neckNextMs) {
     commandNeckDrift();
     g_neckNextMs = now + randRangeMs(1200, 2800);
   }
@@ -122,17 +142,15 @@ void updateReactiveTalking(uint32_t now, const AudioMotionSnapshot& snap) {
 
   // Hold near mid with a small loudness offset (not sample-rate bobbing).
   if (!g_headUp && !servoAt(SERVO_HEAD).isMoving()) {
-    const float target =
-      anim::TALKING_HEAD_MID + anim::TALKING_HEAD_LEVEL * snap.level;
+    const float target = servoSaturateNorm(g_face.head + anim::TALKING_HEAD_LEVEL * snap.level);
     servoAt(SERVO_HEAD).setNormTarget(target, 28.0f);
   } else if (g_headUp && !servoAt(SERVO_HEAD).isMoving()) {
     g_headUp = false;
-    const float target =
-      anim::TALKING_HEAD_MID + anim::TALKING_HEAD_LEVEL * snap.level;
+    const float target = servoSaturateNorm(g_face.head + anim::TALKING_HEAD_LEVEL * snap.level);
     servoAt(SERVO_HEAD).setNormTarget(target, 24.0f);
   }
 
-  if (snap.emphasis >= anim::TALKING_EMPHASIS_NOD && now >= g_nodCooldownUntilMs) {
+  if (!turning && snap.emphasis >= anim::TALKING_EMPHASIS_NOD && now >= g_nodCooldownUntilMs) {
     commandEmphasisNod(snap.emphasis);
     g_nodCooldownUntilMs = now + anim::TALKING_NOD_COOLDOWN_MS;
   }
@@ -149,7 +167,7 @@ void updateReactiveTalking(uint32_t now, const AudioMotionSnapshot& snap) {
         70.0f
       );
       g_gestureNextMs = now + randRangeMs(700, 1600);
-    } else if (!servoAt(SERVO_BODY).isMoving() && anim::randChance(40)) {
+    } else if (!turning && !servoAt(SERVO_BODY).isMoving() && anim::randChance(40)) {
       commandBodyDrift();
       g_bodyNextMs = now + randRangeMs(4000, 9000);
     }
@@ -172,7 +190,7 @@ void updateReactiveTalking(uint32_t now, const AudioMotionSnapshot& snap) {
     g_gestureNextMs = now + randRangeMs(600, 1400);
   }
 
-  if (now >= g_bodyNextMs && !servoAt(SERVO_BODY).isMoving()) {
+  if (!turning && now >= g_bodyNextMs && !servoAt(SERVO_BODY).isMoving()) {
     commandBodyDrift();
     g_bodyNextMs = now + randRangeMs(4000, 9000);
   }
@@ -194,7 +212,13 @@ void startTalking() {
   g_nodCooldownUntilMs = now;
   g_lastPhraseId = 0;
   g_wasStreamActive = false;
-  servoAt(SERVO_HEAD).setNormTarget(anim::TALKING_HEAD_MID, anim::TRANSITION_TORSO_SPEED_DEG_S);
+  g_face = anim::facePose();
+  // parkNonePose() aims neck and body at mid; aim them at the user instead.
+  servoAt(SERVO_NECK).setNormTarget(g_face.neck, anim::TALKING_FACE_ARRIVE_SPEED_DEG_S);
+  servoAt(SERVO_BODY).setNormTarget(g_face.body, anim::TALKING_FACE_ARRIVE_SPEED_DEG_S);
+  g_arriving = true;
+  // Same fast head move as typing and reading use when they start.
+  anim::snapHeadToRangeHigh(g_face.head);
 }
 
 void updateTalking(uint32_t now) {
@@ -211,6 +235,11 @@ void updateTalking(uint32_t now) {
   if (g_poseFrozen) {
     // The pending switch was cancelled (talking requested again): resume from here.
     g_poseFrozen = false;
+    // The freeze parked neck and body at mid; turn back to the user first.
+    servoAt(SERVO_NECK).setNormTarget(g_face.neck, anim::TALKING_FACE_ARRIVE_SPEED_DEG_S);
+    servoAt(SERVO_BODY).setNormTarget(g_face.body, anim::TALKING_FACE_ARRIVE_SPEED_DEG_S);
+    anim::snapHeadToRangeHigh(g_face.head);
+    g_arriving = true;
     g_headPauseUntilMs = now;
     g_neckNextMs = now;
     g_gestureNextMs = now + randRangeMs(2000, 4500);

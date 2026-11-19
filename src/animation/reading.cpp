@@ -35,8 +35,7 @@ void commandReadingHead() {
   }
 }
 
-void commandReadingNeck() {
-  const float speed = 8.0f + 8.0f * randUnit();
+void commandReadingNeck(float speed) {
   if (g_neckAngleHigh) {
     servoAt(SERVO_NECK).setNormTarget(
       anim::READING_NECK_MID + anim::READING_NECK_SWAY,
@@ -85,10 +84,14 @@ void beginScrollBurst() {
   commandScrollPress();
 }
 
+float readingNeckSpeed() {
+  return 8.0f + 8.0f * randUnit();
+}
+
 void endScrollBurst(uint32_t now) {
   scheduleNextScrollBurst(now);
   commandReadingHead();
-  commandReadingNeck();
+  commandReadingNeck(readingNeckSpeed());
 }
 
 void advanceReadingHeadStep() {
@@ -116,7 +119,7 @@ void advanceReadingNeckStep() {
 
 void beginNextReadingNeck() {
   g_neckPauseUntilMs = 0;
-  commandReadingNeck();
+  commandReadingNeck(readingNeckSpeed());
 }
 
 }  // namespace
@@ -130,7 +133,10 @@ void startReading() {
   g_headPauseUntilMs = 0;
   g_neckPauseUntilMs = 0;
   snapHeadToRangeHigh(anim::READING_HEAD_HIGH);
-  commandReadingNeck();
+  // The neck can start far from mid (a transition does not wait for the park,
+  // and talking may face the user), so the first turn uses the typing sway speed.
+  commandReadingNeck(anim::TYPING_SWAY_SPEED_MIN_DEG_S +
+                     anim::TYPING_SWAY_SPEED_SPAN_DEG_S * randUnit());
   scheduleNextScrollBurst(millis());
 }
 

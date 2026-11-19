@@ -63,6 +63,7 @@ SettingsValues SettingsValues::defaults() {
 
   strlcpy(values.rgbOrder, SETTINGS_DEFAULT_RGB_ORDER, sizeof(values.rgbOrder));
   values.oledRotate180 = SETTINGS_DEFAULT_OLED_ROTATE_180;
+  values.facePose = FacePose{};
   return values;
 }
 
@@ -79,6 +80,7 @@ void SettingsValues::apply(const SettingsPatch& patch) {
   continuousTimeoutMin = patch.continuousTimeoutMin.value_or(continuousTimeoutMin);
   servoRanges = patch.servoRanges.value_or(servoRanges);
   oledRotate180 = patch.oledRotate180.value_or(oledRotate180);
+  facePose = patch.facePose.value_or(facePose);
 
   if (patch.hostname != nullptr) {
     strlcpy(hostname, patch.hostname, sizeof(hostname));
@@ -123,7 +125,20 @@ void SettingsValues::log(const char* prefix) const {
   }
 
   const ServoRanges& r = servoRanges;
-  char line[512];
+  char face[48] = "unset";
+
+  if (facePose.set) {
+    snprintf(
+      face,
+      sizeof(face),
+      "%.2f,%.2f,%.2f",
+      facePose.values[0],
+      facePose.values[1],
+      facePose.values[2]
+    );
+  }
+
+  char line[560];
   snprintf(
     line,
     sizeof(line),
@@ -131,7 +146,7 @@ void SettingsValues::log(const char* prefix) const {
     "push_button=%s push_button_pin=%u lcd1602=%s lcd1602_boot=%s actions=%u "
     "continuous_timeout=%umin loading=%s eyes_style=%s "
     "access_token=%s link_mode=%s wifi_networks=%u servos=%u-%u;%u-%u;%u-%u;%u-%u;%u-%u "
-    "rgb_order=%s oled_rotate_180=%s",
+    "rgb_order=%s oled_rotate_180=%s face_pose=%s",
     prefix,
     static_cast<unsigned>(sleepTimeoutMin),
     hostname,
@@ -151,7 +166,8 @@ void SettingsValues::log(const char* prefix) const {
     r.mins[0], r.maxs[0], r.mins[1], r.maxs[1], r.mins[2], r.maxs[2], r.mins[3], r.maxs[3],
     r.mins[4], r.maxs[4],
     rgbOrder,
-    oledRotate180 ? "on" : "off"
+    oledRotate180 ? "on" : "off",
+    face
   );
   serialLogPrintln(line);
 }

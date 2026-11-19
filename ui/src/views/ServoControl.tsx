@@ -4,6 +4,7 @@ import { Button } from "../components/Button";
 import { ServoTrack } from "../components/ServoTrack";
 import { DEFAULT_SERVO_RANGES, inRange, SERVO_NAMES, savedRanges } from "../servos";
 import { useStatus } from "../status/status";
+import { FacePoseSection } from "./FacePoseSection";
 
 export function ServoControl() {
   const { settings } = useRobot();
@@ -109,6 +110,7 @@ export function ServoControl() {
           </Button>
         </div>
       </form>
+      {settings && <FacePoseSection settings={settings} ranges={ranges} />}
     </section>
   );
 }

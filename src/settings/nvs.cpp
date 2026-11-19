@@ -10,6 +10,7 @@ namespace {
 
 // Stored as min,max pairs, one per servo.
 constexpr size_t kServoRangesLen = SETTINGS_SERVO_COUNT * 2;
+constexpr size_t kFacePoseLen = SETTINGS_FACE_POSE_COUNT * sizeof(float);
 
 template <size_t N>
 void loadText(char (&dest)[N], const char* key, bool (*valid)(const char*)) {
@@ -122,6 +123,16 @@ void SettingsValues::load() {
   if (g_settingsPrefs.isKey(kKeyOledRot)) {
     oledRotate180 = g_settingsPrefs.getBool(kKeyOledRot, oledRotate180);
   }
+
+  if (g_settingsPrefs.isKey(kKeyFacePose)) {
+    FacePose stored{};
+    stored.set = g_settingsPrefs.getBytes(kKeyFacePose, stored.values, kFacePoseLen) ==
+                 kFacePoseLen;
+
+    if (stored.set && stored.valid()) {
+      facePose = stored;
+    }
+  }
 }
 
 namespace {
@@ -192,6 +203,18 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
     }
 
     ok &= g_settingsPrefs.putBytes(kKeyServoRanges, blob, kServoRangesLen) == kServoRangesLen;
+  }
+
+  const FacePose& face = values.facePose;
+  const FacePose& oldFace = before.facePose;
+  const bool faceChanged = face.set != oldFace.set ||
+    (face.set && memcmp(face.values, oldFace.values, kFacePoseLen) != 0);
+
+  if (all || faceChanged) {
+    // Not set = no key. Preferences writes nothing for an empty blob.
+    ok &= face.set
+      ? g_settingsPrefs.putBytes(kKeyFacePose, face.values, kFacePoseLen) == kFacePoseLen
+      : !g_settingsPrefs.isKey(kKeyFacePose) || g_settingsPrefs.remove(kKeyFacePose);
   }
 
   return ok;
