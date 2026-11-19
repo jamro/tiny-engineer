@@ -206,6 +206,56 @@ describe("face me section", () => {
     expect(faceAngle()).toBe("91");
   });
 
+  it("moves all joints to the shown pose before Save, also without a nudge", async () => {
+    const robot = fakeRobot();
+    const { click } = renderApp("/servo");
+
+    await screen.findByText("Not set (default pose)");
+    await click("Save face pose");
+
+    await waitFor(() =>
+      expect(robot.lastPost("/settings")?.json).toEqual({ face_pose: [1 / 7, 0, 0] }),
+    );
+    expect(robot.sent("POST", "/test/servo").map((request) => request.json)).toEqual([
+      { index: 0, angle: 91 },
+      { index: 1, angle: 90 },
+      { index: 4, angle: 90 },
+    ]);
+  });
+
+  it("does not save when a move before Save fails", async () => {
+    const robot = fakeRobot();
+    const { click } = renderApp("/servo");
+
+    await screen.findByText("Not set (default pose)");
+    robot.failing.add("/test/servo");
+    await click("Save face pose");
+
+    await waitFor(() => expect(robot.sent("POST", "/test/servo")).toHaveLength(1));
+    expect(robot.sent("POST", "/settings")).toHaveLength(0);
+    expect(screen.getByText("Not set (default pose)")).toBeTruthy();
+  });
+
+  it("syncs all joints again after the Servo control form moves a joint", async () => {
+    const robot = fakeRobot();
+    const { user, click } = renderApp("/servo");
+
+    await click(/^Neck/);
+    await click("−1°");
+    await waitFor(() => expect(robot.sent("POST", "/test/servo")).toHaveLength(4));
+
+    await typeAngle(user, "100");
+    await click("Move servo");
+    expect(await screen.findByText("Servo 0 moved to 100°.")).toBeTruthy();
+
+    await click("−1°");
+
+    // Head was moved by the form: the nudge first sends all three joints again.
+    await waitFor(() => expect(robot.sent("POST", "/test/servo")).toHaveLength(9));
+    expect(robot.sent("POST", "/test/servo")[5].json).toEqual({ index: 0, angle: 91 });
+    expect(robot.lastPost("/test/servo")?.json).toEqual({ index: 1, angle: 88 });
+  });
+
   it("previews talking and stops it", async () => {
     const robot = fakeRobot();
     const { click } = renderApp("/servo");

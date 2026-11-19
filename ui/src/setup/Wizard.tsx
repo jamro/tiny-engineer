@@ -4,7 +4,7 @@ import { useRobot } from "../robot";
 import { Button } from "../components/Button";
 import { useStatus } from "../status/status";
 import { useResettableState } from "../useResettableState";
-import { savedFacePose, type Range } from "../servos";
+import { moveFacePose, savedFacePose, type Range } from "../servos";
 import { FaceStep } from "./FaceStep";
 import { GuidedCalibration } from "./GuidedCalibration";
 import { LedStep } from "./LedStep";
@@ -15,6 +15,7 @@ import { ServosHub } from "./ServosHub";
 import { SpeakerStep } from "./SpeakerStep";
 import { useCalibration } from "./useCalibration";
 import { releaseLed, useLedMapping } from "./useLedMapping";
+import { useSetupServo } from "./useSetupServo";
 
 const STEPS = [
   { id: "servos", title: "Servos" },
@@ -34,6 +35,7 @@ export function Wizard({ settings }: { settings: Settings }) {
   const [oledRotate180, setOledRotate180] = useResettableState(settings.oled_rotate_180, Boolean);
   const calibration = useCalibration(settings);
   const [facePose, setFacePose] = useState(() => savedFacePose(settings));
+  const moveServo = useSetupServo();
   const led = useLedMapping(settings.rgb_order);
   const step = STEPS[stepIndex];
   const nextStep = STEPS.at(stepIndex + 1);
@@ -78,7 +80,11 @@ export function Wizard({ settings }: { settings: Settings }) {
   const saves: Partial<Record<StepId, () => Promise<boolean>>> = {
     oled: () => save({ oled_rotate_180: oledRotate180 }, "Saving screen rotation…"),
     led: () => save({ rgb_order: led.order }, "Saving LED mapping…"),
-    face: () => save({ face_pose: facePose }, "Saving face pose…"),
+    // The robot moves to the pose first, so it never stores an angle it did not reach.
+    face: async () =>
+      (await moveFacePose(facePose, calibration.ranges, (index, angle) =>
+        moveServo({ index, angle }),
+      )) && save({ face_pose: facePose }, "Saving face pose…"),
   };
 
   async function next() {

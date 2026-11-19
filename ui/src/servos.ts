@@ -46,3 +46,23 @@ export const DEFAULT_FACE_POSE: readonly number[] = [1 / 7, 0, 0];
 
 export const savedFacePose = ({ face_pose: pose }: Settings): number[] =>
   pose.length === FACE_JOINTS.length ? [...pose] : [...DEFAULT_FACE_POSE];
+
+// The face controls show and move whole degrees.
+export const faceDegrees = (n: number, range: Range) => Math.round(normToDeg(n, range));
+
+// Moves head, neck and body to the pose, one after the other. Stops at the
+// first failed move. Run it before a save, so the robot stands in the pose
+// it stores.
+export async function moveFacePose(
+  pose: readonly number[],
+  ranges: readonly Range[],
+  move: (index: number, angle: number) => Promise<boolean>,
+) {
+  for (const [each, { index }] of FACE_JOINTS.entries()) {
+    if (!(await move(index, faceDegrees(pose[each], ranges[index])))) {
+      return false;
+    }
+  }
+
+  return true;
+}

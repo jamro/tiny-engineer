@@ -1,52 +1,50 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { clamp } from "../lib/math";
-import { degToNorm, FACE_JOINTS, normToDeg, type Range } from "../servos";
+import { degToNorm, FACE_JOINTS, faceDegrees, moveFacePose, type Range } from "../servos";
 import { Button } from "./Button";
 import { ServoTrack } from "./ServoTrack";
 
 const NUDGES = [-5, -1, 1, 5];
 
-const wholeDegrees = (n: number, range: Range) => Math.round(normToDeg(n, range));
-
 // Pick a joint, then nudge it in whole degrees like the guided calibration. The
 // bar spans the joint's saved min..max. The pose stays in -1..1 units; every nudge
 // moves the robot at once, inside the saved range. Before the first nudge (or on
-// mount with moveOnMount) all three joints go to the shown pose, so Save never
-// stores an angle the robot did not reach.
+// mount with moveOnMount) all three joints go to the shown pose. A new
+// `resync` value (another control moved a joint) makes the next nudge sync again.
+// Save moves all joints itself (moveFacePose), so it never depends on this sync.
 export function FacePoseControls({
   pose,
   ranges,
   onPose,
   onMove,
   moveOnMount = false,
+  resync = 0,
 }: {
   pose: readonly number[];
   ranges: readonly Range[];
   onPose: (pose: number[]) => void;
   onMove: (index: number, angle: number) => Promise<boolean>;
   moveOnMount?: boolean;
+  resync?: number;
 }) {
   const [slot, setSlot] = useState(0);
   const syncRef = useRef<Promise<boolean> | null>(null);
+  const syncedResyncRef = useRef(resync);
   const { index, name, low, high } = FACE_JOINTS[slot];
   const range = ranges[index];
   const [min, max] = range;
-  const angle = wholeDegrees(pose[slot], range);
+  const angle = faceDegrees(pose[slot], range);
   const percent = (degrees: number) => `${((degrees - min) / Math.max(1, max - min)) * 100}%`;
 
-  async function moveAll() {
-    for (const [each, joint] of FACE_JOINTS.entries()) {
-      if (!(await onMove(joint.index, wholeDegrees(pose[each], ranges[joint.index])))) {
-        return false;
-      }
+  // One shared sync; a failed one is tried again on the next nudge, and a new
+  // `resync` value (another control moved a joint) starts a new one.
+  async function sync() {
+    if (syncedResyncRef.current !== resync) {
+      syncedResyncRef.current = resync;
+      syncRef.current = null;
     }
 
-    return true;
-  }
-
-  // One shared sync; a failed one is tried again on the next nudge.
-  async function sync() {
-    syncRef.current ??= moveAll();
+    syncRef.current ??= moveFacePose(pose, ranges, onMove);
 
     if (await syncRef.current) {
       return true;
@@ -92,7 +90,7 @@ export function FacePoseControls({
             aria-pressed={each === slot}
             onClick={() => setSlot(each)}
           >
-            {`${joint.name} ${wholeDegrees(pose[each], ranges[joint.index])}°`}
+            {`${joint.name} ${faceDegrees(pose[each], ranges[joint.index])}°`}
           </Button>
         ))}
       </div>

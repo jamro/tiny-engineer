@@ -4,10 +4,19 @@ import { Button } from "../components/Button";
 import { ConfigSection } from "../components/ConfigSection";
 import { FacePoseControls } from "../components/FacePoseControls";
 import { useRobot } from "../robot";
-import { savedFacePose, type Range } from "../servos";
+import { moveFacePose, savedFacePose, type Range } from "../servos";
 import { useStatus } from "../status/status";
 
-export function FacePoseSection({ settings, ranges }: { settings: Settings; ranges: Range[] }) {
+export function FacePoseSection({
+  settings,
+  ranges,
+  manualMoves,
+}: {
+  settings: Settings;
+  ranges: Range[];
+  // Counts moves from the Servo control form; a change resyncs the face controls.
+  manualMoves: number;
+}) {
   const { applySettings } = useRobot();
   const { perform } = useStatus();
   const [pose, setPose] = useState(() => savedFacePose(settings));
@@ -65,6 +74,13 @@ export function FacePoseSection({ settings, ranges }: { settings: Settings; rang
     });
   }
 
+  // Save stores only a pose the robot reached: all joints move to it first.
+  async function saveCurrent() {
+    if (await moveFacePose(pose, ranges, move)) {
+      await save(pose, "Face pose saved.");
+    }
+  }
+
   async function clear() {
     if (!confirm("Clear the face me pose? Talking goes back to the default pose.")) {
       return;
@@ -89,6 +105,7 @@ export function FacePoseSection({ settings, ranges }: { settings: Settings; rang
       <FacePoseControls
         key={controlsKey}
         pose={pose}
+        resync={manualMoves}
         ranges={ranges}
         onPose={setPose}
         onMove={move}
@@ -101,7 +118,7 @@ export function FacePoseSection({ settings, ranges }: { settings: Settings; rang
       <div className="servo-actions">
         <Button onClick={togglePreview}>{previewing ? "Stop preview" : "Preview talking"}</Button>
         {isSet && <Button onClick={clear}>Clear</Button>}
-        <Button variant="primary" onClick={() => save(pose, "Face pose saved.")}>
+        <Button variant="primary" onClick={saveCurrent}>
           Save face pose
         </Button>
       </div>

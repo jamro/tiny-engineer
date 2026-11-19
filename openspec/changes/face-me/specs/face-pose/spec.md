@@ -112,7 +112,16 @@ After provisioning, the Servo control page of the web UI MUST provide a Face me 
 
 #### Scenario: Save
 - **WHEN** the user chooses Save
-- **THEN** the UI sends the three current values as `face_pose` via `POST /settings`
+- **THEN** the robot first moves head, neck and body to the angles the controls show
+- **AND** only when all three moves succeed, the UI sends the three current values as `face_pose` via `POST /settings`
+
+#### Scenario: Save after a failed move
+- **WHEN** the user chooses Save and one of the moves before it fails
+- **THEN** the UI sends no `face_pose`
+
+#### Scenario: Another control moved a joint
+- **WHEN** the Servo control form moves a joint after the face controls synced
+- **THEN** the next nudge first moves head, neck and body to the shown pose again
 
 #### Scenario: Clear
 - **WHEN** the user chooses Clear and confirms
@@ -140,8 +149,10 @@ The setup AP wizard MUST show a Face me step directly after the servos step. The
 - **AND** no `face_pose` is sent
 
 #### Scenario: Save and continue
-- **WHEN** the user moves the joints and chooses Save and continue
-- **THEN** the UI sends the three current values as `face_pose` via `POST /settings` and advances
+- **WHEN** the user chooses Save and continue, with or without a nudge
+- **THEN** the robot first moves head, neck and body to the shown angles with the setup servo move endpoint
+- **AND** only when all three moves succeed, the UI sends the three current values as `face_pose` via `POST /settings` and advances
+- **AND** when a move fails, the UI sends no `face_pose` and stays on the Face me step
 
 #### Scenario: Step opens at the shown pose
 - **WHEN** the Face me step opens

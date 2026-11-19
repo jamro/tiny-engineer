@@ -457,6 +457,36 @@ describe("setup wizard", () => {
     );
   });
 
+  it("moves the joints again and saves the pose without a nudge", async () => {
+    const { robot, click } = await skipToFace({
+      servo_mins: [70, 40, 45, 35, 60],
+      servo_maxs: [110, 130, 135, 125, 120],
+    });
+
+    await waitFor(() => expect(robot.sent("POST", "/setup/servo")).toHaveLength(3));
+    await click("Save and continue");
+
+    await waitFor(() => expect(stepLabel()).toBe("Step 3 of 6 · Screen"));
+    expect(robot.sent("POST", "/setup/servo")).toHaveLength(6);
+    expect(robot.lastPost("/settings")?.json).toEqual({ face_pose: [1 / 7, 0, 0] });
+  });
+
+  it("does not save the face pose when a move fails", async () => {
+    const { robot, click } = await skipToFace();
+
+    await waitFor(() => expect(robot.sent("POST", "/setup/servo")).toHaveLength(3));
+    robot.failing.add("/setup/servo");
+    await click("Save and continue");
+
+    await waitFor(() => expect(robot.sent("POST", "/setup/servo")).toHaveLength(4));
+    expect(stepLabel()).toBe("Step 2 of 6 · Face me");
+    expect(
+      robot
+        .sent("POST", "/settings")
+        .some((request) => JSON.stringify(request.json).includes("face_pose")),
+    ).toBe(false);
+  });
+
   it("moves face joints with the setup move and saves the pose", async () => {
     const { robot, click } = await skipToFace({
       servo_mins: [70, 40, 45, 35, 60],

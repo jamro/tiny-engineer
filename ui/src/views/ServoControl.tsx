@@ -13,6 +13,7 @@ export function ServoControl() {
   const ranges = settings ? savedRanges(settings) : DEFAULT_SERVO_RANGES;
   const [index, setIndex] = useState(0);
   const [angle, setAngle] = useState("90");
+  const [manualMoves, setManualMoves] = useState(0);
   const [min, max] = ranges[index];
   const mid = (min + max) / 2;
   const value = parseFloat(angle);
@@ -29,13 +30,17 @@ export function ServoControl() {
   }
 
   async function move(target: string) {
-    await perform({
+    const result = await perform({
       path: "/test/servo",
       request: { method: "POST", json: { index, angle: Number(target) } },
       pending: "Moving servo…",
       failure: "Move failed",
       done: `Servo ${index} moved to ${target}°.`,
     });
+
+    if (result?.ok === true) {
+      setManualMoves((count) => count + 1);
+    }
   }
 
   return (
@@ -110,7 +115,9 @@ export function ServoControl() {
           </Button>
         </div>
       </form>
-      {settings && <FacePoseSection settings={settings} ranges={ranges} />}
+      {settings && (
+        <FacePoseSection settings={settings} ranges={ranges} manualMoves={manualMoves} />
+      )}
     </section>
   );
 }
