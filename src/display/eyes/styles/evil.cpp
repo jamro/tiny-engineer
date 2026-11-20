@@ -25,11 +25,10 @@ float bump01(float t) {
   return 4.0f * t * (1.0f - t);
 }
 
-// Left-eye unit test: nx=0 outer, nx=1 inner; ny=0 top, ny=1 bottom.
-// Top and bottom share a slanted base (outer high → inner low). Depth bump
-// opens the eye; a smaller notch digs the brow without collapsing fill.
-bool insideEvilUnit(float nx, float ny) {
-  if (nx < 0.0f || nx > 1.0f || ny < 0.0f || ny > 1.0f) {
+// Left-eye column span: nx=0 outer, nx=1 inner. Returns false if empty.
+// Shared slanted base; depth opens the eye; small notch digs the brow.
+bool evilColumnSpan(float nx, int16_t height, int16_t& y0, int16_t& y1) {
+  if (nx < 0.0f || nx > 1.0f || height <= 0) {
     return false;
   }
 
@@ -43,11 +42,6 @@ bool insideEvilUnit(float nx, float ny) {
   float top = base + kNotch * lift;
   float bottom = base + kDepth * lift;
 
-  if (bottom <= top) {
-    return false;
-  }
-
-  // Sharp outer tip only — keep mid-eye thickness.
   if (nx < 0.08f) {
     const float tip = nx / 0.08f;
     const float mid = 0.5f * (top + bottom);
@@ -55,7 +49,25 @@ bool insideEvilUnit(float nx, float ny) {
     bottom = mid + (bottom - mid) * tip;
   }
 
-  return ny >= top && ny <= bottom;
+  if (bottom <= top) {
+    return false;
+  }
+
+  const float scale = (float)(height - 1);
+  y0 = (int16_t)(top * scale + 0.5f);
+  y1 = (int16_t)(bottom * scale + 0.5f);
+
+  if (y0 < 0) {
+    y0 = 0;
+  }
+  if (y1 >= height) {
+    y1 = (int16_t)(height - 1);
+  }
+  if (y1 < y0) {
+    return false;
+  }
+
+  return true;
 }
 
 int16_t evilHeight(int16_t renderedHeight) {
@@ -100,27 +112,26 @@ void drawEvilSilhouette(const Eye& rendered, bool mirrorRight) {
   const int16_t cx = (int16_t)(rendered.x + rendered.width / 2);
   const int16_t cy = (int16_t)(rendered.y + rendered.height / 2);
   const int16_t x0 = (int16_t)(cx - w / 2);
-  const int16_t y0 = (int16_t)(cy - h / 2);
+  const int16_t yBase = (int16_t)(cy - h / 2);
 
-  for (int16_t y = 0; y < h; y++) {
-    const float ny = (h <= 1) ? 0.5f : (float)y / (float)(h - 1);
-
-    for (int16_t x = 0; x < w; x++) {
-      float nx = (w <= 1) ? 0.5f : (float)x / (float)(w - 1);
-      if (mirrorRight) {
-        nx = 1.0f - nx;
-      }
-
-      if (!insideEvilUnit(nx, ny)) {
-        continue;
-      }
-
-      display.drawPixel(
-        (int16_t)(x0 + x),
-        (int16_t)(y0 + y),
-        SSD1306_WHITE
-      );
+  for (int16_t x = 0; x < w; x++) {
+    float nx = (w <= 1) ? 0.5f : (float)x / (float)(w - 1);
+    if (mirrorRight) {
+      nx = 1.0f - nx;
     }
+
+    int16_t y0 = 0;
+    int16_t y1 = 0;
+    if (!evilColumnSpan(nx, h, y0, y1)) {
+      continue;
+    }
+
+    display.drawFastVLine(
+      (int16_t)(x0 + x),
+      (int16_t)(yBase + y0),
+      (int16_t)(y1 - y0 + 1),
+      SSD1306_WHITE
+    );
   }
 }
 

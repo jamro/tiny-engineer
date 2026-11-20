@@ -17,6 +17,8 @@ python3 scripts/test_audio_pack.py
 
 The optional [expression library](../lib/TinyEngineerExpressions/README.md) has deterministic asset checks and native renderer tests. These checks require Node 18+ and PlatformIO; they do not access hardware. On the robot, enable those faces with Config / `eyes_style=kaomoji` (default remains `classic`).
 
+Adding a procedural `eyes_style` (not only kaomoji assets): keep the OLED `draw` cheap so welcome/attention audio does not underrun — [Keep audio fed](../src/display/eyes/styles/README.md#keep-audio-fed-i2s-underrun).
+
 ```bash
 node scripts/expressions/generate.js --check
 node scripts/expressions/test-assets.js

@@ -89,6 +89,7 @@ Breaking rules, SemVer mapping, and examples: [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Mods** — optional add-ons under `mods/<mod_name>/`. Models live in `3d_models/{cad,parts}/`. Commit `type(mods)` and name the mod in the summary. `feat(mods)` / `fix(mods)` do not version stock CAD. See [mods/README.md](mods/README.md).
 - **PCB** — [docs/pcb.md](docs/pcb.md) checklist + KiCad review rules below. Run `python3 scripts/check_pcb.py` (KiCad 10). New board paths need `REUSE.toml`. CERN-OHL-S.
 - **Motion** — poses −1..1 mapped to saved min/max; see [docs/robot-movement.md](docs/robot-movement.md). Do not widen NVS servo clamps without testing on a real robot.
+- **OLED eye styles** — add/register under [`src/display/eyes/styles/`](src/display/eyes/styles/README.md). Keep `draw` cheap so I2S audio does not underrun (slow/gappy speech, clipped welcome); see **Keep audio fed** in that README.
 - **Secrets** — no `.env`, tokens, or Wi-Fi passwords in logs or screenshots.
 
 ## KiCad / PCB review
@@ -121,6 +122,7 @@ Contribute/review process: [docs/pcb.md](docs/pcb.md). `expected-nets.yml`: [doc
 | Drive robot from any IDE | [docs/integration.md](docs/integration.md) |
 | Settings layers | [docs/settings.md](docs/settings.md) |
 | Servo axes / ranges | [docs/robot-movement.md](docs/robot-movement.md) |
+| OLED eye styles / audio underrun | [src/display/eyes/styles/README.md](src/display/eyes/styles/README.md#keep-audio-fed-i2s-underrun) |
 | Tests | [docs/testing.md](docs/testing.md) |
 | PCB / KiCad | [docs/pcb.md](docs/pcb.md) |
 | Humans contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
