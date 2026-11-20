@@ -200,8 +200,8 @@ export function ApiReference() {
             </td>
             <td>string</td>
             <td>
-              <code>classic</code>, <code>kaomoji</code>, <code>cover</code>, <code>dots</code>, or{" "}
-              <code>kawaii</code> (OLED eyes look; immediate)
+              <code>classic</code>, <code>kaomoji</code>, <code>cover</code>, <code>dots</code>,{" "}
+              <code>kawaii</code>, or <code>evil</code> (OLED eyes look; immediate)
             </td>
           </tr>
           <tr>

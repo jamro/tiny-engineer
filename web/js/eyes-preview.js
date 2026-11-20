@@ -155,6 +155,61 @@ function drawDots(buf, pose) {
   drawDot(buf, pose.right);
 }
 
+const EVIL_W = 42;
+const EVIL_OPEN_H = 24;
+
+function evilBump(t) {
+  if (t <= 0 || t >= 1) return 0;
+  return 4 * t * (1 - t);
+}
+
+function insideEvilUnit(nx, ny) {
+  if (nx < 0 || nx > 1 || ny < 0 || ny > 1) return false;
+  const outerY = 0.06;
+  const innerY = 0.5;
+  const notch = 0.1;
+  const depth = 0.72;
+  const base = outerY + (innerY - outerY) * nx;
+  const lift = evilBump(nx);
+  let top = base + notch * lift;
+  let bottom = base + depth * lift;
+  if (bottom <= top) return false;
+  if (nx < 0.08) {
+    const tip = nx / 0.08;
+    const mid = 0.5 * (top + bottom);
+    top = mid + (top - mid) * tip;
+    bottom = mid + (bottom - mid) * tip;
+  }
+  return ny >= top && ny <= bottom;
+}
+
+function drawEvilEye(buf, eye, mirrorRight) {
+  if (eye.h <= 0 || eye.w <= 0) return;
+  const h = Math.min(H, Math.round((EVIL_OPEN_H * eye.h) / DEFAULT_LEFT.h));
+  if (h <= 0) return;
+  let w = Math.round((EVIL_W * eye.w) / DEFAULT_LEFT.w);
+  if (w < 4) return;
+  w = Math.min(W, w);
+  const cx = eye.x + ((eye.w / 2) | 0);
+  const cy = eye.y + ((eye.h / 2) | 0);
+  const x0 = cx - ((w / 2) | 0);
+  const y0 = cy - ((h / 2) | 0);
+  for (let y = 0; y < h; y++) {
+    const ny = h <= 1 ? 0.5 : y / (h - 1);
+    for (let x = 0; x < w; x++) {
+      let nx = w <= 1 ? 0.5 : x / (w - 1);
+      if (mirrorRight) nx = 1 - nx;
+      if (insideEvilUnit(nx, ny)) put(buf, x0 + x, y0 + y);
+    }
+  }
+}
+
+function drawEvil(buf, pose) {
+  clear(buf);
+  drawEvilEye(buf, pose.left, false);
+  drawEvilEye(buf, pose.right, true);
+}
+
 function drawKaomoji(buf, nowMs, reduceMotion) {
   clear(buf);
   let id = "idle";
@@ -302,6 +357,7 @@ const STYLE_PHASE = {
   dots: 1700,
   kawaii: 3100,
   kaomoji: 900,
+  evil: 2400,
 };
 
 function createPreview(canvas, style) {
@@ -325,6 +381,7 @@ function createPreview(canvas, style) {
     else if (style === "dots") drawDots(buf, pose);
     else if (style === "kaomoji") drawKaomoji(buf, now + phaseMs, reduceMotion);
     else if (style === "kawaii") drawKawaii(buf, pose, now + phaseMs, reduceMotion);
+    else if (style === "evil") drawEvil(buf, pose);
     blit(buf, canvas);
     if (!reduceMotion && visible) raf = requestAnimationFrame(frame);
   }
