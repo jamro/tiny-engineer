@@ -121,7 +121,18 @@ WAV for `/play`: 16-bit mono PCM at 22050 Hz. Details: [`api.md#post-play`](api.
 
 ### Speaking through the robot (skill)
 
-Install the shared [`tiny-engineer-play`](../skills/tiny-engineer-play/SKILL.md) skill (`curl` + `POST /play`). Same skill works in Claude Code, Cursor, and Antigravity:
+Install the shared [`tiny-engineer-play`](../skills/tiny-engineer-play/SKILL.md) skill (`curl` + `POST /play`). It needs a text-to-speech tool (`espeak-ng` on Linux, `say` on macOS) and `ffmpeg`.
+
+**Claude Code: install the plugin.** This repo is a Claude Code plugin marketplace ([`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json)). No clone needed, and updates come through `/plugin`:
+
+```text
+/plugin marketplace add jamro/tiny-engineer
+/plugin install tiny-engineer@tiny-engineer
+```
+
+The skill is then `/tiny-engineer:tiny-engineer-play`, and Claude also uses it when you ask the robot to say something. The plugin carries only `skills/`.
+
+**From a checkout.** The same skill works in Claude Code, Cursor, and Antigravity. A symlink follows whatever branch the checkout is on; copy the folder instead for a fixed version:
 
 ```bash
 mkdir -p ~/.claude/skills && ln -s "$PWD/skills/tiny-engineer-play" ~/.claude/skills/                         # Claude Code

@@ -1,0 +1,20 @@
+{
+  "name": "tiny-engineer",
+  "owner": {
+    "name": "Krzysztof Jamroz",
+    "url": "https://github.com/jamro/tiny-engineer"
+  },
+  "description": "Claude Code plugins for the Tiny Engineer desk robot",
+  "plugins": [
+    {
+      "name": "tiny-engineer",
+      "source": "./skills",
+      "description": "Make the Tiny Engineer desk robot speak through its speaker while it gestures (POST /play)",
+      "category": "productivity",
+      "keywords": ["robot", "esp32", "tts"],
+      "homepage": "https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md",
+      "license": "MIT",
+      "skills": ["./"]
+    }
+  ]
+}
