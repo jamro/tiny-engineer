@@ -28,9 +28,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -40,9 +39,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -52,9 +50,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -64,9 +61,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -76,9 +72,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -88,9 +83,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -100,9 +94,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -112,9 +105,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -124,9 +116,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -136,9 +127,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -148,9 +138,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -160,9 +149,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }
@@ -172,9 +160,8 @@
             "hooks": [
               {
                 "type": "command",
-                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
-                "async": true,
-                "timeout": 30
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; command -v tiny-engineer >/dev/null 2>&1 || exit 0; tiny-engineer hook claude-code",
+                "async": true
               }
             ]
           }

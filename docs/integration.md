@@ -106,13 +106,14 @@ This firmware repo already ships configs pointing at the **local** CLI bin for d
 Instead of `setup` per project, Claude Code can install the hooks once for every project as a plugin. This repo is a Claude Code plugin marketplace ([`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json)). The `tiny-engineer` plugin brings the same 13 hook events as `setup claude-code` plus the [`tiny-engineer-play`](#speaking-through-the-robot-skill) skill. Run in a terminal:
 
 ```bash
+npm i -g tiny-engineer
 claude plugin marketplace add jamro/tiny-engineer --sparse .claude-plugin skills
 claude plugin install tiny-engineer@tiny-engineer
 ```
 
 `--sparse` makes Claude Code check out only the two folders the plugin needs (a few KB) instead of the whole repo with CAD, PCB, and firmware sources (over 200 MB). Restart Claude Code afterwards. Turn the plugin off or on with `/plugin`.
 
-- The hooks run `tiny-engineer hook claude-code` when the CLI is on `PATH` (global npm install or a system package), else `npx -y tiny-engineer hook claude-code`. Connection prefs (URL, token, transport) come from the user config file described above, or from process env.
+- The hooks run `tiny-engineer hook claude-code`, so the CLI must be on `PATH` (the `npm i -g` above, or a system package). Without it the hooks exit quietly and the robot stays still. They do not fall back to `npx`: Claude Code enforces no timeout on async hooks, and a stalled npm registry would leave one `npx` process behind per event. Connection prefs (URL, token, transport) come from the user config file described above, or from process env.
 - A project whose `.claude/settings.json` or `.claude/settings.local.json` already has Tiny Engineer hooks (from `setup`, or this repo's dev hooks) keeps those, and the plugin stays quiet there, so events never fire twice.
 - The skill is `/tiny-engineer:tiny-engineer-play` (plugin skills are namespaced). Claude also uses it when you ask the robot to say something.
 
