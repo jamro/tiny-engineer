@@ -470,7 +470,12 @@ describe("setup wizard", () => {
 
     // Default pose: head 1/7 of 20° above mid 90 = 93, neck mid 85, body mid 90.
     await waitFor(() =>
-      expect(robot.sent("POST", "/setup/servo").map((request) => request.json).slice(-3)).toEqual([
+      expect(
+        robot
+          .sent("POST", "/setup/servo")
+          .map((request) => request.json)
+          .slice(-3),
+      ).toEqual([
         { index: 0, angle: 93 },
         { index: 1, angle: 85 },
         { index: 4, angle: 90 },
@@ -485,7 +490,12 @@ describe("setup wizard", () => {
     });
 
     await waitFor(() =>
-      expect(robot.sent("POST", "/setup/servo").map((request) => request.json).slice(-3)).toEqual([
+      expect(
+        robot
+          .sent("POST", "/setup/servo")
+          .map((request) => request.json)
+          .slice(-3),
+      ).toEqual([
         { index: 0, angle: 93 },
         { index: 1, angle: 85 },
         { index: 4, angle: 90 },
@@ -510,7 +520,9 @@ describe("setup wizard", () => {
     robot.failing.add("/setup/servo");
     await click("Save and continue");
 
-    await waitFor(() => expect(robot.sent("POST", "/setup/servo").length).toBeGreaterThan(movesAtFace));
+    await waitFor(() =>
+      expect(robot.sent("POST", "/setup/servo").length).toBeGreaterThan(movesAtFace),
+    );
     expect(screen.getByRole("heading", { name: "Face me" })).toBeTruthy();
     expect(stepLabel()).toBe("Step 1 of 5 · Servos");
     expect(

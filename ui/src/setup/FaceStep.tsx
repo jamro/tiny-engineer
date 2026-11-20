@@ -30,8 +30,7 @@ export function FaceStep({
   async function back() {
     const lastIndex = GUIDED_STEPS.length - 1;
     const step = GUIDED_STEPS[lastIndex];
-    const start =
-      calibration.guidedDrafts[lastIndex] ?? startAngleFor(step, calibration.ranges);
+    const start = calibration.guidedDrafts[lastIndex] ?? startAngleFor(step, calibration.ranges);
 
     if (!(await moveServo({ index: step.joint, angle: start }))) {
       return;
