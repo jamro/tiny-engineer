@@ -123,6 +123,14 @@ WAV for `/play`: 16-bit mono PCM at 22050 Hz. Details: [`api.md#post-play`](api.
 
 Install the shared [`tiny-engineer-play`](../skills/tiny-engineer-play/SKILL.md) skill (`curl` + `POST /play`). It needs a text-to-speech tool (`espeak-ng` on Linux, `say` on macOS) and `ffmpeg`.
 
+The skill's script reads the robot address and token only from the environment (`TINY_ENGINEER_URL`, default `http://tiny-engineer.local`, and `TINY_ENGINEER_TOKEN`). It does not read the user config that `tiny-engineer setup` writes. If your robot uses another address or an `access_token`, export both before you start the agent:
+
+```bash
+export TINY_ENGINEER_URL=http://192.168.x.x
+export TINY_ENGINEER_TOKEN=your-access-token
+claude
+```
+
 **Claude Code: install the plugin.** This repo is a Claude Code plugin marketplace ([`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json)). No clone needed, and updates come through `/plugin`:
 
 ```text
