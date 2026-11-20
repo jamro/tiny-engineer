@@ -9,9 +9,9 @@ Users put the robot on their desk in different positions relative to where they 
 - New optional setting `face_pose`: a head (pitch), neck (yaw) and body (yaw) pose in the normalized −1..1 animation units. Empty (`[]`) means not set. Not set is the default.
 - When `face_pose` is not set, the robot moves exactly as today. No user has to do this setup.
 - The talking animation centers its head nods, neck drift and body sway on the face pose when it is set. Other animations do not change in this change.
-- `GET /settings` returns `face_pose`. `POST /settings` accepts `face_pose` (three numbers to set, `[]` to clear) in normal mode and in setup AP mode. Factory reset clears it.
+- `GET /settings` returns `face_pose`. `POST /settings` accepts `face_pose` (three numbers to set, `[]` to clear) in normal mode and in setup AP mode. Factory reset keeps it (same as servo ranges).
 - Web UI: a new **Face me** section on the Servo control page (`/servo`) to move head, neck and body to the user, save, clear and preview the talking animation. No new page route.
-- Setup AP wizard: an optional **Face me** step after the servos step, with Skip.
+- Setup AP wizard: **Face me** as the last substep of guided servo calibration (not a separate outer step). Hub Skip skips Face me too.
 - Docs: `docs/api.md`, `docs/settings.md`, the web UI API reference, `README.md`, `docs/robot-movement.md`.
 
 ## Capabilities
@@ -20,7 +20,7 @@ Users put the robot on their desk in different positions relative to where they 
 - `face-pose`: the per-user "face me" pose — storage, settings API, default behavior when not set, calibration in the web UI and the setup wizard, and which animations use it.
 
 ### Modified Capabilities
-- `setup-servo-calibration`: the "Guided calibration is strict forward with Back" requirement names the "outer five-step wizard progress". The wizard now has six steps, so the text says "outer wizard progress" (no count). The servos step itself does not change; the new Face me step is a `face-pose` requirement.
+- `setup-servo-calibration`: guided calibration progress includes Face me as the final substep; hub Skip leaves the outer five-step wizard without Face me.
 
 ## Impact
 

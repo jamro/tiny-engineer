@@ -53,6 +53,15 @@
 - [x] 8.7 Third review: a preview start or stop makes the next nudge sync all joints again; verify a new case in `ui/test/servo.test.tsx`, plus `npm run lint --prefix ui` and `npm test --prefix ui`
 - [x] 8.8 On the real robot: preview, stop, then nudge syncs all joints (user test)
 
+## 9. Fold Face me into guided calibration
+
+- [x] 9.1 Remove the outer Face me wizard step; open Face me as the last guided calibration substep (`11 of 11`); hub Skip skips Face me; shorten copy and match guided chrome; verify `ui/test/wizard.test.tsx`, `npm test --prefix ui`, and `npm run lint --prefix ui`
+- [x] 9.2 Update `docs/api.md`, `docs/robot-movement.md`, and the face-me OpenSpec artifacts for the five-step outer wizard and Face-me-inside-calib behavior
+
+## 10. Keep face pose on factory reset
+
+- [x] 10.1 Preserve `facePose` in `factoryResetSettings()` like servo ranges; update UI/CLI/docs/OpenSpec; verify `pio run`
+
 ## Workflow follow-up
 
 - After the robot test passes, rebase the branch onto `main` in a separate worktree (`git rebase --onto main custom_setup feat/face-me`), run `pio run`, push to `fork` and open the PR to `jamro/tiny-engineer` after user approval.

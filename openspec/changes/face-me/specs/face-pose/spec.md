@@ -52,12 +52,12 @@ The device MUST answer `400` with `invalid face_pose` and MUST NOT change any se
 - **WHEN** a client sends `POST /settings` with `{"face_pose":null}`
 - **THEN** the device answers `400` `invalid face_pose`
 
-### Requirement: Factory reset clears face pose
-A factory reset MUST clear the face pose, because it depends on the desk setup and not on the robot build.
+### Requirement: Factory reset keeps face pose
+A factory reset MUST keep the face pose, the same way it keeps servo min/max.
 
 #### Scenario: Reset then read
 - **WHEN** a face pose is set and the user performs a factory reset
-- **THEN** after reset `GET /settings` returns `"face_pose": []`
+- **THEN** after reset `GET /settings` returns the same `face_pose`
 - **AND** the saved servo ranges are unchanged
 
 ### Requirement: Talking faces the user when face pose is set
@@ -136,28 +136,35 @@ After provisioning, the Servo control page of the web UI MUST provide a Face me 
 - **WHEN** the Face me section shows a set face pose
 - **THEN** the section tells the user to check the face pose again after a servo range calibration
 
-### Requirement: Setup wizard offers an optional Face me step
-The setup AP wizard MUST show a Face me step directly after the servos step. The step MUST let the user move head, neck and body and save the face pose, and MUST offer Skip. Skip MUST advance without changing the face pose.
+### Requirement: Guided calibration ends with Face me
+The setup AP wizard MUST show Face me as the last substep of guided servo calibration (after the range substeps), not as a separate outer wizard step. The substep MUST let the user move head, neck and body and save the face pose. It MUST NOT offer Skip. Skipping servo calibration from the servos hub MUST advance past Face me without changing `face_pose`.
 
-#### Scenario: Step order
-- **WHEN** the user leaves the servos step
-- **THEN** the next wizard step is Face me
+#### Scenario: After last range substep
+- **WHEN** the user confirms the last guided range substep
+- **THEN** the UI saves the servo ranges and opens Face me inside the calibration flow
+- **AND** the calibration progress shows Face me as the last substep (for example `11 of 11`)
+- **AND** the outer wizard stays on the Servos step
 
-#### Scenario: Skip keeps the current value
-- **WHEN** the user chooses Skip on the Face me step
-- **THEN** the wizard advances to the next step
+#### Scenario: Hub Skip skips Face me
+- **WHEN** the user chooses Skip on the servos hub
+- **THEN** the wizard advances to the next outer step (Screen)
+- **AND** Face me is not shown
 - **AND** no `face_pose` is sent
 
 #### Scenario: Save and continue
-- **WHEN** the user chooses Save and continue, with or without a nudge
+- **WHEN** the user chooses Save and continue on Face me, with or without a nudge
 - **THEN** the robot first moves head, neck and body to the shown angles with the setup servo move endpoint
-- **AND** only when all three moves succeed, the UI sends the three current values as `face_pose` via `POST /settings` and advances
-- **AND** when a move fails, the UI sends no `face_pose` and stays on the Face me step
+- **AND** only when all three moves succeed, the UI sends the three current values as `face_pose` via `POST /settings` and advances the outer wizard
+- **AND** when a move fails, the UI sends no `face_pose` and stays on the Face me substep
 
 #### Scenario: Step opens at the shown pose
-- **WHEN** the Face me step opens
+- **WHEN** the Face me substep opens
 - **THEN** the robot moves head, neck and body to the angles the controls show, with the setup servo move endpoint
 
 #### Scenario: Wizard moves use the setup move
-- **WHEN** the user nudges a joint on the Face me step
+- **WHEN** the user nudges a joint on the Face me substep
 - **THEN** the UI uses the setup servo move endpoint with the matching angle inside the saved range
+
+#### Scenario: Back from Face me
+- **WHEN** the user chooses Back on Face me
+- **THEN** the UI returns to the last guided range substep

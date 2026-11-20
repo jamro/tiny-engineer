@@ -278,8 +278,8 @@ export function ApiReference() {
         (credentials not saved), control APIs return <strong>503</strong>{" "}
         <code>not provisioned</code>; <code>POST /setup/servo</code>, <code>POST /setup/led</code>,{" "}
         <code>POST /setup/audio</code>, and <code>POST /setup/oled</code> stay available. Servo
-        ranges, RGB mapping, and screen rotation survive factory reset and can be retuned in the
-        setup wizard.
+        ranges, face me pose, RGB mapping, and screen rotation survive factory reset and can be
+        retuned in the setup wizard.
       </p>
       <p>
         <code>GET</code>/<code>PUT /settings/actions</code> — JSON object with array{" "}

@@ -321,9 +321,10 @@ bool saveActions(const ActionList& actions) {
 }
 
 bool factoryResetSettings() {
-  // The hardware calibration survives a reset.
+  // The hardware calibration and desk face pose survive a reset.
   SettingsValues next = SettingsValues::defaults();
   next.servoRanges = g_settings.servoRanges;
+  next.facePose = g_settings.facePose;
   strlcpy(next.rgbOrder, g_settings.rgbOrder, sizeof(next.rgbOrder));
   next.oledRotate180 = g_settings.oledRotate180;
 

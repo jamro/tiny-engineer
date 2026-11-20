@@ -78,7 +78,7 @@ Flash only when you want to try it on hardware (`pio run -t upload`).
 ## Pitfalls
 
 - **Partial writes:** validate first; never write NVS then fail validation mid-way.
-- **Factory reset:** `factoryResetSettings()` in [`nvs.cpp`](../src/settings/nvs.cpp) clears NVS namespace `te` and writes defaults, which clears every saved WiFi network. Servo min/max (`sranges`), RGB LED mapping (`rgb_ord`), and OLED rotation (`oled_rot`) are written back unchanged. The face pose (`face_pose`) is not: it belongs to the desk setup, so reset clears it. Internal pose blob (`spose`) is not rewritten (next boot uses mid). Exposed as `POST /settings/reset`. After reset, power-cycle into setup AP mode to configure WiFi again. Servo ranges, LED mapping, and screen rotation can be retuned in that wizard.
+- **Factory reset:** `factoryResetSettings()` in [`nvs.cpp`](../src/settings/nvs.cpp) clears NVS namespace `te` and writes defaults, which clears every saved WiFi network. Servo min/max (`sranges`), face pose (`face_pose`), RGB LED mapping (`rgb_ord`), and OLED rotation (`oled_rot`) are written back unchanged. Internal pose blob (`spose`) is not rewritten (next boot uses mid). Exposed as `POST /settings/reset`. After reset, power-cycle into setup AP mode to configure WiFi again. Servo ranges, face me, LED mapping, and screen rotation can be retuned in that wizard.
 - **Hostname-style settings:** freeze the boot value separately if live change cannot apply (see `g_bootSettings` and `settingsRebootRequired()`).
 - **UI size:** the panel is embedded gzipped in the firmware; keep controls compact.
 - **Doc drift:** HTML param tables must match `api.md` exactly.

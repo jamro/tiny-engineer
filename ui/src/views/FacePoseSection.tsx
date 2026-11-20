@@ -102,8 +102,8 @@ export function FacePoseSection({
   return (
     <ConfigSection title="Face me" className="face-me-section">
       <p className="hint">
-        Optional. Pick a joint and nudge it until the robot <strong>looks at you</strong>. Do this
-        for head, neck and body, then save. The talking animation then faces you. Status:{" "}
+        Pick a joint and nudge it until the robot <strong>looks at you</strong>. Do this for head,
+        neck and body, then save. The talking animation then faces you. Status:{" "}
         <strong id="face-pose-status">{isSet ? "Set" : "Not set (default pose)"}</strong>
       </p>
       <FacePoseControls

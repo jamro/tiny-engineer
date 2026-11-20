@@ -4,32 +4,21 @@ import { ConfigSection } from "../components/ConfigSection";
 import { ServoTrack } from "../components/ServoTrack";
 import { useStatus } from "../status/status";
 import type { Range } from "../servos";
-import { type Calibration, GUIDED_STEPS, mirrorMax, rangeMid } from "./useCalibration";
+import {
+  CALIBRATION_STEP_COUNT,
+  type Calibration,
+  GUIDED_STEPS,
+  mirrorMax,
+  rangeMid,
+  startAngleFor,
+} from "./useCalibration";
 import { useSetupServo } from "./useSetupServo";
 
 const NUDGES = [-10, -5, -1, 1, 5, 10];
 
 const percent = (angle: number) => `${(angle / 180) * 100}%`;
 
-function startAngleFor(step: (typeof GUIDED_STEPS)[number], ranges: Range[]): number {
-  const [min, max] = ranges[step.joint];
-
-  if (step.kind === "hand" && step.bound === "max") {
-    return max;
-  }
-
-  if (step.kind === "min" || (step.kind === "hand" && step.bound === "min")) {
-    return min;
-  }
-
-  return rangeMid(ranges[step.joint]);
-}
-
-function confirmLabelFor(step: (typeof GUIDED_STEPS)[number], isLast: boolean): string {
-  if (isLast) {
-    return "Save and continue";
-  }
-
+function confirmLabelFor(step: (typeof GUIDED_STEPS)[number]): string {
   if (step.kind === "center") {
     return "Confirm center";
   }
@@ -43,11 +32,11 @@ function confirmLabelFor(step: (typeof GUIDED_STEPS)[number], isLast: boolean): 
 
 export function GuidedCalibration({
   calibration,
-  onComplete,
+  onRangesComplete,
 }: {
   calibration: Calibration;
-  /** Optional ranges override so the last confirm can save before React re-renders. */
-  onComplete: (ranges?: Range[]) => void | Promise<void>;
+  /** Called after the last range confirm; ranges override avoids a stale React render. */
+  onRangesComplete: (ranges?: Range[]) => void | Promise<void>;
 }) {
   const { setStatus } = useStatus();
   const moveServos = useSetupServo();
@@ -108,7 +97,7 @@ export function GuidedCalibration({
 
   async function advance(rangesForSave?: Range[]) {
     if (calibration.isLastGuidedStep) {
-      await onComplete(rangesForSave);
+      await onRangesComplete(rangesForSave);
 
       return;
     }
@@ -195,24 +184,25 @@ export function GuidedCalibration({
     calibration.guidedBack();
   }
 
-  const confirmLabel = confirmLabelFor(guidedStep, calibration.isLastGuidedStep);
+  const confirmLabel = confirmLabelFor(guidedStep);
+  const progressNow = guidedIndex + 1;
 
   return (
     <ConfigSection title={guidedStep.title}>
       <p className="hint" data-testid="calib-progress">
-        Servo calibration · {guidedIndex + 1} of {GUIDED_STEPS.length}
+        Servo calibration · {progressNow} of {CALIBRATION_STEP_COUNT}
       </p>
       <div
         className="calib-progress-track"
         role="progressbar"
         aria-label="Servo calibration progress"
         aria-valuemin={1}
-        aria-valuemax={GUIDED_STEPS.length}
-        aria-valuenow={guidedIndex + 1}
+        aria-valuemax={CALIBRATION_STEP_COUNT}
+        aria-valuenow={progressNow}
       >
         <div
           className="calib-progress-bar"
-          style={{ width: `${((guidedIndex + 1) / GUIDED_STEPS.length) * 100}%` }}
+          style={{ width: `${(progressNow / CALIBRATION_STEP_COUNT) * 100}%` }}
         ></div>
       </div>
       <p className="setup-copy">{guidedStep.copy}</p>

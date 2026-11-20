@@ -184,6 +184,6 @@ bool saveWifiNetworks(const WifiNetworkList& networks);
 bool saveActions(const ActionList& actions);
 
 // Clears the NVS namespace and restores the defaults, WiFi networks included,
-// but keeps the servo min/max, RGB LED byte order and OLED 180° rotation.
-// The face pose is cleared: it belongs to the desk setup, not to the build.
+// but keeps the servo min/max, face pose, RGB LED byte order and OLED 180°
+// rotation.
 bool factoryResetSettings();

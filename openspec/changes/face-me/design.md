@@ -31,6 +31,9 @@
 `GET` returns `[h, n, b]` or `[]`. `POST` takes three numbers or `[]`. `null` stays a wrong type, matching the existing `readPatch()` rule "an explicit null is a wrong type". The patch type is `std::optional<FacePose>`, where `FacePose` has `set` and `values[3]`. Validation lives in `FacePose::valid()` (same pattern as `ServoRanges::valid()`) and runs in `SettingsPatch::invalidField()`, so the whole patch is rejected before any NVS write. `face_pose` is not added to `setupOnlyStep()`. The `known[]` array in `readPatch()` grows by one.
 - *Alternative:* separate `face_pose_set` boolean. Two fields that must agree; more checks.
 
+### D2b. Factory reset keeps face pose
+`factoryResetSettings()` copies `facePose` into the reset snapshot alongside servo ranges, RGB order, and OLED rotation. Explicit Clear on `/servo` or `POST {"face_pose":[]}` still clears it.
+
 ### D3. Normalized units (user choice)
 The pose uses the same −1..1 units as animations, so talking adds offsets with no conversion. The trade-off (direction shift after recalibration) is handled in the UI text (see Risks).
 
@@ -49,8 +52,8 @@ Read `facePose()` once per `startTalking()` and keep it in a file-local variable
 A `FacePoseSection` component on `ServoControl.tsx` (`/servo`), so no new route in `kRoutes`. A shared `FacePoseControls` component: a joint picker (Head / Neck / Body, each showing its angle), a large angle readout in whole degrees, a bar that spans the joint's saved min..max with a marker at the current angle, and ±1° / ±5° nudge buttons (the guided calibration buttons without ±10°: the face range is narrow). A nudge adds degrees to the rounded current angle, limits it to the saved range, moves the joint at once, and stores the result back in −1..1 units (`normToDeg` / `degToNorm` in `ui/src/servos.ts`, the same mapping as the firmware). A failed move restores the previous value. The section has extra top margin so it does not touch the move form above it. Save (on `/servo` and in the wizard) first moves all three joints to the shown pose and saves only when every move succeeds, so a saved angle is always one the robot reached, with or without a nudge. Before the first nudge the joints also sync (the wizard step does it on open); a move from the Servo control form on the same page, or a preview start or stop (stop parks neck and body), makes the next nudge sync again. `/servo` does not move on page load. A move is not sent while a preview runs and cannot be stopped. After Clear the controls go back to the default pose (review feedback on PR #116).
 - *Replaced:* −1..1 sliders (first version), then ±10° buttons and decimal angles with no range bar (second version). The user found both not precise or clear enough on the robot. Buttons: Save, Clear (with confirm), Preview (`POST /anim` `name=talking`). The section shows "Set" or "Not set" and the recalibration note.
 
-### D7. Wizard step
-`STEPS` gets `{ id: "face", title: "Face me" }` after `servos`. The step reuses the three controls in a shared component, moves joints with `useSetupServo` (`/setup/servo`, degrees from the ranges just saved by the servos step). Footer: Skip (advances, sends nothing) and "Save and continue" (POST `face_pose`, then advance). No preview, because `/anim` is not available in setup AP mode.
+### D7. Face me inside guided calibration
+Face me is not an outer wizard step. After the last guided range confirm, the UI posts servo mins/maxs and opens Face me as calibration mode `face` (progress includes it, e.g. `11 of 11`). The step reuses `FacePoseControls` with `useSetupServo`, matches guided chrome (progress, target, in-section footer), and offers Back (to the last range substep) plus "Save and continue" (move then POST `face_pose`, then advance the outer wizard). No Skip on Face me; hub Skip skips Face me entirely. No preview in setup AP mode (`/anim` unavailable). Outer wizard stays five steps: Servos → Screen → RGB → Speaker → Connection.
 
 ## Risks / Trade-offs
 

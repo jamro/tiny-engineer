@@ -120,7 +120,7 @@ curl -X POST "http://tiny-engineer.local/test/servo" -H "Content-Type: applicati
 | `POST` | `/actions/test` | Simulate an event type for Actions (no outbound publish) |
 | `POST` | `/settings` | Update NVS settings from a JSON object; the reply carries `reboot_required`, true once `hostname`, `loading` or the WiFi networks differ from what the robot booted with. `servo_mins` / `servo_maxs` (integer arrays), `rgb_order` and `oled_rotate_180` (boolean) are setup-AP-only. `face_pose` (`[head, neck, body]` in -1..1, `[]` clears) works in both modes |
 | `PUT` | `/settings/wifi` | Replace the saved WiFi networks (JSON array of 1 to 5); first one tested in setup AP mode |
-| `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges, RGB mapping, and screen rotation); power-cycle to reopen setup AP |
+| `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges, face me pose, RGB mapping, and screen rotation); power-cycle to reopen setup AP |
 | `POST` | `/servos/park` | Center all servos at mid, flush pose NVS, hold PWM until reboot |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/audio/bell` | `{"ok":true,"test":"bell"}` after `playBell()` |

@@ -7,7 +7,7 @@ Guided range calibration MUST proceed in a fixed joint order with only forward c
 
 #### Scenario: Joint order
 - **WHEN** the user completes guided calibration from the start
-- **THEN** the path visits Body, then Neck, then Head, then Hands, in that order
+- **THEN** the path visits Body, then Neck, then Head, then Hands, then Face me, in that order
 
 #### Scenario: Back from first substep
 - **WHEN** the user is on the first guided substep and chooses Back
@@ -19,6 +19,6 @@ Guided range calibration MUST proceed in a fixed joint order with only forward c
 
 #### Scenario: Progress shows joint context
 - **WHEN** the user is on a guided substep
-- **THEN** the section heading shows the joint and center/min/max or hand landmark role once
-- **AND** a separate line shows `Servo calibration` and the current substep out of all guided substeps
+- **THEN** the section heading shows the joint and center/min/max or hand landmark role once (or Face me on the final substep)
+- **AND** a separate line shows `Servo calibration` and the current substep out of all guided substeps including Face me
 - **AND** an internal progress indicator advances independently of the outer wizard progress

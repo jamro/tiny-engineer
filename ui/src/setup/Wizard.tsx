@@ -19,7 +19,6 @@ import { useSetupServo } from "./useSetupServo";
 
 const STEPS = [
   { id: "servos", title: "Servos" },
-  { id: "face", title: "Face me" },
   { id: "oled", title: "Screen" },
   { id: "led", title: "RGB mapping" },
   { id: "speaker", title: "Speaker" },
@@ -76,15 +75,33 @@ export function Wizard({ settings }: { settings: Settings }) {
     }
   }
 
+  /** Last range confirm: persist ranges, then open Face me inside calibration. */
+  async function enterFace(ranges?: Range[]) {
+    if (await saveServoRanges(ranges)) {
+      calibration.startFace();
+    }
+  }
+
+  async function saveFaceAndContinue() {
+    // The robot moves to the pose first, so it never stores an angle it did not reach.
+    if (
+      !(await moveFacePose(facePose, calibration.ranges, (index, angle) =>
+        moveServo({ index, angle }),
+      ))
+    ) {
+      return;
+    }
+
+    if (await save({ face_pose: facePose }, "Saving face pose…")) {
+      calibration.goHub();
+      setStepIndex(stepIndex + 1);
+    }
+  }
+
   // What each non-servos step saves before the wizard moves on.
   const saves: Partial<Record<StepId, () => Promise<boolean>>> = {
     oled: () => save({ oled_rotate_180: oledRotate180 }, "Saving screen rotation…"),
     led: () => save({ rgb_order: led.order }, "Saving LED mapping…"),
-    // The robot moves to the pose first, so it never stores an angle it did not reach.
-    face: async () =>
-      (await moveFacePose(facePose, calibration.ranges, (index, angle) =>
-        moveServo({ index, angle }),
-      )) && save({ face_pose: facePose }, "Saving face pose…"),
   };
 
   async function next() {
@@ -96,10 +113,6 @@ export function Wizard({ settings }: { settings: Settings }) {
   }
 
   function back() {
-    if (step.id === "face") {
-      calibration.goHub();
-    }
-
     setStepIndex(stepIndex - 1);
   }
 
@@ -120,11 +133,17 @@ export function Wizard({ settings }: { settings: Settings }) {
       {onServos && calibration.mode === "guided" && (
         <GuidedCalibration
           calibration={calibration}
-          onComplete={(ranges) => void finishServos(ranges)}
+          onRangesComplete={(ranges) => void enterFace(ranges)}
         />
       )}
-      {step.id === "face" && (
-        <FaceStep pose={facePose} ranges={calibration.ranges} onPose={setFacePose} />
+      {onServos && calibration.mode === "face" && (
+        <FaceStep
+          pose={facePose}
+          ranges={calibration.ranges}
+          calibration={calibration}
+          onPose={setFacePose}
+          onSave={() => void saveFaceAndContinue()}
+        />
       )}
       {step.id === "oled" && (
         <ScreenStep rotate180={oledRotate180} onRotate={() => setOledRotate180(!oledRotate180)} />
@@ -135,13 +154,7 @@ export function Wizard({ settings }: { settings: Settings }) {
       {!onServos && (
         <div className="setup-footer">
           <Button onClick={back}>Back</Button>
-          {step.id === "face" && <Button onClick={() => setStepIndex(stepIndex + 1)}>Skip</Button>}
-          {step.id === "face" && nextStep && (
-            <Button variant="primary" onClick={next}>
-              Save and continue
-            </Button>
-          )}
-          {step.id !== "face" && nextStep && (
+          {nextStep && (
             <Button variant="primary" disabled={ready[step.id] === false} onClick={next}>
               {`Next: ${nextStep.title}`}
             </Button>

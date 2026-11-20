@@ -277,7 +277,7 @@ export async function runReset(out, argv, quietGlobal) {
   if (opts.help) {
     console.log(`Usage: tiny-engineer reset [--yes] [--transport] [--url] [--port]
 
-Factory-reset device settings (keeps servo calibration / RGB / OLED rotation).
+Factory-reset device settings (keeps servo calibration / face me / RGB / OLED rotation).
 Requires interactive confirmation or --yes.
 `);
     return;

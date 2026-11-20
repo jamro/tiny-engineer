@@ -20,7 +20,7 @@ export function identifyDelta(index: number): number {
   return index === JOINT.body ? IDENTIFY_DELTA_BODY : IDENTIFY_DELTA;
 }
 
-export type CalibMode = "hub" | "assembly" | "guided";
+export type CalibMode = "hub" | "assembly" | "guided" | "face";
 
 export type GuidedKind = "center" | "min" | "hand";
 
@@ -170,12 +170,29 @@ export const GUIDED_STEPS: GuidedStep[] = [
   },
 ];
 
+/** Range substeps plus the final Face me step. */
+export const CALIBRATION_STEP_COUNT = GUIDED_STEPS.length + 1;
+
 export function mirrorMax(center: number, min: number): number {
   return 2 * center - min;
 }
 
 export function rangeMid([min, max]: Range): number {
   return Math.round((min + max) / 2);
+}
+
+export function startAngleFor(step: GuidedStep, ranges: Range[]): number {
+  const [min, max] = ranges[step.joint];
+
+  if (step.kind === "hand" && step.bound === "max") {
+    return max;
+  }
+
+  if (step.kind === "min" || (step.kind === "hand" && step.bound === "min")) {
+    return min;
+  }
+
+  return rangeMid(ranges[step.joint]);
 }
 
 export function useCalibration(settings: Settings) {
@@ -212,6 +229,16 @@ export function useCalibration(settings: Settings) {
     clearGuidedSession();
     setGuidedIndex(0);
     setAngles(ranges.map((range) => rangeMid(range)));
+    setMode("guided");
+  }
+
+  function startFace() {
+    setMode("face");
+  }
+
+  /** Return from Face me to the last range substep (keeps session centers/drafts). */
+  function resumeLastGuided() {
+    setGuidedIndex(GUIDED_STEPS.length - 1);
     setMode("guided");
   }
 
@@ -259,6 +286,8 @@ export function useCalibration(settings: Settings) {
     goHub,
     startAssembly,
     startGuided,
+    startFace,
+    resumeLastGuided,
     guidedIndex,
     guidedStep,
     guidedBack,
