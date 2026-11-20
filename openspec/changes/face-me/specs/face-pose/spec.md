@@ -84,7 +84,7 @@ When the face pose is not set, every animation MUST use the same poses it uses w
 - **THEN** talking rests at head `1/7`, neck `0` and body `0`, as before this change
 
 #### Scenario: Other animations ignore the face pose
-- **WHEN** a face pose is set and typing, reading, thinking, welcome, attention or ring plays
+- **WHEN** a face pose is set and typing, reading, thinking, welcome or ring plays
 - **THEN** those animations use the same poses as when no face pose is set
 
 ### Requirement: Web UI calibrates the face pose

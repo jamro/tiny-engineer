@@ -7,6 +7,7 @@
 #include "audio/audio.h"
 #include "hardware/servo_wrapper.h"
 #include "servos.h"
+#include "settings/settings.h"
 
 using anim::easedLerp;
 using anim::randChance;
@@ -35,18 +36,36 @@ bool g_waitNodHigh = false;
 bool g_waitNeckRight = false;
 bool g_handWaveHigh = false;
 uint8_t g_handWaveBurstLeft = 0;
+// Rest pose for this run: saved face me, or stock ATTENTION_* when unset.
+anim::FacePose g_face = {
+  anim::ATTENTION_HEAD_READY,
+  anim::ATTENTION_NECK_MID,
+  anim::ATTENTION_BODY_MID
+};
+
+anim::FacePose attentionRest() {
+  const ::FacePose& saved = settingsFacePose();
+  if (!saved.set) {
+    return {
+      anim::ATTENTION_HEAD_READY,
+      anim::ATTENTION_NECK_MID,
+      anim::ATTENTION_BODY_MID
+    };
+  }
+  return {saved.values[0], saved.values[1], saved.values[2]};
+}
 
 void commandPrepPose() {
   servoAt(SERVO_BODY).setNormTarget(
-    anim::ATTENTION_BODY_MID,
+    servoSaturateNorm(g_face.body),
     ATTENTION_PREP_SPEED_DEG_S
   );
   servoAt(SERVO_NECK).setNormTarget(
-    anim::ATTENTION_NECK_MID,
+    servoSaturateNorm(g_face.neck),
     ATTENTION_PREP_SPEED_DEG_S
   );
   servoAt(SERVO_HEAD).setNormTarget(
-    anim::ATTENTION_HEAD_READY,
+    servoSaturateNorm(g_face.head),
     ATTENTION_PREP_SPEED_DEG_S
   );
   servoAt(SERVO_HAND_LEFT).setNormTarget(
@@ -95,11 +114,11 @@ void commandWaitMove(uint32_t now) {
     : -anim::ATTENTION_WAIT_NECK_TILT;
 
   servoAt(SERVO_HEAD).setNormTarget(
-    anim::ATTENTION_HEAD_READY + headOffset,
+    servoSaturateNorm(g_face.head + headOffset),
     ATTENTION_WAIT_SPEED_DEG_S
   );
   servoAt(SERVO_NECK).setNormTarget(
-    anim::ATTENTION_NECK_MID + neckOffset,
+    servoSaturateNorm(g_face.neck + neckOffset),
     ATTENTION_WAIT_SPEED_DEG_S
   );
 
@@ -141,25 +160,25 @@ void commandHandWave(uint32_t now) {
 }
 
 void applyAttentionAudioPose(uint32_t audioElapsed, uint32_t now) {
-  float neckAngle = anim::ATTENTION_NECK_MID;
-  float headAngle = anim::ATTENTION_HEAD_READY;
+  float neckAngle = g_face.neck;
+  float headAngle = g_face.head;
   float handAngle = anim::ATTENTION_HAND_RIGHT_RAISED;
 
   if (audioElapsed < ATTENTION_AUDIO_PST_END_MS) {
-    neckAngle = anim::ATTENTION_NECK_MID;
-    headAngle = anim::ATTENTION_HEAD_READY;
+    neckAngle = g_face.neck;
+    headAngle = g_face.head;
     handAngle = anim::ATTENTION_HAND_RIGHT_RAISED;
   } else if (audioElapsed < ATTENTION_AUDIO_HUMAN_END_MS) {
     neckAngle = easedLerp(
-      anim::ATTENTION_NECK_MID,
-      anim::ATTENTION_NECK_MID + anim::ATTENTION_HUMAN_NECK_GLANCE,
+      g_face.neck,
+      g_face.neck + anim::ATTENTION_HUMAN_NECK_GLANCE,
       g_attentionAudioStartMs + ATTENTION_AUDIO_PST_END_MS,
       ATTENTION_AUDIO_HUMAN_END_MS - ATTENTION_AUDIO_PST_END_MS,
       now
     );
     headAngle = easedLerp(
-      anim::ATTENTION_HEAD_READY,
-      anim::ATTENTION_HEAD_READY + anim::ATTENTION_HUMAN_HEAD_NOD,
+      g_face.head,
+      g_face.head + anim::ATTENTION_HUMAN_HEAD_NOD,
       g_attentionAudioStartMs + ATTENTION_AUDIO_PST_END_MS,
       ATTENTION_AUDIO_HUMAN_END_MS - ATTENTION_AUDIO_PST_END_MS,
       now
@@ -167,15 +186,15 @@ void applyAttentionAudioPose(uint32_t audioElapsed, uint32_t now) {
     handAngle = anim::ATTENTION_HAND_RIGHT_RAISED;
   } else if (audioElapsed < ATTENTION_AUDIO_END_MS) {
     neckAngle = easedLerp(
-      anim::ATTENTION_NECK_MID + anim::ATTENTION_HUMAN_NECK_GLANCE,
-      anim::ATTENTION_NECK_MID - anim::ATTENTION_LOOK_NECK_GLANCE,
+      g_face.neck + anim::ATTENTION_HUMAN_NECK_GLANCE,
+      g_face.neck - anim::ATTENTION_LOOK_NECK_GLANCE,
       g_attentionAudioStartMs + ATTENTION_AUDIO_HUMAN_END_MS,
       ATTENTION_AUDIO_END_MS - ATTENTION_AUDIO_HUMAN_END_MS,
       now
     );
     headAngle = easedLerp(
-      anim::ATTENTION_HEAD_READY + anim::ATTENTION_HUMAN_HEAD_NOD,
-      anim::ATTENTION_HEAD_READY - anim::ATTENTION_LOOK_HEAD_NOD,
+      g_face.head + anim::ATTENTION_HUMAN_HEAD_NOD,
+      g_face.head - anim::ATTENTION_LOOK_HEAD_NOD,
       g_attentionAudioStartMs + ATTENTION_AUDIO_HUMAN_END_MS,
       ATTENTION_AUDIO_END_MS - ATTENTION_AUDIO_HUMAN_END_MS,
       now
@@ -188,13 +207,13 @@ void applyAttentionAudioPose(uint32_t audioElapsed, uint32_t now) {
       now
     );
   } else {
-    neckAngle = anim::ATTENTION_NECK_MID - anim::ATTENTION_LOOK_NECK_GLANCE;
-    headAngle = anim::ATTENTION_HEAD_READY - anim::ATTENTION_LOOK_HEAD_NOD;
+    neckAngle = g_face.neck - anim::ATTENTION_LOOK_NECK_GLANCE;
+    headAngle = g_face.head - anim::ATTENTION_LOOK_HEAD_NOD;
     handAngle = anim::ATTENTION_HAND_POINT;
   }
 
-  servoAt(SERVO_NECK).setNormPosition(neckAngle);
-  servoAt(SERVO_HEAD).setNormPosition(headAngle);
+  servoAt(SERVO_NECK).setNormPosition(servoSaturateNorm(neckAngle));
+  servoAt(SERVO_HEAD).setNormPosition(servoSaturateNorm(headAngle));
   servoAt(SERVO_HAND_RIGHT).setNormPosition(handAngle);
 }
 
@@ -219,6 +238,7 @@ void startAttention() {
   stopAllWavPlayback();
   stopAnimServos();
 
+  g_face = attentionRest();
   g_attentionPhase = AttentionPhase::PrepPose;
   g_attentionAudioStartMs = 0;
   g_attentionAudioStarted = false;

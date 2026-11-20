@@ -15,7 +15,7 @@
 - One small helper that animations call to get the face pose, so later animations can adopt it with a one-line change.
 
 **Non-Goals:**
-- Welcome, attention and other animations (later changes).
+- Welcome, ring and other animations (later changes). Attention is covered by `attention-face-pose`.
 - Serial `settings.get` / `settings.set` and CLI support for `face_pose`.
 - Changing the transition park: between animations, neck and body still park at 0.
 - Auto-adjusting the pose after a servo range recalibration.

@@ -20,7 +20,7 @@ Animations author poses in **−1..1** relative to each joint’s saved min/max 
 
 Each desk is different, so the robot does not know where the user sits. The optional **face me** pose stores the head, neck and body pose that looks at the user, in the same −1..1 units as the animations. Set it on the web UI **Servo** page (section **Face me**), as the last step of guided servo calibration in the setup wizard, or with `POST /settings` `{"face_pose":[head, neck, body]}` ([api.md](api.md#post-settings)). Skipping servo calibration in the wizard also skips face me. Send `[]` to clear it.
 
-When it is set, `talking` rests on that pose and nods, drifts and sways around it. Other animations do not use it yet. When it is not set, `talking` rests at head `1/7`, neck `0`, body `0`, as before. The pose is relative to the saved servo min/max, so check it again after a servo calibration. Factory reset keeps it.
+When it is set, `talking` rests on that pose and nods, drifts and sways around it, and `attention` uses it as the rest pose for prep, audio cues and the waiting loop (same relative glances and nods, clamped to −1..1). When it is not set, `talking` rests at head `1/7`, neck `0`, body `0`, and `attention` keeps head `6/35`, neck `0`, body `0`, as before. Other animations do not use it yet. The pose is relative to the saved servo min/max, so check it again after a servo calibration. Factory reset keeps it.
 
 ## Bench checks
 
