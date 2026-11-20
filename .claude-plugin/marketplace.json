@@ -9,12 +9,177 @@
     {
       "name": "tiny-engineer",
       "source": "./skills",
-      "description": "Make the Tiny Engineer desk robot speak through its speaker while it gestures (POST /play)",
+      "description": "Tiny Engineer desk robot for Claude Code: poses on every agent event (hooks) and speech through its speaker (tiny-engineer-play skill)",
       "category": "productivity",
-      "keywords": ["robot", "esp32", "tts"],
+      "keywords": [
+        "robot",
+        "esp32",
+        "hooks",
+        "tts"
+      ],
       "homepage": "https://github.com/jamro/tiny-engineer/blob/main/docs/integration.md",
       "license": "MIT",
-      "skills": ["./"]
+      "skills": [
+        "./"
+      ],
+      "hooks": {
+        "SessionStart": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "SessionEnd": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "UserPromptSubmit": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "SubagentStart": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "PreToolUse": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "PostToolBatch": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "PostToolUseFailure": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "PreCompact": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "PermissionRequest": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "PermissionDenied": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "Notification": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "Stop": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "StopFailure": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "grep -qs \"hook claude-code\" \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" \"$CLAUDE_PROJECT_DIR/.claude/settings.local.json\" && exit 0; if command -v tiny-engineer >/dev/null 2>&1; then tiny-engineer hook claude-code; else npx -y tiny-engineer hook claude-code; fi",
+                "async": true,
+                "timeout": 30
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

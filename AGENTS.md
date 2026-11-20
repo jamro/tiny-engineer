@@ -14,7 +14,7 @@ Tiny Engineer is an open-source ESP32-C3 Wi-Fi desk robot: 3D-printed mechanics,
 | `ui/` | Web control panel (Vite, TypeScript, Preact); `pio run` builds it into one minified page and embeds it gzipped in the firmware |
 | `packages/` | HTTP / hook CLIs (Cursor, Antigravity, Claude Code, …) — scope `integrations` |
 | `skills/` | Agent skills shared by Claude Code, Cursor and Antigravity — scope `integrations` |
-| `.claude-plugin/` | Claude Code plugin marketplace; the `tiny-engineer` plugin ships `skills/` — scope `integrations` |
+| `.claude-plugin/` | Claude Code plugin marketplace; the `tiny-engineer` plugin ships `skills/` plus inline Claude Code hooks — scope `integrations` |
 | `3d_models/` | CAD and printables (CERN-OHL-S) |
 | `mods/` | Optional mods; models under `mods/<name>/3d_models/` (CERN-OHL-S) |
 | `hardware/` | KiCad boards (CERN-OHL-S) |
