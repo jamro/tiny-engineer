@@ -491,7 +491,9 @@ describe("setup wizard", () => {
         { index: 4, angle: 90 },
       ]),
     );
+
     const movesAtFace = robot.sent("POST", "/setup/servo").length;
+
     await click("Save and continue");
 
     await waitFor(() => expect(stepLabel()).toBe("Step 2 of 5 · Screen"));
@@ -503,7 +505,9 @@ describe("setup wizard", () => {
     const { robot, click } = await reachFace();
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Face me" })).toBeTruthy());
+
     const movesAtFace = robot.sent("POST", "/setup/servo").length;
+
     robot.failing.add("/setup/servo");
     await click("Save and continue");
 
