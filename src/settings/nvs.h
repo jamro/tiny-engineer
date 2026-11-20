@@ -36,5 +36,7 @@ constexpr const char* kKeyLcd1602Boot = "ext_lcd_boot";
 constexpr const char* kKeyLcd1602L1 = "ext_lcd_l1";
 constexpr const char* kKeyLcd1602L2 = "ext_lcd_l2";
 constexpr const char* kKeyLcd1602Last = "ext_lcd_last";
+// Three floats (head, neck, body). No key = no face pose.
+constexpr const char* kKeyFacePose = "face_pose";
 
 extern Preferences g_settingsPrefs;

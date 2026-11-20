@@ -771,6 +771,21 @@ code {
   }
 }
 
+.face-me-section {
+  margin-top: 1.5rem;
+}
+
+.calib-nudge.face-nudge {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.face-pose-joints {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
 .servo-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;

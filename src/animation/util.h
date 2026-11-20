@@ -12,6 +12,16 @@ struct EasedMove {
   bool active;
 };
 
+// Pose that looks at the user, in -1..1 units. The saved "face me" pose when
+// the user set one, else the talking rest pose (head 1/7, neck 0, body 0).
+struct FacePose {
+  float head;
+  float neck;
+  float body;
+};
+
+FacePose facePose();
+
 float randUnit();
 bool randChance(uint32_t percent);
 uint32_t randRangeMs(uint32_t lo, uint32_t hi);

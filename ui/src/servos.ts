@@ -23,3 +23,46 @@ export const isStockServoRanges = (ranges: readonly Range[]) =>
     ([min, max], index) =>
       min === DEFAULT_SERVO_RANGES[index][0] && max === DEFAULT_SERVO_RANGES[index][1],
   );
+
+// Same mapping as the firmware's servoNormToDeg: -1 = min, 0 = mid, 1 = max.
+export const normToDeg = (n: number, [min, max]: Range) =>
+  Math.round(((min + max) / 2 + (Math.max(-1, Math.min(1, n)) * (max - min)) / 2) * 10) / 10;
+
+// Inverse of normToDeg; angles outside the range saturate to -1 / 1.
+export const degToNorm = (angle: number, [min, max]: Range) =>
+  max > min
+    ? Math.round(Math.max(-1, Math.min(1, (2 * (angle - min)) / (max - min) - 1)) * 10000) / 10000
+    : 0;
+
+// The face pose drives head, neck and body, in this order.
+export const FACE_JOINTS = [
+  { index: 0, name: "Head", low: "down", high: "up" },
+  { index: 1, name: "Neck", low: "right", high: "left" },
+  { index: 4, name: "Body", low: "right", high: "left" },
+] as const;
+
+// The talking rest pose the firmware uses when no face pose is set.
+export const DEFAULT_FACE_POSE: readonly number[] = [1 / 7, 0, 0];
+
+export const savedFacePose = ({ face_pose: pose }: Settings): number[] =>
+  pose.length === FACE_JOINTS.length ? [...pose] : [...DEFAULT_FACE_POSE];
+
+// The face controls show and move whole degrees.
+export const faceDegrees = (n: number, range: Range) => Math.round(normToDeg(n, range));
+
+// Moves head, neck and body to the pose, one after the other. Stops at the
+// first failed move. Run it before a save, so the robot stands in the pose
+// it stores.
+export async function moveFacePose(
+  pose: readonly number[],
+  ranges: readonly Range[],
+  move: (index: number, angle: number) => Promise<boolean>,
+) {
+  for (const [each, { index }] of FACE_JOINTS.entries()) {
+    if (!(await move(index, faceDegrees(pose[each], ranges[index])))) {
+      return false;
+    }
+  }
+
+  return true;
+}

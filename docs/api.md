@@ -10,7 +10,7 @@ Optional auth: when an `access_token` is configured in settings, all JSON API ro
 
 When the robot is not yet provisioned (no connection mode chosen), control APIs (`/anim`, `/test/*`, `/play`) return **503** `{"ok":false,"error":"not provisioned"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/servos/park`) stay available on the setup AP. Connection mode is `wifi` or `usb` (`link_mode` in settings/auth/health). USB-only mode disables Wi‑Fi station and the HTTP API after reboot; control then uses the USB serial protocol ([serial.md](serial.md)).
 
-If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a five-step setup wizard at `/config` (servo hub: guided calibration / skip / assembly centering, then OLED orientation, RGB LED, speaker test, then connection). If saved credentials fail, it reopens setup AP mode. The setup AP acts as a captive portal: DHCP sends the portal URL (option 114) and DNS answers every name with the AP IP, so a phone that joins the network opens the wizard on its own. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
+If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a six-step setup wizard at `/config` (servo hub: guided calibration / skip / assembly centering, then an optional "face me" pose, then OLED orientation, RGB LED, speaker test, then connection). If saved credentials fail, it reopens setup AP mode. The setup AP acts as a captive portal: DHCP sends the portal URL (option 114) and DNS answers every name with the AP IP, so a phone that joins the network opens the wizard on its own. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
 Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s on a missing AAAA. If a client still pauses on the hostname, force IPv4 (`curl -4`). The IP on the OLED skips DNS entirely.
 
@@ -187,6 +187,7 @@ curl http://tiny-engineer.local/settings
   "servo_maxs": [100, 100, 100, 100, 100],
   "rgb_order": "GRB",
   "oled_rotate_180": false,
+  "face_pose": [],
   "wifi_networks": ["MyNetwork", "Office"]
 }
 ```
@@ -216,11 +217,12 @@ curl http://tiny-engineer.local/settings
 | `servo_maxs` | Per-joint safe maximum degrees (stock defaults **100, 100, 100, 100, 100**). Each max must be greater than the matching min |
 | `rgb_order` | Onboard WS2812 wire-byte order (`RGB`, `RBG`, `GRB`, `GBR`, `BRG`, `BGR`). Default **`GRB`**. Survives factory reset |
 | `oled_rotate_180` | OLED 180° rotation (`true` → `setRotation(2)`). Default **`false`**. Setup AP only. Survives factory reset |
+| `face_pose` | Optional "face me" pose `[head, neck, body]` in animation units (`-1` = saved min, `0` = mid, `1` = saved max) that points the robot at the user. `[]` = not set (default). When set, the `talking` animation rests and sways around it; when not set, the robot moves as before. Relative to the saved servo ranges, so check it again after a servo calibration. Cleared by factory reset. See [robot-movement.md](robot-movement.md#face-me) |
 | `reboot_required` | `true` once the saved `hostname`, `loading` or WiFi networks differ from what this boot started with; those apply only after a reboot |
 
 ### `POST /settings`
 
-Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `lcd1602`, `lcd1602_backlight_sleep`, `lcd1602_welcome_hello`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). On-device Actions are set with [`PUT /settings/actions`](#put-settingsactions). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `push_button`, `push_button_pin`, `lcd1602`, `lcd1602_backlight_sleep`, `lcd1602_welcome_hello`, `lcd1602_boot`, `lcd1602_line1`, `lcd1602_line2`, `continuous_timeout`, `eyes_style`, `access_token`, and `face_pose` apply immediately (`face_pose` from the next time `talking` starts); a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). On-device Actions are set with [`PUT /settings/actions`](#put-settingsactions). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings" \
@@ -232,6 +234,9 @@ curl -X POST "http://tiny-engineer.local/settings" \
 curl -X POST "http://tiny-engineer.local/settings" \
   -H "Content-Type: application/json" \
   -d '{"access_token":""}'
+curl -X POST "http://tiny-engineer.local/settings" \
+  -H "Content-Type: application/json" \
+  -d '{"face_pose":[0.15,-0.3,0.1]}'
 curl -X POST "http://192.168.4.1/settings" \
   -H "Content-Type: application/json" \
   -d '{"servo_mins":[80,80,80,80,80],"servo_maxs":[100,100,100,100,100],"rgb_order":"GRB","oled_rotate_180":true}'
@@ -263,6 +268,7 @@ curl -X POST "http://192.168.4.1/settings" \
   "servo_maxs": [100, 100, 100, 100, 100],
   "rgb_order": "GRB",
   "oled_rotate_180": false,
+  "face_pose": [0.15, -0.3, 0.1],
   "wifi_networks": ["MyNetwork"],
   "reboot_required": true
 }
@@ -291,8 +297,9 @@ curl -X POST "http://192.168.4.1/settings" \
 | `servo_maxs` | integer array | Five integers `0`–`180`; setup AP only; each value must be greater than the matching min |
 | `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR`; setup AP only; default `GRB` |
 | `oled_rotate_180` | boolean | Setup AP only; default `false` |
+| `face_pose` | number array | Three numbers -1 to 1 (`head, neck, body`), or `[]` to clear; default `[]` (not set) |
 
-Leave out a field to keep its saved value. An empty object → **400** `send at least one setting`. A field this route does not know → **400** `unknown field <field>`. A field with the wrong type or out of range → **400** `invalid <field>` (servo ranges that overlap or exceed 180: `invalid servo_mins or servo_maxs`). Only one of `servo_mins` / `servo_maxs` → **400** `servo_mins and servo_maxs go together`. Enabling extensions (or changing their pins) so two enabled extensions would share a GPIO → **400** `pin conflict on GP… (…)` and nothing is saved. Outside setup AP mode, servo ranges → **400** `servo setup only in AP mode`, `rgb_order` → **400** `rgb setup only in AP mode`, `oled_rotate_180` → **400** `oled setup only in AP mode`. On any 400, nothing is saved. Replies carry `reboot_required` as in `GET /settings`.
+Leave out a field to keep its saved value. An empty object → **400** `send at least one setting`. A field this route does not know → **400** `unknown field <field>`. A field with the wrong type or out of range → **400** `invalid <field>` (servo ranges that overlap or exceed 180: `invalid servo_mins or servo_maxs`; a `face_pose` that is not `[]` or three numbers in -1..1: `invalid face_pose`). Only one of `servo_mins` / `servo_maxs` → **400** `servo_mins and servo_maxs go together`. Enabling extensions (or changing their pins) so two enabled extensions would share a GPIO → **400** `pin conflict on GP… (…)` and nothing is saved. Outside setup AP mode, servo ranges → **400** `servo setup only in AP mode`, `rgb_order` → **400** `rgb setup only in AP mode`, `oled_rotate_180` → **400** `oled setup only in AP mode`. On any 400, nothing is saved. Replies carry `reboot_required` as in `GET /settings`.
 
 ### `PUT /settings/wifi`
 
@@ -359,7 +366,7 @@ curl -X POST "http://tiny-engineer.local/actions/test" \
 
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network and Actions list. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** Internal last-pose blob (`spose`) is cleared/reset with defaults. After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
+Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network and Actions list. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** The face pose (`face_pose`) is cleared. Internal last-pose blob (`spose`) is cleared/reset with defaults. After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
 
 The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup wizard. It does not poll for reconnect.
 
@@ -392,6 +399,7 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "servo_maxs": [100, 100, 100, 100, 100],
   "rgb_order": "GRB",
   "oled_rotate_180": false,
+  "face_pose": [],
   "wifi_networks": [],
   "reboot_required": true
 }

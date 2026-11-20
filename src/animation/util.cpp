@@ -5,8 +5,19 @@
 #include "hardware/servo_wrapper.h"
 #include "servos.h"
 #include "serial_log.h"
+#include "settings/settings.h"
 
 namespace anim {
+
+FacePose facePose() {
+  const ::FacePose& saved = settingsFacePose();
+
+  if (!saved.set) {
+    return {TALKING_HEAD_MID, TALKING_NECK_MID, TALKING_BODY_MID};
+  }
+
+  return {saved.values[0], saved.values[1], saved.values[2]};
+}
 
 float randUnit() {
   return (float)(esp_random() & 0xFFFFu) / 65535.0f;

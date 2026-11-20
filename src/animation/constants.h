@@ -14,6 +14,10 @@ constexpr float READING_NECK_SWAY = 2.0f / 9.0f;
 
 constexpr float TRANSITION_TORSO_SPEED_DEG_S = 25.0f;
 constexpr float TRANSITION_HAND_SPEED_DEG_S = 90.0f;
+// Typing body/neck sway speed (deg/s): min + span * random. Reading reuses it
+// for its first neck turn after a transition.
+constexpr float TYPING_SWAY_SPEED_MIN_DEG_S = 12.0f;
+constexpr float TYPING_SWAY_SPEED_SPAN_DEG_S = 18.0f;
 
 constexpr float TYPING_RIGHT_LOW = -1.0f;
 constexpr float TYPING_RIGHT_HIGH = TYPING_RIGHT_LOW + TYPING_HAND_BAND;
@@ -28,11 +32,17 @@ constexpr float TYPING_NECK_MID = 0.0f;
 
 // Talking faces the user: head just above mid, nodding on emphasis, neck drifting.
 constexpr float TALKING_HEAD_MID = 1.0f / 7.0f;
+// Rest pose when no "face me" pose is saved (see anim::facePose()).
+constexpr float TALKING_NECK_MID = 0.0f;
+constexpr float TALKING_BODY_MID = 0.0f;
 constexpr float TALKING_HEAD_NOD = 2.0f / 7.0f;
 constexpr float TALKING_HEAD_NOD_AMBIENT = 1.0f / 7.0f;
 constexpr float TALKING_HEAD_LEVEL = 1.0f / 14.0f;
 constexpr float TALKING_NECK_SWAY = 1.0f / 6.0f;
 constexpr float TALKING_BODY_SWAY = 1.0f / 10.0f;
+// Neck and body turn to the face pose at this speed when talking starts; the
+// slow drift and sway begin only after they arrive.
+constexpr float TALKING_FACE_ARRIVE_SPEED_DEG_S = 40.0f;
 constexpr float TALKING_HAND_LIFT = TYPING_HAND_BAND * 2.0f;
 constexpr float TALKING_HAND_LIFT_AMBIENT = TYPING_HAND_BAND * 1.4f;
 constexpr float TALKING_EMPHASIS_NOD = 0.18f;

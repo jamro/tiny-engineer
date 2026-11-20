@@ -33,7 +33,7 @@ void commandBodyNeckSway() {
   const float offset =
     g_bodySwayPositive ? anim::TYPING_SWAY : -anim::TYPING_SWAY;
   const float speedDegS =
-    12.0f + 18.0f * randUnit();
+    anim::TYPING_SWAY_SPEED_MIN_DEG_S + anim::TYPING_SWAY_SPEED_SPAN_DEG_S * randUnit();
 
   servoAt(SERVO_BODY).setNormTarget(
     anim::TYPING_BODY_MID + offset,

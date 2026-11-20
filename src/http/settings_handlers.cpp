@@ -67,10 +67,41 @@ bool readField(JsonVariantConst list, uint8_t (&out)[SETTINGS_SERVO_COUNT]) {
   return true;
 }
 
+// [] clears the face pose; [head, neck, body] sets it. Range checks run later
+// in SettingsPatch::invalidField().
+bool readField(JsonVariantConst list, std::optional<FacePose>& out) {
+  if (!list.is<JsonArrayConst>()) {
+    return false;
+  }
+
+  FacePose pose{};
+
+  if (list.size() == 0) {
+    out = pose;
+    return true;
+  }
+
+  if (list.size() != SETTINGS_FACE_POSE_COUNT) {
+    return false;
+  }
+
+  for (size_t i = 0; i < SETTINGS_FACE_POSE_COUNT; i++) {
+    if (!list[i].is<float>()) {
+      return false;
+    }
+
+    pose.values[i] = list[i].as<float>();
+  }
+
+  pose.set = true;
+  out = pose;
+  return true;
+}
+
 // Fills the patch from the body. Returns the 400 message, or an empty string
 // when every field is known and has the right JSON type.
 String readPatch(JsonObjectConst body, SettingsPatch& patch) {
-  const char* known[24] = {};
+  const char* known[25] = {};
   size_t knownCount = 0;
   const char* wrong = nullptr;
 
@@ -118,6 +149,7 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("link_mode", patch.linkMode);
   read("rgb_order", patch.rgbOrder);
   read("oled_rotate_180", patch.oledRotate180);
+  read("face_pose", patch.facePose);
 
   ServoRanges ranges{};
   read("servo_mins", ranges.mins);
@@ -182,6 +214,15 @@ JsonDocument settingsJson() {
 
   doc["rgb_order"] = settingsRgbOrder();
   doc["oled_rotate_180"] = settingsOledRotate180();
+
+  const FacePose& face = settingsFacePose();
+  JsonArray facePose = doc["face_pose"].to<JsonArray>();
+
+  if (face.set) {
+    for (const float value : face.values) {
+      facePose.add(value);
+    }
+  }
 
   const WifiNetworkList& networks = settingsWifiNetworks();
   JsonArray ssids = doc["wifi_networks"].to<JsonArray>();

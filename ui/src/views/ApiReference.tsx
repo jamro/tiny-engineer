@@ -258,6 +258,16 @@ export function ApiReference() {
               Setup AP only; default <code>false</code>
             </td>
           </tr>
+          <tr>
+            <td>
+              <code>face_pose</code>
+            </td>
+            <td>number array</td>
+            <td>
+              Three numbers -1 to 1 (<code>head, neck, body</code>), or <code>[]</code> to clear;
+              default <code>[]</code> (not set)
+            </td>
+          </tr>
         </tbody>
       </table>
       <p>

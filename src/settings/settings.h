@@ -48,12 +48,23 @@ constexpr uint8_t SETTINGS_SERVO_ANGLE_MAX = 180;
 constexpr size_t SETTINGS_RGB_ORDER_MAX_LEN = 3;
 constexpr const char* SETTINGS_DEFAULT_RGB_ORDER = "GRB";
 constexpr bool SETTINGS_DEFAULT_OLED_ROTATE_180 = false;
+constexpr size_t SETTINGS_FACE_POSE_COUNT = 3;
 
 struct ServoRanges {
   uint8_t mins[SETTINGS_SERVO_COUNT];
   uint8_t maxs[SETTINGS_SERVO_COUNT];
 
   // Every angle within 0..SETTINGS_SERVO_ANGLE_MAX and each min below its max.
+  bool valid() const;
+};
+
+// Optional "face me" pose in animation units (-1 = saved min, 0 = mid, 1 = max),
+// in the order head, neck, body. `set` false means the user did not set one.
+struct FacePose {
+  bool set;
+  float values[SETTINGS_FACE_POSE_COUNT];
+
+  // Not set, or every value finite and within -1..1.
   bool valid() const;
 };
 
@@ -80,6 +91,8 @@ struct SettingsPatch {
   std::optional<ServoRanges> servoRanges;
   const char* rgbOrder = nullptr;
   std::optional<bool> oledRotate180;
+  // A FacePose with `set` false clears the saved pose.
+  std::optional<FacePose> facePose;
 
   // API name of the first field set to an invalid value, or nullptr.
   const char* invalidField() const;
@@ -129,6 +142,7 @@ float settingsServoMin(int index);
 float settingsServoMax(int index);
 const char* settingsRgbOrder();
 bool settingsOledRotate180();
+const FacePose& settingsFacePose();
 
 // True once the saved hostname, loading screen or WiFi networks differ from
 // what this boot started with; those apply only after a reboot.
@@ -171,4 +185,5 @@ bool saveActions(const ActionList& actions);
 
 // Clears the NVS namespace and restores the defaults, WiFi networks included,
 // but keeps the servo min/max, RGB LED byte order and OLED 180° rotation.
+// The face pose is cleared: it belongs to the desk setup, not to the build.
 bool factoryResetSettings();

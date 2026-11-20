@@ -37,6 +37,7 @@ struct SettingsValues {
   ServoRanges servoRanges;
   char rgbOrder[SETTINGS_RGB_ORDER_MAX_LEN + 1];
   bool oledRotate180;
+  FacePose facePose;
 
   static SettingsValues defaults();
 

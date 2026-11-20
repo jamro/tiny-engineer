@@ -54,6 +54,8 @@ export interface Settings {
   servo_maxs: number[];
   rgb_order: string;
   oled_rotate_180: boolean;
+  // [head, neck, body] in -1..1, or [] when no face pose is set.
+  face_pose: number[];
   wifi_networks: string[];
   reboot_required?: boolean;
   wifi_connect_success?: boolean;

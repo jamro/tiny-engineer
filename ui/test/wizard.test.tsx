@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { fakeRobot, renderApp } from "./robot";
 
 const angle = () => screen.getByTestId("calib-angle").textContent;
-const stepLabel = () => screen.getByText(/^Step \d of 5/).textContent;
+const stepLabel = () => screen.getByText(/^Step \d of 6/).textContent;
 const statusText = () => screen.queryByRole("status")?.textContent;
 
 async function openWizard(settings = {}) {
@@ -15,11 +15,20 @@ async function openWizard(settings = {}) {
   return { robot, ...app };
 }
 
-async function skipCalibration(settings = {}) {
+async function skipToFace(settings = {}) {
   const ctx = await openWizard(settings);
 
   await ctx.click("Skip");
-  await waitFor(() => expect(stepLabel()).toBe("Step 2 of 5 · Screen"));
+  await waitFor(() => expect(stepLabel()).toBe("Step 2 of 6 · Face me"));
+
+  return ctx;
+}
+
+async function skipCalibration(settings = {}) {
+  const ctx = await skipToFace(settings);
+
+  await ctx.click("Skip");
+  await waitFor(() => expect(stepLabel()).toBe("Step 3 of 6 · Screen"));
 
   return ctx;
 }
@@ -40,7 +49,7 @@ describe("setup wizard", () => {
 
     await screen.findByRole("heading", { name: "Tiny Engineer setup" });
     expect(screen.queryByRole("navigation")).toBeNull();
-    expect(stepLabel()).toBe("Step 1 of 5 · Servos");
+    expect(stepLabel()).toBe("Step 1 of 6 · Servos");
   });
 
   it("opens the servos hub before assembly or guided calibration", async () => {
@@ -404,7 +413,7 @@ describe("setup wizard", () => {
 
     await click("Save and continue");
 
-    await waitFor(() => expect(stepLabel()).toBe("Step 2 of 5 · Screen"));
+    await waitFor(() => expect(stepLabel()).toBe("Step 2 of 6 · Face me"));
 
     const saved = robot.lastPost("/settings")?.json as Record<string, unknown>;
 
@@ -416,6 +425,90 @@ describe("setup wizard", () => {
     expect(Object.keys(saved)).toEqual(["servo_mins", "servo_maxs"]);
   });
 
+  it("offers an optional Face me step after the servos step; Skip sends no face pose", async () => {
+    const { robot, click } = await skipToFace({ face_pose: [0.2, -0.5, 0.25] });
+
+    expect(screen.getByRole("heading", { name: "Face me" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Neck 85°" })).toBeTruthy();
+
+    await click("Skip");
+
+    await waitFor(() => expect(stepLabel()).toBe("Step 3 of 6 · Screen"));
+    expect(
+      robot
+        .sent("POST", "/settings")
+        .some((request) => JSON.stringify(request.json).includes("face_pose")),
+    ).toBe(false);
+  });
+
+  it("moves the face joints to the shown pose when the Face me step opens", async () => {
+    const { robot } = await skipToFace({
+      servo_mins: [70, 40, 45, 35, 60],
+      servo_maxs: [110, 130, 135, 125, 120],
+    });
+
+    // Default pose: head 1/7 of 20° above mid 90 = 93, neck mid 85, body mid 90.
+    await waitFor(() =>
+      expect(robot.sent("POST", "/setup/servo").map((request) => request.json)).toEqual([
+        { index: 0, angle: 93 },
+        { index: 1, angle: 85 },
+        { index: 4, angle: 90 },
+      ]),
+    );
+  });
+
+  it("moves the joints again and saves the pose without a nudge", async () => {
+    const { robot, click } = await skipToFace({
+      servo_mins: [70, 40, 45, 35, 60],
+      servo_maxs: [110, 130, 135, 125, 120],
+    });
+
+    await waitFor(() => expect(robot.sent("POST", "/setup/servo")).toHaveLength(3));
+    await click("Save and continue");
+
+    await waitFor(() => expect(stepLabel()).toBe("Step 3 of 6 · Screen"));
+    expect(robot.sent("POST", "/setup/servo")).toHaveLength(6);
+    expect(robot.lastPost("/settings")?.json).toEqual({ face_pose: [1 / 7, 0, 0] });
+  });
+
+  it("does not save the face pose when a move fails", async () => {
+    const { robot, click } = await skipToFace();
+
+    await waitFor(() => expect(robot.sent("POST", "/setup/servo")).toHaveLength(3));
+    robot.failing.add("/setup/servo");
+    await click("Save and continue");
+
+    await waitFor(() => expect(robot.sent("POST", "/setup/servo")).toHaveLength(4));
+    expect(stepLabel()).toBe("Step 2 of 6 · Face me");
+    expect(
+      robot
+        .sent("POST", "/settings")
+        .some((request) => JSON.stringify(request.json).includes("face_pose")),
+    ).toBe(false);
+  });
+
+  it("moves face joints with the setup move and saves the pose", async () => {
+    const { robot, click } = await skipToFace({
+      servo_mins: [70, 40, 45, 35, 60],
+      servo_maxs: [110, 130, 135, 125, 120],
+    });
+
+    await click(/^Neck/);
+    await click("−5°");
+    await click("−5°");
+
+    // Neck (index 1): mid 85 − 10 = 75, which is -0.2222 of the 45° half-span.
+    await waitFor(() =>
+      expect(robot.lastPost("/setup/servo")?.json).toEqual({ index: 1, angle: 75 }),
+    );
+    expect(robot.sent("POST", "/test/servo")).toHaveLength(0);
+
+    await click("Save and continue");
+
+    await waitFor(() => expect(stepLabel()).toBe("Step 3 of 6 · Screen"));
+    expect(robot.lastPost("/settings")?.json).toEqual({ face_pose: [1 / 7, -0.2222, 0] });
+  });
+
   it("restores the setup screen when leaving the screen step", async () => {
     const { robot, click } = await skipCalibration();
 
@@ -423,7 +516,11 @@ describe("setup wizard", () => {
     await click("Back");
 
     await waitFor(() => expect(robot.lastPost("/setup/oled")?.json).toBeUndefined());
-    expect(stepLabel()).toBe("Step 1 of 5 · Servos");
+    expect(stepLabel()).toBe("Step 2 of 6 · Face me");
+
+    await click("Back");
+
+    expect(stepLabel()).toBe("Step 1 of 6 · Servos");
     expect(screen.getByRole("button", { name: "Calibrate servos" })).toBeTruthy();
   });
 
@@ -467,7 +564,7 @@ describe("setup wizard", () => {
     await click("Next: Speaker");
     await click("Next: Connection");
 
-    expect(stepLabel()).toBe("Step 5 of 5 · Connection");
+    expect(stepLabel()).toBe("Step 6 of 6 · Connection");
 
     await user.click(screen.getByRole("radio", { name: /USB connection only/i }));
     await click("Use USB only");
@@ -503,7 +600,7 @@ describe("setup wizard", () => {
     await click("Next: RGB mapping");
     await click("Change color mapping");
 
-    expect(stepLabel()).toBe("Step 3 of 5 · RGB mapping");
+    expect(stepLabel()).toBe("Step 4 of 6 · RGB mapping");
 
     const byte = (name: string) => within(screen.getByRole("group", { name }));
     const next = () => screen.getByRole<HTMLButtonElement>("button", { name: "Next: Speaker" });
@@ -518,7 +615,7 @@ describe("setup wizard", () => {
 
     await click("Next: Speaker");
 
-    await waitFor(() => expect(stepLabel()).toBe("Step 4 of 5 · Speaker"));
+    await waitFor(() => expect(stepLabel()).toBe("Step 5 of 6 · Speaker"));
     expect(robot.lastPost("/settings")?.json).toEqual({ rgb_order: "RGB" });
   });
 });

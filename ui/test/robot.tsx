@@ -30,6 +30,7 @@ const DEFAULT_SETTINGS: Settings = {
   servo_maxs: [100, 100, 100, 100, 100],
   rgb_order: "GRB",
   oled_rotate_180: false,
+  face_pose: [],
 };
 
 export interface RecordedRequest {
