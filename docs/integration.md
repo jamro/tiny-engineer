@@ -101,6 +101,22 @@ npx -y tiny-engineer uninstall cursor --yes # remove only Tiny Engineer hook ent
 
 This firmware repo already ships configs pointing at the **local** CLI bin for developing the package.
 
+### Claude Code plugin (all projects)
+
+Instead of `setup` per project, Claude Code can install the hooks once for every project as a plugin. This repo is a Claude Code plugin marketplace ([`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json)). The `tiny-engineer` plugin brings the same 13 hook events as `setup claude-code` plus the [`tiny-engineer-play`](#speaking-through-the-robot-skill) skill. Run in a terminal:
+
+```bash
+npm i -g tiny-engineer
+claude plugin marketplace add jamro/tiny-engineer --sparse .claude-plugin skills
+claude plugin install tiny-engineer@tiny-engineer
+```
+
+`--sparse` makes Claude Code check out only the two folders the plugin needs (a few KB) instead of the whole repo with CAD, PCB, and firmware sources (over 200 MB). Restart Claude Code afterwards. Turn the plugin off or on with `/plugin`.
+
+- The hooks run `tiny-engineer hook claude-code`, so the CLI must be on `PATH` (the `npm i -g` above, or a system package). Without it the hooks exit quietly and the robot stays still. They do not fall back to `npx`: Claude Code enforces no timeout on async hooks, and a stalled npm registry would leave one `npx` process behind per event. Connection prefs (URL, token, transport) come from the user config file described above, or from process env.
+- A project whose `.claude/settings.json` or `.claude/settings.local.json` already has Tiny Engineer hooks (from `setup`, or this repo's dev hooks) keeps those, and the plugin stays quiet there, so events never fire twice.
+- The skill is `/tiny-engineer:tiny-engineer-play` (plugin skills are namespaced). Claude also uses it when you ask the robot to say something.
+
 ### Hook smoke test
 
 ```bash
@@ -121,7 +137,19 @@ WAV for `/play`: 16-bit mono PCM at 22050 Hz. Details: [`api.md#post-play`](api.
 
 ### Speaking through the robot (skill)
 
-Install the shared [`tiny-engineer-play`](../skills/tiny-engineer-play/SKILL.md) skill (`curl` + `POST /play`). Same skill works in Claude Code, Cursor, and Antigravity:
+Install the shared [`tiny-engineer-play`](../skills/tiny-engineer-play/SKILL.md) skill (`curl` + `POST /play`). It needs a text-to-speech tool (`espeak-ng` on Linux, `say` on macOS) and `ffmpeg`.
+
+The skill's script reads the robot address and token only from the environment (`TINY_ENGINEER_URL`, default `http://tiny-engineer.local`, and `TINY_ENGINEER_TOKEN`). It does not read the user config that `tiny-engineer setup` writes. If your robot uses another address or an `access_token`, export both before you start the agent:
+
+```bash
+export TINY_ENGINEER_URL=http://192.168.x.x
+export TINY_ENGINEER_TOKEN=your-access-token
+claude
+```
+
+**Claude Code:** the [Claude Code plugin](#claude-code-plugin-all-projects) includes this skill.
+
+**From a checkout.** The same skill works in Claude Code, Cursor, and Antigravity. A symlink follows whatever branch the checkout is on; copy the folder instead for a fixed version:
 
 ```bash
 mkdir -p ~/.claude/skills && ln -s "$PWD/skills/tiny-engineer-play" ~/.claude/skills/                         # Claude Code

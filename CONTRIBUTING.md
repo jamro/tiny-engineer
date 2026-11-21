@@ -100,7 +100,7 @@ Format: `type(scope): summary`
 
 Scopes: `firmware`, `http`, `settings`, `anim`, `servos`, `wifi`, `integrations`, `cad`, `mods`, `pcb`, `docs`, `scripts`, `ci`, `web`, `cli`.
 
-`integrations` is anything under `packages/` (Cursor, Antigravity, Claude Code, later agent CLIs). Do not add a new scope per package.
+`integrations` is anything under `packages/` (Cursor, Antigravity, Claude Code, later agent CLIs), `skills/`, or `.claude-plugin/`. Do not add a new scope per package.
 
 `mods` is anything under `mods/`. Name the mod in the summary. Do not add a new scope per mod.
 
