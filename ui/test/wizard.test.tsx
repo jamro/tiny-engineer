@@ -515,6 +515,7 @@ describe("setup wizard", () => {
     const { robot, click } = await reachFace();
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Face me" })).toBeTruthy());
+
     const movesAtFace = robot.sent("POST", "/setup/servo").length;
 
     robot.failing.add("/setup/servo");

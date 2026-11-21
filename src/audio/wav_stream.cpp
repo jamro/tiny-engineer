@@ -149,14 +149,21 @@ bool wavStreamUpdate() {
 
   const WavClipDef& def = clipDef(g_active);
 
-  if (!pumpWavChunk(g_file)) {
-    if (g_file) {
-      g_file.close();
+  // Top up a few chunks per tick. One OLED redraw (heavy eye styles) can take
+  // longer than one 512-sample slice (~23 ms at 22050 Hz); without this the
+  // I2S DMA underruns, speech sounds slow/gappy, and cue timers cut the clip.
+  constexpr int kChunksPerUpdate = 3;
+
+  for (int i = 0; i < kChunksPerUpdate; i++) {
+    if (!pumpWavChunk(g_file)) {
+      if (g_file) {
+        g_file.close();
+      }
+      g_playing = false;
+      serialLogPrint(def.label);
+      serialLogPrintln(" OK");
+      return false;
     }
-    g_playing = false;
-    serialLogPrint(def.label);
-    serialLogPrintln(" OK");
-    return false;
   }
 
   return true;

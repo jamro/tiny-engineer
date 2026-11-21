@@ -14,7 +14,7 @@ import { useAccessToken } from "./useAccessToken";
 import { useWifiNetworks } from "./useWifiNetworks";
 import { WifiNetworksSection } from "./WifiNetworksSection";
 
-const EYES_STYLES = ["classic", "kaomoji", "cover", "dots", "kawaii"];
+const EYES_STYLES = ["classic", "kaomoji", "cover", "dots", "kawaii", "evil"];
 
 // An emptied number field reads NaN; the stock volume stands in until the user types again.
 const clampVolume = (value: number) => (Number.isNaN(value) ? 70 : clamp(value, 0, 100));
@@ -197,7 +197,8 @@ export function ConfigForm({ settings }: { settings: Settings }) {
             Classic is the default procedural eyes. Kaomoji maps each animation to a face from the
             expression library. Cover fills each half of the screen for a mask with eye holes;
             animations change height with black margins. Dots draws a 12x12 circle per eye; size and
-            position follow the same poses as classic. Add new styles in firmware under{" "}
+            position follow the same poses as classic. Evil draws solid white scowling silhouettes
+            that stay menacing for every animation. Add new styles in firmware under{" "}
             <code>display/eyes/styles/</code>.
           </p>
         </div>

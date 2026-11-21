@@ -10,6 +10,7 @@ constexpr const char* kEyeStyleIds[] = {
   "cover",
   "dots",
   "kawaii",
+  "evil",
 };
 
 }  // namespace

@@ -38,6 +38,6 @@ Pick a path. Depth lives in the linked pages.
 | **Share a finished build** | [Show and tell](https://github.com/jamro/tiny-engineer/discussions/categories/show-and-tell) — [how to post](../CONTRIBUTING.md#share-your-build) |
 | **Public landing content** (tinyengineer.dev `/`) | [`web/landing-page.md`](../web/landing-page.md) — messaging brief; visuals in [`web/STYLE.md`](../web/STYLE.md) |
 
-Also: [robot-movement.md](robot-movement.md) (servo axes and safe ranges); optional [macos-lock-unlock.md](macos-lock-unlock.md) (sleep/wake on Mac screen lock).
+Also: [robot-movement.md](robot-movement.md) (servo axes and safe ranges); optional [macos-lock-unlock.md](macos-lock-unlock.md) (sleep/wake on Mac screen lock); OLED eye styles / avoid I2S underrun when adding a face: [`src/display/eyes/styles/README.md`](../src/display/eyes/styles/README.md).
 
 **Source of truth:** pin constants in firmware (`include/pins.h`); electrical detail in `docs/hardware/`; HTTP shapes in [api.md](api.md). Overall build order: [getting-started.md](getting-started.md).
