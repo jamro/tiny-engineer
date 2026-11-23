@@ -72,3 +72,32 @@ constexpr float SERVO_PWM_STEP_DEG = 0.63f;
 
 // Idle/sleep: hold PWM this long after all joints still, then full-off
 constexpr uint32_t SERVO_PWM_RELEASE_DELAY_MS = 2000;
+
+// Longest gap one slew step may cover. A loop stalled by a blocking call
+// (a smooth or calibration move, a flash write) must not turn into one
+// jump of speed x stall time on a joint that is still slewing.
+constexpr uint32_t SERVO_MAX_STEP_GAP_MS = 100;
+
+// Next angle of a joint slewing from angle to target at speedDegS,
+// elapsedMs after its previous step.
+inline float servoSlewNext(
+  float angle,
+  float target,
+  float speedDegS,
+  uint32_t elapsedMs
+) {
+  if (elapsedMs > SERVO_MAX_STEP_GAP_MS) {
+    elapsedMs = SERVO_MAX_STEP_GAP_MS;
+  }
+
+  const float maxStep = speedDegS * ((float)elapsedMs / 1000.0f);
+  const float delta = target - angle;
+
+  if (delta > maxStep) {
+    return angle + maxStep;
+  }
+  if (delta < -maxStep) {
+    return angle - maxStep;
+  }
+  return target;
+}

@@ -496,6 +496,8 @@ void ServoWrapper::setNormPosition(float n) {
 
 void ServoWrapper::stop() {
   target_ = angle_;
+  // A later setTarget starts a fresh slew, not one timed from this stop.
+  lastUpdateMs_ = 0;
 }
 
 bool ServoWrapper::isMoving() const {
@@ -522,12 +524,8 @@ void ServoWrapper::update() {
 
   lastUpdateMs_ = now;
 
-  const float maxStep =
-    speedDegS_ * ((float)elapsed / 1000.0f);
-  const float delta = target_ - angle_;
-  const float step =
-    constrain(delta, -maxStep, maxStep);
-  const float next = angle_ + step;
+  const float next =
+    servoSlewNext(angle_, target_, speedDegS_, elapsed);
 
   if (fabsf(target_ - next) < SERVO_ANGLE_DEADBAND_DEG) {
     writeAngle(target_, false, false);
