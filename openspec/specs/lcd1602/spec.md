@@ -39,7 +39,7 @@ When enabled, the extension MUST use LCD address **0x3E** (AiP31068L). Controlla
 - **THEN** `POST /settings` rejects it as an unknown or invalid field and does not save it
 
 ### Requirement: Follow sleep backlight setting
-The setting `lcd1602_backlight_sleep` MUST be a boolean on `GET`/`POST /settings`, default **true** when unset, including after factory reset. It MUST persist when `lcd1602` is false. On enable/boot with the extension on, when boot content is not restoring brightness from `last`, the firmware MUST turn the backlight on (default brightness). When the setting is false, enable/boot MUST still turn the backlight on even if `last` brightness is 0.
+The setting `lcd1602_backlight_sleep` MUST be a boolean on `GET`/`POST /settings`, default **true** when unset, including after factory reset. It MUST persist when `lcd1602` is false. On enable/boot with the extension on, when boot content is not restoring brightness from `last`, the firmware MUST turn the backlight on (default brightness). Sleep may persist brightness 0 into `last`, and sleep state does not survive restart. When the robot is awake (not entering or in sleep), enable/boot MUST turn the backlight on even if `last` brightness is 0: to the wake level **100** when the setting is true, and to default brightness when it is false. A restored 0 MUST stay off only when the setting is true and the robot is entering or in sleep.
 
 #### Scenario: Default true
 - **WHEN** the device has no stored `lcd1602_backlight_sleep`
@@ -52,6 +52,10 @@ The setting `lcd1602_backlight_sleep` MUST be a boolean on `GET`/`POST /settings
 #### Scenario: Boot on when follow sleep off and last brightness is zero
 - **WHEN** `lcd1602` is true, `lcd1602_backlight_sleep` is false, `lcd1602_boot` is `last`, and stored last brightness is 0
 - **THEN** the backlight turns on at enable/boot (does not stay at 0)
+
+#### Scenario: Boot on when follow sleep on, awake, and last brightness is zero
+- **WHEN** `lcd1602` is true, `lcd1602_backlight_sleep` is true, the robot is awake, `lcd1602_boot` is `last`, and stored last brightness is 0
+- **THEN** the backlight turns on at enable/boot at brightness 100 (does not stay at 0)
 
 #### Scenario: Old key not restored
 - **WHEN** the client posts `{"lcd1602_backlight_boot": true}`

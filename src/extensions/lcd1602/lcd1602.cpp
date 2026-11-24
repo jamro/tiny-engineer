@@ -8,11 +8,15 @@
 #include "serial_log.h"
 #include "settings/nvs.h"
 #include "settings/settings.h"
+#include "sleep.h"
 
 namespace {
 
 constexpr uint32_t kScrollStepMs = 375;
 constexpr uint32_t kScrollWrapPauseMs = 750;
+// Same target as the wake fade in sleep.cpp. Sleep persists 0 into last;
+// boot does not replay that fade.
+constexpr uint8_t kFollowSleepWakeBrightness = 100;
 constexpr uint8_t kAlignLeft = 0;
 constexpr uint8_t kAlignRight = 1;
 constexpr uint8_t kAlignCenter = 2;
@@ -220,11 +224,17 @@ void applyBrightnessPolicy(bool fromLast, uint8_t lastBrightness, const Lcd1602C
     g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
   }
 
-  // Follow-sleep off means the panel stays lit while awake. Sleep may have
-  // persisted brightness 0 into "last"; do not leave the backlight off on
-  // enable/boot.
-  if (!settingsLcd1602BacklightSleep() && g_brightness == 0) {
-    g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
+  // Sleep fade persists brightness 0 into "last". Sleep state does not
+  // survive restart, and boot does not replay the wake fade, so an awake
+  // enable/boot must not stay dark. Follow-sleep off uses the default
+  // level. Follow-sleep on uses the wake level. Leave 0 only while
+  // entering or in sleep, so enabling mid-sleep does not flash the panel.
+  if (g_brightness == 0) {
+    if (!settingsLcd1602BacklightSleep()) {
+      g_brightness = SETTINGS_DEFAULT_LCD1602_BRIGHTNESS;
+    } else if (!sleepAllowsWakeup()) {
+      g_brightness = kFollowSleepWakeBrightness;
+    }
   }
 
   if (g_hwOk) {
