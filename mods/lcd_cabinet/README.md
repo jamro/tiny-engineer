@@ -1,6 +1,8 @@
 # LCD cabinet
 
-Desk cabinet for a [Waveshare LCD1602 RGB Module](https://www.waveshare.com/lcd1602-rgb-module.htm). The display plugs into the robot’s I2C extension port. Text comes from the LCD1602 extension.
+Desk cabinet that shows how much of an AI plan budget is left. After a completed turn, the display reads `AI BUDGET:` and a remaining percent (`NN.NN%`). The dollar badge on the lid matches that readout. Any agent that can call the Tiny Engineer CLI can write those lines.
+
+The cabinet holds a [Waveshare LCD1602 RGB Module](https://www.waveshare.com/lcd1602-rgb-module.htm). It plugs into the robot’s I2C extension port. Turn the LCD1602 extension on (assembly step 5) before the CLI can write the budget line.
 
 ![LCD cabinet](lcd_cabinet_preview.jpg)
 
@@ -44,5 +46,16 @@ Fusion source: [`3d_models/cad/TinyEngineerLcdCabinet.f3d`](3d_models/cad/TinyEn
    Pin 1 on a Qwiic plug is GND. Putting VCC on pin 1 swaps power and ground. J3 is 3.3 V logic; use the **+3.3V** pin, not a 5 V rail. Full header: [pinout § J3](../../docs/hardware/pinout.md#j3--i2c-extension-conn_extension-jst).
 4. Plug the cable into **J3** on the main control board.
 5. Open the Tiny Engineer web UI, go to **Extensions**, turn **LCD 1602** on, and save. The extension talks to this module at LCD address `0x3E`.
+
+## CLI
+
+Any agent can write the two lines. Enable the extension, then set the text:
+
+```bash
+npx -y tiny-engineer settings set --lcd1602=true
+npx -y tiny-engineer ext lcd1602 text set --line1="AI BUDGET:" --line2=85.67% --align2=right
+```
+
+Call that `text set` at the end of a turn so the cabinet tracks the remaining budget. Clear the screen with `tiny-engineer ext lcd1602 text clear`.
 
 CAD under `3d_models/` is [CERN-OHL-S-2.0](../../3d_models/LICENSE). This file is [MIT](../../LICENSE).
