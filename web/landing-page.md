@@ -88,6 +88,7 @@ Links (same set every page; `aria-current` from `data-page`):
   - Eye styles tile → `/eyes/`
   - Halloween tile → `mods/halloween/README.md` on GitHub
   - Bell button tile → `mods/bell_button/README.md` on GitHub
+  - LCD cabinet tile → `mods/lcd_cabinet/README.md` on GitHub
 - GitHub → repo root
 
 Page-specific docs links stay in page body, not top nav. `/pcba_test/` stays brand-only (line tool).
