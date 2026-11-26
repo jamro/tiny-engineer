@@ -81,6 +81,9 @@ Options (most commands):
 
 Config / auth:
   Connection prefs: user config env (~/.config/tiny-engineer/env; Windows %APPDATA%).
+  TINY_ENGINEER_AI_USAGE_LCD=1 shows remaining Cursor or Claude Code plan budget
+  on LCD1602 after a completed turn. setup asks only for those IDEs and prints
+  their sign-in steps. Antigravity has no budget monitor. Needs lcd1602 and lcd_cabinet.
   setup/uninstall --global writes Cursor (~/.cursor/hooks.json) and Claude Code
   (~/.claude/settings.json) user hooks. Antigravity and --all error (not supported).
   Without --global, IDE hooks stay in the project.

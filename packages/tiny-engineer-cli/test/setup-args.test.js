@@ -335,6 +335,7 @@ test("interactive setup preserves --token when Enter would clear prompt", async 
     await runSetup(out, ["cursor", "--token", "from-flag"], {
       projectRoot: dir,
       ask: async (q, def = "") => {
+        if (String(q).includes("Hook scope")) return "project";
         if (String(q).includes("Access token")) {
           tokenPrompts.push(String(q));
           return "";
@@ -409,6 +410,7 @@ test("interactive setup confirms replace of differing user env URL", async () =>
     await runSetup(out, ["cursor", "--url", "http://new"], {
       projectRoot: dir,
       ask: async (q, def = "") => {
+        if (String(q).includes("Hook scope")) return "project";
         if (String(q).includes("Access token")) return "";
         return def || "http";
       },
@@ -446,6 +448,7 @@ test("interactive setup declines replace keeps stored URL", async () => {
     await runSetup(out, ["cursor", "--url", "http://new"], {
       projectRoot: dir,
       ask: async (q, def = "") => {
+        if (String(q).includes("Hook scope")) return "project";
         if (String(q).includes("Access token")) return "";
         return def || "http";
       },
@@ -482,6 +485,7 @@ test("interactive HTTP blank token does not write TINY_ENGINEER_TOKEN", async ()
     await runSetup(out, ["cursor", "--url", "http://robot.test"], {
       projectRoot: dir,
       ask: async (q, def = "") => {
+        if (String(q).includes("Hook scope")) return "project";
         if (String(q).includes("Access token")) return "";
         return def || "http";
       },
@@ -628,6 +632,7 @@ test("interactive setup AI usage confirm writes 1 or 0", async () => {
     await runSetup(out, ["cursor", "--url", "http://robot.test"], {
       projectRoot: dir,
       ask: async (q, def = "") => {
+        if (String(q).includes("Hook scope")) return "project";
         if (String(q).includes("Access token")) return "";
         return def || "http";
       },
@@ -641,6 +646,7 @@ test("interactive setup AI usage confirm writes 1 or 0", async () => {
     await runSetup(out, ["cursor", "--url", "http://robot.test"], {
       projectRoot: dir,
       ask: async (q, def = "") => {
+        if (String(q).includes("Hook scope")) return "project";
         if (String(q).includes("Access token")) return "";
         return def || "http";
       },
@@ -857,7 +863,10 @@ test("interactive setup asks hook scope when the IDE is already chosen", async (
       home,
       ask: async (q, def = "") => {
         questions.push(String(q));
-        if (String(q).includes("Hook scope")) return "global";
+        if (String(q).includes("Hook scope")) {
+          assert.equal(def, "global");
+          return "";
+        }
         if (String(q).includes("Access token")) return "";
         return def || "http";
       },

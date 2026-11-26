@@ -1,6 +1,6 @@
 # LCD cabinet
 
-Desk cabinet that shows how much of an AI plan budget is left. After a completed turn, the display reads `AI BUDGET:` and a remaining percent (`NN.NN%`). The dollar badge on the lid matches that readout. Any agent that can call the Tiny Engineer CLI can write those lines.
+Desk cabinet that shows how much of an AI plan budget is left. After a completed Cursor turn the display reads `CURSOR BUDGET`. After a completed Claude Code turn it reads `CLAUDE BUDGET`. Line 2 is the remaining percent (`NN.NN%`). The dollar badge on the lid matches that readout. Any agent that can call the Tiny Engineer CLI can write those lines.
 
 The cabinet holds a [Waveshare LCD1602 RGB Module](https://www.waveshare.com/lcd1602-rgb-module.htm). It plugs into the robot’s I2C extension port. Turn the LCD1602 extension on (assembly step 5) before the CLI can write the budget line.
 
@@ -53,7 +53,7 @@ Any agent can write the two lines. Enable the extension, then set the text:
 
 ```bash
 npx -y tiny-engineer settings set --lcd1602=true
-npx -y tiny-engineer ext lcd1602 text set --line1="AI BUDGET:" --line2=85.67% --align2=right
+npx -y tiny-engineer ext lcd1602 text set --line1="CURSOR BUDGET" --line2=85.67% --align2=right
 ```
 
 Call that `text set` at the end of a turn so the cabinet tracks the remaining budget. Clear the screen with `tiny-engineer ext lcd1602 text clear`.

@@ -45,7 +45,7 @@ Command-line flags that override URL, transport, or port MUST take precedence ov
 ### Requirement: No global-versus-project storage prompt for connection keys
 The CLI MUST NOT ask the user whether a connection preference should be stored as global or project; connection keys always go to user `env`. IDE hooks are project-local unless `--global` is set or interactive setup answers `global`.
 
-Interactive setup (no `--yes`, no `--global`) MUST ask which IDE before hook scope when no IDE id was given. The scope question MUST accept `global` or `project`, default `project`, and MUST come after the IDE choice. `--yes` MUST NOT ask. `--global` MUST NOT ask. Answering `global` MUST follow the same user-hook rules as the `--global` flag.
+Interactive setup (no `--yes`, no `--global`) MUST ask which IDE before hook scope when no IDE id was given. The scope question MUST accept `global` or `project`, default `global`, and MUST come after the IDE choice. `--yes` MUST NOT ask. `--global` MUST NOT ask. Answering `global` MUST follow the same user-hook rules as the `--global` flag.
 
 #### Scenario: Setup does not ask where to store connection keys
 - **WHEN** the user runs setup and provides connection preferences
@@ -53,7 +53,7 @@ Interactive setup (no `--yes`, no `--global`) MUST ask which IDE before hook sco
 
 #### Scenario: Interactive setup asks IDE then hook scope
 - **WHEN** the user runs setup without `--yes`, without `--global`, and without an IDE id
-- **THEN** the IDE choice comes before the hook-scope prompt, and Enter on hook scope selects `project`
+- **THEN** the IDE choice comes before the hook-scope prompt, and Enter on hook scope selects `global`
 
 ### Requirement: Setup labels global versus project destinations
 During setup (interactive prompts, dry-run, and completion summary), the CLI MUST make clear which values are user/global connection preferences and which are project-level IDE hook installs. Connection-key messaging MUST name the user `env` destination (or equivalent user-config path). Hook messaging MUST name the project-relative config path(s), or the user hooks path when `--global` is set. The CLI MUST NOT imply connection keys are written into the project `.env`.

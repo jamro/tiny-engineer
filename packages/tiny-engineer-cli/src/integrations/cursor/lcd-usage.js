@@ -1,13 +1,15 @@
-import { robotExt } from "../../robot/ops.js";
+import {
+  AI_USAGE_LCD_KEY,
+  CURSOR_BUDGET_LABEL,
+  OVERALL_TIMEOUT_MS,
+  STEP_TIMEOUT_MS,
+  postBudgetLcd,
+} from "../ai-usage-lcd.js";
 import { fetchCursorLimits } from "./usage-api.js";
 import { remainingBudgetPercent } from "./usage-remaining.js";
 import { resolveCursorSessionCookie } from "./usage-session.js";
 
-/** Opt-in: only `"1"` enables LCD AI budget updates after Cursor `ring`. */
-export const AI_USAGE_LCD_KEY = "TINY_ENGINEER_AI_USAGE_LCD";
-
-export const OVERALL_TIMEOUT_MS = 2000;
-export const STEP_TIMEOUT_MS = 1500;
+export { AI_USAGE_LCD_KEY, OVERALL_TIMEOUT_MS, STEP_TIMEOUT_MS };
 
 /**
  * @typedef {{
@@ -33,19 +35,8 @@ export const STEP_TIMEOUT_MS = 1500;
  * @param {TransportOpts} transport
  * @param {number} timeoutMs
  */
-async function defaultPostLcd(pct, transport, timeoutMs) {
-  await robotExt(
-    {
-      id: "lcd1602",
-      suffix: "text",
-      method: "POST",
-      body: {
-        line1: { text: "AI BUDGET:" },
-        line2: { text: `${pct.toFixed(2)}%`, align: "right" },
-      },
-    },
-    { ...transport, timeoutMs },
-  );
+function defaultPostLcd(pct, transport, timeoutMs) {
+  return postBudgetLcd(pct, transport, timeoutMs, CURSOR_BUDGET_LABEL);
 }
 
 /**

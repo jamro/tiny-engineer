@@ -14,6 +14,12 @@ import {
 } from "../config/env.js";
 import { userEnvPath } from "../config/paths.js";
 import { AI_USAGE_LCD_KEY } from "../integrations/cursor/lcd-usage.js";
+import {
+  aiUsageLcdGuide,
+  aiUsageLcdPrompt,
+  aiUsageLcdSkipMessage,
+  budgetIdeIds,
+} from "./ai-usage-lcd.js";
 import { all as allIntegrations, get as getIntegration } from "../integrations/registry.js";
 import { hookCommandFor } from "./cliPath.js";
 import { mergeEnvKey, readEnvKey, readJsonFile, writeJsonFile } from "./merge.js";
@@ -207,10 +213,10 @@ function rejectUnsupportedGlobal(out, ids) {
  * @returns {Promise<boolean | null>} true = global, false = project, null = invalid
  */
 async function askHookScope(out, askFn) {
-  const raw = await askFn("Hook scope (global or project)", "project");
+  const raw = await askFn("Hook scope (global or project)", "global");
   const scopeAnswer = String(raw ?? "").trim().toLowerCase();
-  if (scopeAnswer === "global" || scopeAnswer === "g") return true;
-  if (scopeAnswer === "project" || scopeAnswer === "p" || scopeAnswer === "") return false;
+  if (scopeAnswer === "global" || scopeAnswer === "g" || scopeAnswer === "") return true;
+  if (scopeAnswer === "project" || scopeAnswer === "p") return false;
   out.error(`invalid hook scope ${scopeAnswer} (use global or project)`);
   process.exitCode = 1;
   return null;
@@ -441,13 +447,14 @@ export async function runSetup(
     port = answer || undefined;
   }
 
+  const budgetIdes = budgetIdeIds(selected);
   /** @type {boolean | undefined} */
   let aiUsageLcd = args.aiUsageLcd;
-  if (aiUsageLcd === undefined && !args.yes) {
-    aiUsageLcd = await confirmFn(
-      "\nCursor AI budget on LCD1602 after turns? Needs lcd1602 extension and lcd_cabinet mod.",
-      false,
-    );
+  if (budgetIdes.length === 0) {
+    if (aiUsageLcd !== undefined) out.info(aiUsageLcdSkipMessage(selected));
+    aiUsageLcd = undefined;
+  } else if (aiUsageLcd === undefined && !args.yes) {
+    aiUsageLcd = await confirmFn(aiUsageLcdPrompt(budgetIdes), false);
   }
 
   if (!args.yes) {
@@ -518,6 +525,9 @@ export async function runSetup(
     }
     if (aiUsageLcdPreview !== undefined) {
       out.info(`  ${AI_USAGE_LCD_KEY}=${aiUsageLcdPreview ? "1" : "0"}`);
+      if (aiUsageLcdPreview) {
+        for (const line of aiUsageLcdGuide(budgetIdes)) out.info(line);
+      }
     }
     process.exitCode = 0;
     return;
@@ -598,7 +608,7 @@ export async function runSetup(
   }
 
   if (aiUsageLcd !== undefined) {
-    await persistUserEnvKey(out, {
+    const budgetWrite = await persistUserEnvKey(out, {
       key: AI_USAGE_LCD_KEY,
       value: aiUsageLcd ? "1" : "0",
       yes: args.yes,
@@ -606,6 +616,9 @@ export async function runSetup(
       label: AI_USAGE_LCD_KEY,
       confirmFn,
     });
+    if (aiUsageLcd && budgetWrite !== "kept") {
+      for (const line of aiUsageLcdGuide(budgetIdes)) out.info(line);
+    }
   }
 
   out.ok("setup complete — run: tiny-engineer doctor");
@@ -616,12 +629,16 @@ function printSetupHelp() {
   console.log(`Usage: tiny-engineer setup [ide...] [options]
 
 Merge Tiny Engineer hook commands into the current project (project-local).
-Interactive setup asks which IDE, then hook scope (global or project, default project).
+Interactive setup asks which IDE, then hook scope (global or project, default global).
 --yes skips that question. --global skips it and writes user hooks:
 Cursor ~/.cursor/hooks.json, Claude Code ~/.claude/settings.json
 (antigravity and --all: not supported).
 Connection prefs (transport, URL, port, token, optional LCD AI budget) go to user config (global).
-Cursor LCD AI budget updates are opt-in (TINY_ENGINEER_AI_USAGE_LCD=1) and need the lcd1602 extension plus the lcd_cabinet mod.
+LCD AI budget (TINY_ENGINEER_AI_USAGE_LCD) is offered only for Cursor and Claude Code.
+Antigravity skips the question and ignores --ai-usage-lcd / --no-ai-usage-lcd.
+Enabling prints the sign-in steps for the IDE you picked. Cursor uses the account
+already signed in on this machine. Claude Code needs /login (a subscription login,
+not an API key). Both need the lcd1602 extension and the lcd_cabinet mod.
 
 Options:
   --all                   Install all integrations (cursor, claude-code, antigravity)
@@ -634,8 +651,8 @@ Options:
   --url <base>            Robot URL when transport is http (user config)
   --port <path>           Optional serial port when transport is serial (user config)
   --token <value>         Optional HTTP access token (user config; omit to skip)
-  --ai-usage-lcd          Enable LCD AI budget after Cursor ring (user config)
-  --no-ai-usage-lcd       Disable LCD AI budget (user config)
+  --ai-usage-lcd          Cursor or Claude Code only. Enable LCD AI budget and print sign-in steps
+  --no-ai-usage-lcd       Cursor or Claude Code only. Disable LCD AI budget
   --command <prefix>      Override CLI launcher (default: npx -y tiny-engineer)
   -h, --help              Show this help
 
