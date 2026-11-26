@@ -29,6 +29,49 @@ test("configHasHook finds hook cursor command", () => {
   }
 });
 
+test("runDoctor reports cursor user hooks when present", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-doc-"));
+  const home = mkdtempSync(join(tmpdir(), "te-home-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new Error("offline");
+  };
+  mkdirSync(join(home, ".cursor"), { recursive: true });
+  writeFileSync(
+    join(home, ".cursor", "hooks.json"),
+    JSON.stringify({
+      version: 1,
+      hooks: { stop: [{ command: 'node "/x" hook cursor', timeout: 5 }] },
+    }),
+    "utf8",
+  );
+  /** @type {string[]} */
+  const lines = [];
+  const out = createOutput({
+    quiet: false,
+    style: createStyle({ color: false }),
+    log: (m) => lines.push(String(m)),
+    error: (m) => lines.push(String(m)),
+  });
+  try {
+    await runDoctor(out, [], { projectRoot: dir, home });
+    const userLine = lines.find((l) => l.includes("cursor user:"));
+    assert.ok(userLine?.includes("hooks ok"));
+    assert.ok(userLine?.includes(join(home, ".cursor", "hooks.json")));
+  } finally {
+    globalThis.fetch = original;
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
 test("checkHealth returns ok on 200", async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async () =>
@@ -78,7 +121,8 @@ test("runDoctor prints without throwing", async () => {
   });
   try {
     writeFileSync(join(dir, ".env"), "TINY_ENGINEER_URL=http://override\nTINY_ENGINEER_TOKEN=sekrit\n", "utf8");
-    await runDoctor(out, [], { projectRoot: dir });
+    await runDoctor(out, [], { projectRoot: dir, home: dir });
+    assert.ok(lines.some((l) => l.includes("cursor user:") && l.includes("hooks absent")));
     assert.ok(lines.some((l) => l.includes("url:")));
     assert.ok(lines.some((l) => l.includes("cursor:")));
     assert.ok(lines.some((l) => l.includes("user config:")));
@@ -131,7 +175,7 @@ test("runDoctor serial uses the daemon and does not need HTTP", async () => {
   });
   try {
     for (let i = 0; i < 50 && !existsSync(daemonPaths(cfg).sock); i += 1) await delay(20);
-    await runDoctor(out, ["--transport", "serial"], { projectRoot: dir });
+    await runDoctor(out, ["--transport", "serial"], { projectRoot: dir, home: dir });
     assert.equal(fetches, 0);
     assert.ok(lines.some((line) => line.includes("transport: serial")));
     assert.ok(lines.some((line) => line.includes("health: ok")));

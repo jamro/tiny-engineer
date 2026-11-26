@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 
 import {
@@ -28,6 +29,7 @@ const DEFAULT_TIMEOUT = 30;
  *   yes: boolean,
  *   all: boolean,
  *   dryRun: boolean,
+ *   global: boolean,
  *   url?: string,
  *   transport?: string,
  *   port?: string,
@@ -43,6 +45,7 @@ export function parseSetupArgs(argv) {
   let yes = false;
   let all = false;
   let dryRun = false;
+  let globalHooks = false;
   /** @type {string | undefined} */
   let url;
   /** @type {string | undefined} */
@@ -76,6 +79,10 @@ export function parseSetupArgs(argv) {
       dryRun = true;
       continue;
     }
+    if (arg === "--global") {
+      globalHooks = true;
+      continue;
+    }
     if (arg === "--ai-usage-lcd") {
       aiUsageLcd = true;
       continue;
@@ -90,19 +97,20 @@ export function parseSetupArgs(argv) {
         yes,
         all,
         dryRun,
+        global: globalHooks,
         ides,
         error: `${arg} removed; interactive setup confirms replaces, --yes keeps existing`,
       };
     }
     if (arg === "--url") {
       const next = argv[++i];
-      if (!next) return { help, yes, all, dryRun, ides, error: "--url requires a value" };
+      if (!next) return { help, yes, all, dryRun, global: globalHooks, ides, error: "--url requires a value" };
       url = next;
       continue;
     }
     if (arg.startsWith("--url=")) {
       url = arg.slice("--url=".length);
-      if (!url) return { help, yes, all, dryRun, ides, error: "--url requires a value" };
+      if (!url) return { help, yes, all, dryRun, global: globalHooks, ides, error: "--url requires a value" };
       continue;
     }
     if (arg === "--transport") {
@@ -160,7 +168,49 @@ export function parseSetupArgs(argv) {
     ides.push(arg);
   }
 
-  return { help, yes, all, dryRun, url, transport, port, token, command, aiUsageLcd, ides };
+  return {
+    help,
+    yes,
+    all,
+    dryRun,
+    global: globalHooks,
+    url,
+    transport,
+    port,
+    token,
+    command,
+    aiUsageLcd,
+    ides,
+  };
+}
+
+/**
+ * Non-Cursor integrations cannot install user-level hooks yet.
+ * @param {import("../util/output.js").Output} out
+ * @param {string[]} ids
+ * @returns {boolean} true when the caller must stop
+ */
+function rejectUnsupportedGlobal(out, ids) {
+  const rejected = ids.filter((id) => id !== "cursor");
+  if (rejected.length === 0) return false;
+  out.error(`--global not supported for: ${rejected.join(", ")}`);
+  process.exitCode = 1;
+  return true;
+}
+
+/**
+ * @param {import("../util/output.js").Output} out
+ * @param {typeof ask} askFn
+ * @returns {Promise<boolean | null>} true = global, false = project, null = invalid
+ */
+async function askHookScope(out, askFn) {
+  const raw = await askFn("Hook scope (global or project)", "project");
+  const scopeAnswer = String(raw ?? "").trim().toLowerCase();
+  if (scopeAnswer === "global" || scopeAnswer === "g") return true;
+  if (scopeAnswer === "project" || scopeAnswer === "p" || scopeAnswer === "") return false;
+  out.error(`invalid hook scope ${scopeAnswer} (use global or project)`);
+  process.exitCode = 1;
+  return null;
 }
 
 /**
@@ -209,13 +259,13 @@ async function persistUserEnvKey(
   const existing = readEnvKey(envPath, key);
 
   if (existing !== null && existing === value) {
-    out.info(`user config ${label}: unchanged`);
+    out.info(secret ? `${label}: unchanged` : `${label}=${existing} (unchanged)`);
     return "unchanged";
   }
 
   if (existing !== null && existing !== value) {
     if (yes) {
-      out.info(`user config ${label}: kept existing (differs from proposed)`);
+      out.info(`${label}: kept existing`);
       return "kept";
     }
     const prompt = secret
@@ -223,18 +273,18 @@ async function persistUserEnvKey(
       : `Replace user config ${label}: ${existing} → ${value}?`;
     const ok = await confirmFn(prompt, false);
     if (!ok) {
-      out.info(`user config ${label}: kept existing`);
+      out.info(`${label}: kept existing`);
       return "kept";
     }
   }
 
   if (dryRun) {
-    out.info(`user config ${label}: would write ${secret ? "(secret)" : value}`);
+    out.info(`${label}: would write ${secret ? "(secret)" : value}`);
     return "dry-run";
   }
 
   const result = mergeEnvKey(envPath, key, value, { force: true, private: true });
-  out.ok(`user config ${label}: ${result}`);
+  out.ok(`${label}: ${result}`);
   return result;
 }
 
@@ -243,6 +293,7 @@ async function persistUserEnvKey(
  * @param {string[]} argv
  * @param {{
  *   projectRoot?: string,
+ *   home?: string,
  *   ask?: typeof ask,
  *   confirm?: typeof confirm,
  *   multiSelect?: typeof multiSelect,
@@ -253,6 +304,7 @@ export async function runSetup(
   argv,
   {
     projectRoot = process.cwd(),
+    home = homedir(),
     ask: askFn = ask,
     confirm: confirmFn = confirm,
     multiSelect: multiSelectFn = multiSelect,
@@ -283,8 +335,12 @@ export async function runSetup(
     }
   }
 
+  if (args.global && (args.all || args.ides.length > 0)) {
+    const ids = args.all ? allIntegrations().map((integration) => integration.id) : args.ides;
+    if (rejectUnsupportedGlobal(out, ids)) return;
+  }
+
   const userEnv = userEnvPath();
-  out.info(`User config (global): ${userEnv}`);
   warnProjectOverrides(out, projectRoot);
 
   const detected = detectIntegrations(projectRoot);
@@ -303,13 +359,28 @@ export async function runSetup(
       detectedOpts.length > 0
         ? detectedOpts.map((d) => ({ id: d.id, label: d.name }))
         : detected.map((d) => ({ id: d.id, label: d.name }));
-    selected = await multiSelectFn("Install Tiny Engineer hooks for:", choices);
+    selected = await multiSelectFn("\nInstall Tiny Engineer hooks for:", choices);
   }
 
   if (selected.length === 0) {
     out.error("no integrations selected");
     process.exitCode = 1;
     return;
+  }
+
+  if (!args.yes && !args.global) {
+    const globalChoice = await askHookScope(out, askFn);
+    if (globalChoice === null) return;
+    args.global = globalChoice;
+  }
+
+  if (args.global && rejectUnsupportedGlobal(out, selected)) return;
+
+  /** @type {"project" | "user"} */
+  const scope = args.global ? "user" : "project";
+
+  if (!args.yes) {
+    out.info(`\nConnection, saved in ${userEnv}`);
   }
 
   /** @type {"http" | "serial"} */
@@ -333,10 +404,7 @@ export async function runSetup(
   } else {
     const current = resolveTransport(undefined);
     const defaultTransport = current.transport ?? DEFAULT_TRANSPORT;
-    const answer = await askFn(
-      `Host transport (http or serial) [user config]`,
-      defaultTransport,
-    );
+    const answer = await askFn("Transport (http or serial)", defaultTransport);
     const normalized = normalizeTransport(answer);
     if (!normalized) {
       out.error(`invalid transport ${answer} (use http or serial)`);
@@ -355,10 +423,10 @@ export async function runSetup(
 
   if (transport === "http") {
     if (!args.yes) {
-      url = await askFn(`Robot base URL [user config]`, url || getBaseUrl() || DEFAULT_URL);
+      url = await askFn("Robot URL", url || getBaseUrl() || DEFAULT_URL);
       // Prompt only when --token absent so Enter cannot wipe the flag.
       if (args.token === undefined) {
-        const tokenAnswer = await askFn(`Access token optional, Enter to skip [user config]`, "");
+        const tokenAnswer = await askFn("Access token, or empty to skip", "");
         token = tokenAnswer || undefined;
       }
     } else {
@@ -366,15 +434,30 @@ export async function runSetup(
     }
   } else if (!args.yes) {
     const portDefault = port || getSerialPort() || "";
-    const answer = await askFn(`Serial port optional, Enter to skip [user config]`, portDefault);
+    const answer = await askFn("Serial port to connect, empty = autodetect", portDefault);
     port = answer || undefined;
   }
 
-  if (!args.yes) {
-    const ok = await confirmFn(
-      `Write project hook configs for: ${selected.join(", ")}?`,
-      true,
+  /** @type {boolean | undefined} */
+  let aiUsageLcd = args.aiUsageLcd;
+  if (aiUsageLcd === undefined && !args.yes) {
+    aiUsageLcd = await confirmFn(
+      "\nCursor AI budget on LCD1602 after turns? Needs lcd1602 extension and lcd_cabinet mod.",
+      false,
     );
+  }
+
+  if (!args.yes) {
+    const hookWhere = [
+      ...new Set(
+        selected.map((id) =>
+          args.global
+            ? join(home, ".cursor", "hooks.json")
+            : (getIntegration(id)?.configRelativePath?.() ?? id),
+        ),
+      ),
+    ].join(", ");
+    const ok = await confirmFn(`\nWrite hooks to ${hookWhere}?`, true);
     if (!ok) {
       out.info("setup cancelled");
       process.exitCode = 0;
@@ -402,16 +485,18 @@ export async function runSetup(
       cliCommand,
       timeout: DEFAULT_TIMEOUT,
       url,
+      scope,
+      home,
     };
     plans.push(integration.planInstall(ctx));
   }
 
   /** @type {boolean | undefined} */
-  const aiUsageLcdPreview = args.aiUsageLcd;
+  const aiUsageLcdPreview = aiUsageLcd;
 
   if (args.dryRun) {
     out.ok("dry-run — no files written");
-    out.info("Project hooks:");
+    out.info(scope === "user" ? "User hooks:" : "Project hooks:");
     for (const plan of plans) {
       out.info(`  ${plan.relativePath}`);
       out.info(`    events: ${plan.events.join(", ")}`);
@@ -435,32 +520,37 @@ export async function runSetup(
     return;
   }
 
-  out.info("Project hooks:");
-  for (const id of selected) {
-    const integration = getIntegration(id);
+  for (const plan of plans) {
+    const integration = getIntegration(plan.ide);
     const cliCommand = args.command
-      ? `${args.command} hook ${id}`
-      : hookCommandFor(id);
+      ? `${args.command} hook ${plan.ide}`
+      : hookCommandFor(plan.ide);
     const ctx = {
       projectRoot,
       cliCommand,
       timeout: DEFAULT_TIMEOUT,
       url,
+      scope,
+      home,
     };
-    const rel = integration.configRelativePath();
-    const abs = join(projectRoot, rel);
+    const abs = plan.path;
     const existing = readJsonFile(abs);
     if (existing === null && existsSync(abs)) {
-      out.error(`${rel} is not valid JSON; fix it before running setup`);
+      out.error(`${plan.relativePath} is not valid JSON; fix it before running setup`);
+      process.exitCode = 1;
+      return;
+    }
+    if (!integration?.applyInstall) {
+      out.error(`integration ${plan.ide} does not support setup`);
       process.exitCode = 1;
       return;
     }
     const merged = integration.applyInstall(ctx, existing);
     writeJsonFile(abs, merged);
-    out.ok(`  wrote ${rel}`);
+    out.ok(plan.relativePath);
   }
 
-  out.info(`User config (global): ${userEnv}`);
+  if (args.yes) out.info(`User config: ${userEnv}`);
   await persistUserEnvKey(out, {
     key: "TINY_ENGINEER_TRANSPORT",
     value: transport,
@@ -504,14 +594,6 @@ export async function runSetup(
     });
   }
 
-  /** @type {boolean | undefined} */
-  let aiUsageLcd = args.aiUsageLcd;
-  if (aiUsageLcd === undefined && !args.yes) {
-    aiUsageLcd = await confirmFn(
-      "Show remaining Cursor AI budget on LCD1602 after completed turns?",
-      false,
-    );
-  }
   if (aiUsageLcd !== undefined) {
     await persistUserEnvKey(out, {
       key: AI_USAGE_LCD_KEY,
@@ -531,12 +613,16 @@ function printSetupHelp() {
   console.log(`Usage: tiny-engineer setup [ide...] [options]
 
 Merge Tiny Engineer hook commands into the current project (project-local).
+Interactive setup asks which IDE, then hook scope (global or project, default project).
+--yes skips that question. --global skips it and writes Cursor hooks to ~/.cursor/hooks.json
+(other IDEs: not supported).
 Connection prefs (transport, URL, port, token, optional LCD AI budget) go to user config (global).
-Cursor LCD AI budget updates are opt-in (TINY_ENGINEER_AI_USAGE_LCD=1).
+Cursor LCD AI budget updates are opt-in (TINY_ENGINEER_AI_USAGE_LCD=1) and need the lcd1602 extension plus the lcd_cabinet mod.
 
 Options:
   --all                   Install all integrations (cursor, claude-code, antigravity)
   --yes, -y               Non-interactive (requires --all or ide args); keeps existing user config on conflict
+  --global                Cursor user hooks (~/.cursor/hooks.json). Other IDEs are not supported
   --dry-run               Print plan without writing files
   --transport <http|serial>
                           Host transport for user config (default: http)
@@ -551,6 +637,7 @@ Options:
 Examples:
   npx -y tiny-engineer setup
   npx -y tiny-engineer setup cursor --yes
+  npx -y tiny-engineer setup cursor --yes --global
   npx -y tiny-engineer setup --all --yes --url http://192.168.1.10
   npx -y tiny-engineer setup cursor --yes --transport serial
   npx -y tiny-engineer setup cursor --yes --ai-usage-lcd

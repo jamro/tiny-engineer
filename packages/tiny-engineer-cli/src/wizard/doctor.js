@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 
 import {
@@ -66,9 +67,9 @@ export function reportProjectOverrides(out, projectRoot) {
 /**
  * @param {import("../util/output.js").Output} out
  * @param {string[]} argv
- * @param {{ projectRoot?: string }} [opts]
+ * @param {{ projectRoot?: string, home?: string }} [opts]
  */
-export async function runDoctor(out, argv, { projectRoot = process.cwd() } = {}) {
+export async function runDoctor(out, argv, { projectRoot = process.cwd(), home = homedir() } = {}) {
   const args = parseCommonArgs(argv);
   if (args.error) {
     out.error(args.error);
@@ -78,7 +79,7 @@ export async function runDoctor(out, argv, { projectRoot = process.cwd() } = {})
   if (args.help) {
     console.log(`Usage: tiny-engineer doctor [--transport http|serial] [--url] [--port]
 
-Report robot transport/URL/token, user config path, project overrides, IDE hooks, and health.
+Report robot transport/URL/token, user config path, project overrides, IDE hooks, Cursor user hooks, and health.
 `);
     return;
   }
@@ -117,6 +118,10 @@ Report robot transport/URL/token, user config path, project overrides, IDE hooks
     const mark = wired ? "hooks ok" : detected ? "detected, hooks missing" : "not detected";
     out.info(`${integration.id}: ${mark}${rel ? ` (${rel})` : ""}`);
   }
+
+  const userHooksPath = join(home, ".cursor", "hooks.json");
+  const userWired = configHasHook(home, "cursor", ".cursor/hooks.json");
+  out.info(`cursor user: ${userWired ? "hooks ok" : "hooks absent"} (${userHooksPath})`);
 
   try {
     readFileSync(join(projectRoot, ".env"), "utf8");

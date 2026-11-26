@@ -42,15 +42,21 @@ Command-line flags that override URL, transport, or port MUST take precedence ov
 - **WHEN** user `env` sets transport `serial` and the user passes `--transport http`
 - **THEN** that invocation uses HTTP
 
-### Requirement: No global-versus-project storage prompt
-The CLI MUST NOT ask the user whether a connection preference should be stored as global or project; storage location is fixed by kind (connection keys → user `env`, IDE hooks → project).
+### Requirement: No global-versus-project storage prompt for connection keys
+The CLI MUST NOT ask the user whether a connection preference should be stored as global or project; connection keys always go to user `env`. IDE hooks are project-local unless `--global` is set or interactive setup answers `global`.
 
-#### Scenario: Setup does not ask storage location
+Interactive setup (no `--yes`, no `--global`) MUST ask which IDE before hook scope when no IDE id was given. The scope question MUST accept `global` or `project`, default `project`, and MUST come after the IDE choice. `--yes` MUST NOT ask. `--global` MUST NOT ask. Answering `global` MUST follow the same Cursor-only rules as the `--global` flag.
+
+#### Scenario: Setup does not ask where to store connection keys
 - **WHEN** the user runs setup and provides connection preferences
-- **THEN** setup persists those keys to user `env` without prompting for global versus project
+- **THEN** setup persists those keys to user `env` without prompting for a storage location for those keys
+
+#### Scenario: Interactive setup asks IDE then hook scope
+- **WHEN** the user runs setup without `--yes`, without `--global`, and without an IDE id
+- **THEN** the IDE choice comes before the hook-scope prompt, and Enter on hook scope selects `project`
 
 ### Requirement: Setup labels global versus project destinations
-During setup (interactive prompts, dry-run, and completion summary), the CLI MUST make clear which values are user/global connection preferences and which are project-level IDE hook installs. Connection-key messaging MUST name the user `env` destination (or equivalent user-config path). Hook messaging MUST name the project-relative config path(s). The CLI MUST NOT imply connection keys are written into the project `.env`.
+During setup (interactive prompts, dry-run, and completion summary), the CLI MUST make clear which values are user/global connection preferences and which are project-level IDE hook installs. Connection-key messaging MUST name the user `env` destination (or equivalent user-config path). Hook messaging MUST name the project-relative config path(s), or the user hooks path when `--global` is set. The CLI MUST NOT imply connection keys are written into the project `.env`.
 
 #### Scenario: Summary shows both scopes
 - **WHEN** setup completes writing connection keys and hook configs
@@ -61,7 +67,17 @@ During setup (interactive prompts, dry-run, and completion summary), the CLI MUS
 - **THEN** the prompt or adjacent message indicates the value is stored in user/global config
 
 ### Requirement: Setup writes connection keys only to user env
-`tiny-engineer setup` MUST persist connection keys (`TINY_ENGINEER_TRANSPORT`, and when applicable `TINY_ENGINEER_URL`, `TINY_ENGINEER_PORT`, `TINY_ENGINEER_TOKEN`) only to the user `env` file. Setup MUST NOT create or modify the project `.env` for any reason. Setup MUST NOT prompt the user to choose global versus project storage for connection keys. IDE hook configuration MUST remain project-local.
+`tiny-engineer setup` MUST persist connection keys (`TINY_ENGINEER_TRANSPORT`, and when applicable `TINY_ENGINEER_URL`, `TINY_ENGINEER_PORT`, `TINY_ENGINEER_TOKEN`) only to the user `env` file. Setup MUST NOT create or modify the project `.env` for any reason. Setup MUST NOT prompt the user to choose global versus project storage for connection keys. IDE hook configuration MUST remain project-local unless the user passes `--global` or interactive setup answers `global`.
+
+`--global` MUST write Cursor hooks only to the user file `~/.cursor/hooks.json` (home directory `.cursor/hooks.json` on every OS) and MUST NOT write that project's hook file. `--global` with `claude-code`, `antigravity`, or `--all` MUST exit with status 1, an error whose text contains `not supported` and the rejected integration ids, and MUST NOT write hook files. `uninstall --global` follows the same Cursor-only rule and removes Tiny Engineer entries from that user file only.
+
+#### Scenario: Global setup writes Cursor user hooks
+- **WHEN** the user runs `setup cursor --global`
+- **THEN** Cursor hook entries are merged into `~/.cursor/hooks.json` and the project `.cursor/hooks.json` is not created or modified
+
+#### Scenario: Global setup rejects other integrations
+- **WHEN** the user runs `setup` with `--global` and `claude-code`, `antigravity`, or `--all`
+- **THEN** the command exits with an error containing `not supported` and the rejected ids, and no hook file is written
 
 #### Scenario: HTTP setup persists to user env
 - **WHEN** the user completes setup with HTTP transport and a base URL

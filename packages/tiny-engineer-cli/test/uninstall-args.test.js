@@ -8,10 +8,11 @@ import { createStyle } from "../src/util/style.js";
 import { parseUninstallArgs, runUninstall } from "../src/wizard/uninstall.js";
 
 test("parseUninstallArgs reads flags", () => {
-  const args = parseUninstallArgs(["cursor", "--yes", "--dry-run"]);
+  const args = parseUninstallArgs(["cursor", "--yes", "--dry-run", "--global"]);
   assert.deepEqual(args.ides, ["cursor"]);
   assert.equal(args.yes, true);
   assert.equal(args.dryRun, true);
+  assert.equal(args.global, true);
 });
 
 test("parseUninstallArgs rejects --purge-env", () => {
@@ -93,6 +94,75 @@ test("runUninstall --yes removes cursor hooks", async () => {
     assert.equal(hooks.hooks.sessionStart[0].command, "log.sh");
   } finally {
     rmSync(dir, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("runUninstall --global removes cursor user hooks only", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-un-"));
+  const home = mkdtempSync(join(tmpdir(), "te-home-"));
+  mkdirSync(join(home, ".cursor"), { recursive: true });
+  mkdirSync(join(dir, ".cursor"), { recursive: true });
+  const userHooks = join(home, ".cursor", "hooks.json");
+  const projectHooks = join(dir, ".cursor", "hooks.json");
+  const body = JSON.stringify({
+    version: 1,
+    hooks: {
+      stop: [
+        { command: "log.sh", timeout: 2 },
+        { command: 'node "/x" hook cursor', timeout: 5 },
+      ],
+    },
+  });
+  writeFileSync(userHooks, body, "utf8");
+  writeFileSync(projectHooks, body, "utf8");
+  const out = createOutput({
+    quiet: true,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: () => {},
+  });
+  try {
+    await runUninstall(out, ["cursor", "--yes", "--global"], { projectRoot: dir, home });
+    const user = JSON.parse(readFileSync(userHooks, "utf8"));
+    const project = JSON.parse(readFileSync(projectHooks, "utf8"));
+    assert.equal(user.hooks.stop.length, 1);
+    assert.equal(user.hooks.stop[0].command, "log.sh");
+    assert.equal(project.hooks.stop.length, 2);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("runUninstall --global rejects other integrations", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-un-"));
+  const home = mkdtempSync(join(tmpdir(), "te-home-"));
+  /** @type {string[]} */
+  const errs = [];
+  const out = createOutput({
+    quiet: false,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: (m) => errs.push(String(m)),
+  });
+  try {
+    await runUninstall(out, ["claude-code", "--global"], { projectRoot: dir, home });
+    assert.equal(process.exitCode, 1);
+    assert.ok(errs.some((e) => e.includes("not supported") && e.includes("claude-code")));
+    errs.length = 0;
+    process.exitCode = 0;
+    await runUninstall(out, ["--all", "--global"], { projectRoot: dir, home });
+    assert.equal(process.exitCode, 1);
+    assert.ok(
+      errs.some(
+        (e) => e.includes("not supported") && e.includes("claude-code") && e.includes("antigravity"),
+      ),
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
     process.exitCode = 0;
   }
 });

@@ -1,3 +1,5 @@
+import { homedir } from "node:os";
+
 import { all as allIntegrations, get as getIntegration } from "../integrations/registry.js";
 import { readJsonFile, writeJsonFile } from "./merge.js";
 import { confirm, multiSelect } from "./prompt.js";
@@ -9,6 +11,7 @@ import { confirm, multiSelect } from "./prompt.js";
  *   yes: boolean,
  *   all: boolean,
  *   dryRun: boolean,
+ *   global: boolean,
  *   ides: string[],
  *   error?: string,
  * }}
@@ -18,6 +21,7 @@ export function parseUninstallArgs(argv) {
   let yes = false;
   let all = false;
   let dryRun = false;
+  let globalHooks = false;
   /** @type {string[]} */
   const ides = [];
 
@@ -39,31 +43,49 @@ export function parseUninstallArgs(argv) {
       dryRun = true;
       continue;
     }
+    if (arg === "--global") {
+      globalHooks = true;
+      continue;
+    }
     if (arg === "--purge-env") {
       return {
         help,
         yes,
         all,
         dryRun,
+        global: globalHooks,
         ides,
         error: "--purge-env removed; edit user config env or project .env by hand",
       };
     }
     if (arg.startsWith("-")) {
-      return { help, yes, all, dryRun, ides, error: `Unknown argument: ${arg}` };
+      return { help, yes, all, dryRun, global: globalHooks, ides, error: `Unknown argument: ${arg}` };
     }
     ides.push(arg);
   }
 
-  return { help, yes, all, dryRun, ides };
+  return { help, yes, all, dryRun, global: globalHooks, ides };
+}
+
+/**
+ * @param {import("../util/output.js").Output} out
+ * @param {string[]} ids
+ * @returns {boolean} true when the caller must stop
+ */
+function rejectUnsupportedGlobal(out, ids) {
+  const rejected = ids.filter((id) => id !== "cursor");
+  if (rejected.length === 0) return false;
+  out.error(`--global not supported for: ${rejected.join(", ")}`);
+  process.exitCode = 1;
+  return true;
 }
 
 /**
  * @param {import("../util/output.js").Output} out
  * @param {string[]} argv
- * @param {{ projectRoot?: string }} [opts]
+ * @param {{ projectRoot?: string, home?: string }} [opts]
  */
-export async function runUninstall(out, argv, { projectRoot = process.cwd() } = {}) {
+export async function runUninstall(out, argv, { projectRoot = process.cwd(), home = homedir() } = {}) {
   const args = parseUninstallArgs(argv);
   if (args.error) {
     out.error(args.error);
@@ -91,6 +113,15 @@ export async function runUninstall(out, argv, { projectRoot = process.cwd() } = 
     }
   }
 
+  if (args.global && (args.all || args.ides.length > 0)) {
+    const ids = args.all ? allIntegrations().map((integration) => integration.id) : args.ides;
+    if (rejectUnsupportedGlobal(out, ids)) return;
+  }
+
+  /** @type {"project" | "user"} */
+  const scope = args.global ? "user" : "project";
+  const planOpts = { scope, home };
+
   /** @type {string[]} */
   let selected;
   if (args.all) {
@@ -101,17 +132,21 @@ export async function runUninstall(out, argv, { projectRoot = process.cwd() } = 
     const withHooks = allIntegrations()
       .filter((i) => i.planUninstall)
       .map((i) => {
-        const plan = i.planUninstall(projectRoot);
+        const plan = i.planUninstall(projectRoot, planOpts);
         return { id: i.id, name: i.name, removeCount: plan.removeCount };
       })
       .filter((p) => p.removeCount > 0);
 
     if (withHooks.length === 0) {
-      out.info("no Tiny Engineer hooks found in this project");
+      out.info(
+        args.global
+          ? "no Tiny Engineer hooks found in user Cursor config"
+          : "no Tiny Engineer hooks found in this project",
+      );
       selected = [];
     } else {
       selected = await multiSelect(
-        "Remove Tiny Engineer hooks for:",
+        args.global ? "Remove Tiny Engineer user hooks for:" : "Remove Tiny Engineer hooks for:",
         withHooks.map((p) => ({
           id: p.id,
           label: `${p.name} (${p.removeCount})`,
@@ -119,6 +154,8 @@ export async function runUninstall(out, argv, { projectRoot = process.cwd() } = 
       );
     }
   }
+
+  if (args.global && selected.length > 0 && rejectUnsupportedGlobal(out, selected)) return;
 
   /** @type {import("../integrations/types.js").UninstallPlan[]} */
   const plans = [];
@@ -129,7 +166,7 @@ export async function runUninstall(out, argv, { projectRoot = process.cwd() } = 
       process.exitCode = 1;
       return;
     }
-    plans.push(integration.planUninstall(projectRoot));
+    plans.push(integration.planUninstall(projectRoot, planOpts));
   }
 
   const total = plans.reduce((n, p) => n + p.removeCount, 0);
@@ -182,18 +219,21 @@ function printUninstallHelp() {
   console.log(`Usage: tiny-engineer uninstall [ide...] [options]
 
 Remove Tiny Engineer hook entries from the current project.
+--global removes Cursor entries from ~/.cursor/hooks.json (other IDEs: not supported).
 Only commands matching Tiny Engineer markers are removed; other hooks stay.
 Config files are never deleted. Connection prefs (user config / .env) are not touched.
 
 Options:
   --all              Target all integrations
   --yes, -y          Non-interactive (requires --all or ide args)
+  --global           Cursor user hooks (~/.cursor/hooks.json). Other IDEs are not supported
   --dry-run          Print plan without writing files
   -h, --help         Show this help
 
 Examples:
   tiny-engineer uninstall
   tiny-engineer uninstall cursor --yes
+  tiny-engineer uninstall cursor --yes --global
   tiny-engineer uninstall --all --yes --dry-run
 `);
 }

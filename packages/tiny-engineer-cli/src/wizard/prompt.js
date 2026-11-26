@@ -24,7 +24,7 @@ export async function ask(question, defaultValue = "") {
  */
 export async function confirm(question, defaultYes = true) {
   const suffix = defaultYes ? "Y/n" : "y/N";
-  const answer = (await ask(`${question} (${suffix})`, defaultYes ? "y" : "n")).toLowerCase();
+  const answer = (await ask(`${question} (${suffix})`, "")).toLowerCase();
   if (!answer) return defaultYes;
   return answer === "y" || answer === "yes";
 }
@@ -39,9 +39,9 @@ export async function multiSelect(title, options) {
   if (options.length === 0) return [];
   console.log(title);
   options.forEach((opt, i) => {
-    console.log(`  ${i + 1}) ${opt.label} (${opt.id})`);
+    console.log(`  ${i + 1}) ${opt.label}`);
   });
-  const raw = await ask("Select numbers (comma-separated, Enter = all)", "");
+  const raw = await ask("Number, or Enter for all", "");
   if (!raw) return options.map((o) => o.id);
 
   /** @type {Set<string>} */

@@ -28,6 +28,8 @@
  * @property {string} cliCommand Base command ending with `hook <ide>` (no event suffix)
  * @property {number} timeout
  * @property {string} [url]
+ * @property {"project" | "user"} [scope] `user` is Cursor `~/.cursor/hooks.json` via `--global`
+ * @property {string} [home] Home directory for user-scope paths (tests)
  */
 
 /**
@@ -64,7 +66,7 @@
  * @property {() => string} [configRelativePath]
  * @property {(ctx: InstallContext) => InstallPlan} [planInstall]
  * @property {(ctx: InstallContext, existing: object | null) => object} [applyInstall]
- * @property {(projectRoot: string) => UninstallPlan} [planUninstall]
+ * @property {(projectRoot: string, opts?: { scope?: "project" | "user", home?: string }) => UninstallPlan} [planUninstall]
  * @property {(existing: object | null) => object} [applyUninstall]
  */
 

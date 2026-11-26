@@ -42,9 +42,10 @@ Robot on Wi-Fi + Node 18+. Easiest:
 
 ```bash
 npx -y tiny-engineer setup cursor --yes
+npx -y tiny-engineer setup cursor --yes --global
 ```
 
-Or hand-edit that project’s `.cursor/hooks.json`. Use this command for every anim hook:
+Without `--global`, hooks land in that project’s `.cursor/hooks.json`. Interactive setup asks which IDE, then `global` or `project` (default `project`). `--global`, or answering `global`, writes `~/.cursor/hooks.json` so the same hooks run in every local Cursor project. Other IDEs reject `--global` (`not supported`). Or hand-edit that project’s `.cursor/hooks.json`. Use this command for every anim hook:
 
 ```text
 npx -y tiny-engineer hook cursor
@@ -198,6 +199,6 @@ Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Local anim hook: [`.curso
 - Robot offline → hook still exits 0; no agent stall.
 - Animation API holds each pose ≥1s and keeps only the latest pending switch — see [`api.md`](api.md).
 - The onboard RGB LED follows the active animation (white for typing/reading/thinking/talking/waiting/welcome/ring/wakeup, pulsing red for attention/error/dead, solid red for abort, off for `none`/`sleep`) with 1 s fades between non-pulse states — see [RGB LED](api.md#rgb-led).
-- After a completed turn (`stop` → `ring`), the CLI may update an enabled LCD1602 with remaining Cursor AI budget (`AI BUDGET:` / `NN.NN%`). **Opt-in:** set `TINY_ENGINEER_AI_USAGE_LCD=1` in user config (`~/.config/tiny-engineer/env`) or enable during `tiny-engineer setup` (interactive prompt, or `--ai-usage-lcd` / `--no-ai-usage-lcd`). Uses the local Cursor web session (Keychain / IDE state DB). The LCD extension is optional: missing session, slow cursor.com, disabled LCD, or robot errors are silent and never change the hook exit code.
+- After a completed turn (`stop` → `ring`), the CLI may update an enabled LCD1602 with remaining Cursor AI budget (`AI BUDGET:` / `NN.NN%`). **Opt-in:** set `TINY_ENGINEER_AI_USAGE_LCD=1` in user config (`~/.config/tiny-engineer/env`) or enable during `tiny-engineer setup` (interactive prompt, or `--ai-usage-lcd` / `--no-ai-usage-lcd`). Uses the local Cursor web session (Keychain / IDE state DB). Needs the lcd1602 extension and the lcd_cabinet mod. Missing session, slow cursor.com, disabled LCD, or robot errors are silent and never change the hook exit code.
 - To change the map, edit [`packages/tiny-engineer-cli/src/integrations/cursor/map.js`](../packages/tiny-engineer-cli/src/integrations/cursor/map.js).
 - Custom agents or non-Cursor IDEs: call the [REST API](integration.md#2-rest-api-advanced--custom).
