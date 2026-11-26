@@ -61,6 +61,53 @@ test("runDoctor reports cursor user hooks when present", async () => {
     const userLine = lines.find((l) => l.includes("cursor user:"));
     assert.ok(userLine?.includes("hooks ok"));
     assert.ok(userLine?.includes(join(home, ".cursor", "hooks.json")));
+    const claudeLine = lines.find((l) => l.includes("claude-code user:"));
+    assert.ok(claudeLine?.includes("hooks absent"));
+    assert.ok(claudeLine?.includes(join(home, ".claude", "settings.json")));
+  } finally {
+    globalThis.fetch = original;
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("runDoctor reports claude-code user hooks when present", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-doc-"));
+  const home = mkdtempSync(join(tmpdir(), "te-home-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new Error("offline");
+  };
+  mkdirSync(join(home, ".claude"), { recursive: true });
+  writeFileSync(
+    join(home, ".claude", "settings.json"),
+    JSON.stringify({
+      hooks: {
+        Stop: [{ hooks: [{ type: "command", command: "npx -y tiny-engineer hook claude-code", async: true }] }],
+      },
+    }),
+    "utf8",
+  );
+  /** @type {string[]} */
+  const lines = [];
+  const out = createOutput({
+    quiet: false,
+    style: createStyle({ color: false }),
+    log: (m) => lines.push(String(m)),
+    error: (m) => lines.push(String(m)),
+  });
+  try {
+    await runDoctor(out, [], { projectRoot: dir, home });
+    const userLine = lines.find((l) => l.includes("claude-code user:"));
+    assert.ok(userLine?.includes("hooks ok"));
+    assert.ok(userLine?.includes(join(home, ".claude", "settings.json")));
   } finally {
     globalThis.fetch = original;
     if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
@@ -123,6 +170,7 @@ test("runDoctor prints without throwing", async () => {
     writeFileSync(join(dir, ".env"), "TINY_ENGINEER_URL=http://override\nTINY_ENGINEER_TOKEN=sekrit\n", "utf8");
     await runDoctor(out, [], { projectRoot: dir, home: dir });
     assert.ok(lines.some((l) => l.includes("cursor user:") && l.includes("hooks absent")));
+    assert.ok(lines.some((l) => l.includes("claude-code user:") && l.includes("hooks absent")));
     assert.ok(lines.some((l) => l.includes("url:")));
     assert.ok(lines.some((l) => l.includes("cursor:")));
     assert.ok(lines.some((l) => l.includes("user config:")));

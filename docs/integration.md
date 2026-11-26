@@ -93,15 +93,17 @@ tiny-engineer rules remove 1
 npx -y tiny-engineer setup                  # interactive: pick IDEs
 npx -y tiny-engineer setup cursor --yes
 npx -y tiny-engineer setup cursor --yes --global   # Cursor user hooks, every project
+npx -y tiny-engineer setup claude-code --yes --global   # Claude Code user hooks, every project
 npx -y tiny-engineer setup --all --yes --url http://192.168.1.10
 npx -y tiny-engineer doctor
 npx -y tiny-engineer uninstall cursor --yes # remove only Tiny Engineer hook entries
 npx -y tiny-engineer uninstall cursor --yes --global
+npx -y tiny-engineer uninstall claude-code --yes --global
 ```
 
 `setup` merges hook commands into the project (Cursor `.cursor/hooks.json`, Claude Code `.claude/settings.json`, Antigravity `.agents/hooks.json`) using `npx -y tiny-engineer hook <ide>`, and writes connection prefs into **user config** (labeled as global vs project in the wizard). It does not delete foreign hooks and does not edit project `.env`. Uninstall removes hooks only (no `--purge-env`).
 
-Interactive `setup` (no `--yes`) asks which IDE, then hook scope: `global` or `project`, default `project`. `--global` skips the scope question. `--global`, or answering `global`, writes Cursor hooks to `~/.cursor/hooks.json` instead of the project file, so they run in every local project. Claude Code and Antigravity exit with `not supported` and write nothing. `uninstall --global` removes only the Cursor user-file entries. Without `--global`, hooks stay project-local. Cursor runs user hooks and project hooks together when both files contain Tiny Engineer entries. User hooks start with cwd `~/.cursor/`, so a project `.env` is not loaded; the robot address still comes from user config. Hosted Cloud Agents do not load `~/.cursor/hooks.json`.
+Interactive `setup` (no `--yes`) asks which IDE, then hook scope: `global` or `project`, default `project`. `--global` skips the scope question. `--global`, or answering `global`, writes Cursor hooks to `~/.cursor/hooks.json` and Claude Code hooks to `~/.claude/settings.json` instead of the project file, so they run in every local project. Antigravity, and `--all` (it includes Antigravity), exit with `not supported` and write nothing. `uninstall --global` removes Tiny Engineer entries from those user files only. Without `--global`, hooks stay project-local. Cursor runs user hooks and project hooks together when both files contain Tiny Engineer entries. Cursor user hooks start with cwd `~/.cursor/`, so a project `.env` is not loaded; the robot address still comes from user config. Hosted Cloud Agents do not load `~/.cursor/hooks.json`. Installing both `setup claude-code --global` and the Claude Code plugin fires each event twice.
 
 This firmware repo already ships configs pointing at the **local** CLI bin for developing the package.
 

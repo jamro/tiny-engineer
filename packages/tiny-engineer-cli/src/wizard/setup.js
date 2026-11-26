@@ -184,14 +184,17 @@ export function parseSetupArgs(argv) {
   };
 }
 
+/** Integrations that can install user-level hooks via `--global`. */
+const GLOBAL_HOOK_IDES = new Set(["cursor", "claude-code"]);
+
 /**
- * Non-Cursor integrations cannot install user-level hooks yet.
+ * Antigravity (and therefore `--all`) cannot install user-level hooks.
  * @param {import("../util/output.js").Output} out
  * @param {string[]} ids
  * @returns {boolean} true when the caller must stop
  */
 function rejectUnsupportedGlobal(out, ids) {
-  const rejected = ids.filter((id) => id !== "cursor");
+  const rejected = ids.filter((id) => !GLOBAL_HOOK_IDES.has(id));
   if (rejected.length === 0) return false;
   out.error(`--global not supported for: ${rejected.join(", ")}`);
   process.exitCode = 1;
@@ -614,15 +617,17 @@ function printSetupHelp() {
 
 Merge Tiny Engineer hook commands into the current project (project-local).
 Interactive setup asks which IDE, then hook scope (global or project, default project).
---yes skips that question. --global skips it and writes Cursor hooks to ~/.cursor/hooks.json
-(other IDEs: not supported).
+--yes skips that question. --global skips it and writes user hooks:
+Cursor ~/.cursor/hooks.json, Claude Code ~/.claude/settings.json
+(antigravity and --all: not supported).
 Connection prefs (transport, URL, port, token, optional LCD AI budget) go to user config (global).
 Cursor LCD AI budget updates are opt-in (TINY_ENGINEER_AI_USAGE_LCD=1) and need the lcd1602 extension plus the lcd_cabinet mod.
 
 Options:
   --all                   Install all integrations (cursor, claude-code, antigravity)
   --yes, -y               Non-interactive (requires --all or ide args); keeps existing user config on conflict
-  --global                Cursor user hooks (~/.cursor/hooks.json). Other IDEs are not supported
+  --global                Cursor ~/.cursor/hooks.json and Claude Code ~/.claude/settings.json.
+                          Antigravity and --all are not supported
   --dry-run               Print plan without writing files
   --transport <http|serial>
                           Host transport for user config (default: http)
@@ -638,6 +643,7 @@ Examples:
   npx -y tiny-engineer setup
   npx -y tiny-engineer setup cursor --yes
   npx -y tiny-engineer setup cursor --yes --global
+  npx -y tiny-engineer setup claude-code --yes --global
   npx -y tiny-engineer setup --all --yes --url http://192.168.1.10
   npx -y tiny-engineer setup cursor --yes --transport serial
   npx -y tiny-engineer setup cursor --yes --ai-usage-lcd

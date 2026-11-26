@@ -727,7 +727,40 @@ test("runSetup --global --yes writes only user cursor hooks", async () => {
   }
 });
 
-test("runSetup --global rejects other integrations before writing hooks", async () => {
+test("runSetup --global --yes writes only user claude settings", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
+  const home = mkdtempSync(join(tmpdir(), "te-home-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
+  const out = createOutput({
+    quiet: true,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: () => {},
+  });
+  try {
+    await runSetup(out, ["claude-code", "--yes", "--global", "--url", "http://robot.test"], {
+      projectRoot: dir,
+      home,
+    });
+    assert.equal(process.exitCode, 0);
+    const settings = JSON.parse(readFileSync(join(home, ".claude", "settings.json"), "utf8"));
+    assert.equal(settings.hooks.Stop[0].hooks[0].command, "npx -y tiny-engineer hook claude-code");
+    assert.equal(settings.hooks.Stop[0].hooks[0].async, true);
+    assert.equal(existsSync(join(dir, ".claude", "settings.json")), false);
+    assert.equal(existsSync(join(dir, ".env")), false);
+  } finally {
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("runSetup --global rejects antigravity and --all before writing hooks", async () => {
   const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
   const home = mkdtempSync(join(tmpdir(), "te-home-"));
   const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
@@ -742,12 +775,6 @@ test("runSetup --global rejects other integrations before writing hooks", async 
     error: (m) => errs.push(String(m)),
   });
   try {
-    await runSetup(out, ["claude-code", "--yes", "--global"], { projectRoot: dir, home });
-    assert.equal(process.exitCode, 1);
-    assert.ok(errs.some((e) => e.includes("not supported") && e.includes("claude-code")));
-    errs.length = 0;
-    process.exitCode = 0;
-
     await runSetup(out, ["antigravity", "--yes", "--global"], { projectRoot: dir, home });
     assert.equal(process.exitCode, 1);
     assert.ok(errs.some((e) => e.includes("not supported") && e.includes("antigravity")));
@@ -758,10 +785,11 @@ test("runSetup --global rejects other integrations before writing hooks", async 
     assert.equal(process.exitCode, 1);
     assert.ok(
       errs.some(
-        (e) => e.includes("not supported") && e.includes("claude-code") && e.includes("antigravity"),
+        (e) => e.includes("not supported") && e.includes("antigravity") && !e.includes("claude-code"),
       ),
     );
     assert.equal(existsSync(join(home, ".cursor", "hooks.json")), false);
+    assert.equal(existsSync(join(home, ".claude", "settings.json")), false);
     assert.equal(existsSync(join(dir, ".claude", "settings.json")), false);
     assert.equal(existsSync(join(dir, ".agents", "hooks.json")), false);
     assert.equal(existsSync(join(cfg, "env")), false);
@@ -775,7 +803,7 @@ test("runSetup --global rejects other integrations before writing hooks", async 
   }
 });
 
-test("runSetup --global interactive rejects a non-cursor pick before prompts", async () => {
+test("runSetup --global interactive rejects antigravity before prompts", async () => {
   const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
   const home = mkdtempSync(join(tmpdir(), "te-home-"));
   /** @type {string[]} */
@@ -791,7 +819,7 @@ test("runSetup --global interactive rejects a non-cursor pick before prompts", a
     await runSetup(out, ["--global"], {
       projectRoot: dir,
       home,
-      multiSelect: async () => ["claude-code"],
+      multiSelect: async () => ["antigravity"],
       ask: async () => {
         asked = true;
         return "";
@@ -799,8 +827,9 @@ test("runSetup --global interactive rejects a non-cursor pick before prompts", a
     });
     assert.equal(process.exitCode, 1);
     assert.equal(asked, false);
-    assert.ok(errs.some((e) => e.includes("not supported") && e.includes("claude-code")));
+    assert.ok(errs.some((e) => e.includes("not supported") && e.includes("antigravity")));
     assert.equal(existsSync(join(home, ".cursor", "hooks.json")), false);
+    assert.equal(existsSync(join(home, ".claude", "settings.json")), false);
   } finally {
     rmSync(dir, { recursive: true, force: true });
     rmSync(home, { recursive: true, force: true });
@@ -885,37 +914,43 @@ test("interactive setup project answer writes project hooks", async () => {
   }
 });
 
-test("interactive setup global answer rejects claude-code before later prompts", async () => {
+test("interactive setup global answer writes claude user settings", async () => {
   const dir = mkdtempSync(join(tmpdir(), "te-setup-"));
   const home = mkdtempSync(join(tmpdir(), "te-home-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
   /** @type {string[]} */
   const questions = [];
-  /** @type {string[]} */
-  const errs = [];
   const out = createOutput({
-    quiet: false,
+    quiet: true,
     style: createStyle({ color: false }),
     log: () => {},
-    error: (m) => errs.push(String(m)),
+    error: () => {},
   });
   try {
-    await runSetup(out, ["claude-code"], {
+    await runSetup(out, ["claude-code", "--url", "http://robot.test"], {
       projectRoot: dir,
       home,
       ask: async (q, def = "") => {
         questions.push(String(q));
         if (String(q).includes("Hook scope")) return "global";
+        if (String(q).includes("Access token")) return "";
         return def || "http";
       },
+      confirm: async () => true,
     });
-    assert.equal(process.exitCode, 1);
-    assert.deepEqual(questions, ["Hook scope (global or project)"]);
-    assert.ok(errs.some((e) => e.includes("not supported") && e.includes("claude-code")));
-    assert.equal(existsSync(join(home, ".cursor", "hooks.json")), false);
+    assert.equal(process.exitCode, 0);
+    assert.match(questions[0], /Hook scope/);
+    const settings = JSON.parse(readFileSync(join(home, ".claude", "settings.json"), "utf8"));
+    assert.equal(settings.hooks.Stop[0].hooks[0].command, "npx -y tiny-engineer hook claude-code");
     assert.equal(existsSync(join(dir, ".claude", "settings.json")), false);
   } finally {
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
     rmSync(dir, { recursive: true, force: true });
     rmSync(home, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
     process.exitCode = 0;
   }
 });

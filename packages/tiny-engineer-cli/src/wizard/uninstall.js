@@ -67,13 +67,16 @@ export function parseUninstallArgs(argv) {
   return { help, yes, all, dryRun, global: globalHooks, ides };
 }
 
+/** Integrations that can remove user-level hooks via `--global`. */
+const GLOBAL_HOOK_IDES = new Set(["cursor", "claude-code"]);
+
 /**
  * @param {import("../util/output.js").Output} out
  * @param {string[]} ids
  * @returns {boolean} true when the caller must stop
  */
 function rejectUnsupportedGlobal(out, ids) {
-  const rejected = ids.filter((id) => id !== "cursor");
+  const rejected = ids.filter((id) => !GLOBAL_HOOK_IDES.has(id));
   if (rejected.length === 0) return false;
   out.error(`--global not supported for: ${rejected.join(", ")}`);
   process.exitCode = 1;
@@ -140,7 +143,7 @@ export async function runUninstall(out, argv, { projectRoot = process.cwd(), hom
     if (withHooks.length === 0) {
       out.info(
         args.global
-          ? "no Tiny Engineer hooks found in user Cursor config"
+          ? "no Tiny Engineer hooks found in user hook config"
           : "no Tiny Engineer hooks found in this project",
       );
       selected = [];
@@ -219,14 +222,16 @@ function printUninstallHelp() {
   console.log(`Usage: tiny-engineer uninstall [ide...] [options]
 
 Remove Tiny Engineer hook entries from the current project.
---global removes Cursor entries from ~/.cursor/hooks.json (other IDEs: not supported).
+--global removes Cursor entries from ~/.cursor/hooks.json and Claude Code
+entries from ~/.claude/settings.json (antigravity and --all: not supported).
 Only commands matching Tiny Engineer markers are removed; other hooks stay.
 Config files are never deleted. Connection prefs (user config / .env) are not touched.
 
 Options:
   --all              Target all integrations
   --yes, -y          Non-interactive (requires --all or ide args)
-  --global           Cursor user hooks (~/.cursor/hooks.json). Other IDEs are not supported
+  --global           Cursor ~/.cursor/hooks.json and Claude Code ~/.claude/settings.json.
+                     Antigravity and --all are not supported
   --dry-run          Print plan without writing files
   -h, --help         Show this help
 
@@ -234,6 +239,7 @@ Examples:
   tiny-engineer uninstall
   tiny-engineer uninstall cursor --yes
   tiny-engineer uninstall cursor --yes --global
+  tiny-engineer uninstall claude-code --yes --global
   tiny-engineer uninstall --all --yes --dry-run
 `);
 }

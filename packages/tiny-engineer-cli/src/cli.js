@@ -46,8 +46,9 @@ Unified CLI for the Tiny Engineer desk robot.
 Commands:
   setup [ide...]          Project hooks + user config (URL/transport/token).
                           --global writes Cursor hooks to ~/.cursor/hooks.json
+                          and Claude Code hooks to ~/.claude/settings.json
   uninstall [ide...]      Remove Tiny Engineer hook entries (keeps other hooks).
-                          --global removes Cursor hooks from ~/.cursor/hooks.json
+                          --global removes those user-hook entries
   doctor                  Check transport, URL/token, user config, hooks, health
   hook <ide>              Read hook JSON from stdin, map to a pose, set anim
   anim <name>             Set animation pose
@@ -80,8 +81,9 @@ Options (most commands):
 
 Config / auth:
   Connection prefs: user config env (~/.config/tiny-engineer/env; Windows %APPDATA%).
-  setup/uninstall --global is Cursor-only (~/.cursor/hooks.json). Other IDEs error
-  (not supported). Without --global, IDE hooks stay in the project.
+  setup/uninstall --global writes Cursor (~/.cursor/hooks.json) and Claude Code
+  (~/.claude/settings.json) user hooks. Antigravity and --all error (not supported).
+  Without --global, IDE hooks stay in the project.
   Load: flag > process env > project .env > user env > defaults.
   If TINY_ENGINEER_TOKEN is set, HTTP sends Authorization: Bearer <token>
   (not sent when URL came only from project .env and token from user/process —
@@ -105,9 +107,11 @@ Integrations (hook <ide>):
 Examples:
   tiny-engineer setup cursor --yes
   tiny-engineer setup cursor --yes --global
+  tiny-engineer setup claude-code --yes --global
   tiny-engineer setup cursor --yes --transport serial
   tiny-engineer uninstall cursor --yes
   tiny-engineer uninstall cursor --yes --global
+  tiny-engineer uninstall claude-code --yes --global
   tiny-engineer doctor
   tiny-engineer anim ring
   tiny-engineer settings get --transport serial

@@ -136,7 +136,44 @@ test("runUninstall --global removes cursor user hooks only", async () => {
   }
 });
 
-test("runUninstall --global rejects other integrations", async () => {
+test("runUninstall --global removes claude user hooks only", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "te-un-"));
+  const home = mkdtempSync(join(tmpdir(), "te-home-"));
+  mkdirSync(join(home, ".claude"), { recursive: true });
+  mkdirSync(join(dir, ".claude"), { recursive: true });
+  const userSettings = join(home, ".claude", "settings.json");
+  const projectSettings = join(dir, ".claude", "settings.json");
+  const body = JSON.stringify({
+    hooks: {
+      Stop: [
+        { hooks: [{ type: "command", command: "log.sh" }] },
+        { hooks: [{ type: "command", command: 'node "/x" hook claude-code', async: true }] },
+      ],
+    },
+  });
+  writeFileSync(userSettings, body, "utf8");
+  writeFileSync(projectSettings, body, "utf8");
+  const out = createOutput({
+    quiet: true,
+    style: createStyle({ color: false }),
+    log: () => {},
+    error: () => {},
+  });
+  try {
+    await runUninstall(out, ["claude-code", "--yes", "--global"], { projectRoot: dir, home });
+    const user = JSON.parse(readFileSync(userSettings, "utf8"));
+    const project = JSON.parse(readFileSync(projectSettings, "utf8"));
+    assert.equal(user.hooks.Stop.length, 1);
+    assert.equal(user.hooks.Stop[0].hooks[0].command, "log.sh");
+    assert.equal(project.hooks.Stop.length, 2);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
+    process.exitCode = 0;
+  }
+});
+
+test("runUninstall --global rejects antigravity and --all", async () => {
   const dir = mkdtempSync(join(tmpdir(), "te-un-"));
   const home = mkdtempSync(join(tmpdir(), "te-home-"));
   /** @type {string[]} */
@@ -148,16 +185,16 @@ test("runUninstall --global rejects other integrations", async () => {
     error: (m) => errs.push(String(m)),
   });
   try {
-    await runUninstall(out, ["claude-code", "--global"], { projectRoot: dir, home });
+    await runUninstall(out, ["antigravity", "--global"], { projectRoot: dir, home });
     assert.equal(process.exitCode, 1);
-    assert.ok(errs.some((e) => e.includes("not supported") && e.includes("claude-code")));
+    assert.ok(errs.some((e) => e.includes("not supported") && e.includes("antigravity")));
     errs.length = 0;
     process.exitCode = 0;
     await runUninstall(out, ["--all", "--global"], { projectRoot: dir, home });
     assert.equal(process.exitCode, 1);
     assert.ok(
       errs.some(
-        (e) => e.includes("not supported") && e.includes("claude-code") && e.includes("antigravity"),
+        (e) => e.includes("not supported") && e.includes("antigravity") && !e.includes("claude-code"),
       ),
     );
   } finally {

@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 
 export const CLAUDE_EVENTS = [
@@ -77,14 +78,26 @@ function readConfig(path) {
 }
 
 /**
+ * @param {{ scope?: "project" | "user", home?: string, projectRoot?: string }} ctx
+ * @returns {string}
+ */
+export function hooksConfigPath(ctx) {
+  if (ctx.scope === "user") {
+    return join(ctx.home ?? homedir(), ".claude", "settings.json");
+  }
+  return join(ctx.projectRoot ?? "", configRelativePath());
+}
+
+/**
  * @param {import("../types.js").InstallContext} ctx
  * @returns {import("../types.js").InstallPlan}
  */
 export function planInstall(ctx) {
+  const path = hooksConfigPath(ctx);
   return {
     ide: "claude-code",
-    path: join(ctx.projectRoot, configRelativePath()),
-    relativePath: configRelativePath(),
+    path,
+    relativePath: ctx.scope === "user" ? path : configRelativePath(),
     events: [...CLAUDE_EVENTS],
     commandPreview: ctx.cliCommand,
   };
@@ -149,11 +162,17 @@ function countOurs(existing) {
 
 /**
  * @param {string} projectRoot
+ * @param {{ scope?: "project" | "user", home?: string }} [opts]
  * @returns {import("../types.js").UninstallPlan}
  */
-export function planUninstall(projectRoot) {
-  const relativePath = configRelativePath();
-  const path = join(projectRoot, relativePath);
+export function planUninstall(projectRoot, opts = {}) {
+  const user = opts.scope === "user";
+  const path = hooksConfigPath({
+    scope: user ? "user" : "project",
+    home: opts.home,
+    projectRoot,
+  });
+  const relativePath = user ? path : configRelativePath();
   const existing = readConfig(path);
   const removeCount = countOurs(existing);
   return {

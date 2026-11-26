@@ -79,7 +79,7 @@ export async function runDoctor(out, argv, { projectRoot = process.cwd(), home =
   if (args.help) {
     console.log(`Usage: tiny-engineer doctor [--transport http|serial] [--url] [--port]
 
-Report robot transport/URL/token, user config path, project overrides, IDE hooks, Cursor user hooks, and health.
+Report robot transport/URL/token, user config path, project overrides, IDE hooks, Cursor and Claude Code user hooks, and health.
 `);
     return;
   }
@@ -122,6 +122,12 @@ Report robot transport/URL/token, user config path, project overrides, IDE hooks
   const userHooksPath = join(home, ".cursor", "hooks.json");
   const userWired = configHasHook(home, "cursor", ".cursor/hooks.json");
   out.info(`cursor user: ${userWired ? "hooks ok" : "hooks absent"} (${userHooksPath})`);
+
+  const claudeUserHooksPath = join(home, ".claude", "settings.json");
+  const claudeUserWired = configHasHook(home, "claude-code", ".claude/settings.json");
+  out.info(
+    `claude-code user: ${claudeUserWired ? "hooks ok" : "hooks absent"} (${claudeUserHooksPath})`,
+  );
 
   try {
     readFileSync(join(projectRoot, ".env"), "utf8");

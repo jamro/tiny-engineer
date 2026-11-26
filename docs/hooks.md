@@ -45,7 +45,7 @@ npx -y tiny-engineer setup cursor --yes
 npx -y tiny-engineer setup cursor --yes --global
 ```
 
-Without `--global`, hooks land in that project’s `.cursor/hooks.json`. Interactive setup asks which IDE, then `global` or `project` (default `project`). `--global`, or answering `global`, writes `~/.cursor/hooks.json` so the same hooks run in every local Cursor project. Other IDEs reject `--global` (`not supported`). Or hand-edit that project’s `.cursor/hooks.json`. Use this command for every anim hook:
+Without `--global`, hooks land in that project’s `.cursor/hooks.json`. Interactive setup asks which IDE, then `global` or `project` (default `project`). `--global`, or answering `global`, writes `~/.cursor/hooks.json` so the same hooks run in every local Cursor project. Claude Code user hooks use `setup claude-code --global` (`~/.claude/settings.json`). Antigravity rejects `--global` (`not supported`). Or hand-edit that project’s `.cursor/hooks.json`. Use this command for every anim hook:
 
 ```text
 npx -y tiny-engineer hook cursor

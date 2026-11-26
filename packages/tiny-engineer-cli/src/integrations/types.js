@@ -28,7 +28,7 @@
  * @property {string} cliCommand Base command ending with `hook <ide>` (no event suffix)
  * @property {number} timeout
  * @property {string} [url]
- * @property {"project" | "user"} [scope] `user` is Cursor `~/.cursor/hooks.json` via `--global`
+ * @property {"project" | "user"} [scope] `user` is Cursor `~/.cursor/hooks.json` or Claude Code `~/.claude/settings.json` via `--global`
  * @property {string} [home] Home directory for user-scope paths (tests)
  */
 
