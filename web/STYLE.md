@@ -397,7 +397,7 @@ Do not copy any one reference literally.
 
 ### Current
 
-- `/` — full landing (hero + See it work → Build your own); copy in [`landing-page.md`](landing-page.md)
+- `/` — full landing (hero + Control it → Build your own → Customise and extend); copy in [`landing-page.md`](landing-page.md)
 - `/build/flash/` — USB web installer (ESP Web Tools)
 - `/customise/` — tile hub for screens editor, eye styles gallery + optional mods
 - `/customise/screens/` — laptop screen insert generator; sizes from `presets.json`, written by `scripts/laptop_screens.py`
@@ -463,7 +463,11 @@ Links to:
 - print files
 - setup guide (`docs/getting-started.md`)
 
-#### 7. Footer
+#### 7. Customise and extend
+
+Photo of the desk set, then three practical doors: bell shortcut, LCD budget, eyes / screens / next mod. CTA to `/customise/`.
+
+#### 8. Footer
 
 Keep it minimal and slightly playful.
 

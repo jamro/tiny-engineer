@@ -45,13 +45,14 @@ Match [`web/STYLE.md` homepage structure](../web/STYLE.md#homepage-structure-whe
 4. How it works  
 5. Hardware  
 6. Build your own  
-7. Footer  
+7. Customise and extend  
+8. Footer  
 
 **Keep / cut / defer** (scored for SWE clarity, demand, funnel, STYLE fit, minimal other-page change):
 
 | Verdict | Items |
 | --- | --- |
-| **Keep** | Sections 1–7 above; agent↔pose table; `npx` setup; compact hardware list; Show and tell + Star |
+| **Keep** | Sections 1–8 above; agent↔pose table; `npx` setup; compact hardware list; Show and tell + Star; customise section (bell, LCD, eyes/screens, open port) |
 | **Cut** | Full roadmap as features; kit price; API tables; KiCad CTA; SWE primer dump; multi-page IA |
 | **Defer** | Live animated hero robot; community gallery grid; vs-other-toys comparison; newsletter; storefront |
 
@@ -311,7 +312,35 @@ servos + OLED + speaker
 
 ---
 
-### 7. Footer
+### 7. Customise and extend
+
+**Intent:** After the build path, show the desk can grow. Practical first (bell launches work, LCD shows budget left), then the open door (eyes, printable screens, next printed mod on the same port).
+
+**Section heading:** `Customise and extend`
+
+**Supporting line:**
+
+> Additions once the stock robot is running.
+
+**Media:** [`docs/mods_preview.jpg`](../docs/mods_preview.jpg), copied to `web/media/mods_preview.jpg` for Pages. Same cards and frame as Build your own. Photo on the left.
+
+**Cards:**
+
+| Kicker | Title | Link |
+| --- | --- | --- |
+| Shortcut | You also get a bell button | [bell button](https://github.com/jamro/tiny-engineer/blob/main/mods/bell_button/README.md) |
+| Readout | Keep an eye on the AI budget | [LCD cabinet](https://github.com/jamro/tiny-engineer/blob/main/mods/lcd_cabinet/README.md) |
+| Yours | Change the look, then go further | `/customise/` |
+
+One label, one title, short sentences in body color. Bell: you also get a bell button, and it runs whatever you want. For example, one press opens Music, a double-click opens Cursor, and a hold starts Claude Code. LCD: the cabinet keeps the AI budget in sight, right on the desk next to you. A glance shows what is left. Do not mention per-turn updates or that the screen can show arbitrary text. Third card: OLED eyes, laptop screen, extension port ready for the next part.
+
+**CTA:** `All customisations` → `/customise/`.
+
+**Do not:** invent a joystick product, a copper-filament SKU, or a live budget number beyond the photo.
+
+---
+
+### 8. Footer
 
 **Intent:** Minimal, playful, on-brand.
 
@@ -384,5 +413,6 @@ A visitor who only reads `/` can answer:
 - [ ] **How do I build one?** Shop → Print → Flash → Assemble → [getting-started](getting-started.md).  
 - [ ] **Where do I flash?** `/build/flash/` (and flash.md if stuck).  
 - [ ] **Where is proof?** Demo video / GIF and optional Show and tell.  
+- [ ] **Can I change it?** Bell launches apps, LCD shows budget left, eyes and screens are redrawable, extension port stays open. `/customise/`.  
 
 Implementer can paste section-by-section from this file into `web/index.html` without inventing messaging or touching `/build/flash/`.

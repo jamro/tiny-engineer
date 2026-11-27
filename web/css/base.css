@@ -647,6 +647,14 @@ h1 {
   margin-top: 1.15rem;
 }
 
+.build-steps.build-steps-stack {
+  grid-template-columns: 1fr;
+}
+
+.customise-photo img {
+  object-position: 32% 55%;
+}
+
 .home-section h2 {
   display: flex;
   align-items: center;
