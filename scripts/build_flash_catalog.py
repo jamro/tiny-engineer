@@ -11,6 +11,7 @@ Run from repo root. Used by .github/workflows/pages.yml.
 from __future__ import annotations
 
 import json
+import os
 import re
 import ssl
 import sys
@@ -29,14 +30,22 @@ RELEASES_JSON = OUT_DIR / "releases.json"
 TAG_RE = re.compile(r"^v\d+")
 
 
+def api_headers(url: str) -> dict[str, str]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": UA,
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    # Anonymous api.github.com calls share a small per-IP quota. Actions runners
+    # hit 403 rate limit exceeded. GITHUB_TOKEN (contents: read) lifts that.
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
+    if token and url.startswith("https://api.github.com/"):
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
 def api_get(url: str) -> bytes:
-    req = urllib.request.Request(
-        url,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "User-Agent": UA,
-        },
-    )
+    req = urllib.request.Request(url, headers=api_headers(url))
     with urllib.request.urlopen(req, context=ssl.create_default_context()) as res:
         return res.read()
 

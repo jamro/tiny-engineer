@@ -46,6 +46,8 @@ jobs:
         with:
           python-version: "3.11"
       - name: Build flash release catalog
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: python3 scripts/build_flash_catalog.py
       - name: Restore assembly GLB cache
         id: glb-cache
