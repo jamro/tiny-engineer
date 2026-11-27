@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "about": "UI data for /print/. Color groups match PartsSetA/B + LampDiffuser. Keep in sync with assembly print_group / 3d_models/README.md.",
+  "about": "UI data for /build/print/. Color groups match PartsSetA/B + LampDiffuser. Keep in sync with assembly print_group / 3d_models/README.md.",
   "servoStorageKey": "tiny-engineer.shop.servo",
   "checkedStorageKey": "tiny-engineer.print.checked",
   "defaultServo": "sg90",

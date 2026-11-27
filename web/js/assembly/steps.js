@@ -1,4 +1,4 @@
-// Assembly steps (web/assembly/steps.json): flattening, the scene at a step,
+// Assembly steps (web/build/assembly/steps.json): flattening, the scene at a step,
 // and validation against the model's parts. No DOM, so it is testable in Node
 // (scripts/assembly/test_viewer.mjs, scripts/assembly/check_steps.mjs).
 

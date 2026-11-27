@@ -426,7 +426,7 @@ function makeTile(item, { filesBase, swatch, checked, onToggle, previews }) {
     icon.setAttribute("class", "icon");
     icon.setAttribute("aria-hidden", "true");
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-    use.setAttribute("href", "../media/icons.svg#i-download");
+    use.setAttribute("href", "../../media/icons.svg#i-download");
     icon.appendChild(use);
     const span = document.createElement("span");
     span.textContent = fmt.toUpperCase();

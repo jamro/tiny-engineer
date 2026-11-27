@@ -52,7 +52,7 @@ Measured from the exported meshes (`LaptopScreen.stl` for the insert, the lid po
 
 ## Make your own
 
-**[Laptop screen generator](https://jamro.github.io/tiny-engineer/screens/)** — in the browser, nothing to install. Pick your servo preset, then either type a screen (or edit one of the stock designs, colours included) or drop in a screenshot, which is cropped to the visible window. It previews the insert at real proportions and downloads an A4 PDF of copies with the same scale check. Images stay in your browser.
+**[Laptop screen generator](https://jamro.github.io/tiny-engineer/customise/screens/)** — in the browser, nothing to install. Pick your servo preset, then either type a screen (or edit one of the stock designs, colours included) or drop in a screenshot, which is cropped to the visible window. It previews the insert at real proportions and downloads an A4 PDF of copies with the same scale check. Images stay in your browser.
 
 No internet? Cut out the **Blank template** and draw on it or glue a print inside the dashed line, using the sizes above.
 
@@ -94,4 +94,4 @@ python3 scripts/laptop_screens.py           # rewrite laptop-screens-<preset>.pd
 python3 scripts/laptop_screens.py --check   # CI: fail if the PDF is stale
 ```
 
-The script re-measures every `parts/{servo_id}/stl/` folder that has a `LaptopScreen.stl`, so a new servo preset gets its own page after the Fusion export — no sizes to edit by hand. It also writes `web/screens/presets.json` and `designs.json`, which the generator page reads; `--check` covers those too. The generator's **Copy .screen source** button gives you a file in this format, ready for a PR.
+The script re-measures every `parts/{servo_id}/stl/` folder that has a `LaptopScreen.stl`, so a new servo preset gets its own page after the Fusion export — no sizes to edit by hand. It also writes `web/customise/screens/presets.json` and `designs.json`, which the generator page reads; `--check` covers those too. The generator's **Copy .screen source** button gives you a file in this format, ready for a PR.

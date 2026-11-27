@@ -101,7 +101,7 @@ assert.ok(badProblems.some((problem) => problem.includes('say why')));
 }
 
 // The shipped steps are well formed (part ids are checked against the model by check_steps.mjs).
-const shipped = JSON.parse(readFileSync(new URL('../../web/assembly/steps.json', import.meta.url), 'utf8'));
+const shipped = JSON.parse(readFileSync(new URL('../../web/build/assembly/steps.json', import.meta.url), 'utf8'));
 const shippedIds = [...new Set(flatten(shipped).flatMap((step) => step.add))];
 assert.deepEqual(validate(shipped, shippedIds), []);
 const shippedSteps = flatten(shipped);

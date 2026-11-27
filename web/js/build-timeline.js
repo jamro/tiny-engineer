@@ -1,11 +1,10 @@
 /**
  * Build-process stage dots for GitHub Pages under web/.
  * Mount: <nav class="build-timeline" data-stage="…" data-root="…"></nav>
- * then <script src="…/js/build-timeline.js"></script> after it (build-progress.js
- * may sit between them).
+ * then <script src="…/js/build-timeline.js"></script> after it.
  *
  * data-stage: id of the current stage (shop | print | flash | assembly | setup | …)
- * data-root: relative prefix to web/ root ("../" on nested pages)
+ * data-root: relative prefix to /build/ ("../" on /build/<stage>/)
  *
  * Add stages to STAGES as the build guide grows. Mount on each stage page
  * with data-stage set to that page's id.
@@ -28,11 +27,6 @@
   const current = el.dataset.stage || "";
   const root = el.dataset.root || "./";
   const currentIndex = STAGES.findIndex((stage) => stage.id === current);
-
-  // Remember this stage so /build/ can resume here.
-  if (currentIndex >= 0 && window.TinyEngineerBuild) {
-    window.TinyEngineerBuild.saveStage(current);
-  }
 
   el.setAttribute("aria-label", "Build stages");
 

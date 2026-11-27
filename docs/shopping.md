@@ -1,6 +1,6 @@
 # Shopping list
 
-Buy this before you print or connect. Interactive cart on the site: **[Shop](https://jamro.github.io/tiny-engineer/shop/)**. Electrical spec (voltages, limits, pin notes): [hardware/components.md](hardware/components.md). Screw lengths in assembly steps: [3d_models/README.md → Screws](../3d_models/README.md#screws). Build order: [getting-started.md](getting-started.md).
+Buy this before you print or connect. Interactive cart on the site: **[Shop](https://jamro.github.io/tiny-engineer/build/shop/)**. Electrical spec (voltages, limits, pin notes): [hardware/components.md](hardware/components.md). Screw lengths in assembly steps: [3d_models/README.md → Screws](../3d_models/README.md#screws). Build order: [getting-started.md](getting-started.md).
 
 ## Servo size (pick first)
 
@@ -31,7 +31,7 @@ Buy the assembled board from [Elecrow](https://www.elecrow.com/tiny-engineer-mai
 | --- | --- | --- |
 | Tiny Engineer main control board | 1 | Assembled board: [Elecrow](https://www.elecrow.com/tiny-engineer-main-board-open-source-ai-coding-companion.html). Open-source PCB ([CERN-OHL-S](../3d_models/LICENSE)); sources in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/). |
 | Waveshare ESP32-C3-Zero | 1 | https://docs.waveshare.com/ESP32-C3-Zero. Needs two 1×9 2.54 mm male pin headers soldered on (often in the box), or buy the ESP32-C3-Zero-M with them fitted |
-| Tower Pro SG90 (or equivalent 9 g analog micro) | 5 | Official [Tower Pro HK SG90](https://torqpro.com/product/sg90-analog/) — buy ×5 of one model; compact: Feetech [Pololu FS0307](https://www.pololu.com/product/3420) or [EMAX ES9051](https://shop.emaxmodel.com/products/emax-es9051-4-3g-digital-mini-servo-for-rc-model) on [Shop](https://jamro.github.io/tiny-engineer/shop/) |
+| Tower Pro SG90 (or equivalent 9 g analog micro) | 5 | Official [Tower Pro HK SG90](https://torqpro.com/product/sg90-analog/) — buy ×5 of one model; compact: Feetech [Pololu FS0307](https://www.pololu.com/product/3420) or [EMAX ES9051](https://shop.emaxmodel.com/products/emax-es9051-4-3g-digital-mini-servo-for-rc-model) on [Shop](https://jamro.github.io/tiny-engineer/build/shop/) |
 | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 | https://www.adafruit.com/product/3923 |
 | [Waveshare 0.91inch OLED Module](https://www.waveshare.com/0.91inch-oled-module.htm) (SSD1306, 128×32, I2C) | 1 | https://www.waveshare.com/0.91inch-oled-module.htm |
 

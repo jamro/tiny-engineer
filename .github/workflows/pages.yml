@@ -51,8 +51,8 @@ jobs:
         id: glb-cache
         uses: actions/cache@v4
         with:
-          path: web/assembly/models
-          key: assembly-sg90-glb-${{ hashFiles('3d_models/cad/**', '3d_models/parts/*/stl/**', '3d_models/parts/*/step/**', '3d_models/fusion/TinyEngineerTools/servos.json', 'scripts/assembly/**', 'web/assembly/steps.json', 'web/js/assembly/steps.js') }}
+          path: web/build/assembly/models
+          key: assembly-sg90-glb-${{ hashFiles('3d_models/cad/**', '3d_models/parts/*/stl/**', '3d_models/parts/*/step/**', '3d_models/fusion/TinyEngineerTools/servos.json', 'scripts/assembly/**', 'web/build/assembly/steps.json', 'web/js/assembly/steps.js') }}
       - uses: actions/setup-python@v5
         if: steps.glb-cache.outputs.cache-hit != 'true'
         with:
@@ -63,7 +63,7 @@ jobs:
         if: steps.glb-cache.outputs.cache-hit != 'true'
         run: |
           pip install -r scripts/assembly/requirements.txt
-          scripts/assembly/build.sh web/assembly/models
+          scripts/assembly/build.sh web/build/assembly/models
       - name: Cache KiCad AppImage extract
         uses: actions/cache@v4
         with:
@@ -167,25 +167,25 @@ jobs:
           export FAB_CACHE_DIR="${GITHUB_WORKSPACE}/artifacts/fab-tools"
           export FAB_REQUIRE_TOOLKIT=1
           ./scripts/fab/export_main_control_board.sh
-          test -s web/shop/fab/main-control-board/gerbers.zip
-          test -s web/shop/fab/main-control-board/bom.csv
-          test -s web/shop/fab/main-control-board/positions.csv
-          grep -q 'method: fabrication-toolkit' web/shop/fab/main-control-board/SOURCE.txt
+          test -s web/build/shop/fab/main-control-board/gerbers.zip
+          test -s web/build/shop/fab/main-control-board/bom.csv
+          test -s web/build/shop/fab/main-control-board/positions.csv
+          grep -q 'method: fabrication-toolkit' web/build/shop/fab/main-control-board/SOURCE.txt
           echo "Fab package:"
-          ls -la web/shop/fab/main-control-board/
-          cat web/shop/fab/main-control-board/SOURCE.txt
+          ls -la web/build/shop/fab/main-control-board/
+          cat web/build/shop/fab/main-control-board/SOURCE.txt
           # Spot-check CPL matches Toolkit conventions (pad-center connectors).
-          head -n 5 web/shop/fab/main-control-board/positions.csv
-          head -n 5 web/shop/fab/main-control-board/bom.csv
+          head -n 5 web/build/shop/fab/main-control-board/positions.csv
+          head -n 5 web/build/shop/fab/main-control-board/bom.csv
       - name: Sync print mesh files
         run: |
           set -euo pipefail
           chmod +x scripts/web/sync-print-files.sh
           ./scripts/web/sync-print-files.sh
-          test -s web/print/files/sg90/Head.3mf
-          test -s web/print/files/sg90/Head.stl
-          test -s web/print/files/fs0307/Head.stl
-          test -s web/print/files/es9051/Head.stl
+          test -s web/build/print/files/sg90/Head.3mf
+          test -s web/build/print/files/sg90/Head.stl
+          test -s web/build/print/files/fs0307/Head.stl
+          test -s web/build/print/files/es9051/Head.stl
       - name: Inject Clarity
         env:
           CLARITY_PROJECT_ID: ${{ vars.CLARITY_PROJECT_ID }}

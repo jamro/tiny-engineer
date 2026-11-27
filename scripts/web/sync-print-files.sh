@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Copy individual printable meshes into web/print/files/{servo}/ for GitHub Pages.
+# Copy individual printable meshes into web/build/print/files/{servo}/ for GitHub Pages.
 # Excludes PartsSetA / PartsSetB aggregates (service-order path, not the home queue).
 # Usage: from repo root — ./scripts/web/sync-print-files.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-PARTS_JSON="${ROOT}/web/print/parts.json"
-OUT_ROOT="${ROOT}/web/print/files"
+PARTS_JSON="${ROOT}/web/build/print/parts.json"
+OUT_ROOT="${ROOT}/web/build/print/files"
 SRC_ROOT="${ROOT}/3d_models/parts"
 SERVOS=(sg90 fs0307 es9051)
 EXCLUDE_RE='^(PartsSetA|PartsSetB)\.(3mf|stl)$'

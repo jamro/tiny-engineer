@@ -78,7 +78,7 @@ The assembly viewer MUST NOT download a ZIP of print files from the site. Print 
 - **THEN** there is no control that packs and downloads home-printer or print-service ZIP archives
 
 ### Requirement: SG90-only model pipeline
-CI MUST build and publish only the stock SG90 assembly GLB (plus its assembly checks). The Pages deploy MUST publish that same stock SG90 model for the viewer and MUST NOT build other servo presets or viewer mods, and MUST NOT stage a `web/print/` tree for viewer download. When assembly model inputs are unchanged, Pages MAY reuse a previously built SG90 GLB. When those inputs change or no matching build is available, Pages MUST rebuild the SG90 GLB (with its checks) and MUST fail the deploy if that rebuild fails. Assembly checks for the published model MUST include step and clipping validation and MUST NOT require a servo joint-pose sweep.
+CI MUST build and publish only the stock SG90 assembly GLB (plus its assembly checks). The Pages deploy MUST publish that same stock SG90 model for the viewer and MUST NOT build other servo presets or viewer mods, and MUST NOT stage a `web/build/print/` tree for viewer download. When assembly model inputs are unchanged, Pages MAY reuse a previously built SG90 GLB. When those inputs change or no matching build is available, Pages MUST rebuild the SG90 GLB (with its checks) and MUST fail the deploy if that rebuild fails. Assembly checks for the published model MUST include step and clipping validation and MUST NOT require a servo joint-pose sweep.
 
 #### Scenario: Assembly CI build
 - **WHEN** the assembly CI job runs successfully

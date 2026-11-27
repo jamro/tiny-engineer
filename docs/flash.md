@@ -8,7 +8,7 @@ Physical module is a **Waveshare ESP32-C3-Zero**.
 
 Stock firmware from the browser — no toolchain install, no repo clone.
 
-1. Open **[jamro.github.io/tiny-engineer/flash/](https://jamro.github.io/tiny-engineer/flash/)** in **Chrome or Edge**.
+1. Open **[jamro.github.io/tiny-engineer/build/flash/](https://jamro.github.io/tiny-engineer/build/flash/)** in **Chrome or Edge**.
 2. Follow the on-page **Prepare the board** guide first (seat the ESP32 on the main board using the USB mark; plug the data cable into the **board** USB-C, not the module).
 3. Use a USB-C **data** cable (charge-only cables fail).
 4. Pick a release (latest is fine) → **Connect & install**.
@@ -151,7 +151,7 @@ Tagged releases created before the release workflow can be made flashable later.
    with offsets from **that tag’s** [`partitions.csv`](../partitions.csv) (plus bootloader `0x0`, partition table `0x8000`).  
    Example for `v0.1.0` (dual-OTA layout on that tag): LittleFS / `spiffs` at **`0x2B0000`** (`2818048`), not the current `main` offset.
 3. Upload the four bins and `manifest.json` (exact asset name) to that Release (`gh release upload` or the GitHub UI).
-4. Redeploy Pages (**Actions → Pages → Run workflow**, or push a `web/**` change, or edit/publish a Release). The catalog script mirrors the new assets; then reload `/flash/`.
+4. Redeploy Pages (**Actions → Pages → Run workflow**, or push a `web/**` change, or edit/publish a Release). The catalog script mirrors the new assets; then reload `/build/flash/`.
 
 Do **not** reuse current-`main` offsets for an old tag.
 

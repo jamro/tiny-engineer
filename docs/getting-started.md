@@ -36,13 +36,13 @@ flowchart LR
 
 ### 1. Shop
 
-- **Open:** **[Shop](https://jamro.github.io/tiny-engineer/shop/)** (checklist) or [shopping.md](shopping.md). Default cart is the main control board plus the ESP32, OLED, servos, and speaker.
+- **Open:** **[Shop](https://jamro.github.io/tiny-engineer/build/shop/)** (checklist) or [shopping.md](shopping.md). Default cart is the main control board plus the ESP32, OLED, servos, and speaker.
 - **Until:** cart in hand — main control board, ESP32, servos, OLED, speaker, M2 screws/nuts, ~7–12 cm male–female jumpers (OLED/servo extensions), **5 V / ≥2 A** supply + **data** USB-C cable, and a print path (filament or a service order). Default servos: **Tower Pro SG90**.
 - **Return** here.
 
 ### 2. Print or order
 
-- **Open:** **[Print](https://jamro.github.io/tiny-engineer/print/)** (checklist + downloads for the Shop servo) or [3d_models/README.md](../3d_models/README.md) (home print; testers first) or [3d/order-parts.md](3d/order-parts.md) (no printer).
+- **Open:** **[Print](https://jamro.github.io/tiny-engineer/build/print/)** (checklist + downloads for the Shop servo) or [3d_models/README.md](../3d_models/README.md) (home print; testers first) or [3d/order-parts.md](3d/order-parts.md) (no printer).
 - **Until:** printed set for your servo model ready.
 - **Return** here.
 
@@ -55,7 +55,7 @@ flowchart LR
 
 ### 4. Flash
 
-- **Open:** **[Web flash](https://jamro.github.io/tiny-engineer/flash/)** (Chrome or Edge; USB-C **data** cable). The page starts with a short visual prep (seat the ESP32 on the **main control board**, plug USB into the board — not the module). A bare module alone will not open the setup AP. Pick the latest release → Connect & install. No PlatformIO or repo clone needed for stock firmware. More detail / stuck / advanced: [flash.md](flash.md).
+- **Open:** **[Web flash](https://jamro.github.io/tiny-engineer/build/flash/)** (Chrome or Edge; USB-C **data** cable). The page starts with a short visual prep (seat the ESP32 on the **main control board**, plug USB into the board — not the module). A bare module alone will not open the setup AP. Pick the latest release → Connect & install. No PlatformIO or repo clone needed for stock firmware. More detail / stuck / advanced: [flash.md](flash.md).
 - **Until:** stock firmware + audio on the board; setup AP **Assembly support** → **Move all to 90°** (or one servo moves). Do not finish the Wi-Fi wizard yet.
 - **Return** here. Keep electronics on the desk — do not seat them in the chest yet.
 
@@ -98,10 +98,10 @@ curl -X POST "http://tiny-engineer.local/anim?name=ring"
 | How to plug in the board? | [hardware/main-control-board.md](hardware/main-control-board.md) |
 | What to print? | [3d_models/README.md](../3d_models/README.md) |
 | How to assemble printed parts? | [3d/assembly.md](3d/assembly.md) |
-| Flash / install stuck | [Web flash](https://jamro.github.io/tiny-engineer/flash/) · [flash.md](flash.md) |
+| Flash / install stuck | [Web flash](https://jamro.github.io/tiny-engineer/build/flash/) · [flash.md](flash.md) |
 | `.local` slow or fails | OLED IP; `curl -4 http://…` |
 | OLED shows join AP / `192.168.4.1` | Wi-Fi not saved or STA failed — finish [assembly §20](3d/assembly.md#20-setup-wizard-and-first-boot-on-wi-fi) |
-| Welcome / ring silent (servos move) | Re-install the same release from [Web flash](https://jamro.github.io/tiny-engineer/flash/) (stock image includes audio). Advanced: [flash.md](flash.md) |
+| Welcome / ring silent (servos move) | Re-install the same release from [Web flash](https://jamro.github.io/tiny-engineer/build/flash/) (stock image includes audio). Advanced: [flash.md](flash.md) |
 | Hooks never move the robot | Node 18+, `npx -y tiny-engineer doctor`, hook `timeout` ≥ 30 for cold `npx` — see [integration.md](integration.md) / [hooks.md](hooks.md) |
 | Servos twitch / board resets on motion | Power budget — [hardware/power.md](hardware/power.md) |
 | Other boot / I2C / audio failures | [hardware/testing.md](hardware/testing.md) |

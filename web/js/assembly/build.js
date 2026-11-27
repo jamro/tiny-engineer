@@ -156,7 +156,7 @@ export function createBuild({ data, parts, stage, root, layout, label, elements,
     elements.next.disabled = index === steps.length - 1;
     const playIcon = elements.play.querySelector('use');
     if (playIcon) {
-      playIcon.setAttribute('href', playing ? '../media/icons.svg#i-pause' : '../media/icons.svg#i-play');
+      playIcon.setAttribute('href', playing ? '../../media/icons.svg#i-pause' : '../../media/icons.svg#i-play');
     }
     elements.play.setAttribute('aria-label', playing ? 'Pause' : 'Play');
     elements.play.setAttribute('aria-pressed', String(playing));

@@ -7,7 +7,7 @@ Source of truth for **what** `/` on [tinyengineer.dev](https://tinyengineer.dev)
 | **Content / messaging** (this file) | What each section says, CTAs, outbound links, claims |
 | **Visual / UI** | [`web/STYLE.md`](../web/STYLE.md) — palette, components, voice, section spine |
 
-Engineering depth stays in `docs/` on GitHub. The marketing site does not host a docs browser. Flash stays at `/flash/`; do not merge flasher UX into the landing.
+Engineering depth stays in `docs/` on GitHub. The marketing site does not host a docs browser. Flash stays at `/build/flash/`; do not merge flasher UX into the landing.
 
 Canonical product copy also lives in [`README.md`](../README.md). Prefer README wording when this brief and the README diverge on facts; prefer this brief for section order and CTA priority on `/`.
 
@@ -24,14 +24,14 @@ Software engineers who already use AI coding agents (Cursor, Claude Code, Antigr
 1. **Explain** — visitor knows Tiny Engineer is a physical desk robot for AI coding agents.
 2. **Create demand** — agent work becomes visible (move, face, bell); feels like a teammate, not a toy.
 3. **Show the build path** — Shop → Print → Flash → Assemble, with deep links into GitHub docs.
-4. **Route** — builders to [getting-started](getting-started.md); flashers to `/flash/`; hackers to GitHub / API / integrations.
+4. **Route** — builders to [getting-started](getting-started.md); flashers to `/build/flash/`; hackers to GitHub / API / integrations.
 
 ## Non-goals
 
 - Full API reference, PCB contribute guide, or hardware primer chapters on the page.
 - Kit storefront, fixed BOM price, or “official” IDE partnership claims.
 - Multi-page marketing site; roadmap sold as shipped product.
-- Rewriting `/flash/` or the robot embedded `ui/`.
+- Rewriting `/build/flash/` or the robot embedded `ui/`.
 
 ---
 
@@ -66,13 +66,13 @@ Match [`web/STYLE.md` homepage structure](../web/STYLE.md#homepage-structure-whe
 | **Primary** | Build one | [getting-started.md](https://github.com/jamro/tiny-engineer/blob/main/docs/getting-started.md) |
 | **Secondary** | Watch demo | https://youtu.be/RX_QRxdXMjg |
 | **Secondary** | GitHub | https://github.com/jamro/tiny-engineer |
-| **Tertiary / nav** | Flash firmware | `/flash/` (same origin) |
+| **Tertiary / nav** | Flash firmware | `/build/flash/` (same origin) |
 
 Hero may show Build + Watch demo + GitHub. Flash remains in the site nav (and optionally a quiet tertiary link). Do not make Flash the only primary CTA on `/` — builders need the checklist first.
 
 ### Nav (canonical)
 
-One source: [`web/js/site-header.js`](../web/js/site-header.js). Mounted on `/`, `/flash/`, `/screens/`, `/eyes/`, `/assembly/` via:
+One source: [`web/js/site-header.js`](../web/js/site-header.js). Mounted on `/`, `/build/flash/`, `/customise/screens/`, `/customise/eyes/`, `/build/assembly/` via:
 
 ```html
 <header class="site-header" data-page="…" data-root="…"></header>
@@ -83,9 +83,9 @@ Links (same set every page; `aria-current` from `data-page`):
 
 - Brand → `/`
 - Build → `/build/` (build-stage pages shop…setup highlight Build; stage timeline owns those steps)
-- Customise → `/customise/` tile hub (also current on `/screens/` and `/eyes/`)
-  - Screens tile → `/screens/`
-  - Eye styles tile → `/eyes/`
+- Customise → `/customise/` tile hub (also current on `/customise/screens/` and `/customise/eyes/`)
+  - Screens tile → `/customise/screens/`
+  - Eye styles tile → `/customise/eyes/`
   - Halloween tile → `mods/halloween/README.md` on GitHub
   - Bell button tile → `mods/bell_button/README.md` on GitHub
   - LCD cabinet tile → `mods/lcd_cabinet/README.md` on GitHub
@@ -97,7 +97,7 @@ Page-specific docs links stay in page body, not top nav. `/pcba_test/` stays bra
 
 ## Section briefs
 
-URL conventions below use GitHub `blob/main/docs/…` for markdown and same-origin paths for Pages (`/flash/`). When assets live in `docs/` but need to appear on the site, copy or reference them from `web/` at implement time (do not hotlink raw.githubusercontent for critical hero media if avoidable).
+URL conventions below use GitHub `blob/main/docs/…` for markdown and same-origin paths for Pages (`/build/flash/`). When assets live in `docs/` but need to appear on the site, copy or reference them from `web/` at implement time (do not hotlink raw.githubusercontent for critical hero media if avoidable).
 
 ### 1. Hero
 
@@ -120,7 +120,7 @@ URL conventions below use GitHub `blob/main/docs/…` for markdown and same-orig
 - Primary: `Build one` → getting-started  
 - Secondary: `Watch demo` → YouTube  
 - Secondary: `GitHub` → repo  
-- Optional tertiary text link: `Flash firmware` → `/flash/`
+- Optional tertiary text link: `Flash firmware` → `/build/flash/`
 
 **Media:** Prefer robot photo or GIF over PCB-only panel when implementing.
 
@@ -291,7 +291,7 @@ servos + OLED + speaker
 | --- | --- |
 | Full checklist | [getting-started.md](https://github.com/jamro/tiny-engineer/blob/main/docs/getting-started.md) |
 | Parts | [shopping.md](https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md) |
-| Flash | `/flash/` (site) · detail [flash.md](https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md) |
+| Flash | `/build/flash/` (site) · detail [flash.md](https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md) |
 | Assemble | [3d/assembly.md](https://github.com/jamro/tiny-engineer/blob/main/docs/3d/assembly.md) |
 
 **Also useful (one line each, not a second checklist):**
@@ -355,7 +355,7 @@ Do **not** claim on `/`:
 - Open source (with dual license scope above)  
 - Works with Cursor, Claude Code, Antigravity via `npx -y tiny-engineer setup`  
 - Any agent/script via `POST /anim` / USB serial  
-- Browser web flash for stock firmware (Chromium + HTTPS; detail on `/flash/`)  
+- Browser web flash for stock firmware (Chromium + HTTPS; detail on `/build/flash/`)  
 - 5 V / ≥2 A power requirement  
 
 ---
@@ -366,7 +366,7 @@ Out of scope for this brief’s authoring, but required when implementing:
 
 1. Extend [`web/index.html`](../web/index.html) only for new sections; reuse header/nav/footer patterns.  
 2. Add section styles in [`web/css/base.css`](../web/css/base.css) / tokens if needed — follow [`web/STYLE.md`](../web/STYLE.md); no new visual system.  
-3. **Do not** change [`web/flash/`](../web/flash/) behavior, `releases.json` flow, or [`web/q/`](../web/q/) redirects.  
+3. **Do not** change [`web/build/flash/`](../web/build/flash/) behavior, `releases.json` flow, or [`web/q/`](../web/q/) redirects.  
 4. **Do not** move engineering docs into Pages HTML; keep outbound links to GitHub `docs/`.  
 5. Hero media: host under `web/` (or document relative path) so Pages serves GIF/JPG without depending on GitHub blob UI.  
 6. Personality: short sarcasm in microcopy/footer only; section body stays clear ([STYLE microcopy](../web/STYLE.md#microcopy-personality)).  
@@ -382,7 +382,7 @@ A visitor who only reads `/` can answer:
 - [ ] **Why care?** Agent work becomes visible; feels like a tiny engineering teammate.  
 - [ ] **How do I control it?** `npx -y tiny-engineer setup` or `POST /anim`.  
 - [ ] **How do I build one?** Shop → Print → Flash → Assemble → [getting-started](getting-started.md).  
-- [ ] **Where do I flash?** `/flash/` (and flash.md if stuck).  
+- [ ] **Where do I flash?** `/build/flash/` (and flash.md if stuck).  
 - [ ] **Where is proof?** Demo video / GIF and optional Show and tell.  
 
-Implementer can paste section-by-section from this file into `web/index.html` without inventing messaging or touching `/flash/`.
+Implementer can paste section-by-section from this file into `web/index.html` without inventing messaging or touching `/build/flash/`.

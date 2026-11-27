@@ -26,17 +26,17 @@ The build guide MUST expose the ordered stages Shop → Print → Flash → Asse
 
 #### Scenario: Print continues to flash
 - **WHEN** a visitor finishes the print stage continue control
-- **THEN** they navigate to `/flash/` (not a Connect stage)
+- **THEN** they navigate to `/build/flash/` (not a Connect stage)
 
 #### Scenario: Setup includes try-it
-- **WHEN** a visitor opens `/setup/`
+- **WHEN** a visitor opens `/build/setup/`
 - **THEN** a Try it block appears below the On-robot wizard panel
 
 ### Requirement: Light chrome consistency outside shop
 Print, Flash, Assembly, and Setup MUST keep beginner-compatible stage chrome (title, lede, primary panel labels, primary CTA wording). This capability MUST NOT require those stages to absorb full shopping-cart or JLCPCB flows that belong on Shop.
 
 #### Scenario: Non-shop stage lede is beginner-readable
-- **WHEN** a visitor opens `/print/`, `/flash/`, `/assembly/`, or `/setup/`
+- **WHEN** a visitor opens `/build/print/`, `/build/flash/`, `/build/assembly/`, or `/build/setup/`
 - **THEN** the on-page lede and primary CTA use plain language consistent with the build-guide voice
 
 #### Scenario: Deep MD content remains linked

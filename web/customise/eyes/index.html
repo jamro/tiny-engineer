@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eye styles · Tiny Engineer</title>
+  <meta name="description" content="Preview Tiny Engineer OLED eye styles — classic, kaomoji, dots, kawaii, and evil — then pick one in the web config.">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/tokens.css">
+  <link rel="stylesheet" href="../../css/base.css">
+  <script type="module" src="../../js/eyes-preview.js"></script>
+</head>
+<body class="page-eyes">
+  <div class="wrap">
+    <header class="site-header" data-page="eyes" data-root="../../"></header>
+    <script src="../../js/site-header.js"></script>
+
+    <main>
+      <div class="flash-intro">
+        <p class="eyebrow">Display · OLED face</p>
+        <h1>Eye styles</h1>
+        <p class="lede">
+          Give the robot a different look. Each style redraws the same animations — blinks, glances, moods — with its own face.
+          Pick one in the web config at
+          <a href="http://tiny-engineer.local">http://tiny-engineer.local</a>.
+        </p>
+      </div>
+
+      <ul class="eyes-grid" aria-label="Eye style previews">
+        <li class="eyes-card">
+          <div class="eyes-oled" aria-hidden="true">
+            <canvas data-eye-style="classic" width="256" height="64"></canvas>
+          </div>
+          <div class="eyes-card-body">
+            <p class="eyes-card-kicker mono">eyes_style</p>
+            <h2 class="eyes-card-title">classic</h2>
+            <p class="eyes-card-desc">Procedural rounded eyes — the stock look with blinks and glances.</p>
+          </div>
+        </li>
+        <li class="eyes-card">
+          <div class="eyes-oled" aria-hidden="true">
+            <canvas data-eye-style="kaomoji" width="256" height="64"></canvas>
+          </div>
+          <div class="eyes-card-body">
+            <p class="eyes-card-kicker mono">eyes_style</p>
+            <h2 class="eyes-card-title">kaomoji</h2>
+            <p class="eyes-card-desc">Animated faces from the expression library — idle, happy, thinking, and more on device.</p>
+          </div>
+        </li>
+        <li class="eyes-card">
+          <div class="eyes-oled" aria-hidden="true">
+            <canvas data-eye-style="dots" width="256" height="64"></canvas>
+          </div>
+          <div class="eyes-card-body">
+            <p class="eyes-card-kicker mono">eyes_style</p>
+            <h2 class="eyes-card-title">dots</h2>
+            <p class="eyes-card-desc">Minimal 12×12 circles that track the classic pose — blinks shrink them, glances move them.</p>
+          </div>
+        </li>
+        <li class="eyes-card">
+          <div class="eyes-oled" aria-hidden="true">
+            <canvas data-eye-style="kawaii" width="256" height="64"></canvas>
+          </div>
+          <div class="eyes-card-body">
+            <p class="eyes-card-kicker mono">eyes_style</p>
+            <h2 class="eyes-card-title">kawaii</h2>
+            <p class="eyes-card-desc">Round eyes, big pupils, blush, and a talking mouth — each animation has its own mood.</p>
+          </div>
+        </li>
+        <li class="eyes-card">
+          <div class="eyes-oled" aria-hidden="true">
+            <canvas data-eye-style="evil" width="256" height="64"></canvas>
+          </div>
+          <div class="eyes-card-body">
+            <p class="eyes-card-kicker mono">eyes_style</p>
+            <h2 class="eyes-card-title">evil</h2>
+            <p class="eyes-card-desc">Solid white scowling silhouettes — pointed high outers, rounded low inners, always menacing.</p>
+          </div>
+        </li>
+      </ul>
+
+      <p class="eyes-footnote">
+        Set the style on your robot in the web config at
+        <a href="http://tiny-engineer.local">http://tiny-engineer.local</a>.
+        A sixth style, <code class="mono">cover</code>, is for eye-hole mask mods and is not shown here.
+      </p>
+    </main>
+
+    <footer class="site-footer">
+      <p><a href="../">← Customise</a></p>
+    </footer>
+  </div>
+</body>
+</html>

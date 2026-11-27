@@ -1,7 +1,7 @@
 /**
  * Shop stage cart: load cart.json, Elecrow board card, checklist + localStorage.
  * Servo preset (SG90 default) lives on the plug-in modules servo row.
- * Mount: empty nodes with ids shop-* in web/shop/index.html, then this script.
+ * Mount: empty nodes with ids shop-* in web/build/shop/index.html, then this script.
  */
 import { read, write, loadChecked, saveChecked } from "./storage.js";
 
@@ -236,7 +236,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     icon.setAttribute("class", "icon");
     icon.setAttribute("aria-hidden", "true");
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-    use.setAttribute("href", `../media/icons.svg#${symbolId}`);
+    use.setAttribute("href", `../../media/icons.svg#${symbolId}`);
     icon.append(use);
     if (prepend) node.prepend(icon);
     else node.append(icon);

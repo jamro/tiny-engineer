@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Export main-control-board JLCPCB package into web/shop/fab/main-control-board/.
+# Export main-control-board JLCPCB package into web/build/shop/fab/main-control-board/.
 #
 # Primary (required for Pages): Fabrication Toolkit via KiCad Python (AUTO TRANSLATE).
 # Output matches hardware/boards/main-control-board/production/ from the Toolkit GUI/CLI.
@@ -12,7 +12,7 @@
 # Env (optional):
 #   KICAD_PYTHON / KICAD_CLI / KICAD_APPDIR
 #   FAB_TOOLKIT_ROOT / FAB_TOOLKIT_VERSION (default 5.3.1)
-#   FAB_OUT_DIR (default web/shop/fab/main-control-board)
+#   FAB_OUT_DIR (default web/build/shop/fab/main-control-board)
 #   FAB_REQUIRE_TOOLKIT=1  fail if Toolkit path unavailable (Pages sets this)
 #   FAB_FORCE_KICAD_CLI=1  skip Toolkit (dev only)
 set -euo pipefail
@@ -22,7 +22,7 @@ cd "$ROOT"
 
 BOARD_DIR="$ROOT/hardware/boards/main-control-board"
 PCB="$BOARD_DIR/main-control-board.kicad_pcb"
-OUT_DIR="${FAB_OUT_DIR:-$ROOT/web/shop/fab/main-control-board}"
+OUT_DIR="${FAB_OUT_DIR:-$ROOT/web/build/shop/fab/main-control-board}"
 TOOLKIT_VERSION="${FAB_TOOLKIT_VERSION:-5.3.1}"
 CACHE_DIR="${FAB_CACHE_DIR:-$ROOT/artifacts/fab-tools}"
 

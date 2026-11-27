@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop · Tiny Engineer</title>
+  <meta name="description" content="Buy parts for Tiny Engineer before you print or flash.">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/tokens.css">
+  <link rel="stylesheet" href="../../css/base.css">
+</head>
+<body class="page-shop page-build">
+  <div class="wrap">
+    <header class="site-header" data-page="shop" data-root="../../"></header>
+    <script src="../../js/site-header.js"></script>
+
+    <main>
+      <div class="build-head">
+        <script src="../../js/build-progress.js"></script>
+        <nav class="build-timeline" data-stage="shop" data-root="../"></nav>
+        <script src="../../js/build-timeline.js"></script>
+        <div class="flash-intro">
+          <p class="eyebrow">Parts · cart</p>
+          <h1>Shop</h1>
+          <p class="lede">
+            Buy the assembled board, then the plug-in modules and fasteners.
+          </p>
+        </div>
+      </div>
+
+      <p id="shop-status" class="shop-status mono" role="status" data-state="loading">Loading cart…</p>
+
+      <section class="panel shop-timeline-panel" aria-label="Order timeline">
+        <div class="shop-timeline-head">
+          <p class="panel-label">At a glance</p>
+          <span id="shop-check-progress" class="shop-check-progress mono" aria-live="polite"></span>
+        </div>
+        <ol id="shop-order-timeline" class="shop-order-timeline"></ol>
+      </section>
+
+      <section
+        id="shop-step-board"
+        class="panel shop-jlcpcb-panel"
+        aria-label="Buy main control board"
+        data-lane="now"
+      >
+        <div class="shop-lane-head">
+          <p class="panel-label">1 · Buy the board</p>
+          <span
+            id="shop-board-progress"
+            class="shop-lane-progress mono"
+            data-lane-progress="now"
+            hidden
+          ></span>
+        </div>
+        <p class="shop-step-lede">
+          Plug-in modules are the next list.
+        </p>
+        <div id="shop-jlcpcb" class="shop-jlcpcb"></div>
+        <p class="shop-board-self mono">
+          Open source — change the design and order the board yourself.
+          <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/order-main-control-board.md" target="_blank" rel="noopener noreferrer">Order guide</a>
+        </p>
+      </section>
+
+      <div id="shop-lanes" class="shop-lanes"></div>
+
+      <section id="shop-step-continue" class="panel shop-footer-panel" aria-label="Continue to print">
+        <div class="shop-footer-main">
+          <div class="shop-footer-copy">
+            <p class="panel-label">4 · Continue</p>
+            <p class="shop-step-lede shop-footer-lede">Ready for 3D printing? Continue when you like.</p>
+            <p id="shop-continue-warn" class="shop-continue-warn" hidden role="status"></p>
+          </div>
+          <div class="shop-footer-actions">
+            <button id="shop-clear-checks" class="btn" type="button">Clear checks</button>
+            <a class="btn btn-primary shop-footer-cta" href="../print/">Continue to Print</a>
+          </div>
+        </div>
+        <details class="shop-footer-advanced">
+          <summary class="shop-footer-advanced-summary mono">
+            <span class="shop-footer-alt-tag">Advanced</span>
+            Extra options for contributors
+          </summary>
+          <p class="shop-footer-alt mono">
+            Skipping the assembled board? Wire PCA9685 / amp / USB-C breakouts yourself —
+            <a id="shop-advanced-link" href="https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md#advanced-extra-modules" target="_blank" rel="noopener noreferrer">shopping.md</a>
+          </p>
+          <p class="shop-footer-alt mono">
+            Markdown cart:
+            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md">docs/shopping.md</a>
+            · UI data:
+            <a href="./cart.json">cart.json</a>
+          </p>
+        </details>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p class="mono">Tiny Engineer build guide · Shop</p>
+    </footer>
+  </div>
+  <script type="module" src="../../js/shop-cart.js?v=board-buy"></script>
+</body>
+</html>

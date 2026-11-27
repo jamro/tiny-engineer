@@ -7,7 +7,7 @@
 // Screws and nuts (hardware with `fastener`, scripts/assembly/fasteners.py)
 // are nodes of kind 'fastener' with that entry in their extras.
 //
-//   node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json web/assembly/models/sg90.glb
+//   node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json web/build/assembly/models/sg90.glb
 //
 // The GLB keeps the CAD frame (millimetres, Z up) under a root node that turns
 // it to glTF's Y up. Meshes carry positions and indices only; the viewer

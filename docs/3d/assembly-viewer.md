@@ -1,6 +1,6 @@
 # 3D assembly model
 
-The **[assembly viewer](https://jamro.github.io/tiny-engineer/assembly/)** shows the stock SG90 robot assembled from the same meshes you print. CI always builds its 3D model from the repository; the [Pages workflow](../../.github/workflows/pages.yml) publishes `models/sg90.glb`, rebuilding when assembly model inputs change and otherwise reusing a cached GLB keyed by those inputs. The only generated files in git are the electronics the CAD does not have ([below](#electronics-the-design-does-not-have)).
+The **[assembly viewer](https://jamro.github.io/tiny-engineer/build/assembly/)** shows the stock SG90 robot assembled from the same meshes you print. CI always builds its 3D model from the repository; the [Pages workflow](../../.github/workflows/pages.yml) publishes `models/sg90.glb`, rebuilding when assembly model inputs change and otherwise reusing a cached GLB keyed by those inputs. The only generated files in git are the electronics the CAD does not have ([below](#electronics-the-design-does-not-have)).
 
 ```mermaid
 flowchart LR
@@ -22,18 +22,18 @@ flowchart LR
 
 ## Viewer
 
-[`web/assembly/`](../../web/assembly/) on GitHub Pages, plain ES modules in [`web/js/assembly/`](../../web/js/assembly/), with Three.js from a CDN. It loads `models/sg90.glb`, which the [Pages workflow](../../.github/workflows/pages.yml) publishes on deploy (rebuild via [`build.sh`](../../scripts/assembly/build.sh) on cache miss, else the cached GLB).
+[`web/build/assembly/`](../../web/build/assembly/) on GitHub Pages, plain ES modules in [`web/js/assembly/`](../../web/js/assembly/), with Three.js from a CDN. It loads `models/sg90.glb`, which the [Pages workflow](../../.github/workflows/pages.yml) publishes on deploy (rebuild via [`build.sh`](../../scripts/assembly/build.sh) on cache miss, else the cached GLB).
 
 - **Build steps:** the build from [assembly.md](assembly.md), split into small steps. Each step shows the robot so far, slides the new parts in, frames them, and lists screws, the section photo and a link to the guide. Back / Play / Next sit at the top of the build card; ← / → or jump to a section. `#s=12` links to step 12.
 - **Colours:** parts use the design defaults (copper set, black set, white diffuser). There is no colour picker.
 - **Pose:** the published model stays at its assembled CAD pose. There are no joint sliders; servo motion lives on the physical robot ([robot-movement.md](../robot-movement.md)).
 - **Screws and nuts:** the robot's M2 screws and nuts, in their holes ([below](#screws-and-nuts)), always shown with the electronics when the current step includes them.
 
-Local preview: build the GLB into `web/assembly/models/sg90.glb` (commands below), then `python3 -m http.server -d web 8000` and open `http://localhost:8000/assembly/`.
+Local preview: build the GLB into `web/build/assembly/models/sg90.glb` (commands below), then `python3 -m http.server -d web 8000` and open `http://localhost:8000/build/assembly/`.
 
 ### Steps
 
-[`web/assembly/steps.json`](../../web/assembly/steps.json): sections that follow `assembly.md` (`doc` is the heading anchor, `photo` a file in `assembly_visuals/`), each with steps:
+[`web/build/assembly/steps.json`](../../web/build/assembly/steps.json): sections that follow `assembly.md` (`doc` is the heading anchor, `photo` a file in `assembly_visuals/`), each with steps:
 
 ```json
 { "title": "Seat the OLED", "text": "…", "add": ["OLED"], "from": [0, 0, 40], "screws": "2 × M2×8" }
@@ -63,7 +63,7 @@ A line that finds another count than it says fails the build. Meshes: pan head 3
 [`check_clipping.mjs`](../../scripts/assembly/check_clipping.mjs) replays every step on the meshes. Each part that moves is walked along its path in 1 mm steps and tested against every part shown. Then the finished robot is checked pair by pair. Depth is measured on the triangles ([`clipping.mjs`](../../scripts/assembly/clipping.mjs)). Faces that only touch measure 0. Anything deeper than 0.3 mm fails, unless `fits` or the step's `allow` covers that pair. `build.sh` runs it for the stock robot.
 
 ```bash
-node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json [--tolerance 0.3] [--step 1]
+node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/build/assembly/steps.json [--tolerance 0.3] [--step 1]
 ```
 
 ## How placements are found
@@ -109,11 +109,11 @@ python3 -m venv .venv && .venv/bin/pip install -r scripts/assembly/requirements.
 node scripts/assembly/test_build_glb.mjs
 node scripts/assembly/test_viewer.mjs
 node scripts/assembly/test_clipping.mjs
-# SG90: extract, fasteners, checks, GLB -> web/assembly/models/
+# SG90: extract, fasteners, checks, GLB -> web/build/assembly/models/
 PYTHON=.venv/bin/python scripts/assembly/build.sh
 ```
 
-`artifacts/` and `web/assembly/models/` are git-ignored. CI runs the same commands (`assembly` job) and uploads `assembly.json` and the GLB as the `assembly-<sha>` artifact.
+`artifacts/` and `web/build/assembly/models/` are git-ignored. CI runs the same commands (`assembly` job) and uploads `assembly.json` and the GLB as the `assembly-<sha>` artifact.
 
 ### `assembly.json`
 

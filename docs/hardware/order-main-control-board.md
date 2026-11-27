@@ -14,7 +14,7 @@ The fab builds the PCB and (if you choose PCBA) the parts soldered onto it. You 
 
 ## 1. Get manufacturing files (no KiCad required)
 
-The public [Shop](https://jamro.github.io/tiny-engineer/shop/) stage publishes a JLCPCB-oriented package generated at **GitHub Pages deploy** from the board sources on that commit (always the latest site deploy — **not** a release tag):
+The public [Shop](https://jamro.github.io/tiny-engineer/build/shop/) stage publishes a JLCPCB-oriented package generated at **GitHub Pages deploy** from the board sources on that commit (always the latest site deploy — **not** a release tag):
 
 | File | Role |
 | --- | --- |
@@ -24,9 +24,9 @@ The public [Shop](https://jamro.github.io/tiny-engineer/shop/) stage publishes a
 
 Download them directly:
 
-- https://jamro.github.io/tiny-engineer/shop/fab/main-control-board/gerbers.zip
-- https://jamro.github.io/tiny-engineer/shop/fab/main-control-board/bom.csv
-- https://jamro.github.io/tiny-engineer/shop/fab/main-control-board/positions.csv
+- https://jamro.github.io/tiny-engineer/build/shop/fab/main-control-board/gerbers.zip
+- https://jamro.github.io/tiny-engineer/build/shop/fab/main-control-board/bom.csv
+- https://jamro.github.io/tiny-engineer/build/shop/fab/main-control-board/positions.csv
 
 You still need a fab account (here: JLCPCB). **Review stock and orientation** in the fab UI before you pay — downloads do not replace that check.
 
@@ -44,7 +44,7 @@ Or from a machine with KiCad’s Python (`pcbnew`) and the Toolkit installed / d
 ./scripts/fab/export_main_control_board.sh
 ```
 
-That writes the same three public filenames under `web/shop/fab/main-control-board/` (gitignored). **GitHub Pages deploy always runs Fabrication Toolkit** (`FAB_REQUIRE_TOOLKIT=1`) so published files match a local Toolkit `production/` export (pad-center CPL + AUTO TRANSLATE). Do not use `FAB_FORCE_KICAD_CLI=1` for fab uploads — that path is not orientation-compatible.
+That writes the same three public filenames under `web/build/shop/fab/main-control-board/` (gitignored). **GitHub Pages deploy always runs Fabrication Toolkit** (`FAB_REQUIRE_TOOLKIT=1`) so published files match a local Toolkit `production/` export (pad-center CPL + AUTO TRANSLATE). Do not use `FAB_FORCE_KICAD_CLI=1` for fab uploads — that path is not orientation-compatible.
 
 ## 2. Choose how much assembly you want
 

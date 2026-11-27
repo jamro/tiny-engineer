@@ -4,7 +4,7 @@
 
 ![Tiny Engineer demo](docs/tiny-engineer-preview.gif)
 
-**[Watch the demo](https://youtu.be/RX_QRxdXMjg)** · [Build your own](#build-your-own) · [Community builds](#community-builds) · [How it works](#how-it-works)
+**[Watch the demo](https://youtu.be/RX_QRxdXMjg)** · [Build your own](#build-your-own) · [Mods and accessories](#mods-and-accessories) · [Community builds](#community-builds) · [How it works](#how-it-works)
 
 A small robot on your desk. It moves, changes its face, and rings a bell as your coding AI agent works.
 
@@ -21,15 +21,28 @@ Open source. Print the body, plug the ESP32, servos, OLED, and speaker into the 
 
 ## Build your own
 
-The whole build is a short guided path: buy the parts, print the body, flash the firmware in the browser, then assemble with a 3D step-through. Parts plug in. No soldering.
+The whole build is a short guided path: buy the assembled board and the plug-in modules, print the body or order the prints, flash the firmware from Chrome or Edge over USB, then follow a 3D step-through that slides each part into place. Parts push into labeled sockets. No soldering. A phone wizard joins your Wi-Fi when the body is together.
 
 [![Shop, browser flash, and step-by-step 3D assembly](docs/interactive_assembly.jpg)](https://tinyengineer.dev/build)
 
 **[Start the build guide at tinyengineer.dev →](https://tinyengineer.dev/build)**
 
+[Shop](https://tinyengineer.dev/build/shop/) · [Print](https://tinyengineer.dev/build/print/) · [Flash](https://tinyengineer.dev/build/flash/) · [Assembly](https://tinyengineer.dev/build/assembly/) · [Setup](https://tinyengineer.dev/build/setup/)
+
+## Mods and accessories
+
+[![Push button and LCD cabinet beside Tiny Engineer](docs/mods_preview.jpg)](https://tinyengineer.dev/customise)
+
+Two extras you keep in reach while an agent is working.
+
+- **[Push button](mods/bell_button/README.md)** — a fully configurable shortcut on the desk. One press opens Music, a double-click opens Cursor, a hold starts Claude Code, or you point each gesture at any other app or script.
+- **[LCD cabinet](mods/lcd_cabinet/README.md)** — keeps the plan budget left in view on the desk. After each agent turn the number updates, so you always know how much is left before the next prompt. The screen is customisable and can display whatever you want.
+
+**[All customisations at tinyengineer.dev →](https://tinyengineer.dev/customise)**
+
 ## Community builds
 
-![Built Tiny Engineer](docs/tiny-engineer-preview.jpg)
+![Built Tiny Engineer](docs/tiny-engineer-community.jpg)
 
 Finished builds, mods, and desk setups live in **[Show and tell](https://github.com/jamro/tiny-engineer/discussions/categories/show-and-tell)** on GitHub Discussions - browse what others made and post photos of yours.
 

@@ -7,10 +7,10 @@ Helps builders complete the shop stage of the public GitHub Pages build flow: bu
 ## Requirements
 
 ### Requirement: Shop stage presents a build cart
-The `/shop/` page MUST present an in-page build cart for the default Tiny Engineer parts path. It MUST NOT be only a single external link to the shopping markdown document.
+The `/build/shop/` page MUST present an in-page build cart for the default Tiny Engineer parts path. It MUST NOT be only a single external link to the shopping markdown document.
 
 #### Scenario: Open shop
-- **WHEN** a visitor opens `/shop/` on the published site
+- **WHEN** a visitor opens `/build/shop/` on the published site
 - **THEN** the page shows an order timeline, an assembled-board buy card first (with board-ordered check on that card), and checklist lanes for plug-in modules and fasteners
 - **AND** the page does not present a separate top-level “pick a servo” step before the board
 - **AND** the page does not show a second standalone “board ordered” checklist panel under the board card
@@ -19,7 +19,7 @@ The `/shop/` page MUST present an in-page build cart for the default Tiny Engine
 The shop page MUST let the visitor select exactly one of Tower Pro SG90, Feetech FS0307, or EMAX ES9051 from the plug-in modules servo checklist row (not a separate shop step). SG90 MUST be the default when no saved choice exists. The shop UI MUST NOT offer PowerHD HD-1370A as a selectable preset. The servo row MUST name the chosen model, give a sense of robot size (approximate assembled dimensions and/or a plain size label such as standard/compact), and name the buy quantity, without requiring a repository path such as `parts/{servo_id}/` in the primary human-facing copy.
 
 #### Scenario: First visit
-- **WHEN** a visitor opens `/shop/` with no saved servo choice
+- **WHEN** a visitor opens `/build/shop/` with no saved servo choice
 - **THEN** SG90 is selected on the plug-in modules servo row and the cart reflects five SG90-class servos
 
 #### Scenario: Compact preset
@@ -56,7 +56,7 @@ The plug-in modules servo row MUST tell visitors they need five identical units 
 Servo preset selection MUST NOT be presented as the same progress state as marking the board or modules ordered. Checklist progress for buyable or orderable items MUST reflect explicit visitor checks. Check controls MUST be operable from the checklist row with a hit target larger than the decorative mark alone, and the control label MUST make clear the visitor is marking the item obtained or ordered.
 
 #### Scenario: Default servo is chosen not purchased
-- **WHEN** a visitor first lands on `/shop/` with SG90 selected and no checklist checks saved
+- **WHEN** a visitor first lands on `/build/shop/` with SG90 selected and no checklist checks saved
 - **THEN** timeline or glance copy does not claim board/modules/fasteners are done solely because a servo preset is selected
 
 #### Scenario: Row marks ordered
@@ -64,11 +64,11 @@ Servo preset selection MUST NOT be presented as the same progress state as marki
 - **THEN** that item is marked checked, the state persists per existing checklist persistence rules, and the control remains reachable from the row
 
 ### Requirement: Soft warn before continue with incomplete checks
-The continue-to-print control MUST remain available. When required checklist progress is incomplete, the shop page MUST show a non-blocking warning that naming remaining work (especially the board order) before or beside that control. The page MUST NOT block navigation to `/print/`.
+The continue-to-print control MUST remain available. When required checklist progress is incomplete, the shop page MUST show a non-blocking warning that naming remaining work (especially the board order) before or beside that control. The page MUST NOT block navigation to `/build/print/`.
 
 #### Scenario: Incomplete checks still allow print
 - **WHEN** a visitor activates continue-to-print with unchecked board or module items
-- **THEN** they can still navigate to `/print/` and see a non-blocking reminder that shopping checks remain incomplete
+- **THEN** they can still navigate to `/build/print/` and see a non-blocking reminder that shopping checks remain incomplete
 
 #### Scenario: Complete checks omit warn
 - **WHEN** a visitor has checked all default-cart checklist items and continues to print
@@ -89,7 +89,7 @@ The plug-in modules servo row MUST show a working image for the selected preset 
 - **THEN** each card displays an image or an intentional placeholder, not a broken-image icon with empty content
 
 ### Requirement: Cart data from structured JSON
-The shop checklist and related shop UI data MUST load from a same-origin `cart.json` (or equivalent structured cart file under `web/shop/`). The page MUST NOT scrape `docs/shopping.md` at runtime to build the cart.
+The shop checklist and related shop UI data MUST load from a same-origin `cart.json` (or equivalent structured cart file under `web/build/shop/`). The page MUST NOT scrape `docs/shopping.md` at runtime to build the cart.
 
 #### Scenario: Cart loads
 - **WHEN** the shop page initializes successfully
@@ -131,7 +131,7 @@ The shop page MUST NOT list PCA9685, MAX98357A, or USB-C breakout boards as buya
 The shop page MUST persist the selected servo preset and which checklist items are checked in browser `localStorage` (or equivalent browser storage). Reloading the page MUST restore that state when storage is available.
 
 #### Scenario: Reload keeps progress
-- **WHEN** a visitor selects a servo, checks one or more items, and reloads `/shop/`
+- **WHEN** a visitor selects a servo, checks one or more items, and reloads `/build/shop/`
 - **THEN** the same servo and checked items remain selected
 
 #### Scenario: Storage unavailable
@@ -142,7 +142,7 @@ The shop page MUST persist the selected servo preset and which checklist items a
 The shop page MUST NOT present a checkout, a fixed or summed kit/BOM price, or the Elecrow board as a complete robot kit. An external link to that single assembled board is allowed.
 
 #### Scenario: No price or checkout
-- **WHEN** a visitor views `/shop/`
+- **WHEN** a visitor views `/build/shop/`
 - **THEN** there is no checkout control and no total kit price claim
 
 ### Requirement: Visual cart presentation
@@ -153,8 +153,8 @@ The shop page MUST use the site's existing visual system (panels, tokens, typogr
 - **THEN** each has an image (real asset or placeholder) sized for that slot
 
 ### Requirement: Continue to print stage
-The shop page MUST provide a clear control that navigates to the `/print/` build stage. The shop page MUST NOT host the home-print or print-service order wizard.
+The shop page MUST provide a clear control that navigates to the `/build/print/` build stage. The shop page MUST NOT host the home-print or print-service order wizard.
 
 #### Scenario: Exit to print
 - **WHEN** a visitor activates the continue-to-print control
-- **THEN** they navigate to `/print/`
+- **THEN** they navigate to `/build/print/`

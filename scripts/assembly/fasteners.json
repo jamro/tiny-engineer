@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "about": "The M2 screws and nuts the 3D viewer draws (scripts/assembly/fasteners.py). Each entry is one BOM line of 3d_models/README.md#screws: the part the screw head sits on, the part it threads into, its length, how many, and the build step (web/assembly/steps.json title) that drives it in. Positions come from the hole stacks in the parts' STEP exports at each servo preset; a count that does not match fails the build.",
+  "about": "The M2 screws and nuts the 3D viewer draws (scripts/assembly/fasteners.py). Each entry is one BOM line of 3d_models/README.md#screws: the part the screw head sits on, the part it threads into, its length, how many, and the build step (web/build/assembly/steps.json title) that drives it in. Positions come from the hole stacks in the parts' STEP exports at each servo preset; a count that does not match fails the build.",
   "pilot_radius": 1.05,
   "screw": {"head_diameter": 3.5, "head_height": 1.4, "thread_diameter": 2.0, "about": "pan head as JIS B 1122 (the M2 self-tapping assortments): the FS0307 and HD-1370A tab holes sit 1.9 mm from the gearbox"},
   "nut": {"width_across_flats": 4.0, "height": 1.6, "about": "ISO 4032 M2"},

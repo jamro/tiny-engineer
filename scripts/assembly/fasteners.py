@@ -45,7 +45,7 @@ from f3d_assembly import read_stl  # noqa: E402
 from step_geometry import MIRRORED, print_fit, step_features, step_to_print_rotation  # noqa: E402
 
 CONFIG = Path(__file__).resolve().parent / "fasteners.json"
-STEPS = ROOT / "web" / "assembly" / "steps.json"
+STEPS = ROOT / "web" / "build" / "assembly" / "steps.json"
 #: Circles this close to one axis (mm) are on one hole stack (the desk's holes sit 0.2 mm off the chair's).
 AXIS_MM = 0.25
 #: A screw must reach this far (mm) into the part it threads into.
@@ -242,7 +242,7 @@ def frame(origin: np.ndarray, up: np.ndarray, angle: float = 0.0) -> np.ndarray:
 
 
 def shown_by_step(steps: dict) -> dict[str, set[str]]:
-    """Step title → the parts on the robot once that step is done (web/assembly/steps.json)."""
+    """Step title → the parts on the robot once that step is done (web/build/assembly/steps.json)."""
     shown: set[str] = set()
     result: dict[str, set[str]] = {}
     for section in steps["sections"]:

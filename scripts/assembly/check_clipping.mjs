@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Check the assembly viewer's build steps for parts clipping through each other.
 //
-//   node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
+//   node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/build/assembly/steps.json
 //
 // For each step it walks the moving parts along their paths (from where they
 // wait to where the step leaves them, as the viewer draws them: offsetsAt in

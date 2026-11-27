@@ -2,8 +2,8 @@
 """Build same-origin flash catalog for GitHub Pages (avoids Release-asset CORS).
 
 Writes:
-  web/flash/releases.json
-  web/flash/firmware/<tag>/*.bin
+  web/build/flash/releases.json
+  web/build/flash/firmware/<tag>/*.bin
 
 Run from repo root. Used by .github/workflows/pages.yml.
 """
@@ -23,7 +23,7 @@ REPO = "tiny-engineer"
 API = f"https://api.github.com/repos/{OWNER}/{REPO}/releases?per_page=30"
 UA = "tiny-engineer-pages-catalog"
 ROOT = Path(__file__).resolve().parents[1]
-OUT_DIR = ROOT / "web" / "flash"
+OUT_DIR = ROOT / "web" / "build" / "flash"
 FIRMWARE_DIR = OUT_DIR / "firmware"
 RELEASES_JSON = OUT_DIR / "releases.json"
 TAG_RE = re.compile(r"^v\d+")

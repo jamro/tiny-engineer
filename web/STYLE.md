@@ -398,11 +398,11 @@ Do not copy any one reference literally.
 ### Current
 
 - `/` — full landing (hero + See it work → Build your own); copy in [`landing-page.md`](landing-page.md)
-- `/flash/` — USB web installer (ESP Web Tools)
+- `/build/flash/` — USB web installer (ESP Web Tools)
 - `/customise/` — tile hub for screens editor, eye styles gallery + optional mods
-- `/screens/` — laptop screen insert generator; sizes from `presets.json`, written by `scripts/laptop_screens.py`
-- `/eyes/` — OLED eye style gallery (classic / kaomoji / dots / kawaii); canvas previews in `js/eyes-preview.js`
-- `/assembly/` — interactive 3D assembly viewer
+- `/customise/screens/` — laptop screen insert generator; sizes from `presets.json`, written by `scripts/laptop_screens.py`
+- `/customise/eyes/` — OLED eye style gallery (classic / kaomoji / dots / kawaii); canvas previews in `js/eyes-preview.js`
+- `/build/assembly/` — interactive 3D assembly viewer
 
 **Site header:** do not hand-edit nav links per page. Use [`js/site-header.js`](js/site-header.js) (`data-page` + `data-root`). Canonical link set documented in [`landing-page.md`](landing-page.md#nav-canonical).
 
@@ -482,7 +482,7 @@ New pages should share header/nav/footer patterns and this palette so the site f
 
 - Maintain contrast for primary text on `--bg` / `--panel` (do not lighten muted text further for body copy).
 - Do not convey state by color alone; pair LEDs with a text label (`ONLINE`, `READY`, error sentence).
-- Web Serial flasher requires Chromium (Chrome/Edge) and HTTPS; say so in UI copy on `/flash/`.
+- Web Serial flasher requires Chromium (Chrome/Edge) and HTTPS; say so in UI copy on `/build/flash/`.
 - Prefer semantic headings and real `<button>` / links over clickable `<div>`s.
 
 ---
@@ -499,4 +499,4 @@ When making design decisions, prefer the option that feels:
 
 GitHub Pages is deployed from `web/` via [`.github/workflows/pages.yml`](../.github/workflows/pages.yml). One-time: repo **Settings → Pages → Source → GitHub Actions**.
 
-Firmware install manifests ship on each `v*` Release as `manifest.json`. Pages deploy mirrors those assets via `scripts/build_flash_catalog.py` into `web/flash/firmware/<tag>/` and `web/flash/releases.json` (same-origin; browser cannot fetch Release CDN bins due to CORS). The flasher must load `releases.json`, not GitHub download URLs.
+Firmware install manifests ship on each `v*` Release as `manifest.json`. Pages deploy mirrors those assets via `scripts/build_flash_catalog.py` into `web/build/flash/firmware/<tag>/` and `web/build/flash/releases.json` (same-origin; browser cannot fetch Release CDN bins due to CORS). The flasher must load `releases.json`, not GitHub download URLs.

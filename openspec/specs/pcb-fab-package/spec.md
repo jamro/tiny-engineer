@@ -14,7 +14,7 @@ The Pages (or equivalent site) build MUST generate a manufacturing package for `
 - **THEN** the build produces Gerber archive, `bom.csv`, and `positions.csv` derived from those sources
 
 ### Requirement: Published paths under shop fab
-The generated package MUST be published on the deployed site under a stable path rooted at `/shop/fab/main-control-board/` (or the same-origin equivalent under the Pages `web/` root). Builders MUST be able to download at least: a Gerber ZIP, `bom.csv`, and `positions.csv`.
+The generated package MUST be published on the deployed site under a stable path rooted at `/build/shop/fab/main-control-board/` (or the same-origin equivalent under the Pages `web/` root). Builders MUST be able to download at least: a Gerber ZIP, `bom.csv`, and `positions.csv`.
 
 #### Scenario: Same-origin downloads
 - **WHEN** a visitor requests the published Gerber ZIP, `bom.csv`, and `positions.csv` URLs for main-control-board
@@ -36,7 +36,7 @@ Published fab files MUST track the board sources of the commit being deployed to
 
 #### Scenario: Board push refreshes package
 - **WHEN** main-control-board KiCad sources change on the branch that deploys Pages and deploy completes
-- **THEN** the public `/shop/fab/main-control-board/` files reflect that newer board revision
+- **THEN** the public `/build/shop/fab/main-control-board/` files reflect that newer board revision
 
 ### Requirement: Deploy fails closed on missing package
 If package generation fails, the site deploy MUST fail rather than publish a shop page that advertises fab downloads without the files.

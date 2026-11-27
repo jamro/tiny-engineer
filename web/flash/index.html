@@ -3,119 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Flash firmware · Tiny Engineer</title>
-  <meta name="description" content="Flash Tiny Engineer firmware from the browser over USB (Chrome or Edge).">
-  <link rel="preconnect" href="https://fonts.bunny.net">
-  <link href="https://fonts.bunny.net/css?family=ibm-plex-mono:400,500|ibm-plex-sans:400,500,600" rel="stylesheet">
-  <link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="../css/base.css">
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "../vendor/three/build/three.module.js",
-        "three/addons/": "../vendor/three/examples/jsm/"
-      }
-    }
-  </script>
-  <script type="module" src="../vendor/esp-web-tools/install-button.js"></script>
-  <script type="module" src="../js/flash-prep.js?v=usbc70"></script>
+  <title>Redirecting · Tiny Engineer</title>
+  <link rel="canonical" href="../build/flash/">
+  <meta http-equiv="refresh" content="0; url=../build/flash/">
+  <script>location.replace("../build/flash/");</script>
 </head>
-<body class="page-flash page-build">
-  <div class="wrap">
-    <header class="site-header" data-page="flash" data-root="../"></header>
-    <script src="../js/site-header.js"></script>
-
-    <main>
-      <div class="build-head">
-        <script src="../js/build-progress.js"></script>
-        <nav class="build-timeline" data-stage="flash" data-root="../"></nav>
-        <script src="../js/build-timeline.js"></script>
-        <div class="flash-intro">
-          <p class="eyebrow">Install software</p>
-          <h1>Flash firmware</h1>
-          <p class="lede">
-            Put the robot software on the board over USB.
-          </p>
-        </div>
-      </div>
-
-      <div class="flash-prep-head">
-        <div class="flash-prep-copy">
-          <h2 id="flash-prep-title" class="flash-prep-title">Prepare the board</h2>
-          <p id="flash-prep-body" class="flash-prep-body">
-            Push the ESP32 module into the sockets on the main board. Line it up with the USB mark printed on the board.
-            Use a USB-C data cable into the board’s USB-C. Do not plug into the small port on the ESP32 module.
-          </p>
-        </div>
-        <aside class="flash-prep-callout callout" aria-label="Browser requirement">
-          <p class="flash-prep-callout-title"><strong>Chrome or Edge only.</strong></p>
-          <p class="flash-prep-callout-body">
-            USB-C <em>data</em> cable (charge-only cables fail).
-            Hold BOOT on the module if the port is missing.
-          </p>
-        </aside>
-      </div>
-
-      <div class="flash-main">
-        <section class="panel flash-prep" aria-label="Board preparation animation">
-          <div class="flash-prep-view">
-            <div id="flash-prep-stage" class="flash-prep-stage"></div>
-            <p id="flash-prep-status" class="flash-prep-status mono" role="status" data-state="loading">Loading model…</p>
-          </div>
-        </section>
-
-        <section class="panel flash-install-panel">
-          <p class="panel-label">Install</p>
-          <div class="panel-body">
-            <label class="field-label" for="flash-release">Release</label>
-            <select id="flash-release" class="select mono" disabled>
-              <option value="">Loading releases…</option>
-            </select>
-
-            <div class="status-row">
-              <span id="flash-led" class="led led-warn" aria-hidden="true"></span>
-              <span class="mono">RELEASE <span id="flash-version">…</span></span>
-            </div>
-            <p id="flash-status" class="status-message">Loading flashable releases…</p>
-
-            <div id="flash-install" class="flash-install" hidden>
-              <esp-web-install-button manifest="">
-                <button slot="activate" class="btn btn-primary">Connect &amp; install</button>
-              </esp-web-install-button>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <section class="panel shop-footer-panel" aria-label="Continue to assembly">
-        <div class="shop-footer-main">
-          <div class="shop-footer-copy">
-            <p class="panel-label">Continue</p>
-            <p class="shop-step-lede shop-footer-lede">Board flashed? Next is mechanical assembly.</p>
-          </div>
-          <div class="shop-footer-actions">
-            <a class="btn btn-primary shop-footer-cta" href="../assembly/">Continue to Assembly</a>
-          </div>
-        </div>
-        <details class="shop-footer-advanced">
-          <summary class="shop-footer-advanced-summary mono">
-            <span class="shop-footer-alt-tag">Advanced</span>
-            Flash notes &amp; CLI
-          </summary>
-          <p class="shop-footer-alt mono">
-            Module alone can still flash, then blink-halts looking for the board —
-            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md" target="_blank" rel="noopener noreferrer">docs/flash.md</a>
-            · CLI:
-            <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md" target="_blank" rel="noopener noreferrer">pio run -t upload</a>
-          </p>
-        </details>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <p class="mono">Tiny Engineer build guide · Flash</p>
-    </footer>
-  </div>
-  <script src="../js/flash-status.js"></script>
+<body>
+  <p><a href="../build/flash/">Continue to Flash</a></p>
 </body>
 </html>

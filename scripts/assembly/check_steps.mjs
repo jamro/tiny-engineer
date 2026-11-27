@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Check the viewer's assembly steps against a model's parts: every part is
 // added exactly once, and every id the steps name exists.
-//   node scripts/assembly/check_steps.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
+//   node scripts/assembly/check_steps.mjs artifacts/assembly/sg90/assembly.json web/build/assembly/steps.json
 import { readFileSync } from 'node:fs';
 import { validate } from '../../web/js/assembly/steps.js';
 import { loadSteps } from './check_clipping.mjs';

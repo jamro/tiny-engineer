@@ -134,4 +134,4 @@ jobs:
 
             All **four** files are required for a clean first flash or web install. App + LittleFS alone is enough only when bootloader and partition table are already on the chip.
 
-            Web flash: [jamro.github.io/tiny-engineer/flash/](https://jamro.github.io/tiny-engineer/flash/) — pick this tag (or any release that ships `manifest.json`). Offsets above match this tag’s `partitions.csv`. Usual path: clone the tagged commit and run `pio run -t upload` (see [docs/flash.md](https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md)).
+            Web flash: [jamro.github.io/tiny-engineer/build/flash/](https://jamro.github.io/tiny-engineer/build/flash/) — pick this tag (or any release that ships `manifest.json`). Offsets above match this tag’s `partitions.csv`. Usual path: clone the tagged commit and run `pio run -t upload` (see [docs/flash.md](https://github.com/jamro/tiny-engineer/blob/main/docs/flash.md)).

@@ -4,7 +4,7 @@ Optional Halloween mod for Tiny Engineer. [`3d_models/`](3d_models/) holds alter
 
 ![Halloween mod parts](halloween_preview.jpg)
 
-The stock robot in 3D: [assembly viewer](https://jamro.github.io/tiny-engineer/assembly/). Assembly steps for the base robot: [assembly guide](../../docs/3d/assembly.md).
+The stock robot in 3D: [assembly viewer](https://jamro.github.io/tiny-engineer/build/assembly/). Assembly steps for the base robot: [assembly guide](../../docs/3d/assembly.md).
 
 ## Parts
 

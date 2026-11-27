@@ -8,7 +8,7 @@ preset under 3d_models/parts/ gets correctly sized inserts:
 - LaptopCase.stl: the lid pocket the plate slides into, and the lip in front of
   it whose opening is the part of the insert you actually see.
 
-Screen designs are plain-text files in 3d_models/laptop_screens/screens/*.screen
+Screen designs are plain-text files in 3d_models/laptop_screens/customise/screens/*.screen
 (format: 3d_models/laptop_screens/README.md). Standard library only.
 
     python3 scripts/laptop_screens.py           # rewrite the PDFs
@@ -35,7 +35,7 @@ def out_pdf(sid):
     return OUT_DIR / f"laptop-screens-{sid}.pdf"
 
 
-WEB_DIR = ROOT / "web" / "screens"
+WEB_DIR = ROOT / "web" / "customise" / "screens"
 
 PT_PER_MM = 72 / 25.4
 A4_MM = (210.0, 297.0)
@@ -570,7 +570,7 @@ def preset_page(sid, name, geo, screens, mode, start):
 
 
 def web_data(report):
-    """Sizes and stock designs for the web generator (web/screens/)."""
+    """Sizes and stock designs for the web generator (web/customise/screens/)."""
     sizes = [{"id": sid, "name": name,
               "insert": [round(v, 2) for v in geo["insert"]],
               "window": [round(v, 2) for v in geo["window"]],

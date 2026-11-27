@@ -7,29 +7,29 @@ Helps builders complete the print stage of the public GitHub Pages build flow: s
 ## Requirements
 
 ### Requirement: Print stage presents a part queue
-The `/print/` page MUST present an in-page printable-parts queue for the selected servo preset. It MUST NOT be only a single external link to `3d_models/README.md`.
+The `/build/print/` page MUST present an in-page printable-parts queue for the selected servo preset. It MUST NOT be only a single external link to `3d_models/README.md`.
 
 #### Scenario: Open print
-- **WHEN** a visitor opens `/print/` on the published site
+- **WHEN** a visitor opens `/build/print/` on the published site
 - **THEN** the page shows the locked servo variant, a Print-first tester section, color-grouped part rows with progress controls, and download controls
 
 ### Requirement: Servo variant locked from Shop
-The print page MUST resolve the servo preset from the Shop browser storage key used by `/shop/` (`tiny-engineer.shop.servo`). Supported presets MUST be SG90, FS0307, and ES9051. When no saved choice exists, SG90 MUST be used. The print UI MUST NOT offer an in-page servo picker; it MUST show the active variant and a control that navigates to the Shop plug-in modules section (`/shop/#shop-lane-next`) to change it. The print UI MUST NOT offer HD-1370A.
+The print page MUST resolve the servo preset from the Shop browser storage key used by `/build/shop/` (`tiny-engineer.shop.servo`). Supported presets MUST be SG90, FS0307, and ES9051. When no saved choice exists, SG90 MUST be used. The print UI MUST NOT offer an in-page servo picker; it MUST show the active variant and a control that navigates to the Shop plug-in modules section (`/build/shop/#shop-lane-next`) to change it. The print UI MUST NOT offer HD-1370A.
 
 #### Scenario: Variant from Shop
-- **WHEN** Shop storage has `fs0307` selected and the visitor opens `/print/`
+- **WHEN** Shop storage has `fs0307` selected and the visitor opens `/build/print/`
 - **THEN** the page identifies Feetech FS0307 (or equivalent label) as the active variant and file downloads resolve under that servo’s published files folder
 
 #### Scenario: Default when unset
-- **WHEN** a visitor opens `/print/` with no saved Shop servo choice
+- **WHEN** a visitor opens `/build/print/` with no saved Shop servo choice
 - **THEN** the page uses SG90 and still renders the queue
 
 #### Scenario: Change requires Shop
 - **WHEN** the visitor wants a different servo preset
-- **THEN** the only in-page change path is a navigation control to `/shop/#shop-lane-next` (no radio/select on Print)
+- **THEN** the only in-page change path is a navigation control to `/build/shop/#shop-lane-next` (no radio/select on Print)
 
 ### Requirement: Part data from structured JSON
-The print queue and related print UI data MUST load from a same-origin `parts.json` (or equivalent structured file under `web/print/`). The page MUST NOT scrape `3d_models/README.md` at runtime to build the list.
+The print queue and related print UI data MUST load from a same-origin `parts.json` (or equivalent structured file under `web/build/print/`). The page MUST NOT scrape `3d_models/README.md` at runtime to build the list.
 
 #### Scenario: Parts load
 - **WHEN** the print page initializes successfully
@@ -46,14 +46,14 @@ The print page MUST group stock printable parts into color lanes that match the 
 The print page MUST include a separate Print-first section for `ServoSizingTester` and `ScrewSizingTest` with checkboxes independent of the color-lane rows. That section MUST explain that testers come before the full set for home printing.
 
 #### Scenario: Testers before lanes
-- **WHEN** a visitor views `/print/`
+- **WHEN** a visitor views `/build/print/`
 - **THEN** the tester section appears above the color-grouped part lanes and each tester has its own checkbox and downloads
 
 ### Requirement: Progress checklist persistence
 The print page MUST persist which tester and part checklist items are checked in browser `localStorage` (or equivalent), using a key distinct from Shop checklist storage. Reloading MUST restore that state when storage is available. Storage failures MUST NOT crash the page.
 
 #### Scenario: Reload keeps print progress
-- **WHEN** a visitor checks one or more print items and reloads `/print/`
+- **WHEN** a visitor checks one or more print items and reloads `/build/print/`
 - **THEN** those items remain checked
 
 #### Scenario: Storage unavailable
@@ -79,19 +79,19 @@ Each listed tester and stock part row MUST show a live 3D preview of that part l
 - **THEN** the row still exposes checkbox and download controls without crashing the page
 
 ### Requirement: Published mesh files on Pages
-The deployed site MUST publish individual `.3mf` and `.stl` files for SG90, FS0307, and ES9051 under a same-origin print files path used by the page. Those meshes MUST NOT be required as committed bulk under `web/print/files/` in git; publish MAY happen at Pages build/deploy time from `3d_models/parts/`.
+The deployed site MUST publish individual `.3mf` and `.stl` files for SG90, FS0307, and ES9051 under a same-origin print files path used by the page. Those meshes MUST NOT be required as committed bulk under `web/build/print/files/` in git; publish MAY happen at Pages build/deploy time from `3d_models/parts/`.
 
 #### Scenario: Deployed downloads resolve
 - **WHEN** the Pages workflow has deployed successfully
 - **THEN** same-origin URLs for individual part `.3mf` and `.stl` files for each supported servo return the mesh files
 
 ### Requirement: Visual system and continue
-The print page MUST use the site’s existing visual system (panels, tokens, typography) consistent with `/shop/`. It MUST provide a clear control that navigates to the next build stage (`/flash/`). The print page MUST NOT host a third-party print-service order wizard for aggregated PartsSet uploads.
+The print page MUST use the site’s existing visual system (panels, tokens, typography) consistent with `/build/shop/`. It MUST provide a clear control that navigates to the next build stage (`/build/flash/`). The print page MUST NOT host a third-party print-service order wizard for aggregated PartsSet uploads.
 
 #### Scenario: Exit to flash
-- **WHEN** a visitor activates the continue control on `/print/`
-- **THEN** they navigate to `/flash/`
+- **WHEN** a visitor activates the continue control on `/build/print/`
+- **THEN** they navigate to `/build/flash/`
 
 #### Scenario: No service wizard
-- **WHEN** a visitor views `/print/`
+- **WHEN** a visitor views `/build/print/`
 - **THEN** there is no in-page PCBWay-style multi-step order wizard for PartsSetA/B aggregates

@@ -69,7 +69,7 @@ python3 scripts/assembly/test_boards.py
 python3 scripts/assembly/extract.py --preset sg90 --out artifacts/assembly/sg90
 python3 scripts/assembly/fasteners.py artifacts/assembly/sg90/assembly.json
 node scripts/assembly/build_glb.mjs artifacts/assembly/sg90/assembly.json artifacts/assembly/sg90.glb
-node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/assembly/steps.json
+node scripts/assembly/check_clipping.mjs artifacts/assembly/sg90/assembly.json web/build/assembly/steps.json
 ```
 
 `scripts/assembly/build.sh` runs the extraction, places the M2 screws and nuts (`fasteners.py`, which fails when a line of `fasteners.json` finds another count), the step and clipping checks, and the SG90 GLB build.

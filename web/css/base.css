@@ -2076,7 +2076,7 @@ esp-web-install-button .button,
   font-size: 0.9rem;
 }
 
-/* Laptop screen generator (/screens/) */
+/* Laptop screen generator (/customise/screens/) */
 
 .page-screens main {
   gap: 1.25rem;
@@ -2440,7 +2440,7 @@ esp-web-install-button .button,
   box-shadow: 0 0 0 1px var(--border-strong);
 }
 
-/* Assembly viewer (/assembly/) */
+/* Assembly viewer (/build/assembly/) */
 
 .page-assembly .wrap {
   width: min(100% - 2rem, 80rem);
@@ -2953,7 +2953,7 @@ esp-web-install-button .button,
   -webkit-mask-image: linear-gradient(to top, transparent, #000 75%);
 }
 
-/* —— Shop stage (/shop/) —— */
+/* —— Shop stage (/build/shop/) —— */
 
 .page-shop main {
   display: flex;
@@ -3940,7 +3940,7 @@ esp-web-install-button .button,
   }
 }
 
-/* --- Print queue (/print/) — extends shop stage patterns --- */
+/* --- Print queue (/build/print/) — extends shop stage patterns --- */
 
 .page-print main {
   display: flex;
@@ -4196,7 +4196,7 @@ esp-web-install-button .button,
   font-size: 0.72rem;
 }
 
-/* Eye styles gallery (/eyes/) */
+/* Eye styles gallery (/customise/eyes/) */
 .page-eyes main {
   gap: 1.25rem;
 }
