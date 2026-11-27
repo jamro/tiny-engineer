@@ -51,44 +51,13 @@
       "thumb": "../media/shop/thumbs/es9051.jpg?v=r1"
     }
   ],
-  "jlcpcb": {
-    "title": "Main circuit board (factory-assembled)",
-    "pathLabel": "Beginner-friendly \u2014 clear steps",
-    "disclaimer": "Follow the steps below and upload the three files. At checkout, glance at stock and part orientation, then pay. No partnership with JLCPCB.",
-    "fullGuideUrl": "https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/order-main-control-board.md",
-    "orderUrl": "https://jlcpcb.com/",
-    "image": "../media/shop/main-control-board.jpg?v=r1",
-    "downloads": [
-      {
-        "id": "gerbers",
-        "label": "Board layout file",
-        "tech": "Gerber ZIP",
-        "icon": "i-file-archive",
-        "url": "fab/main-control-board/gerbers.zip"
-      },
-      {
-        "id": "bom",
-        "label": "Parts list file",
-        "tech": "BOM CSV",
-        "icon": "i-table",
-        "url": "fab/main-control-board/bom.csv"
-      },
-      {
-        "id": "positions",
-        "label": "Placement file",
-        "tech": "CPL / positions CSV",
-        "icon": "i-map-pin",
-        "url": "fab/main-control-board/positions.csv"
-      }
-    ],
-    "steps": [
-      "Go to jlcpcb.com and sign in or create an account.",
-      "Click Order Now and upload the Board layout file (Gerber).",
-      "Enable PCB Assembly at the bottom of the page (so they solder the parts for you).",
-      "Set PCBA Type: Standard, Assembly Side: Both sides, then continue.",
-      "Continue again and upload the Parts list file (BOM) and Placement file (CPL).",
-      "Review stock and part orientation, then finish checkout."
-    ]
+  "board": {
+    "title": "Main circuit board (assembled)",
+    "pathLabel": "Assembled board",
+    "blurb": "Plug in the modules from the list below. ESP32, servos, screen, and speaker are not included.",
+    "buyUrl": "https://www.elecrow.com/tiny-engineer-main-board-open-source-ai-coding-companion.html",
+    "buyLabel": "Buy on Elecrow",
+    "image": "../media/shop/main-control-board.jpg?v=r1"
   },
   "lanes": [
     {
@@ -99,12 +68,12 @@
       "items": [
         {
           "id": "board-ordered",
-          "label": "Main board ordered (both sides assembled)",
+          "label": "Main board ordered",
           "qty": 1,
-          "notes": "Factory-assembled board \u2014 mark when your order is placed.",
+          "notes": "Assembled board from Elecrow — mark when your order is placed.",
           "image": "../media/shop/main-control-board.jpg?v=r1",
           "checkOnly": true,
-          "blurb": "Factory-assembled board \u2014 mark when ordered.",
+          "blurb": "Assembled board — mark when ordered.",
           "thumb": "../media/shop/thumbs/main-control-board.jpg?v=r1"
         }
       ]

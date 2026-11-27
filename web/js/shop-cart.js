@@ -1,5 +1,5 @@
 /**
- * Shop stage cart: load cart.json, JLCPCB lane, checklist + localStorage.
+ * Shop stage cart: load cart.json, Elecrow board card, checklist + localStorage.
  * Servo preset (SG90 default) lives on the plug-in modules servo row.
  * Mount: empty nodes with ids shop-* in web/shop/index.html, then this script.
  */
@@ -145,7 +145,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     warn.textContent =
       "You can still continue — " +
       bits.join("; ") +
-      ". Order the board when you are ready; the steps above walk you through it.";
+      ". Buy the board when you are ready.";
     warn.hidden = false;
   };
 
@@ -249,11 +249,11 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
   const boardLane = () => cart?.lanes?.find((l) => l.id === "now");
   const boardItem = () => boardLane()?.items?.[0] || null;
 
-  const renderJlcpcb = () => {
+  const renderBoard = () => {
     const root = el("shop-jlcpcb");
     const panel = el("shop-step-board");
-    if (!root || !cart?.jlcpcb) return;
-    const j = cart.jlcpcb;
+    if (!root || !cart?.board) return;
+    const board = cart.board;
     const item = boardItem();
     const isDone = item ? checked.has(item.id) : false;
     root.replaceChildren();
@@ -262,7 +262,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     const media = document.createElement("div");
     media.className = "shop-jlcpcb-media";
     const img = document.createElement("img");
-    img.src = j.image;
+    img.src = board.image;
     img.alt = "Tiny Engineer main control board";
     img.width = 800;
     img.height = 640;
@@ -316,10 +316,10 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     const body = document.createElement("div");
     body.className = "shop-jlcpcb-body";
 
-    if (j.pathLabel) {
+    if (board.pathLabel) {
       const path = document.createElement("p");
       path.className = "shop-path-label mono";
-      path.textContent = j.pathLabel;
+      path.textContent = board.pathLabel;
       body.append(path);
     }
 
@@ -327,121 +327,30 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     titleRow.className = "shop-jlcpcb-title-row";
     const title = document.createElement("h2");
     title.className = "shop-section-title";
-    title.textContent = j.title;
+    title.textContent = board.title;
     titleRow.append(title);
     body.append(titleRow);
 
-    if (j.disclaimer) {
+    if (board.blurb) {
       const disc = document.createElement("p");
       disc.className = "shop-jlcpcb-disclaimer";
-      disc.textContent = j.disclaimer;
+      disc.textContent = board.blurb;
       body.append(disc);
     }
 
-    if (Array.isArray(j.downloads) && j.downloads.length) {
-      const dl = document.createElement("div");
-      dl.className = "shop-jlcpcb-downloads";
-      const dlLabel = document.createElement("p");
-      dlLabel.className = "shop-jlcpcb-downloads-label mono";
-      dlLabel.textContent = "Download these three files";
-      dl.append(dlLabel);
-      const dlRow = document.createElement("div");
-      dlRow.className = "shop-jlcpcb-download-row";
-      j.downloads.forEach((item) => {
-        if (!item?.url || !item?.label) return;
-        const a = document.createElement("a");
-        a.className = "btn shop-jlcpcb-download";
-        a.href = item.url;
-        const fileName =
-          item.filename ||
-          String(item.url).split("/").pop() ||
-          item.label;
-        a.setAttribute("download", fileName);
-        if (item.tech) a.title = item.tech;
-        if (item.icon) appendSpriteIcon(a, item.icon, { prepend: true });
-        a.append(document.createTextNode(item.label));
-        dlRow.append(a);
-      });
-      dl.append(dlRow);
-      body.append(dl);
+    if (board.buyUrl) {
+      const actions = document.createElement("div");
+      actions.className = "shop-jlcpcb-actions";
+      const buy = document.createElement("a");
+      buy.className = "btn btn-primary";
+      buy.href = board.buyUrl;
+      buy.target = "_blank";
+      buy.rel = "noopener noreferrer";
+      buy.append(board.buyLabel || "Buy on Elecrow");
+      appendExternalIcon(buy);
+      actions.append(buy);
+      body.append(actions);
     }
-
-    const downloadByLabel = new Map();
-    (j.downloads || []).forEach((item) => {
-      if (item?.label && item?.url) downloadByLabel.set(String(item.label), item);
-    });
-    const linkLabels = [...downloadByLabel.keys()].sort((a, b) => b.length - a.length);
-    if (j.orderUrl) linkLabels.push("jlcpcb.com");
-
-    const appendStepWithFabLinks = (li, text) => {
-      if (!linkLabels.length) {
-        li.textContent = text;
-        return;
-      }
-      const escaped = linkLabels.map((l) =>
-        l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      );
-      const re = new RegExp(`(${escaped.join("|")})`, "g");
-      const parts = String(text).split(re);
-      parts.forEach((part) => {
-        if (part === "jlcpcb.com" && j.orderUrl) {
-          const a = document.createElement("a");
-          a.className = "shop-jlcpcb-step-file";
-          a.href = j.orderUrl;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
-          a.textContent = part;
-          li.append(a);
-          return;
-        }
-        const item = downloadByLabel.get(part);
-        if (!item) {
-          if (part) li.append(document.createTextNode(part));
-          return;
-        }
-        const a = document.createElement("a");
-        a.className = "shop-jlcpcb-step-file";
-        a.href = item.url;
-        const fileName =
-          item.filename || String(item.url).split("/").pop() || item.label;
-        a.setAttribute("download", fileName);
-        a.textContent = item.label;
-        li.append(a);
-      });
-    };
-
-    const ol = document.createElement("ol");
-    ol.className = "shop-jlcpcb-steps";
-    (j.steps || []).forEach((step) => {
-      const li = document.createElement("li");
-      appendStepWithFabLinks(li, step);
-      ol.append(li);
-    });
-    body.append(ol);
-
-    const actions = document.createElement("div");
-    actions.className = "shop-jlcpcb-actions";
-    if (j.orderUrl) {
-      const order = document.createElement("a");
-      order.className = "btn btn-primary";
-      order.href = j.orderUrl;
-      order.target = "_blank";
-      order.rel = "noopener noreferrer";
-      order.append("Open JLCPCB");
-      appendExternalIcon(order);
-      actions.append(order);
-    }
-    if (j.fullGuideUrl) {
-      const guide = document.createElement("a");
-      guide.className = "btn";
-      guide.href = j.fullGuideUrl;
-      guide.target = "_blank";
-      guide.rel = "noopener noreferrer";
-      guide.append("Full order guide");
-      appendExternalIcon(guide);
-      actions.append(guide);
-    }
-    body.append(actions);
 
     root.append(media, body);
   };
@@ -634,7 +543,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
     const root = el("shop-lanes");
     if (!root || !cart) return;
     root.replaceChildren();
-    // Board lane lives inside #shop-step-board (JLCPCB card), not a second panel.
+    // Board lane lives inside #shop-step-board, not a second panel.
     cart.lanes
       .filter((lane) => lane.id !== "now")
       .forEach((lane) => root.append(renderLane(lane)));
@@ -647,7 +556,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
   };
 
   const render = () => {
-    renderJlcpcb();
+    renderBoard();
     renderLanes();
     renderAdvanced();
     updateCheckProgress();
@@ -665,7 +574,7 @@ import { read, write, loadChecked, saveChecked } from "./storage.js";
   const clearChecks = () => {
     checked = new Set();
     saveChecked(checked, CHECKED_KEY);
-    renderJlcpcb();
+    renderBoard();
     renderLanes();
     updateCheckProgress();
   };

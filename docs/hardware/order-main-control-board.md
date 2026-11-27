@@ -22,7 +22,7 @@ The public [Shop](https://jamro.github.io/tiny-engineer/shop/) stage publishes a
 | `bom.csv` | Bill of materials (LCSC part numbers) |
 | `positions.csv` | Pick-and-place / CPL |
 
-Download them from the shop board lane, or directly:
+Download them directly:
 
 - https://jamro.github.io/tiny-engineer/shop/fab/main-control-board/gerbers.zip
 - https://jamro.github.io/tiny-engineer/shop/fab/main-control-board/bom.csv
@@ -61,7 +61,7 @@ On **one-side** PCBA, the remaining hand work is soldering **2.54 mm female head
 Site menus and labels change. Follow the **outcomes**, not exact button names.
 
 1. Create or sign in to a JLCPCB account and start a new **PCB** order.
-2. Upload the Gerber **ZIP** (from Shop downloads or your local export).
+2. Upload the Gerber **ZIP** (from the links above or your local export).
 3. Keep most board options at sensible defaults. As of writing, a typical match for this board is:
 
    | Setting | Typical choice |
@@ -102,4 +102,4 @@ Site menus and labels change. Follow the **outcomes**, not exact button names.
 3. **Both-sides PCBA:** plug in the ESP32, OLED, servos, and speaker per [main-control-board.md](main-control-board.md) — no board soldering required for those sockets.
 4. Return to [getting-started](../getting-started.md) for flash and mechanical assembly.
 
-KiCad sources and electrical notes for contributors: [`hardware/boards/main-control-board/`](../../hardware/boards/main-control-board/). Contribution rules: [pcb.md](../pcb.md). Optional cheaper community batch: [discussion #50](https://github.com/jamro/tiny-engineer/discussions/50).
+KiCad sources and electrical notes for contributors: [`hardware/boards/main-control-board/`](../../hardware/boards/main-control-board/). Contribution rules: [pcb.md](../pcb.md). The default buy path is the assembled board on [Elecrow](https://www.elecrow.com/tiny-engineer-main-board-open-source-ai-coding-companion.html); this page is the self-order path.

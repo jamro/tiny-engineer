@@ -3343,38 +3343,6 @@ esp-web-install-button .button,
     var(--panel);
 }
 
-.shop-board-interest {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin: 0.85rem 0 0;
-  padding: 0.55rem 0.7rem;
-  border: 1px solid rgba(124, 255, 107, 0.22);
-  border-radius: var(--radius);
-  background: rgba(124, 255, 107, 0.05);
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: var(--muted);
-}
-
-.shop-board-interest-icon {
-  flex: 0 0 auto;
-  width: 1.05rem;
-  height: 1.05rem;
-  margin-top: 0.12rem;
-  color: var(--accent);
-}
-
-.shop-board-interest a {
-  color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 0.12em;
-}
-
-.shop-board-interest a:hover {
-  color: var(--text);
-}
-
 .shop-jlcpcb-media {
   position: relative;
   margin: 0;
@@ -3465,66 +3433,28 @@ esp-web-install-button .button,
   color: var(--muted);
 }
 
-.shop-jlcpcb-downloads {
-  margin: 0.25rem 0 0.15rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.shop-jlcpcb-downloads-label {
-  margin: 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.shop-jlcpcb-download-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.shop-jlcpcb-download {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-}
-
-.shop-jlcpcb-download .icon {
-  width: 1em;
-  height: 1em;
-  flex-shrink: 0;
-}
-
-.shop-jlcpcb-step-file {
-  color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 0.12em;
-}
-
-.shop-jlcpcb-step-file:hover {
-  color: var(--text);
-}
-
-.shop-jlcpcb-steps {
-  margin: 0.35rem 0 0;
-  padding-left: 1.15rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  color: var(--text);
-  font-size: 0.88rem;
-  line-height: 1.45;
-}
-
 .shop-jlcpcb-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.55rem;
+}
+
+.shop-board-self {
+  margin: 0.85rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.shop-board-self a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.shop-board-self a:hover {
+  color: var(--text);
 }
 
 .shop-lanes {

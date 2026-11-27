@@ -24,7 +24,7 @@
           <p class="eyebrow">Parts · cart</p>
           <h1>Shop</h1>
           <p class="lede">
-            Order the factory-assembled board first (guided steps — no PCB experience needed), then buy plug-in modules and fasteners.
+            Buy the assembled board, then the plug-in modules and fasteners.
           </p>
         </div>
       </div>
@@ -42,11 +42,11 @@
       <section
         id="shop-step-board"
         class="panel shop-jlcpcb-panel"
-        aria-label="Order main control board"
+        aria-label="Buy main control board"
         data-lane="now"
       >
         <div class="shop-lane-head">
-          <p class="panel-label">1 · Order the board</p>
+          <p class="panel-label">1 · Buy the board</p>
           <span
             id="shop-board-progress"
             class="shop-lane-progress mono"
@@ -55,21 +55,12 @@
           ></span>
         </div>
         <p class="shop-step-lede">
-          Easy guided order — download three files, follow the steps on JLCPCB, and they assemble the board for you.
-          <strong>No soldering or PCB experience needed.</strong>
-          Mark the board photo when your order is placed.
+          Plug-in modules are the next list.
         </p>
         <div id="shop-jlcpcb" class="shop-jlcpcb"></div>
-        <p class="shop-board-interest">
-          <svg class="icon shop-board-interest-icon" aria-hidden="true"><use href="../media/icons.svg#i-package"></use></svg>
-          <span>
-            Looking at ready-made boards next, to skip the fab order entirely.
-            <a
-              href="https://github.com/jamro/tiny-engineer/discussions/50"
-              target="_blank"
-              rel="noopener noreferrer"
-            >Leave interest and track progress</a>.
-          </span>
+        <p class="shop-board-self mono">
+          Open source — change the design and order the board yourself.
+          <a href="https://github.com/jamro/tiny-engineer/blob/main/docs/hardware/order-main-control-board.md" target="_blank" rel="noopener noreferrer">Order guide</a>
         </p>
       </section>
 
@@ -93,7 +84,7 @@
             Extra options for contributors
           </summary>
           <p class="shop-footer-alt mono">
-            Skipping the factory-assembled board? Wire PCA9685 / amp / USB-C breakouts yourself —
+            Skipping the assembled board? Wire PCA9685 / amp / USB-C breakouts yourself —
             <a id="shop-advanced-link" href="https://github.com/jamro/tiny-engineer/blob/main/docs/shopping.md#advanced-extra-modules" target="_blank" rel="noopener noreferrer">shopping.md</a>
           </p>
           <p class="shop-footer-alt mono">
@@ -110,6 +101,6 @@
       <p class="mono">Tiny Engineer build guide · Shop</p>
     </footer>
   </div>
-  <script type="module" src="../js/shop-cart.js?v=board-easy"></script>
+  <script type="module" src="../js/shop-cart.js?v=board-buy"></script>
 </body>
 </html>

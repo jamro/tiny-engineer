@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Helps builders complete the shop stage of the public GitHub Pages build flow: order the main control board through JLCPCB and check off the default cart (including servo model) before print — without selling a kit.
+Helps builders complete the shop stage of the public GitHub Pages build flow: buy the assembled main control board and check off the default cart (including servo model) before print — without selling a kit.
 
 ## Requirements
 
@@ -11,9 +11,9 @@ The `/shop/` page MUST present an in-page build cart for the default Tiny Engine
 
 #### Scenario: Open shop
 - **WHEN** a visitor opens `/shop/` on the published site
-- **THEN** the page shows an order timeline, a JLCPCB board card first (with board-ordered check on that card), and checklist lanes for plug-in modules and fasteners
+- **THEN** the page shows an order timeline, an assembled-board buy card first (with board-ordered check on that card), and checklist lanes for plug-in modules and fasteners
 - **AND** the page does not present a separate top-level “pick a servo” step before the board
-- **AND** the page does not show a second standalone “board ordered” checklist panel under the JLCPCB card
+- **AND** the page does not show a second standalone “board ordered” checklist panel under the board card
 
 ### Requirement: Servo preset selection
 The shop page MUST let the visitor select exactly one of Tower Pro SG90, Feetech FS0307, or EMAX ES9051 from the plug-in modules servo checklist row (not a separate shop step). SG90 MUST be the default when no saved choice exists. The shop UI MUST NOT offer PowerHD HD-1370A as a selectable preset. The servo row MUST name the chosen model, give a sense of robot size (approximate assembled dimensions and/or a plain size label such as standard/compact), and name the buy quantity, without requiring a repository path such as `parts/{servo_id}/` in the primary human-facing copy.
@@ -35,15 +35,11 @@ The shop page MUST let the visitor select exactly one of Tower Pro SG90, Feetech
 - **THEN** SG90 remains the selected standard build option
 
 ### Requirement: Beginner-plain shop labels
-Primary shop titles, lane ledes, checklist item names shown as the main label, JLCPCB path badge, and fab download control labels MUST use plain language that states the job or outcome first. Vendor names, chip IDs, and fab file type names MAY appear as secondary text. The same-origin download targets MUST remain the published Gerber ZIP, `bom.csv`, and `positions.csv`.
+Primary shop titles, lane ledes, checklist item names shown as the main label, and the board-card path badge MUST use plain language that states the job or outcome first. Vendor names and chip IDs MAY appear as secondary text.
 
 #### Scenario: Board lane title is plain
-- **WHEN** a visitor views the JLCPCB board lane
-- **THEN** the primary heading describes the main assembled control board in plain words before or instead of leading with “JLCPCB both-sides PCBA” alone
-
-#### Scenario: Fab chips labeled for newcomers
-- **WHEN** a visitor views fab download controls
-- **THEN** each control’s visible label explains the file’s role in everyday words while still downloading the correct Gerber ZIP, BOM, or positions file
+- **WHEN** a visitor views the assembled-board buy card
+- **THEN** the primary heading describes the assembled main control board in plain words
 
 #### Scenario: Module labels lead with role
 - **WHEN** a visitor views plug-in module checklist rows
@@ -104,29 +100,25 @@ The shop page MUST present the default cart in an order that prioritizes the mai
 
 #### Scenario: Timeline order
 - **WHEN** a visitor views the shop body
-- **THEN** the board / JLCPCB lane appears before module lines and before fasteners and power lines
+- **THEN** the assembled-board buy card appears before module lines and before fasteners and power lines
 
-### Requirement: JLCPCB both-sides board lane
-The shop page MUST include an in-page short order flow for the main control board via JLCPCB with both-sides PCBA as the supported path. The primary short steps MUST start from same-origin downloads of the published Gerber ZIP, `bom.csv`, and `positions.csv` (no KiCad install required for that path). It MUST link to the full order guide in the documentation. The shop UI MUST NOT present Top-only, Economic-only, or PCB-only as selectable shop order paths. The short steps MUST still tell the visitor to review stock and orientation at JLCPCB before paying.
+### Requirement: Assembled board buy card
+The shop page MUST present the main control board as an external buy link to the Elecrow assembled-board product. The card MUST state that plug-in modules are separate. The shop UI MUST NOT present Gerber, BOM, or placement downloads, or a JLCPCB upload walkthrough, on the board card, and MUST NOT tell the visitor that fab files are unnecessary or that the board is sold one at a time. A quiet link to the self-order guide MAY sit under the board card for people changing the open-source design. That link MUST NOT be a primary board step.
 
-#### Scenario: Board lane content
-- **WHEN** a visitor views the board lane
-- **THEN** they see numbered short steps that begin with downloading fab files from the site, then placing a both-sides JLCPCB PCBA order with stock/orientation review, plus a link to the full order-main-control-board guide
+#### Scenario: Board card is a buy link
+- **WHEN** a visitor views the board card
+- **THEN** they see one primary control that opens the Elecrow assembled-board product, and a way to mark the board ordered
 
-#### Scenario: Fab download controls
-- **WHEN** a visitor views the board lane on a successfully deployed site
-- **THEN** the lane exposes working same-origin links (or equivalent download controls) for the Gerber ZIP, `bom.csv`, and `positions.csv`
+#### Scenario: No fab walkthrough on the card
+- **WHEN** a visitor views the board card
+- **THEN** the card does not list Gerber, BOM, or placement downloads and does not list JLCPCB upload steps
 
-#### Scenario: No KiCad prerequisite in primary steps
-- **WHEN** a visitor reads the in-page short JLCPCB steps
-- **THEN** those steps do not require installing KiCad or Fabrication Toolkit as a prerequisite for the primary order path
+### Requirement: Self-order guide stays off the primary path
+The shop page MAY link the self-order guide in quiet text under the board card, for people who change the open-source design and order the board themselves. That link MUST NOT replace the Elecrow buy control as the default board step.
 
-### Requirement: Full guide remains available for self-export
-The shop page MUST keep a link to the full order guide so builders who prefer (or need) local KiCad export can follow that path. The shop MUST NOT remove documentation access solely because downloads exist.
-
-#### Scenario: Full guide link present
-- **WHEN** a visitor views the JLCPCB board lane
-- **THEN** a link to the full order-main-control-board documentation remains available
+#### Scenario: Quiet self-order link
+- **WHEN** a visitor views the board section
+- **THEN** a low-emphasis link to the order-main-control-board documentation is present, and the Elecrow buy control remains the primary action
 
 ### Requirement: Advanced breakouts docs-only
 The shop page MUST NOT list PCA9685, MAX98357A, or USB-C breakout boards as buyable checklist rows for the default path. It MUST provide a single link to the GitHub shopping documentation section for advanced extra modules.
@@ -147,7 +139,7 @@ The shop page MUST persist the selected servo preset and which checklist items a
 - **THEN** the shop page still renders and remains usable without crashing
 
 ### Requirement: No kit storefront claims
-The shop page MUST NOT present a checkout, a fixed or summed kit/BOM price, or a ready-to-buy assembled main board as a product SKU.
+The shop page MUST NOT present a checkout, a fixed or summed kit/BOM price, or the Elecrow board as a complete robot kit. An external link to that single assembled board is allowed.
 
 #### Scenario: No price or checkout
 - **WHEN** a visitor views `/shop/`
