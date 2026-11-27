@@ -23,13 +23,13 @@ Non-preset servo: measure it, add a preset, export parts — [parametric design]
 
 The default build uses the **main control board**. PCA9685, the audio amp, and USB-C are on that PCB. You plug in the ESP32, OLED, five servos, and the speaker.
 
-Buy the assembled board from [Elecrow](https://www.elecrow.com/tiny-engineer-main-board-open-source-ai-coding-companion.html). ESP32, servos, OLED, and speaker are not included — they are the rest of this cart. Connect it: [hardware/main-control-board.md](hardware/main-control-board.md). Making the board yourself: [hardware/order-main-control-board.md](hardware/order-main-control-board.md).
+Buy the assembled board from [Elecrow](https://www.elecrow.com/tiny-engineer-main-board-open-source-ai-coding-companion.html). ESP32, servos, OLED, and speaker are not included — they are the rest of this cart. Connect it: [hardware/main-control-board.md](hardware/main-control-board.md).
 
 ### Default cart
 
 | Part | Qty | Link / notes |
 | --- | --- | --- |
-| Tiny Engineer main control board | 1 | Assembled board: [Elecrow](https://www.elecrow.com/tiny-engineer-main-board-open-source-ai-coding-companion.html). Open-source PCB ([CERN-OHL-S](../3d_models/LICENSE)); sources in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/). Self-order: [hardware/order-main-control-board.md](hardware/order-main-control-board.md). |
+| Tiny Engineer main control board | 1 | Assembled board: [Elecrow](https://www.elecrow.com/tiny-engineer-main-board-open-source-ai-coding-companion.html). Open-source PCB ([CERN-OHL-S](../3d_models/LICENSE)); sources in [`hardware/boards/main-control-board/`](../hardware/boards/main-control-board/). |
 | Waveshare ESP32-C3-Zero | 1 | https://docs.waveshare.com/ESP32-C3-Zero. Needs two 1×9 2.54 mm male pin headers soldered on (often in the box), or buy the ESP32-C3-Zero-M with them fitted |
 | Tower Pro SG90 (or equivalent 9 g analog micro) | 5 | Official [Tower Pro HK SG90](https://torqpro.com/product/sg90-analog/) — buy ×5 of one model; compact: Feetech [Pololu FS0307](https://www.pololu.com/product/3420) or [EMAX ES9051](https://shop.emaxmodel.com/products/emax-es9051-4-3g-digital-mini-servo-for-rc-model) on [Shop](https://jamro.github.io/tiny-engineer/shop/) |
 | [Adafruit Mini Oval Speaker - 8 Ohm 1 Watt](https://www.adafruit.com/product/3923) | 1 | https://www.adafruit.com/product/3923 |
@@ -39,9 +39,19 @@ Compact build: swap the five SG90 for **Feetech FS0307** or **EMAX ES9051** (sam
 
 The board already includes the PCA9685, the MAX98357A, and USB-C.
 
-### Advanced: extra modules
+### Advanced (optional)
 
-Use separate breakouts when you want modules the main control board does not support. Same firmware and printed Desk. More soldering and more boards in the cavity. Wiring: [hardware/wiring.md](hardware/wiring.md). Desk mounting: [3d/assembly-modular.md](3d/assembly-modular.md).
+Skip the Elecrow board only if you change the open-source design, or if you build from separate modules. Neither path is the default.
+
+#### Order the board yourself
+
+Change the design, then order the board from a fab. Walkthrough (JLCPCB example): [hardware/order-main-control-board.md](hardware/order-main-control-board.md).
+
+<a id="advanced-extra-modules"></a>
+
+#### Extra modules
+
+Use separate breakouts instead of the main control board. Same firmware and printed Desk. More soldering and more boards in the cavity. Wiring: [hardware/wiring.md](hardware/wiring.md). Desk mounting: [3d/assembly-modular.md](3d/assembly-modular.md).
 
 | Part | Qty | Link |
 | --- | --- | --- |

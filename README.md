@@ -15,26 +15,17 @@ A small robot on your desk. It moves, changes its face, and rings a bell as your
 | Thinks or waits | Looks up |
 | Finishes the task | Rings the bell |
 
-Open source. Print the body, plug the ESP32, servos, OLED, and speaker into the [main control board](docs/hardware/main-control-board.md), flash it, and it joins your Wi-Fi.
+Open source. Print the body, plug the ESP32, servos, OLED, and speaker into the main control board, flash it, and it joins your Wi-Fi.
 
 **Works with** Claude Code · Cursor · Antigravity — via [`npx -y tiny-engineer setup`](docs/integration.md) — or Codex, Windsurf, and any script that can POST ([integration guide](docs/integration.md) · [HTTP API](docs/api.md)), including speech through [`POST /play`](docs/api.md#post-play).
 
 ## Build your own
 
-| | |
-| --- | --- |
-| **Parts (electronics + 5× SG90 Servos)** | [shopping list](docs/shopping.md): [main control board](docs/hardware/order-main-control-board.md) plus ESP32, servos, OLED, and speaker |
-| **Also needed** | 3D printer + filament, or [order prints](docs/3d/order-parts.md); M2 screws; **5 V / ≥2 A** USB supply |
-| **Tools** | Plug in the ESP32, servos, OLED, and speaker on the [main control board](docs/hardware/main-control-board.md). Want to add extra modules? [advanced wiring](docs/hardware/wiring.md) |
-| **Difficulty** | **Medium** - fair first hardware project for a software engineer, not a one-LED kit. Optional primer: [From Code to Circuits](docs/hardware-for-software-engineers/README.md) |
+The whole build is a short guided path: buy the parts, print the body, flash the firmware in the browser, then assemble with a 3D step-through. Parts plug in. No soldering.
 
-[![Main control board](docs/pcb_banner.jpg)](https://github.com/jamro/tiny-engineer/discussions/50)
+[![Shop, browser flash, and step-by-step 3D assembly](docs/interactive_assembly.jpg)](https://tinyengineer.dev/build)
 
-The default build uses the open-source main control board. Order it from any fab ([how to order](docs/hardware/order-main-control-board.md) · [KiCad](hardware/boards/main-control-board/)). 
-
-If a ~$15–20 assembled board like this would be useful to you, [Vote here 👍 →](https://github.com/jamro/tiny-engineer/discussions/50) → I’m using the interest to decide whether it’s worth developing further.
-
-**Print → Connect → Flash → Assemble** - step-by-step: **[Getting started](docs/getting-started.md)**.
+**[Start the build guide at tinyengineer.dev →](https://tinyengineer.dev/build)**
 
 ## Community builds
 
@@ -43,17 +34,6 @@ If a ~$15–20 assembled board like this would be useful to you, [Vote here 👍
 Finished builds, mods, and desk setups live in **[Show and tell](https://github.com/jamro/tiny-engineer/discussions/categories/show-and-tell)** on GitHub Discussions - browse what others made and post photos of yours.
 
 **Built one? [Share in Show and tell →](https://github.com/jamro/tiny-engineer/discussions/categories/show-and-tell)**
-
-## Roadmap
-
-What we are building toward:
-
-- **More agent integrations** - one-command hooks for more IDEs and CLIs
-- **Simplified build process** - easier assembly and setup for quicker builds
-- **New characters / bodies** - alternate shells and mods
-- **Multi-agent desk** - more than one tiny teammate
-
-**[Star Tiny Engineer](https://github.com/jamro/tiny-engineer)** to follow the build.
 
 ## How it works
 
@@ -67,19 +47,6 @@ Your agent (or a hook script) sends poses over **Wi‑Fi HTTP** or **USB serial*
 - **Advanced** — `POST /anim` ([HTTP API](docs/api.md)) or framed USB serial ([serial.md](docs/serial.md))
 
 Details: [Integrations](docs/integration.md) · [HTTP API](docs/api.md) · [USB serial](docs/serial.md) · [Cursor hooks](docs/hooks.md)
-
-## Documentation
-
-| You want to… | Start here |
-| --- | --- |
-| Build the robot | [Getting started](docs/getting-started.md) |
-| Buy parts | [Shopping list](docs/shopping.md) |
-| Flash the board | **[Web flash](https://jamro.github.io/tiny-engineer/flash/)** · [Flash](docs/flash.md) |
-| Assemble the prints | [Assembly](docs/3d/assembly.md) |
-| Print the parts | [3D models](3d_models/README.md) |
-| Hook up an agent | [Integrations](docs/integration.md) |
-| Call the HTTP API | [API](docs/api.md) |
-| Anything else | [Docs index](docs/README.md) |
 
 Print it, connect it, change the CAD, or hook up another agent. Issues and PRs welcome - especially new integrations. [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
