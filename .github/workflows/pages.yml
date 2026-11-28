@@ -30,16 +30,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-24.04
     env:
       # Match pcb CI; bump with project KiCad major/patch.
       KICAD_APPIMAGE_VERSION: "10.0.7"
       KICAD_ROOT: /home/runner/kicad-appimage
       FAB_TOOLKIT_VERSION: "5.3.1"
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -276,10 +273,25 @@ jobs:
           PY
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      # Upload and deploy stay in separate jobs. The artifact list hides an
+      # upload until its job finishes, so a deploy in the same job sees zero
+      # artifacts. A re-run then uploads a second github-pages artifact and
+      # deploy refuses both. The attempt suffix keeps a re-run unambiguous.
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
