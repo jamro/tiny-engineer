@@ -1,0 +1,193 @@
+# face-pose Specification
+
+## Purpose
+
+Lets each user store an optional "face me" pose (head, neck, body) that points the robot at where they sit, so animations that address the user look at them. When the pose is not set, the robot behaves exactly as it does without the feature.
+
+## Requirements
+
+### Requirement: Face pose is an optional persistent setting
+The device MUST store an optional face pose of three values: head, neck and body, in that order, each in normalized pose units from −1 to 1 (−1 = saved min, 0 = mid, 1 = saved max). The pose MUST persist across reboot. A device with no stored pose MUST treat the face pose as not set.
+
+#### Scenario: Fresh device has no face pose
+- **WHEN** settings load on a device that never saved a face pose
+- **THEN** the face pose is not set
+
+#### Scenario: Saved pose survives reboot
+- **WHEN** a client saves face pose `[0.2, -0.4, 0.1]` and the device reboots
+- **THEN** the face pose is `[0.2, -0.4, 0.1]`
+
+### Requirement: Settings API exposes face pose
+`GET /settings` MUST include `face_pose`: a three-number array `[head, neck, body]` when set, or an empty array when not set. `POST /settings` MUST accept `face_pose` as three numbers from −1 to 1 to set it, or as an empty array to clear it, in normal mode and in setup AP mode.
+
+#### Scenario: Read when not set
+- **WHEN** a client sends `GET /settings` and no face pose is set
+- **THEN** the response contains `"face_pose": []`
+
+#### Scenario: Set the pose
+- **WHEN** a provisioned client sends `POST /settings` with `{"face_pose":[0.15,-0.3,0.1]}`
+- **THEN** the device answers success and the next `GET /settings` returns `"face_pose": [0.15,-0.3,0.1]`
+
+#### Scenario: Clear the pose
+- **WHEN** a client sends `POST /settings` with `{"face_pose":[]}`
+- **THEN** the face pose is not set and `GET /settings` returns `"face_pose": []`
+
+#### Scenario: Set in setup AP mode
+- **WHEN** setup AP mode is active and a client sends `POST /settings` with a valid `face_pose`
+- **THEN** the device saves it and does not answer `setup only in AP mode` or any other mode error
+
+### Requirement: Invalid face pose is rejected without change
+The device MUST answer `400` with `invalid face_pose` and MUST NOT change any setting from that request when `face_pose` is not an array, has a length other than 0 or 3, contains a non-number, or contains a value outside −1..1.
+
+#### Scenario: Value out of range
+- **WHEN** a client sends `POST /settings` with `{"face_pose":[0,1.5,0],"volume":40}`
+- **THEN** the device answers `400` `invalid face_pose`
+- **AND** neither the face pose nor the volume changes
+
+#### Scenario: Wrong length
+- **WHEN** a client sends `POST /settings` with `{"face_pose":[0,0]}`
+- **THEN** the device answers `400` `invalid face_pose`
+
+#### Scenario: Null is a wrong type
+- **WHEN** a client sends `POST /settings` with `{"face_pose":null}`
+- **THEN** the device answers `400` `invalid face_pose`
+
+### Requirement: Factory reset keeps face pose
+A factory reset MUST keep the face pose, the same way it keeps servo min/max.
+
+#### Scenario: Reset then read
+- **WHEN** a face pose is set and the user performs a factory reset
+- **THEN** after reset `GET /settings` returns the same `face_pose`
+- **AND** the saved servo ranges are unchanged
+
+### Requirement: Talking faces the user when face pose is set
+When the face pose is set, the talking animation MUST use the face head, neck and body as its rest pose, and MUST apply its head nods, neck drift and body sway as offsets from that rest pose, limited to −1..1. A change to the face pose MUST apply the next time talking starts, without reboot.
+
+#### Scenario: Talking settles on the face pose
+- **WHEN** the face pose is `[0.3, -0.5, 0.2]` and talking starts with no audio
+- **THEN** the head, neck and body move toward `0.3`, `-0.5` and `0.2`
+- **AND** later neck drift and body sway stay within their normal sway width around `-0.5` and `0.2`
+
+#### Scenario: Offsets are limited
+- **WHEN** the face neck is `1` and talking drifts the neck to a positive offset
+- **THEN** the neck target is `1`, not a value above the saved max
+
+#### Scenario: New pose applies without reboot
+- **WHEN** a client saves a new face pose and then starts talking
+- **THEN** talking uses the new face pose
+
+### Requirement: No face pose keeps current motion
+When the face pose is not set, every animation MUST use the same poses it uses without this feature. Talking MUST use head `1/7`, neck `0` and body `0` as its rest pose.
+
+#### Scenario: Talking without face pose
+- **WHEN** no face pose is set and talking starts
+- **THEN** talking rests at head `1/7`, neck `0` and body `0`, as before this change
+
+#### Scenario: Other animations ignore the face pose
+- **WHEN** a face pose is set and typing, reading, thinking, welcome or ring plays
+- **THEN** those animations use the same poses as when no face pose is set
+
+### Requirement: Web UI calibrates the face pose
+After provisioning, the Servo control page of the web UI MUST provide a Face me section that moves head, neck and body one at a time inside their saved ranges with nudge steps of ±1° and ±5° in whole degrees, shows the selected joint on a bar that spans its saved min to max, saves the current pose as the face pose, clears it, and plays the talking animation as a preview. The section MUST show whether a face pose is set.
+
+#### Scenario: Start from the saved or default pose
+- **WHEN** the user opens the Servo control page
+- **THEN** the controls start at the saved face pose, or at head `1/7`, neck `0`, body `0` when none is set
+- **AND** the Face me section states whether a face pose is set
+
+#### Scenario: Adjust a joint
+- **WHEN** the user picks head, neck or body and chooses a ±1° or ±5° nudge
+- **THEN** the robot moves that joint to the shown whole-degree angle plus that step, limited to its saved range
+- **AND** the bar marker moves to the new angle between the saved min and max
+- **AND** the stored value is the matching −1..1 pose unit
+
+#### Scenario: First nudge moves all joints to the shown pose
+- **WHEN** the user makes the first nudge on the Servo control page
+- **THEN** the robot first moves head, neck and body to the angles the controls show, and then makes the nudge
+- **AND** later nudges move only the picked joint
+
+#### Scenario: No manual move while a preview cannot stop
+- **WHEN** a talking preview runs, the user nudges a joint, and the request to stop the preview fails
+- **THEN** the UI sends no servo move and keeps the shown pose
+
+#### Scenario: Save
+- **WHEN** the user chooses Save
+- **THEN** the robot first moves head, neck and body to the angles the controls show
+- **AND** only when all three moves succeed, the UI sends the three current values as `face_pose` via `POST /settings`
+
+#### Scenario: Save after a failed move
+- **WHEN** the user chooses Save and one of the moves before it fails
+- **THEN** the UI sends no `face_pose`
+
+#### Scenario: Another control moved a joint
+- **WHEN** the Servo control form moves a joint, or the talking preview starts or stops, after the face controls synced
+- **THEN** the next nudge first moves head, neck and body to the shown pose again
+
+#### Scenario: Clear
+- **WHEN** the user chooses Clear and confirms
+- **THEN** the UI sends `"face_pose": []` and the section shows that no face pose is set
+- **AND** after a successful clear the controls show the default pose, so a later Save does not store the cleared pose again
+
+#### Scenario: Preview
+- **WHEN** the user chooses Preview
+- **THEN** the robot plays the talking animation
+
+#### Scenario: Recalibration notice
+- **WHEN** the Face me section shows a set face pose
+- **THEN** the section tells the user to check the face pose again after a servo range calibration
+
+### Requirement: Guided calibration ends with Face me
+The setup AP wizard MUST show Face me as the last substep of guided servo calibration (after the range substeps), not as a separate outer wizard step. The substep MUST let the user move head, neck and body and save the face pose. It MUST NOT offer Skip. Skipping servo calibration from the servos hub MUST advance past Face me without changing `face_pose`.
+
+#### Scenario: After last range substep
+- **WHEN** the user confirms the last guided range substep
+- **THEN** the UI saves the servo ranges and opens Face me inside the calibration flow
+- **AND** the calibration progress shows Face me as the last substep (for example `11 of 11`)
+- **AND** the outer wizard stays on the Servos step
+
+#### Scenario: Hub Skip skips Face me
+- **WHEN** the user chooses Skip on the servos hub
+- **THEN** the wizard advances to the next outer step (Screen)
+- **AND** Face me is not shown
+- **AND** no `face_pose` is sent
+
+#### Scenario: Save and continue
+- **WHEN** the user chooses Save and continue on Face me, with or without a nudge
+- **THEN** the robot first moves head, neck and body to the shown angles with the setup servo move endpoint
+- **AND** only when all three moves succeed, the UI sends the three current values as `face_pose` via `POST /settings` and advances the outer wizard
+- **AND** when a move fails, the UI sends no `face_pose` and stays on the Face me substep
+
+#### Scenario: Step opens at the shown pose
+- **WHEN** the Face me substep opens
+- **THEN** the robot moves head, neck and body to the angles the controls show, with the setup servo move endpoint
+
+#### Scenario: Wizard moves use the setup move
+- **WHEN** the user nudges a joint on the Face me substep
+- **THEN** the UI uses the setup servo move endpoint with the matching angle inside the saved range
+
+#### Scenario: Back from Face me
+- **WHEN** the user chooses Back on Face me
+- **THEN** the UI returns to the last guided range substep
+
+### Requirement: Attention faces the user when face pose is set
+When the face pose is set, the attention animation MUST use the face head, neck and body as its rest pose for prep, audio motion and the waiting loop, and MUST apply its existing neck glances, head nods and wait drifts as offsets from that rest pose, limited to −1..1. Hand poses MUST stay as they are without this feature. A change to the face pose MUST apply the next time attention starts, without reboot.
+
+#### Scenario: Attention settles on the face pose
+- **WHEN** the face pose is `[0.3, -0.5, 0.2]` and attention starts
+- **THEN** the prep pose moves head, neck and body toward `0.3`, `-0.5` and `0.2`
+- **AND** later audio glances and wait drifts stay within their normal offset width around that rest pose
+
+#### Scenario: Attention offsets are limited
+- **WHEN** the face neck is `1` and attention applies a positive neck glance
+- **THEN** the neck target is `1`, not a value above the saved max
+
+#### Scenario: New face pose applies on next attention
+- **WHEN** a client saves a new face pose and then starts attention
+- **THEN** attention uses the new face pose
+
+### Requirement: Attention without face pose keeps stock motion
+When the face pose is not set, attention MUST use the same poses it uses without this feature: head `6/35`, neck `0` and body `0` as its rest pose.
+
+#### Scenario: Attention without face pose
+- **WHEN** no face pose is set and attention starts
+- **THEN** attention rests at head `6/35`, neck `0` and body `0`, as before this change
