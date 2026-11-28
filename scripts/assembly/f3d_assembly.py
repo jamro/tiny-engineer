@@ -69,6 +69,25 @@ def rigid_matrices(raw: bytes) -> list[tuple[int, np.ndarray]]:
     return found
 
 
+def instance_pose(matrices: list[tuple[int, np.ndarray]]) -> np.ndarray | None:
+    """The current pose stored on a component instance.
+
+    Fusion writes the initial pose and the current one, earlier slot first.
+    They match while the component is still where it was created. A joint
+    leaves the initial pose in the earlier slot and the solved pose in the
+    later one. Identical copies collapse; when they differ, the later slot
+    is the one the joint solved.
+    """
+    unique: list[np.ndarray] = []
+    for _, matrix in matrices:
+        if any(np.allclose(matrix, known, atol=1e-8, rtol=0) for known in unique):
+            continue
+        unique.append(matrix)
+    if not unique:
+        return None
+    return unique[-1]
+
+
 def inverse(matrix: np.ndarray) -> np.ndarray:
     """Inverse of a rigid 4x4 transform."""
     result = np.eye(4)
@@ -183,17 +202,16 @@ class Design:
             found.setdefault(path_ids, Occurrence(path, path_ids, to_mm(matrices[0][1])))
         # An instance Fusion wrote no record for keeps the placement stored on
         # the instance itself (e.g. the body servo, placed by joints only).
+        # The instance may hold the initial pose and the joint-solved pose.
         placed = {ids[-1] for ids in found}
         for oid in self.instance_ids:
             if oid in placed or oid not in self.instance_component:
                 continue
-            matrices = rigid_matrices(self.raw(oid))
-            if len(matrices) > 1:
-                continue
-            if not matrices and not self._places_bodies(oid):
+            pose = instance_pose(rigid_matrices(self.raw(oid)))
+            if pose is None and not self._places_bodies(oid):
                 continue
             # No transform at all: the component sits where it was modelled.
-            matrix, source = (to_mm(matrices[0][1]), "instance") if matrices else (np.eye(4), "identity")
+            matrix, source = (to_mm(pose), "instance") if pose is not None else (np.eye(4), "identity")
             found[(oid,)] = Occurrence((self.instance_component[oid],), (oid,), matrix, source=source)
         return list(found.values())
 

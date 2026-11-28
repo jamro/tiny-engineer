@@ -14,7 +14,17 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import extract  # noqa: E402
-from f3d_assembly import Joint, Match, inverse, joint_agreement, match, rigid_matrices, stl_targets, to_mm  # noqa: E402
+from f3d_assembly import (  # noqa: E402
+    Joint,
+    Match,
+    instance_pose,
+    inverse,
+    joint_agreement,
+    match,
+    rigid_matrices,
+    stl_targets,
+    to_mm,
+)
 
 
 def rotation_z(degrees: float) -> np.ndarray:
@@ -53,6 +63,22 @@ class RigidMatrices(unittest.TestCase):
     def test_ignores_non_rigid(self):
         scaled = transform(np.eye(3) * 2, [0, 0, 0])
         self.assertEqual(rigid_matrices(fusion_bytes(scaled)), [])
+
+    def test_instance_pose_collapses_identical_copies(self):
+        pose = transform(np.eye(3), [0, -1.393, 1.393])
+        got = instance_pose([(168, pose), (476, pose.copy())])
+        np.testing.assert_allclose(got, pose)
+
+    def test_instance_pose_keeps_the_joint_solved_slot(self):
+        # SeatRight: initial pose at the origin, solved pose in the later slot.
+        mirror = np.diag([1.0, -1.0, -1.0])
+        initial = transform(mirror, [0, 0, 0])
+        solved = transform(mirror, [0.125, -1.3926, 7.5926])
+        got = instance_pose([(168, initial), (476, solved)])
+        np.testing.assert_allclose(got, solved)
+
+    def test_instance_pose_is_empty_without_a_matrix(self):
+        self.assertIsNone(instance_pose([]))
 
 
 class Transforms(unittest.TestCase):
